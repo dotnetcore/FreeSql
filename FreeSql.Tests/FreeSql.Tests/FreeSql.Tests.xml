@@ -24,6 +24,126 @@
             会员ID
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.Id">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.SalesmanId">
+             <summary>
+            <para>推销员Id    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.Type">
+             <summary>
+            <para>洗车卡业务类型:0=自助卡 1=自动卡 2=通用卡[BaseCardBussinessType]    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.DivideAmount">
+             <summary>
+            <para>收益    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.AddTime">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityConfig.UpdateTime">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.Id">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.SalesmanActivityConfigId">
+             <summary>
+            <para>推销员活动配置Id    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.ActivityType">
+             <summary>
+            <para>洗车卡业务类型:0=自助卡 1=自动卡 2=通用卡[BaseCardBussinessType]    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.SalesmanId">
+             <summary>
+            <para>推销员Id    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.AccountId">
+             <summary>
+            <para>用户Id    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.OrderNo">
+             <summary>
+            <para>订单编号    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.PayAmount">
+             <summary>
+            <para>支付金额    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.PayMethod">
+             <summary>
+            <para>支付方式  0、余额支付 1、微信支付 2、支付宝 99、无    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.PayStatus">
+             <summary>
+            <para>支付状态：1、待付款，5、已完成，10、关闭，15、退款中，20、退款完成    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.PayTime">
+             <summary>
+            <para>支付时间    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.IsActivated">
+             <summary>
+            <para>是否已激活    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.ActivatedTime">
+             <summary>
+            <para>激活时间    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.CardOrderId">
+             <summary>
+            <para>购买的365年卡Id    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.AddTime">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1118.SalesmanActivityOrder.UpdateTime">
+             <summary>
+            <para>    </para>
+             </summary>
+        </member>
+        <member name="F:FreeSql.Tests.Issues._1118.BaseCardBussinessType.ZiZhuKa">
+            <summary>
+            自助卡
+            </summary>
+        </member>
+        <member name="F:FreeSql.Tests.Issues._1118.BaseCardBussinessType.ZiDongKa">
+            <summary>
+            自动卡
+            </summary>
+        </member>
+        <member name="F:FreeSql.Tests.Issues._1118.BaseCardBussinessType.TongYongKa">
+            <summary>
+            通用卡
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
             <summary>
             收款金额
