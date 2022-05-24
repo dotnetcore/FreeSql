@@ -1362,9 +1362,15 @@ namespace FreeSql.Internal
                                             var exp3Args0 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
                                             if (exp3Args0.Parameters.Count == 1 && exp3Args0.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                                 exp3Args0 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args0, fsqltables);
-                                            var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString();
+                                            var sqlSumField = $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})";
+                                            var sqlSum = tscClone1.subSelect001._limit <= 0 && tscClone1.subSelect001._skip <= 0 ?
+                                                fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString() :
+                                                tscClone1.subSelect001.GetNestSelectSql(exp3Args0, sqlSumField, tosqlField =>
+                                                    fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { tosqlField })?.ToString());
                                             if (string.IsNullOrEmpty(sqlSum) == false)
-                                                return _common.IsNull($"({sqlSum.Replace(" \r\n", " \r\n    ")})", 0);
+                                                return tscClone1.subSelect001._limit <= 0 && tscClone1.subSelect001._skip <= 0 ?
+                                                    _common.IsNull($"({sqlSum.Replace(" \r\n", " \r\n    ")})", 0) :
+                                                    _common.IsNull($"({sqlSum})", 0);
                                             break;
                                         case "ToList":
                                         case "ToOne":

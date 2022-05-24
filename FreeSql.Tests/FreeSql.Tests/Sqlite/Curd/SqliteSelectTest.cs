@@ -1001,10 +1001,15 @@ limit 0,10", t1);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = (long)select.As("b").Sum(b => b.Id)
+                count = (long)select.As("b").Sum(b => b.Id),
+                sum2 = (long)select.As("b").Limit(10).Sum(b => b.Id)
             });
             Assert.Equal(@"SELECT a.""Id"" as1, a.""Clicks"" as2, a.""TypeGuid"" as3, a.""Title"" as4, a.""CreateTime"" as5, ifnull((SELECT sum(b.""Id"") 
-    FROM ""tb_topic22"" b), 0) as6 
+    FROM ""tb_topic22"" b), 0) as6, ifnull((SELECT  sum(ftba.""Id"") FROM ( 
+    SELECT b.""Id"" 
+    FROM ""tb_topic22"" b 
+    limit 0,10
+) ftba), 0) as7 
 FROM ""tb_topic22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {

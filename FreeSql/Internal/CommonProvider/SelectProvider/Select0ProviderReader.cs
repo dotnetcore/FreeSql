@@ -64,11 +64,12 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        public List<TTuple> ToList<TTuple>(string field)
+        public List<TTuple> ToList<TTuple>(string field) => ToListQfPrivate<TTuple>(this.ToSql(field), field);
+        public List<TTuple> ToListQfPrivate<TTuple>(string sql, string field)
         {
             var ret = new List<TTuple>();
             if (_cancel?.Invoke() == true) return ret;
-            var sql = this.ToSql(field);
+            if (string.IsNullOrEmpty(sql)) return ret;
             var dbParms = _params.ToArray();
             var type = typeof(TTuple);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -394,15 +395,6 @@ namespace FreeSql.Internal.CommonProvider
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
         protected List<TReturn> ToListMapReader<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivate<TReturn>(af, null);
-        protected ReadAnonymousTypeAfInfo GetExpressionField(Expression newexp, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
-        {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
-
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
-            return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
-        }
         static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
         public class GetAllFieldExpressionTreeInfo
         {
@@ -771,12 +763,41 @@ namespace FreeSql.Internal.CommonProvider
 
         protected double InternalAvg(Expression exp)
         {
-            var list = this.ToList<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}");
-            return list.Sum() / list.Count;
+            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0)
+            {
+                var list = this.ToList<double>(field);
+                return list.Sum() / list.Count;
+            }
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            var list2 = ToListQfPrivate<double>(sql, field);
+            return list2.Sum() / list2.Count;
         }
-        protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Max();
-        protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Min();
-        protected decimal InternalSum(Expression exp) => this.ToList<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Sum();
+        protected TMember InternalMax<TMember>(Expression exp)
+        {
+            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return this.ToList<TMember>(field).Max();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return ToListQfPrivate<TMember>(sql, field).Max();
+        }
+        protected TMember InternalMin<TMember>(Expression exp)
+        {
+            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return this.ToList<TMember>(field).Min();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return ToListQfPrivate<TMember>(sql, field).Min();
+        }
+        protected decimal InternalSum(Expression exp)
+        {
+            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return this.ToList<decimal>(field).Sum();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return ToListQfPrivate<decimal>(sql, field).Sum();
+        }
 
         public ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns)
         {
@@ -829,71 +850,6 @@ namespace FreeSql.Internal.CommonProvider
             return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
         }
 
-        class FindAllMemberExpressionVisitor : ExpressionVisitor
-        {
-            public List<NativeTuple<MemberExpression, ColumnInfo>> Result { get; set; } = new List<NativeTuple<MemberExpression, ColumnInfo>>();
-            Select0Provider _select;
-            public FindAllMemberExpressionVisitor(Select0Provider select) => _select = select;
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                var exps = new Stack<Expression>();
-                Expression exp = node;
-                while (exp != null)
-                {
-                    switch (exp.NodeType)
-                    {
-                        case ExpressionType.Parameter:
-                            exps.Push(exp);
-                            exp = null;
-                            continue;
-                        case ExpressionType.MemberAccess:
-                            exps.Push(exp);
-                            exp = (exp as MemberExpression)?.Expression;
-                            continue;
-                    }
-                    return base.VisitMember(node);
-                }
-                if (exps.Any() == false) return base.VisitMember(node);
-                var firstExp = exps.Pop() as ParameterExpression;
-                if (firstExp == null) return base.VisitMember(node);
-                var tb = _select._tables.Find(a => a.Parameter == firstExp)?.Table;
-                if (tb == null) return base.VisitMember(node);
-
-                while (exps.Any())
-                {
-                    var memExp = exps.Pop() as MemberExpression;
-                    if (tb.ColumnsByCs.TryGetValue(memExp.Member.Name, out var trycol) && exps.Any() == false)
-                    {
-                        Result.Add(NativeTuple.Create(node, trycol));
-                        return node;
-                    }
-                    if (tb.Properties.ContainsKey(memExp.Member.Name))
-                    {
-                        tb = _select._commonUtils.GetTableByEntity(memExp.Type);
-                        if (tb == null) return base.VisitMember(node);
-                    }
-                }
-                return base.VisitMember(node);
-            }
-        }
-        class ReplaceMemberExpressionVisitor : ExpressionVisitor
-        {
-            Expression _findExp;
-            Expression _replaceExp;
-            public Expression Replace(Expression exp, Expression find, Expression replace) // object repval)
-            {
-                _findExp = find;
-                _replaceExp = replace;
-                //_replaceExp = Expression.Constant(repval, find.Type);
-                return this.Visit(exp);
-            }
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (_findExp == node) return _replaceExp;
-                return base.VisitMember(node);
-            }
-        }
         public List<TReturn> InternalToList<TReturn>(Expression select)
         {
             var map = new ReadAnonymousTypeInfo();
@@ -1087,34 +1043,7 @@ namespace FreeSql.Internal.CommonProvider
                 var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
                 if (GetTableRuleUnions().Count <= 1) return this.ToListMapReader<TReturn>(af).FirstOrDefault();
 
-                var affield = af.field;
-                var allMemExps = new FindAllMemberExpressionVisitor(this);
-                allMemExps.Visit(select);
-                field.Clear();
-                var fieldAlias = new Dictionary<string, bool>();
-                var fieldReplaced = new Dictionary<string, bool>();
-                foreach (var memExp in allMemExps.Result)
-                {
-                    var gef = GetExpressionField(memExp.Item1, FieldAliasOptions.AsProperty);
-                    var geffield = gef.field;
-                    if (fieldReplaced.ContainsKey(geffield)) continue;
-                    fieldReplaced.Add(geffield, true);
-
-                    field.Append(", ").Append(gef.field);
-                    if (fieldAlias.ContainsKey(memExp.Item2.Attribute.Name))
-                    {
-                        field.Append(_commonUtils.FieldAsAlias($"aas{fieldAlias.Count}"));
-                        affield = affield.Replace(geffield, $"ftba.aas{fieldAlias.Count}");
-                    }
-                    else
-                    {
-                        fieldAlias.Add(memExp.Item2.Attribute.Name, true);
-                        affield = affield.Replace(geffield, $"ftba.{string.Join(".", geffield.Split('.').Skip(1))}");
-                    }
-                }
-
-                var sql = this.ToSql(field.Remove(0, 2).ToString());
-                sql = $"{_select} {affield} FROM ( \r\n    {sql.Replace("\r\n", "\r\n    ")}\r\n) ftba";
+                var sql = GetNestSelectSql(select, af.field, ToSql);
                 return ToListMrPrivate<TReturn>(sql, af, null).FirstOrDefault();
             }
             finally
@@ -1173,11 +1102,12 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async public Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken)
+        public Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken) => ToListQfPrivateAsync<TTuple>(this.ToSql(field), field, cancellationToken);
+        async public Task<List<TTuple>> ToListQfPrivateAsync<TTuple>(string sql, string field, CancellationToken cancellationToken)
         {
             var ret = new List<TTuple>();
             if (_cancel?.Invoke() == true) return ret;
-            var sql = this.ToSql(field);
+            if (string.IsNullOrEmpty(sql)) return ret;
             var dbParms = _params.ToArray();
             var type = typeof(TTuple);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -1380,12 +1310,41 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<double> InternalAvgAsync(Expression exp, CancellationToken cancellationToken)
         {
-            var list = await this.ToListAsync<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken);
-            return list.Sum() / list.Count;
+            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0)
+            {
+                var list = await this.ToListAsync<double>(field, cancellationToken);
+                return list.Sum() / list.Count;
+            }
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            var list2 = await ToListQfPrivateAsync<double>(sql, field, cancellationToken);
+            return list2.Sum() / list2.Count;
         }
-        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Max();
-        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Min();
-        async protected Task<decimal> InternalSumAsync(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum();
+        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp, CancellationToken cancellationToken)
+        {
+            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<TMember>(field, cancellationToken)).Max();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return (await ToListQfPrivateAsync<TMember>(sql, field, cancellationToken)).Max();
+        }
+        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp, CancellationToken cancellationToken)
+        {
+            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<TMember>(field, cancellationToken)).Min();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return (await ToListQfPrivateAsync<TMember>(sql, field, cancellationToken)).Min();
+        }
+        async protected Task<decimal> InternalSumAsync(Expression exp, CancellationToken cancellationToken)
+        {
+            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<decimal>(field, cancellationToken)).Sum();
+
+            var sql = GetNestSelectSql(exp, field, ToSql);
+            return (await ToListQfPrivateAsync<decimal>(sql, field, cancellationToken)).Sum();
+        }
 
         static ConcurrentDictionary<Type, MethodInfo[]> _dicGetMethodsByName = new ConcurrentDictionary<Type, MethodInfo[]>();
         async protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select, CancellationToken cancellationToken)
@@ -1577,34 +1536,7 @@ namespace FreeSql.Internal.CommonProvider
                 var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
                 if (GetTableRuleUnions().Count <= 1) return (await this.ToListMapReaderAsync<TReturn>(af, cancellationToken)).FirstOrDefault();
 
-                var affield = af.field;
-                var allMemExps = new FindAllMemberExpressionVisitor(this);
-                allMemExps.Visit(select);
-                field.Clear();
-                var fieldAlias = new Dictionary<string, bool>();
-                var fieldReplaced = new Dictionary<string, bool>();
-                foreach (var memExp in allMemExps.Result)
-                {
-                    var gef = GetExpressionField(memExp.Item1, FieldAliasOptions.AsProperty);
-                    var geffield = gef.field;
-                    if (fieldReplaced.ContainsKey(geffield)) continue;
-                    fieldReplaced.Add(geffield, true);
-
-                    field.Append(", ").Append(gef.field);
-                    if (fieldAlias.ContainsKey(memExp.Item2.Attribute.Name))
-                    {
-                        field.Append(_commonUtils.FieldAsAlias($"aas{fieldAlias.Count}"));
-                        affield = affield.Replace(geffield, $"ftba.aas{fieldAlias.Count}");
-                    }
-                    else
-                    {
-                        fieldAlias.Add(memExp.Item2.Attribute.Name, true);
-                        affield = affield.Replace(geffield, $"ftba.{string.Join(".", geffield.Split('.').Skip(1))}");
-                    }
-                }
-
-                var sql = this.ToSql(field.Remove(0, 2).ToString());
-                sql = $"{_select} {affield} FROM ( \r\n    {sql.Replace("\r\n", "\r\n    ")}\r\n) ftba";
+                var sql = GetNestSelectSql(select, af.field, ToSql);
                 return (await ToListMrPrivateAsync<TReturn>(sql, af, null, cancellationToken)).FirstOrDefault();
             }
             finally

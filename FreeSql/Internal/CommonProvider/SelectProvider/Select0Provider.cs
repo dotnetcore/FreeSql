@@ -243,6 +243,113 @@ namespace FreeSql.Internal.CommonProvider
             }
             return newExp;
         }
+
+        public ReadAnonymousTypeAfInfo GetExpressionField(Expression newexp, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
+
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
+            return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+        }
+        public string GetNestSelectSql(Expression select, string affield, Func<string, string> ToSql)
+        {
+            var allMemExps = new FindAllMemberExpressionVisitor(this);
+            allMemExps.Visit(select);
+            var fieldAlias = new Dictionary<string, bool>();
+            var fieldReplaced = new Dictionary<string, bool>();
+            var field = new StringBuilder();
+            foreach (var memExp in allMemExps.Result)
+            {
+                var gef = GetExpressionField(memExp.Item1, FieldAliasOptions.AsProperty);
+                var geffield = gef.field;
+                if (fieldReplaced.ContainsKey(geffield)) continue;
+                fieldReplaced.Add(geffield, true);
+
+                field.Append(", ").Append(gef.field);
+                if (fieldAlias.ContainsKey(memExp.Item2.Attribute.Name))
+                {
+                    field.Append(_commonUtils.FieldAsAlias($"aas{fieldAlias.Count}"));
+                    affield = affield.Replace(geffield, $"ftba.aas{fieldAlias.Count}");
+                }
+                else
+                {
+                    fieldAlias.Add(memExp.Item2.Attribute.Name, true);
+                    affield = affield.Replace(geffield, $"ftba.{string.Join(".", geffield.Split('.').Skip(1))}");
+                }
+            }
+
+            var sql = ToSql(field.Remove(0, 2).ToString());
+            sql = $"{_select} {affield} FROM ( \r\n    {sql.Replace("\r\n", "\r\n    ")}\r\n) ftba";
+            field.Clear();
+            return sql;
+        }
+        public class FindAllMemberExpressionVisitor : ExpressionVisitor
+        {
+            public List<NativeTuple<MemberExpression, ColumnInfo>> Result { get; set; } = new List<NativeTuple<MemberExpression, ColumnInfo>>();
+            Select0Provider _select;
+            public FindAllMemberExpressionVisitor(Select0Provider select) => _select = select;
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                var exps = new Stack<Expression>();
+                Expression exp = node;
+                while (exp != null)
+                {
+                    switch (exp.NodeType)
+                    {
+                        case ExpressionType.Parameter:
+                            exps.Push(exp);
+                            exp = null;
+                            continue;
+                        case ExpressionType.MemberAccess:
+                            exps.Push(exp);
+                            exp = (exp as MemberExpression)?.Expression;
+                            continue;
+                    }
+                    return base.VisitMember(node);
+                }
+                if (exps.Any() == false) return base.VisitMember(node);
+                var firstExp = exps.Pop() as ParameterExpression;
+                if (firstExp == null) return base.VisitMember(node);
+                var tb = _select._tables.Find(a => a.Parameter == firstExp)?.Table;
+                if (tb == null) return base.VisitMember(node);
+
+                while (exps.Any())
+                {
+                    var memExp = exps.Pop() as MemberExpression;
+                    if (tb.ColumnsByCs.TryGetValue(memExp.Member.Name, out var trycol) && exps.Any() == false)
+                    {
+                        Result.Add(NativeTuple.Create(node, trycol));
+                        return node;
+                    }
+                    if (tb.Properties.ContainsKey(memExp.Member.Name))
+                    {
+                        tb = _select._commonUtils.GetTableByEntity(memExp.Type);
+                        if (tb == null) return base.VisitMember(node);
+                    }
+                }
+                return base.VisitMember(node);
+            }
+        }
+        public class ReplaceMemberExpressionVisitor : ExpressionVisitor
+        {
+            Expression _findExp;
+            Expression _replaceExp;
+            public Expression Replace(Expression exp, Expression find, Expression replace) // object repval)
+            {
+                _findExp = find;
+                _replaceExp = replace;
+                //_replaceExp = Expression.Constant(repval, find.Type);
+                return this.Visit(exp);
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (_findExp == node) return _replaceExp;
+                return base.VisitMember(node);
+            }
+        }
     }
 
     public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class
