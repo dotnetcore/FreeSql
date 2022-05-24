@@ -906,6 +906,30 @@ namespace FreeSql.Internal
                         if (exp3.Arguments.Count > 0 && exp3.Object != null) return ExpressionBinary("=", exp3.Object, exp3.Arguments[0], tsc);
                         if (exp3.Arguments.Count > 1 && exp3.Method.DeclaringType == typeof(object)) return ExpressionBinary("=", exp3.Arguments[0], exp3.Arguments[1], tsc);
                     }
+                    if (exp3.Method.Name == "Any" && exp3.Method.DeclaringType == typeof(Enumerable))
+                    {
+                        //Where(a => idArray.Any(p => (a.Id == p.Key || a.RoleName == p.Key) && a.RoleType == p.Type))
+                        var exp3MethodGenArgs = exp3.Method.GetGenericArguments();
+                        var exp3MethodArgs = exp3.Method.GetParameters();
+                        if (exp3MethodGenArgs.Length == 1 && exp3MethodArgs.Length == 2 && exp3MethodArgs[1].ParameterType == typeof(Func<,>).MakeGenericType(exp3MethodGenArgs[0], typeof(bool)))
+                        {
+                            var exp3Value = ExpressionGetValue(exp3.Arguments[0], out var exp3ValueSuccess);
+                            if (exp3ValueSuccess)
+                            {
+                                if (exp3Value == null) return "1=2";
+                                var exp3ValueIE = exp3Value as IEnumerable;
+                                var exp3NewExpVisitor = new ReplaceParameterVisitor();
+                                var exp3sb = new StringBuilder();
+                                foreach (var exp3ValueItem in exp3ValueIE)
+                                {
+                                    var exp3NewExp = exp3NewExpVisitor.Modify(exp3.Arguments[1] as LambdaExpression, Expression.Constant(exp3ValueItem, exp3MethodGenArgs[0]));
+                                    exp3sb.Append(" OR ").Append(ExpressionLambdaToSql(exp3NewExp, tsc));
+                                }
+                                if (exp3sb.Length == 0) return "1=2";
+                                return exp3sb.Remove(0, 4).ToString();
+                            }
+                        }
+                    }
                     if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
                         switch (exp3.Method.Name)
@@ -1736,6 +1760,86 @@ namespace FreeSql.Internal
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);
         public string ExpressionConstDateTime(Expression exp) => exp is ConstantExpression operandExpConst ? formatSql(Utils.GetDataReaderValue(typeof(DateTime), operandExpConst.Value), null, null, null) : null;
 
+        public static object ExpressionGetValue(Expression exp, out bool success)
+        {
+            success = true;
+            var expStack = new Stack<Expression>();
+            var expStackConstOrMemberCount = 1;
+            var exp2 = exp;
+            while (true)
+            {
+                switch (exp2?.NodeType)
+                {
+                    case ExpressionType.Constant:
+                        expStack.Push(exp2);
+                        expStackConstOrMemberCount++;
+                        break;
+                    case ExpressionType.Parameter:
+                        expStack.Push(exp2);
+                        break;
+                    case ExpressionType.MemberAccess:
+                        expStack.Push(exp2);
+                        exp2 = (exp2 as MemberExpression).Expression;
+                        expStackConstOrMemberCount++;
+                        if (exp2 == null) break;
+                        continue;
+                    case ExpressionType.Call:
+                        var callExp = exp2 as MethodCallExpression;
+                        expStack.Push(exp2);
+                        exp2 = callExp.Object;
+                        if (exp2 == null) break;
+                        continue;
+                    case ExpressionType.TypeAs:
+                    case ExpressionType.Convert:
+                        var oper2 = (exp2 as UnaryExpression).Operand;
+                        if (oper2.NodeType == ExpressionType.Parameter)
+                        {
+                            var oper2Parm = oper2 as ParameterExpression;
+                            expStack.Push(exp2.Type.IsAbstract || exp2.Type.IsInterface ? oper2Parm : Expression.Parameter(exp2.Type, oper2Parm.Name));
+                        }
+                        else
+                            expStack.Push(oper2);
+                        break;
+                }
+                break;
+            }
+            if (expStack.Any() && expStack.First().NodeType != ExpressionType.Parameter)
+            {
+                if (expStackConstOrMemberCount == expStack.Count)
+                {
+                    object firstValue = null;
+                    switch (expStack.First().NodeType)
+                    {
+                        case ExpressionType.Constant:
+                            var expStackFirst = expStack.Pop() as ConstantExpression;
+                            firstValue = expStackFirst?.Value;
+                            break;
+                        case ExpressionType.MemberAccess:
+                            var expStackFirstMem = expStack.First() as MemberExpression;
+                            if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant)
+                                firstValue = (expStackFirstMem.Expression as ConstantExpression)?.Value;
+                            else
+                                return Expression.Lambda(exp).Compile().DynamicInvoke();
+                            break;
+                    }
+                    while (expStack.Any())
+                    {
+                        var expStackItem = expStack.Pop() as MemberExpression;
+                        if (expStackItem.Member.MemberType == MemberTypes.Property)
+                            firstValue = ((PropertyInfo)expStackItem.Member).GetValue(firstValue, null);
+                        else if (expStackItem.Member.MemberType == MemberTypes.Field)
+                            firstValue = ((FieldInfo)expStackItem.Member).GetValue(firstValue);
+                    }
+                    return firstValue;
+                }
+                return Expression.Lambda(exp).Compile().DynamicInvoke();
+            }
+            if (exp.IsParameter() == false)
+                return Expression.Lambda(exp).Compile().DynamicInvoke();
+            success = false;
+            return null;
+        }
+
         public enum ExpressionStyle
         {
             Where, AsSelect, SelectColumns
@@ -1889,18 +1993,18 @@ namespace FreeSql.Internal
         }
         public class ReplaceParameterVisitor : ExpressionVisitor
         {
-            private ParameterExpression parameter;
+            private Expression _replaceExp;
             private ParameterExpression oldParameter;
-            public Expression Modify(LambdaExpression lambda, ParameterExpression parameter)
+            public Expression Modify(LambdaExpression lambda, Expression replaceExp)
             {
-                this.parameter = parameter;
+                this._replaceExp = replaceExp;
                 this.oldParameter = lambda.Parameters.FirstOrDefault();
                 return Visit(lambda.Body);
             }
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (node.Expression?.NodeType == ExpressionType.Parameter && node.Expression == oldParameter)
-                    return Expression.Property(parameter, node.Member.Name);
+                    return Expression.Property(_replaceExp, node.Member.Name);
                 return base.VisitMember(node);
             }
         }
