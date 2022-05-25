@@ -367,14 +367,36 @@
             是否唯一
             </summary>
         </member>
+        <member name="T:FreeSql.DataAnnotations.NavigateAttribute">
+            <summary>
+            OneToOne：[Navigate(nameof(Primary))] &lt;-&gt; (缺省)外表.Primary<para></para>
+            ManyToOne：Topic.cs 文件 [Navigate(nameof(Topic.CategoryId))] &lt;-&gt; (缺省)Category.Id<para></para>
+            _________________public Category Category { get; set; }<para></para>
+            OneToMany：Category.cs 文件 (缺省)Category.Id &lt;-&gt; [Navigate(nameof(Topic.CategoryId))]<para></para>
+            _________________public List&lt;Topic&gt; Topics { get; set; }<para></para>
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.NavigateAttribute.Bind">
             <summary>
-            手工绑定 OneToMany、ManyToOne 导航关系
+            OneToOne：[Navigate(nameof(Primary))] &lt;-&gt; (缺省)外表.Primary<para></para>
+            ManyToOne：Topic.cs 文件 [Navigate(nameof(Topic.CategoryId))] &lt;-&gt; (缺省)Category.Id<para></para>
+            _________________public Category Category { get; set; }<para></para>
+            OneToMany：Category.cs 文件 (缺省)Category.Id &lt;-&gt; [Navigate(nameof(Topic.CategoryId))]<para></para>
+            _________________public List&lt;Topic&gt; Topics { get; set; }<para></para>
             </summary>
         </member>
         <member name="P:FreeSql.DataAnnotations.NavigateAttribute.ManyToMany">
             <summary>
             手工绑定 ManyToMany 导航关系
+            </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.NavigateAttribute.#ctor(System.String)">
+            <summary>
+            OneToOne：[Navigate(nameof(Primary))] &lt;-&gt; (缺省)外表.Primary<para></para>
+            ManyToOne：Topic.cs 文件 [Navigate(nameof(Topic.CategoryId))] &lt;-&gt; (缺省)Category.Id<para></para>
+            _________________public Category Category { get; set; }<para></para>
+            OneToMany：Category.cs 文件 (缺省)Category.Id &lt;-&gt; [Navigate(nameof(Topic.CategoryId))]<para></para>
+            _________________public List&lt;Topic&gt; Topics { get; set; }<para></para>
             </summary>
         </member>
         <member name="P:FreeSql.DataAnnotations.OraclePrimaryKeyNameAttribute.Name">

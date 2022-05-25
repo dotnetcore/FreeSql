@@ -172,6 +172,14 @@ namespace base_entity
             public CommandTimeoutCascade(int timeout) => _asyncLocalTimeout.Value = timeout;
             public void Dispose() => _asyncLocalTimeout.Value = 0;
         }
+        class EnterpriseInfo
+        {
+            [Column(IsPrimary = true, DbType = "varchar(60)")]
+            public string id { get; set; }
+
+            [Column(DbType = "varchar(128)")]
+            public string img { get; set; }
+        }
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -216,6 +224,8 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var sql122234 = fsql.CodeFirst.GetComparisonDDLStatements<EnterpriseInfo>();
 
             if (fsql.Ado.DataType == DataType.PostgreSQL)
             {

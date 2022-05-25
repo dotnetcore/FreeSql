@@ -530,16 +530,23 @@ namespace FreeSql.Internal
                 if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
                 {
                     col.DbScale = (byte)size;
+                    if (col.Attribute.Scale <= 0) col.Attribute.Scale = col.DbScale;
                     continue;
                 }
                 if (sizeArr.Length == 1)
                 {
                     col.DbSize = size;
+                    if (col.Attribute.StringLength <= 0) col.Attribute.StringLength = col.DbSize;
                     continue;
                 }
                 if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
                 col.DbPrecision = (byte)size;
                 col.DbScale = scale;
+                if (col.Attribute.Precision <= 0)
+                {
+                    col.Attribute.Precision = col.DbPrecision;
+                    col.Attribute.Scale = col.DbScale;
+                }
             }
             trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
