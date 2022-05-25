@@ -29,6 +29,41 @@
             描述
             </summary>
         </member>
+        <member name="P:base_entity.Program.TUserImg.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.EnterpriseId">
+            <summary>
+            企业
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.UserId">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.Img">
+            <summary>
+            图片
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CId">
+            <summary>
+            创建人Id
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CName">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

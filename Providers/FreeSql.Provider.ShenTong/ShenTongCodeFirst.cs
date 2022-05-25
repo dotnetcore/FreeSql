@@ -241,7 +241,19 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+                            var sqlTypeSize = tbstructcol.sqlType;
+                            if (sqlTypeSize.Contains("(") == false)
+                            {
+                                switch (sqlTypeSize.ToLower())
+                                {
+                                    case "bit":
+                                    case "varbit":
+                                    case "bpchar":
+                                    case "varchar":
+                                        sqlTypeSize = $"{sqlTypeSize}({tbstructcol.max_length})"; break;
+                                }
+                            }
+                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.CurrentCultureIgnoreCase) == false ||
                                 tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER TYPE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)

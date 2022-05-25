@@ -180,11 +180,80 @@ namespace base_entity
             [Column(DbType = "varchar(128)")]
             public string img { get; set; }
         }
+
+        public class SongRepository : BaseRepository<TUserImg, int>
+        {
+            public SongRepository(IFreeSql fsql) : base(fsql, null, null)
+            {
+                //fsql.CodeFirst.Entity<TUserImg>(a =>
+                //    {
+                //        //a.Property(b => b.Id).DbType("varchar(100)");
+                //        a.Property(b => b.UserId).Stringlength(120);
+                //        a.Property(b=>b.UserId).
+                //    });
+                fsql.CodeFirst
+                    .ConfigEntity<TUserImg>(a =>
+                    {
+                        a.Property(b => b.UserId).StringLength(120);
+                    });
+                //var info= fsql.CodeFirst.GetTableByEntity(typeof(TUserImg));
+                var sql = fsql.CodeFirst.GetComparisonDDLStatements<TUserImg>();
+                var t1 = fsql.CodeFirst.GetComparisonDDLStatements(typeof(TUserImg), "TUserImg");
+                fsql.CodeFirst.SyncStructure<TUserImg>(); ;//同步表结构
+
+                var debug = sql;
+            }
+
+            //在这里增加 CURD 以外的方法
+        }
+        public interface IEntity
+        {
+
+        }
+        public partial class TUserImg : IEntity
+        {
+
+            ///<summary>
+            ///主键
+            ///</summary>
+            public string Id { get; set; }
+
+            ///<summary>
+            ///企业
+            ///</summary>
+            public string EnterpriseId { get; set; }
+
+            ///<summary>
+            ///用户id
+            ///</summary>
+            public string UserId { get; set; }
+
+            ///<summary>
+            ///图片
+            ///</summary>
+            public string Img { get; set; }
+
+            ///<summary>
+            ///创建人Id
+            ///</summary>
+            public string CId { get; set; }
+
+            ///<summary>
+            ///创建人
+            ///</summary>
+            public string CName { get; set; }
+
+            ///<summary>
+            ///创建日期
+            ///</summary>
+            public DateTime CTime { get; set; }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(true)
+                .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
@@ -199,8 +268,8 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -224,6 +293,10 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Select<TUserImg>();
+
+            var srepo = new SongRepository(fsql);
 
             var sql122234 = fsql.CodeFirst.GetComparisonDDLStatements<EnterpriseInfo>();
 
