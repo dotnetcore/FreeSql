@@ -248,12 +248,20 @@ namespace base_entity
             ///</summary>
             public DateTime CTime { get; set; }
         }
+        class Rsbasedoc2
+        {
+            [Column(StringLength = 100)]
+            public string Id { get; set; }
+
+            [Column(StringLength = 100)]
+            public string Name { get; set; }
+        }
 
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(false)
+                .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
@@ -268,8 +276,9 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -293,6 +302,8 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var rds2 = fsql.Select<Rsbasedoc2>().Limit(10_0000).ToList();
 
             fsql.Select<TUserImg>();
 
@@ -656,7 +667,7 @@ namespace base_entity
             var sqlatd3201 = sqlatd32.ToSql();
             var sqlatd3202 = sqlatd32.ExecuteAffrows();
 
-            var sqls1 = fsql.Select<AsTableLog>();
+            var sqls1 = fsql.Select<AsTableLog>().OrderBy(a => a.createtime);
             var sqls101 = sqls1.ToSql();
             var sqls102 = sqls1.ToList();
 
