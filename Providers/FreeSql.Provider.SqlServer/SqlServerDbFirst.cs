@@ -38,8 +38,8 @@ namespace FreeSql.SqlServer
                 case "float": return SqlDbType.Float;
                 case "real": return SqlDbType.Real;
                 case "date": return SqlDbType.Date;
-                case "datetime":
-                case "datetime2": return SqlDbType.DateTime;
+                case "datetime": return SqlDbType.DateTime;
+                case "datetime2": return SqlDbType.DateTime2;
                 case "datetimeoffset": return SqlDbType.DateTimeOffset;
                 case "smalldatetime": return SqlDbType.SmallDateTime;
                 case "time": return SqlDbType.Time;
