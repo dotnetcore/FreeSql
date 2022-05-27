@@ -46,9 +46,14 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     if (string.IsNullOrEmpty(_orderby))
                     {
-                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        if (string.IsNullOrEmpty(_groupby))
+                        {
+                            var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
+                            if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
+                            else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        }
+                        else
+                            _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
                     if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
                         sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
@@ -236,9 +241,14 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     if (string.IsNullOrEmpty(_orderby))
                     {
-                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        if (string.IsNullOrEmpty(_groupby))
+                        {
+                            var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
+                            if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
+                            else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        }
+                        else
+                            _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
                     sb.Append(_orderby).Append($" \r\nOFFSET {_skip} ROW");
                     if (_limit > 0) sb.Append($" \r\nFETCH NEXT {_limit} ROW ONLY");
