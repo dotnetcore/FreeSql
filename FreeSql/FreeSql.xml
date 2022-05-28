@@ -3676,6 +3676,11 @@
             获取实体的属性值，也可以设置实体的属性新值
             </summary>
         </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Object">
+            <summary>
+            实体对象
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.DataReader">
             <summary>
             ADO.NET 数据流读取对象

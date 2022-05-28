@@ -343,6 +343,9 @@ namespace FreeSql.Aop
         }
         private object _value;
         public bool ValueIsChanged { get; private set; }
+        /// <summary>
+        /// 实体对象
+        /// </summary>
         public object Object { get; }
     }
     public enum AuditValueType { Update, Insert, InsertOrUpdate }
