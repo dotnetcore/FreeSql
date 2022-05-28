@@ -308,12 +308,13 @@ namespace FreeSql.Aop
     #region AuditValue
     public class AuditValueEventArgs : EventArgs
     {
-        public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
+        public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value, object obj)
         {
             this.AuditValueType = autoValueType;
             this.Column = column;
             this.Property = property;
             this._value = value;
+            this.Object = obj;
         }
 
         /// <summary>
@@ -342,6 +343,7 @@ namespace FreeSql.Aop
         }
         private object _value;
         public bool ValueIsChanged { get; private set; }
+        public object Object { get; }
     }
     public enum AuditValueType { Update, Insert, InsertOrUpdate }
     #endregion

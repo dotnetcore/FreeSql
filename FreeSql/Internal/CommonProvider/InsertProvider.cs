@@ -167,7 +167,7 @@ namespace FreeSql.Internal.CommonProvider
                 object val = col.GetValue(data);
                 if (orm.Aop.AuditValueHandler != null)
                 {
-                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val, data);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.ValueIsChanged)
                     {
