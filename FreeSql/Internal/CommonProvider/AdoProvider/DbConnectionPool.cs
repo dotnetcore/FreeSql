@@ -88,7 +88,7 @@ namespace FreeSql.Internal.CommonProvider
                 obj.Value.Dispose();
         }
 
-        public bool SetUnavailable(Exception exception)
+        public bool SetUnavailable(Exception exception, DateTime lastGetTime)
         {
             throw new NotImplementedException();
         }
@@ -109,7 +109,7 @@ namespace FreeSql.Internal.CommonProvider
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
         public int Weight { get; set; } = 1;
 
         public DbConnection OnCreate()

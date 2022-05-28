@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Linq;
+using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,25 +61,23 @@ namespace FreeSql.Internal.ObjectPool
         public bool IsAvailable => this.UnavailableException == null;
         public Exception UnavailableException { get; private set; }
         public DateTime? UnavailableTime { get; private set; }
+        public DateTime? AvailableTime { get; private set; }
         private object UnavailableLock = new object();
         private bool running = true;
 
-        public bool SetUnavailable(Exception exception)
+        public bool SetUnavailable(Exception exception, DateTime lastGetTime)
         {
-
             bool isseted = false;
-
             if (exception != null && UnavailableException == null)
             {
-
                 lock (UnavailableLock)
                 {
-
                     if (UnavailableException == null)
                     {
-
+                        if (lastGetTime < AvailableTime) return false; //已经恢复
                         UnavailableException = exception;
                         UnavailableTime = DateTime.Now;
+                        AvailableTime = null;
                         isseted = true;
                     }
                 }
@@ -89,7 +85,6 @@ namespace FreeSql.Internal.ObjectPool
 
             if (isseted)
             {
-
                 Policy.OnUnavailable();
                 CheckAvailable(Policy.CheckAvailableInterval);
             }
@@ -103,41 +98,31 @@ namespace FreeSql.Internal.ObjectPool
         /// <param name="interval"></param>
         private void CheckAvailable(int interval)
         {
-
             new Thread(() =>
             {
-
                 if (UnavailableException != null)
                     TestTrace.WriteLine($"【{Policy.Name}】Next recovery time：{DateTime.Now.AddSeconds(interval)}", ConsoleColor.DarkYellow);
 
                 while (UnavailableException != null)
                 {
-
                     if (running == false) return;
-
                     Thread.CurrentThread.Join(TimeSpan.FromSeconds(interval));
-
                     if (running == false) return;
 
                     try
                     {
-
                         var conn = GetFree(false);
                         if (conn == null) throw new Exception(CoreStrings.Available_Failed_Get_Resource("CheckAvailable", this.Statistics));
                         
                         try
                         {
-
                             if (Policy.OnCheckAvailable(conn) == false) throw new Exception(CoreStrings.Available_Thrown_Exception("CheckAvailable"));
                             break;
-
                         }
                         finally
                         {
-
                             Return(conn);
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -156,15 +141,13 @@ namespace FreeSql.Internal.ObjectPool
             bool isRestored = false;
             if (UnavailableException != null)
             {
-
                 lock (UnavailableLock)
                 {
-
                     if (UnavailableException != null)
                     {
-
                         UnavailableException = null;
                         UnavailableTime = null;
+                        AvailableTime = DateTime.Now;
                         isRestored = true;
                     }
                 }
@@ -172,37 +155,29 @@ namespace FreeSql.Internal.ObjectPool
 
             if (isRestored)
             {
-
                 lock (_allObjectsLock)
                     _allObjects.ForEach(a => a.LastGetTime = a.LastReturnTime = new DateTime(2000, 1, 1));
 
                 Policy.OnAvailable();
-
                 TestTrace.WriteLine($"【{Policy.Name}】Recovered", ConsoleColor.DarkGreen);
             }
         }
 
         protected bool LiveCheckAvailable()
         {
-
             try
             {
-                
                 var conn = GetFree(false);
                 if (conn == null) throw new Exception(CoreStrings.Available_Failed_Get_Resource("LiveCheckAvailable", this.Statistics));
               
                 try
                 {
-                    
                     if (Policy.OnCheckAvailable(conn) == false) throw new Exception(CoreStrings.Available_Thrown_Exception("LiveCheckAvailable"));
-                    
                 }
                 finally
                 {
-                 
                     Return(conn);
                 }
-                
             }
             catch
             {
@@ -210,7 +185,6 @@ namespace FreeSql.Internal.ObjectPool
             }
 
             RestoreToAvailable();
-
             return true;
         }
 
@@ -282,7 +256,6 @@ namespace FreeSql.Internal.ObjectPool
 
             if ((_freeObjects.TryPop(out var obj) == false || obj == null) && _allObjects.Count < Policy.PoolSize)
             {
-
                 lock (_allObjectsLock)
                     if (_allObjects.Count < Policy.PoolSize)
                         _allObjects.Add(obj = new Object<T> { Pool = this, Id = _allObjects.Count + 1 });
@@ -310,12 +283,9 @@ namespace FreeSql.Internal.ObjectPool
 
         public Object<T> Get(TimeSpan? timeout = null)
         {
-
             var obj = GetFree(true);
-
             if (obj == null)
             {
-
                 var queueItem = new GetSyncQueueInfo();
 
                 _getSyncQueue.Enqueue(queueItem);
@@ -336,9 +306,7 @@ namespace FreeSql.Internal.ObjectPool
 
                 if (obj == null)
                 {
-
                     Policy.OnGetTimeout();
-
                     if (Policy.IsThrowGetTimeoutException)
                         throw new TimeoutException(CoreStrings.ObjectPool_Get_Timeout(Policy.Name, "Get", timeout.Value.TotalSeconds));
 
@@ -358,6 +326,7 @@ namespace FreeSql.Internal.ObjectPool
 
             obj.LastGetThreadId = Thread.CurrentThread.ManagedThreadId;
             obj.LastGetTime = DateTime.Now;
+            obj.LastGetTimeCopy = DateTime.Now;
             Interlocked.Increment(ref obj._getTimes);
 
             return obj;
@@ -367,12 +336,9 @@ namespace FreeSql.Internal.ObjectPool
 #else
         async public Task<Object<T>> GetAsync()
         {
-
             var obj = GetFree(true);
-
             if (obj == null)
             {
-
                 if (Policy.AsyncGetCapacity > 0 && _getAsyncQueue.Count >= Policy.AsyncGetCapacity - 1)
                     throw new OutOfMemoryException(CoreStrings.ObjectPool_GetAsync_Queue_Long(Policy.Name, Policy.AsyncGetCapacity));
 
@@ -412,6 +378,7 @@ namespace FreeSql.Internal.ObjectPool
 
             obj.LastGetThreadId = Thread.CurrentThread.ManagedThreadId;
             obj.LastGetTime = DateTime.Now;
+            obj.LastGetTimeCopy = DateTime.Now;
             Interlocked.Increment(ref obj._getTimes);
 
             return obj;
@@ -420,40 +387,31 @@ namespace FreeSql.Internal.ObjectPool
 
         public void Return(Object<T> obj, bool isReset = false)
         {
-
             if (obj == null) return;
-
             if (obj._isReturned) return;
 
             if (running == false)
             {
-
                 Policy.OnDestroy(obj.Value);
                 try { (obj.Value as IDisposable)?.Dispose(); } catch { }
-
                 return;
             }
 
             if (isReset) obj.ResetValue();
-
             bool isReturn = false;
 
             while (isReturn == false && _getQueue.TryDequeue(out var isAsync))
             {
-
                 if (isAsync == false)
                 {
-
                     if (_getSyncQueue.TryDequeue(out var queueItem) && queueItem != null)
                     {
-
                         lock (queueItem.Lock)
                             if (queueItem.IsTimeout == false)
                                 queueItem.ReturnValue = obj;
 
                         if (queueItem.ReturnValue != null)
                         {
-
                             obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
                             obj.LastReturnTime = DateTime.Now;
 
@@ -469,14 +427,11 @@ namespace FreeSql.Internal.ObjectPool
 
                         try { queueItem.Dispose(); } catch { }
                     }
-
                 }
                 else
                 {
-
                     if (_getAsyncQueue.TryDequeue(out var tcs) && tcs != null && tcs.Task.IsCanceled == false)
                     {
-
                         obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
                         obj.LastReturnTime = DateTime.Now;
 
@@ -509,11 +464,9 @@ namespace FreeSql.Internal.ObjectPool
 
         public void Dispose()
         {
-
             running = false;
 
             while (_freeObjects.TryPop(out var fo)) ;
-
             while (_getSyncQueue.TryDequeue(out var sync))
             {
                 try { sync.Wait.Set(); } catch { }
@@ -535,13 +488,9 @@ namespace FreeSql.Internal.ObjectPool
 
         class GetSyncQueueInfo : IDisposable
         {
-
             internal ManualResetEventSlim Wait { get; set; } = new ManualResetEventSlim();
-
             internal Object<T> ReturnValue { get; set; }
-
             internal object Lock = new object();
-
             internal bool IsTimeout { get; set; } = false;
 
             public void Dispose()

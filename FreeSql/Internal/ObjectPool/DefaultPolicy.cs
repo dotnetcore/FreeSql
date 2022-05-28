@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
@@ -16,7 +14,7 @@ namespace FreeSql.Internal.ObjectPool
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
         public int Weight { get; set; } = 1;
 
         public Func<T> CreateObject;

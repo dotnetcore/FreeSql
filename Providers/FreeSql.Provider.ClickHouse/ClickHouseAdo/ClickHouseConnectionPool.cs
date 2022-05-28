@@ -34,7 +34,8 @@ namespace FreeSql.ClickHouse
         {
             if (exception != null && exception is ClickHouseException)
             {
-                try { if (obj.Value.Ping() == false) obj.Value.Open(); } catch { base.SetUnavailable(exception); }
+                if (obj.Value.Ping() == false)
+                    base.SetUnavailable(exception, obj.LastGetTimeCopy);
             }
             base.Return(obj, isRecreate);
         }
@@ -63,7 +64,7 @@ namespace FreeSql.ClickHouse
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
         public int Weight { get; set; } = 1;
 
         static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
@@ -139,9 +140,8 @@ namespace FreeSql.ClickHouse
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
+                    _pool.SetUnavailable(new Exception("连接字符串错误"), obj.LastGetTimeCopy);
+                    throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
@@ -153,8 +153,9 @@ namespace FreeSql.ClickHouse
                     }
                     catch (Exception ex)
                     {
-                        if (_pool.SetUnavailable(ex) == true)
+                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
+                        throw ex;
                     }
                 }
             }
@@ -169,9 +170,8 @@ namespace FreeSql.ClickHouse
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
+                    _pool.SetUnavailable(new Exception("连接字符串错误"), obj.LastGetTimeCopy);
+                    throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
@@ -183,8 +183,9 @@ namespace FreeSql.ClickHouse
                     }
                     catch (Exception ex)
                     {
-                        if (_pool.SetUnavailable(ex) == true)
+                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
+                        throw ex;
                     }
                 }
             }
