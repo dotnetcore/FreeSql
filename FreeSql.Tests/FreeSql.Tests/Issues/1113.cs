@@ -358,6 +358,9 @@ namespace FreeSql.Tests.Issues
 
                 var selectMethod = typeof(FreeSqlGlobalExtensions).GetMethods().First(a => a.Name == "AsSelect" && a.ContainsGenericParameters && a.GetParameters().Count() == 1).MakeGenericMethod(sub.TableRef.RefEntityType);
                 body = Expression.Call(null, selectMethod, body);
+                var asMethod = typeof(ISelect<>).MakeGenericType(sub.TableRef.RefEntityType).GetMethod("As");
+                var constExpression = Expression.Constant($"t{deepest.Level}");
+                body = Expression.Call(body, asMethod, constExpression);
                 var whereDynamicFilterMethod = typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(sub.TableRef.RefEntityType), sub.TableRef.RefEntityType).GetMethod("WhereDynamicFilter");
                 body = Expression.Call(body, whereDynamicFilterMethod, Expression.Constant(filterInfo));
                 var anyMethod = typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(sub.TableRef.RefEntityType), sub.TableRef.RefEntityType).GetMethod("Any");
