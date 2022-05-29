@@ -953,6 +953,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(tableName)) tableName = tb.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) tableName = tableName.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) tableName = tableName.ToUpper();
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(typeof(TTargetEntity), tableName);
 
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
