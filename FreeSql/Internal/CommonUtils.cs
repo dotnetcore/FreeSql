@@ -111,33 +111,49 @@ namespace FreeSql.Internal
         {
             return dicConfigEntity.TryGetValue(type, out var trytb) ? trytb : null;
         }
+
+        public MappingPriorityType[] _mappingPriorityTypes = new[] { MappingPriorityType.Aop, MappingPriorityType.FluentApi, MappingPriorityType.Attribute };
         public TableAttribute GetEntityTableAttribute(Type type)
         {
-            TableAttribute attr = null;
-            if (_orm.Aop.ConfigEntityHandler != null)
+            var attr = new TableAttribute();
+            foreach (var mp in _mappingPriorityTypes)
             {
-                var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntityHandler(_orm, aope);
-                attr = aope.ModifyResult;
-            }
-            if (attr == null) attr = new TableAttribute();
-            if (dicConfigEntity.TryGetValue(type, out var trytb))
-            {
-                if (!string.IsNullOrEmpty(trytb.Name)) attr.Name = trytb.Name;
-                if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
-                if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure; 
-                if (!string.IsNullOrEmpty(trytb.AsTable)) attr.AsTable = trytb.AsTable;
-
-            }
-            var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
-            foreach (var tryattrobj in attrs)
-            {
-                var tryattr = tryattrobj as TableAttribute;
-                if (tryattr == null) continue;
-                if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
-                if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
-                if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
-                if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
+                switch (mp)
+                {
+                    case MappingPriorityType.Aop:
+                        if (_orm.Aop.ConfigEntityHandler != null)
+                        {
+                            var aope = new Aop.ConfigEntityEventArgs(type);
+                            _orm.Aop.ConfigEntityHandler(_orm, aope);
+                            var tryattr = aope.ModifyResult;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+                            if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
+                            if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
+                        }
+                        break;
+                    case MappingPriorityType.FluentApi:
+                        if (dicConfigEntity.TryGetValue(type, out var trytb))
+                        {
+                            if (!string.IsNullOrEmpty(trytb.Name)) attr.Name = trytb.Name;
+                            if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
+                            if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure;
+                            if (!string.IsNullOrEmpty(trytb.AsTable)) attr.AsTable = trytb.AsTable;
+                        }
+                        break;
+                    case MappingPriorityType.Attribute:
+                        var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
+                        foreach (var tryattrobj in attrs)
+                        {
+                            var tryattr = tryattrobj as TableAttribute;
+                            if (tryattr == null) continue;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+                            if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
+                            if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
+                        }
+                        break;
+                }
             }
             if (!string.IsNullOrEmpty(attr.Name)) return attr;
             if (!string.IsNullOrEmpty(attr.OldName)) return attr;
@@ -147,60 +163,90 @@ namespace FreeSql.Internal
         }
         public ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto)
         {
-            ColumnAttribute attr = null;
-            if (_orm.Aop.ConfigEntityPropertyHandler != null)
+            var attr = new ColumnAttribute();
+            foreach (var mp in _mappingPriorityTypes)
             {
-                var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
-                _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
-                attr = aope.ModifyResult;
-            }
-            if (attr == null) attr = new ColumnAttribute();
-            if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._columns.TryGetValue(proto.Name, out var trycol))
-            {
-                if (!string.IsNullOrEmpty(trycol.Name)) attr.Name = trycol.Name;
-                if (!string.IsNullOrEmpty(trycol.OldName)) attr.OldName = trycol.OldName;
-                if (!string.IsNullOrEmpty(trycol.DbType)) attr.DbType = trycol.DbType;
-                if (trycol._IsPrimary != null) attr._IsPrimary = trycol.IsPrimary;
-                if (trycol._IsIdentity != null) attr._IsIdentity = trycol.IsIdentity;
-                if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
-                if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
-                if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
-                if (trycol.MapType != null) attr.MapType = trycol.MapType;
-                if (trycol._Position != null) attr._Position = trycol.Position;
-                if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
-                if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
-                if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
-                if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
-                if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
-                if (trycol._Precision != null) attr.Precision = trycol.Precision;
-                if (trycol._Scale != null) attr.Scale = trycol.Scale;
-                if (!string.IsNullOrEmpty(trycol.RewriteSql)) attr.RewriteSql = trycol.RewriteSql;
-                if (!string.IsNullOrEmpty(trycol.RereadSql)) attr.RereadSql = trycol.RereadSql;
-            }
-            var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
-            foreach (var tryattrobj in attrs)
-            {
-                var tryattr = tryattrobj as ColumnAttribute;
-                if (tryattr == null) continue;
-                if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
-                if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
-                if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
-                if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;
-                if (tryattr._IsIdentity != null) attr._IsIdentity = tryattr.IsIdentity;
-                if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
-                if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
-                if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
-                if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
-                if (tryattr._Position != null) attr._Position = tryattr.Position;
-                if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
-                if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
-                if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
-                if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
-                if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql; 
-                if (tryattr._Precision != null) attr.Precision = tryattr.Precision;
-                if (tryattr._Scale != null) attr.Scale = tryattr.Scale;
-                if (!string.IsNullOrEmpty(tryattr.RewriteSql)) attr.RewriteSql = tryattr.RewriteSql;
-                if (!string.IsNullOrEmpty(tryattr.RereadSql)) attr.RereadSql = tryattr.RereadSql;
+                switch (mp)
+                {
+                    case MappingPriorityType.Aop:
+                        if (_orm.Aop.ConfigEntityPropertyHandler != null)
+                        {
+                            var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
+                            _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
+                            var tryattr = aope.ModifyResult;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+                            if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
+                            if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;
+                            if (tryattr._IsIdentity != null) attr._IsIdentity = tryattr.IsIdentity;
+                            if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
+                            if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
+                            if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
+                            if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
+                            if (tryattr._Position != null) attr._Position = tryattr.Position;
+                            if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
+                            if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
+                            if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
+                            if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
+                            if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql;
+                            if (tryattr._Precision != null) attr.Precision = tryattr.Precision;
+                            if (tryattr._Scale != null) attr.Scale = tryattr.Scale;
+                            if (!string.IsNullOrEmpty(tryattr.RewriteSql)) attr.RewriteSql = tryattr.RewriteSql;
+                            if (!string.IsNullOrEmpty(tryattr.RereadSql)) attr.RereadSql = tryattr.RereadSql;
+                        }
+                        break;
+                    case MappingPriorityType.FluentApi:
+                        if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._columns.TryGetValue(proto.Name, out var trycol))
+                        {
+                            if (!string.IsNullOrEmpty(trycol.Name)) attr.Name = trycol.Name;
+                            if (!string.IsNullOrEmpty(trycol.OldName)) attr.OldName = trycol.OldName;
+                            if (!string.IsNullOrEmpty(trycol.DbType)) attr.DbType = trycol.DbType;
+                            if (trycol._IsPrimary != null) attr._IsPrimary = trycol.IsPrimary;
+                            if (trycol._IsIdentity != null) attr._IsIdentity = trycol.IsIdentity;
+                            if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
+                            if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
+                            if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
+                            if (trycol.MapType != null) attr.MapType = trycol.MapType;
+                            if (trycol._Position != null) attr._Position = trycol.Position;
+                            if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
+                            if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
+                            if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
+                            if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
+                            if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
+                            if (trycol._Precision != null) attr.Precision = trycol.Precision;
+                            if (trycol._Scale != null) attr.Scale = trycol.Scale;
+                            if (!string.IsNullOrEmpty(trycol.RewriteSql)) attr.RewriteSql = trycol.RewriteSql;
+                            if (!string.IsNullOrEmpty(trycol.RereadSql)) attr.RereadSql = trycol.RereadSql;
+                        }
+                        break;
+                    case MappingPriorityType.Attribute:
+                        var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
+                        foreach (var tryattrobj in attrs)
+                        {
+                            var tryattr = tryattrobj as ColumnAttribute;
+                            if (tryattr == null) continue;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+                            if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
+                            if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;
+                            if (tryattr._IsIdentity != null) attr._IsIdentity = tryattr.IsIdentity;
+                            if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
+                            if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
+                            if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
+                            if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
+                            if (tryattr._Position != null) attr._Position = tryattr.Position;
+                            if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
+                            if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
+                            if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
+                            if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
+                            if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql;
+                            if (tryattr._Precision != null) attr.Precision = tryattr.Precision;
+                            if (tryattr._Scale != null) attr.Scale = tryattr.Scale;
+                            if (!string.IsNullOrEmpty(tryattr.RewriteSql)) attr.RewriteSql = tryattr.RewriteSql;
+                            if (!string.IsNullOrEmpty(tryattr.RereadSql)) attr.RereadSql = tryattr.RereadSql;
+                        }
+                        break;
+                }
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -228,18 +274,31 @@ namespace FreeSql.Internal
         public NavigateAttribute GetEntityNavigateAttribute(Type type, PropertyInfo proto)
         {
             var attr = new NavigateAttribute();
-            if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._navigates.TryGetValue(proto.Name, out var trynav))
+            foreach (var mp in _mappingPriorityTypes)
             {
-                if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
-                if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
-            }
-            var attrs = proto.GetCustomAttributes(typeof(NavigateAttribute), false);
-            foreach (var tryattrobj in attrs)
-            {
-                trynav = tryattrobj as NavigateAttribute;
-                if (trynav == null) continue;
-                if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
-                if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
+                switch (mp)
+                {
+                    case MappingPriorityType.Aop:
+
+                        break;
+                    case MappingPriorityType.FluentApi:
+                        if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._navigates.TryGetValue(proto.Name, out var trynav))
+                        {
+                            if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                            if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
+                        }
+                        break;
+                    case MappingPriorityType.Attribute:
+                        var attrs = proto.GetCustomAttributes(typeof(NavigateAttribute), false);
+                        foreach (var tryattrobj in attrs)
+                        {
+                            trynav = tryattrobj as NavigateAttribute;
+                            if (trynav == null) continue;
+                            if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                            if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
+                        }
+                        break;
+                }
             }
             NavigateAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Bind)) ret = attr;
@@ -249,35 +308,47 @@ namespace FreeSql.Internal
         public IndexAttribute[] GetEntityIndexAttribute(Type type)
         {
             var ret = new Dictionary<string, IndexAttribute>();
-            if (_orm.Aop.ConfigEntityHandler != null)
+            foreach (var mp in _mappingPriorityTypes)
             {
-                var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntityHandler(_orm, aope);
-                foreach (var idxattr in aope.ModifyIndexResult)
-                    if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
-                    {
-                        if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                        ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
-                    }
-            }
-            if (dicConfigEntity.TryGetValue(type, out var trytb))
-            {
-                foreach (var idxattr in trytb._indexs.Values)
-                    if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
-                    {
-                        if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                        ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
-                    }
-            }
-            var attrs = type.GetCustomAttributes(typeof(IndexAttribute), true);
-            foreach (var tryattrobj in attrs)
-            {
-                var idxattr = tryattrobj as IndexAttribute;
-                if (idxattr == null) continue;
-                if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                switch (mp)
                 {
-                    if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                    case MappingPriorityType.Aop:
+                        if (_orm.Aop.ConfigEntityHandler != null)
+                        {
+                            var aope = new Aop.ConfigEntityEventArgs(type);
+                            _orm.Aop.ConfigEntityHandler(_orm, aope);
+                            foreach (var idxattr in aope.ModifyIndexResult)
+                                if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                                {
+                                    if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                }
+                        }
+                        break;
+                    case MappingPriorityType.FluentApi:
+                        if (dicConfigEntity.TryGetValue(type, out var trytb))
+                        {
+                            foreach (var idxattr in trytb._indexs.Values)
+                                if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                                {
+                                    if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                }
+                        }
+                        break;
+                    case MappingPriorityType.Attribute:
+                        var attrs = type.GetCustomAttributes(typeof(IndexAttribute), true);
+                        foreach (var tryattrobj in attrs)
+                        {
+                            var idxattr = tryattrobj as IndexAttribute;
+                            if (idxattr == null) continue;
+                            if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                            {
+                                if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                            }
+                        }
+                        break;
                 }
             }
             return ret.Values.ToArray();

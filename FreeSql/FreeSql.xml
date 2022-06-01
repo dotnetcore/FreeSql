@@ -1413,6 +1413,24 @@
             <param name="convertType"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseMappingPriority(FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType)">
+            <summary>
+            指定映射优先级<para></para>
+            例如表名：实体类名 &lt; Aop &lt; FluentApi &lt; Attribute &lt; AsTable<para></para>
+            事件 Aop -------> fsql.Aop.ConfigEntity/fsql.Aop.ConfigEntityProperty<para></para>
+            方法 FluentApi -> fsql.CodeFirst.ConfigEntity/fsql.CodeFirst.Entity<para></para>
+            特性 Attribute -> [Table(Name = xxx, ...)]<para></para>
+            -----------------------------------------------------------------------------<para></para>
+            默认规则：关于映射优先级，Attribute 可以更直观排查问题，即使任何地方使用 FluentApi/Aop 设置 TableName 都不生效。<para></para>
+            调整规则：UseMappingPriority(Attribute, FluentApi, Aop) <para></para>
+            实体类名 &lt; Attribute &lt; FluentApi &lt; Aop &lt; AsTable
+            </summary>
+            <param name="mappingType1"></param>
+            <param name="mappingType2"></param>
+            <param name="mappingType3"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseExitAutoDisposePool(System.Boolean)">
             <summary>
             监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放连接池<para></para>
@@ -4037,6 +4055,112 @@
             更新的实体
             </summary>
         </member>
+        <member name="T:FreeSql.Internal.MappingPriorityType">
+            <summary>
+            映射优先级，默认： Attribute > FluentApi > Aop
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.MappingPriorityType.Attribute">
+            <summary>
+            实体特性<para></para>
+            [Table(Name = "tabname")]<para></para>
+            [Column(Name = "table_id")]
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.MappingPriorityType.FluentApi">
+            <summary>
+            流式接口<para></para>
+            fsql.CodeFirst.ConfigEntity(a => a.Name("tabname"))<para></para>
+            fsql.CodeFirst.ConfigEntity(a => a.Property(b => b.Id).Name("table_id"))
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.MappingPriorityType.Aop">
+            <summary>
+            AOP 特性 https://github.com/dotnetcore/FreeSql/wiki/AOP<para></para>
+            fsql.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = "public.tabname";<para></para>
+            fsql.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = "table_id";<para></para>
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.None">
+            <summary>
+            不进行任何处理
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscore">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithUpper">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
+            <para></para>
+            BigApple -> BIG_APPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
+            <para></para>
+            BigApple -> big_apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
+            <summary>
+            将字符串转换为大写
+            <para></para>
+            BigApple -> BIGAPPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.ToLower">
+            <summary>
+            将字符串转换为小写
+            <para></para>
+            BigApple -> bigapple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.None">
+            <summary>
+            不进行任何处理
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
+            <para></para>
+            BigApple -> BIG_APPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
+            <para></para>
+            BigApple -> big_apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Upper">
+            <summary>
+            将字符串转换为大写
+            <para></para>
+            BigApple -> BIGAPPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Lower">
+            <summary>
+            将字符串转换为小写
+            <para></para>
+            BigApple -> bigapple
+            </summary>
+        </member>
         <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             创建一个过滤器<para></para>
@@ -4336,6 +4460,7 @@
             将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
             </summary>
             <param name="exception"></param>
+            <param name="lastGetTime"></param>
             <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
         </member>
         <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.Statistics">
@@ -4544,86 +4669,6 @@
             获取可用资源，或创建资源
             </summary>
             <returns></returns>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Upper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Lower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToLower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
         </member>
         <member name="T:FreeSql.CoreStrings">
             <summary>

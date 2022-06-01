@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql
 {
@@ -24,6 +25,7 @@ namespace FreeSql
         bool _isGenerateCommandParameterWithLambda = false;
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
+        MappingPriorityType[] _mappingPriorityTypes;
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -157,6 +159,29 @@ namespace FreeSql
         public FreeSqlBuilder UseNameConvert(NameConvertType convertType)
         {
             _nameConvertType = convertType;
+            return this;
+        }
+
+        /// <summary>
+        /// 指定映射优先级<para></para>
+        /// 例如表名：实体类名 &lt; Aop &lt; FluentApi &lt; Attribute &lt; AsTable<para></para>
+        /// 事件 Aop -------> fsql.Aop.ConfigEntity/fsql.Aop.ConfigEntityProperty<para></para>
+        /// 方法 FluentApi -> fsql.CodeFirst.ConfigEntity/fsql.CodeFirst.Entity<para></para>
+        /// 特性 Attribute -> [Table(Name = xxx, ...)]<para></para>
+        /// -----------------------------------------------------------------------------<para></para>
+        /// 默认规则：关于映射优先级，Attribute 可以更直观排查问题，即使任何地方使用 FluentApi/Aop 设置 TableName 都不生效。<para></para>
+        /// 调整规则：UseMappingPriority(Attribute, FluentApi, Aop) <para></para>
+        /// 实体类名 &lt; Attribute &lt; FluentApi &lt; Aop &lt; AsTable
+        /// </summary>
+        /// <param name="mappingType1"></param>
+        /// <param name="mappingType2"></param>
+        /// <param name="mappingType3"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public FreeSqlBuilder UseMappingPriority(MappingPriorityType mappingType1, MappingPriorityType mappingType2, MappingPriorityType mappingType3)
+        {
+            if (mappingType1 == mappingType2 || mappingType1 == mappingType3 || mappingType2 == mappingType3) throw new ArgumentException($"{nameof(mappingType1)}、{nameof(mappingType2)}、{nameof(mappingType3)} 不可以相等");
+            _mappingPriorityTypes = new[] { mappingType1, mappingType2, mappingType3 };
             return this;
         }
 
@@ -297,6 +322,9 @@ namespace FreeSql
                 ret.CodeFirst.IsNoneCommandParameter = _isNoneCommandParameter;
                 ret.CodeFirst.IsGenerateCommandParameterWithLambda = _isGenerateCommandParameterWithLambda;
                 ret.CodeFirst.IsLazyLoading = _isLazyLoading;
+
+                if (_mappingPriorityTypes != null)
+                    (ret.Select<object>() as Select0Provider)._commonUtils._mappingPriorityTypes = _mappingPriorityTypes;
 
                 if (_aopCommandExecuting != null)
                     ret.Aop.CommandBefore += new EventHandler<Aop.CommandBeforeEventArgs>((s, e) => _aopCommandExecuting?.Invoke(e.Command));
