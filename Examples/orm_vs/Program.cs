@@ -1,4 +1,6 @@
-﻿using FreeSql.Internal;
+﻿using Dapper;
+using FreeSql.Internal;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SqlSugar;
 using System;
@@ -12,14 +14,15 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FreeSql;
 
 namespace orm_vs
 {
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Max Pool Size=20")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
@@ -32,19 +35,19 @@ namespace orm_vs
             {
                 var db = new SqlSugarClient(new ConnectionConfig()
                 {
-                    //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-                    //DbType = DbType.SqlServer,
-                    ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-                    DbType = DbType.MySql,
+                    ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                    DbType = DbType.SqlServer,
+                    //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                    //DbType = DbType.MySql,
                     //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
                     //DbType = DbType.PostgreSQL,
                     IsAutoCloseConnection = true,
                     InitKeyType = InitKeyType.Attribute
                 });
-                db.Aop.OnLogExecuting = (sql, pars) =>
-                {
-                    Console.WriteLine(sql);//输出sql,查看执行sql
-                };
+                //db.Aop.OnLogExecuting = (sql, pars) =>
+                //{
+                //    Console.WriteLine(sql);//输出sql,查看执行sql
+                //};
                 return db;
             }
         }
@@ -52,10 +55,11 @@ namespace orm_vs
         class SongContext : DbContext
         {
             public DbSet<Song> Songs { get; set; }
+            public DbSet<PatientExamination_2022> PatientExamination_2022s { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                //optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-                optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+                //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
                 //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21");
             }
 
@@ -69,8 +73,101 @@ namespace orm_vs
             }
         }
 
+        //CREATE TABLE [dbo].[PatientExamination_2022] (
+        //  [Id] uniqueidentifier  NOT NULL,
+        //  [CreateTime] datetime  NOT NULL,
+        //  [ExamKindId] uniqueidentifier  NOT NULL,
+        //  [ExamKindName] nvarchar(255) COLLATE Chinese_PRC_CI_AS  NULL,
+        //  [PatientGuid] uniqueidentifier  NOT NULL,
+        //  [PatientName] nvarchar(255) COLLATE Chinese_PRC_CI_AS  NULL,
+        //  [AnesthesiaType] int  NOT NULL,
+        //  [DiaRoomId] uniqueidentifier  NULL,
+        //  [DiaRoomName] nvarchar(255) COLLATE Chinese_PRC_CI_AS  NULL,
+        //  [QueueIndex] int  NOT NULL,
+        //  [QueueNum] int  NOT NULL,
+        //  [OrderDateTime] datetime  NOT NULL,
+        //  [TimeType] int  NOT NULL,
+        //  [SignInTime] datetime  NULL,
+        //  [StartCheckTime] datetime  NULL,
+        //  [EndCheckTime] datetime  NULL,
+        //  [VerifyTime] datetime  NULL,
+        //  [ReportTime] datetime  NULL,
+        //  [ExaminationState] int  NOT NULL
+        //)
+        [Table("PatientExamination_2022")]
+        class PatientExamination_2022
+        {
+            public Guid Id { get; set; }
+            public DateTime CreateTime { get; set; }
+            public Guid ExamKindId { get; set; }
+            public string ExamKindName { get; set; }
+            public Guid PatientGuid { get; set; }
+            public string PatientName { get; set; }
+            public int AnesthesiaType { get; set; }
+            public Guid? DiaRoomId { get; set; }
+            public string DiaRoomName { get; set; }
+            public int QueueIndex { get; set; }
+            public int QueueNum { get; set; }
+            public DateTime OrderDateTime { get; set; }
+            public int TimeType { get; set; }
+            public DateTime? SignInTime { get; set; }
+            public DateTime? StartCheckTime { get; set; }
+            public DateTime? EndCheckTime { get; set; }
+            public DateTime? VerifyTime { get; set; }
+            public DateTime? ReportTime { get; set; }
+            public int ExaminationState { get; set; }
+        }
+
+        static void TestFreeSqlSelectPatientExamination_2022()
+        {
+            var list = fsql.Select<PatientExamination_2022>().Limit(40000).ToList();
+            //var list = fsql.Ado.Query<PatientExamination_2022>("select top 40000 * from PatientExamination_2022");
+        }
+        static void TestEfSelectPatientExamination_2022()
+        {
+            using (var ctx = new SongContext())
+            {
+                var list = ctx.PatientExamination_2022s.Take(40000).AsNoTracking().ToList();
+            }
+        }
+        static void TestSqlSugarSelectPatientExamination_2022()
+        {
+            var list = sugar.Queryable<PatientExamination_2022>().Take(40000).ToList();
+        }
+        static void TestDapperSelectPatientExamination_2022()
+        {
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=21;Max Pool Size=22"))
+            {
+                var list = conn.Query<PatientExamination_2022>("select top 40000 * from PatientExamination_2022");
+            }
+        }
+
+        static DbConnection fsqlConn = null;
         static void Main(string[] args)
         {
+            var count = 0;
+            var sws = new List<long>();
+            Console.WriteLine("观察查询4万条记录内存，按 Enter 进入下一次，按任易键即出程序。。。");
+            //while(Console.ReadKey().Key == ConsoleKey.Enter)
+            //using (var fcon = fsql.Ado.MasterPool.Get())
+            //{
+                //fsqlConn = fcon.Value;
+                for (var a = 0; a < 80; a++)
+                {
+                    Stopwatch sw = Stopwatch.StartNew();
+                    TestFreeSqlSelectPatientExamination_2022();
+                    //TestEfSelectPatientExamination_2022();
+                    //TestSqlSugarSelectPatientExamination_2022();
+                    //TestDapperSelectPatientExamination_2022();
+                    sw.Stop();
+                    sws.Add(sw.ElapsedMilliseconds);
+                    Console.WriteLine($"第 {++count} 次，查询4万条记录, {sw.ElapsedMilliseconds}ms，平均 {(long)sws.Average()}ms");
+                }
+            //}
+            Console.ReadKey();
+            fsql.Dispose();
+            return;
+
             //fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements

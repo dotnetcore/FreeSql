@@ -21,7 +21,6 @@ namespace FreeSql.PostgreSQL
 
     public class PostgreSQLProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
-
         static PostgreSQLProvider()
         {
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BigInteger)] = true;
@@ -104,7 +103,9 @@ namespace FreeSql.PostgreSQL
                         Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type, typeof(Type))), type)),
                         Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(string)), Expression.Constant(type, typeof(Type))), type)));
                 return null;
-            });
+            }); 
+            
+            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
         }
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new PostgreSQLSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

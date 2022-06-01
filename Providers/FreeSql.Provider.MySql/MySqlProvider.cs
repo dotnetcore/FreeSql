@@ -34,6 +34,8 @@ namespace FreeSql.MySql
                 }
                 return null;
             });
+
+            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
         }
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new MySqlSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

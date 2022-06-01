@@ -9,6 +9,11 @@ namespace FreeSql.SqlServer
 
     public class SqlServerProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        static SqlServerProvider()
+        {
+            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+        }
+
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new SqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsert<T1> CreateInsertProvider<T1>() => new SqlServerInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new SqlServerUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
