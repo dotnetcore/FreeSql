@@ -2058,6 +2058,14 @@ namespace FreeSql.Internal
             if (_common.CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null)
             {
                 if (obj == null) return "NULL";
+                if (mapColumn != null)
+                {
+                    var objType = obj.GetType();
+                    if (obj is ICollection && objType.GetGenericArguments().FirstOrDefault()?.NullableTypeOrThis() == mapColumn.CsType?.NullableTypeOrThis())
+                        return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+                    if (obj is Array && objType.GetElementType()?.NullableTypeOrThis() == mapColumn.CsType?.NullableTypeOrThis())
+                        return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+                }
                 var type = mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType();
                 if (_common.CodeFirst.GetDbInfo(type) != null)
                 {
