@@ -221,7 +221,7 @@ namespace FreeSql.Tests.PostgreSQL
             var id = g.pgsql.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
         }
 
-        [Table(Name = "ccc.TopicAddField", OldName = "TopicAddField")]
+        [Table(Name = "ccc2.TopicAddField", OldName = "ccc.TopicAddField")]
         public class TopicAddField
         {
             [Column(IsIdentity = true)]
@@ -235,8 +235,8 @@ namespace FreeSql.Tests.PostgreSQL
             //[Column(DbType = "varchar(200) not null", OldName = "title")]
             //public string title222 { get; set; } = "333";
 
-            //[Column(DbType = "varchar(200) not null")]
-            //public string title222333 { get; set; } = "xxx";
+            [Column(DbType = "varchar(200) not null")]
+            public string title222333 { get; set; } = "xxx";
 
             //[Column(DbType = "varchar(100) not null", OldName = "title122333aaa")]
             //public string titleaaa { get; set; } = "fsdf";
