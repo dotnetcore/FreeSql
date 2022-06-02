@@ -68,8 +68,17 @@ namespace FreeSql.SqlServer
             {
                 _connectionString = value ?? "";
 
-                var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var minPoolSize = 0;
+                var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    minPoolSize = int.Parse(m.Groups[1].Value);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                }
+
+                pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
@@ -85,21 +94,13 @@ namespace FreeSql.SqlServer
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
-                var minPoolSize = 0;
-                pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
-
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
             }
         }
 
         public bool OnCheckAvailable(Object<DbConnection> obj)
         {
+            if (obj.Value == null) return false;
             if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
             return obj.Value.Ping(true);
         }
@@ -140,7 +141,7 @@ namespace FreeSql.SqlServer
                     {
                         if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -161,7 +162,6 @@ namespace FreeSql.SqlServer
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
                 {
-
                     try
                     {
                         await obj.Value.OpenAsync();
@@ -170,7 +170,7 @@ namespace FreeSql.SqlServer
                     {
                         if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw ex;
+                        throw;
                     }
                 }
             }

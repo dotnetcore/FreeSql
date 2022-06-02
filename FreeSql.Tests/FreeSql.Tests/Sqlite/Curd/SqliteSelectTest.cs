@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Text;
 using Xunit;
 using FreeSql.Internal.CommonProvider;
+using System.Collections.ObjectModel;
 
 namespace FreeSql.Tests.Sqlite
 {
@@ -1241,7 +1242,7 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
 
             public string m2setting { get; set; }
 
-            public List<TestInclude_OneToManyModel3> childs { get; set; }
+            public ObservableCollection<TestInclude_OneToManyModel3> childs { get; set; }
         }
         public class TestInclude_OneToManyModel3
         {

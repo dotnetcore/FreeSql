@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
@@ -395,7 +396,10 @@ namespace FreeSql.Internal
             object ret;
             if (string.IsNullOrEmpty(parent.IncludeManyKey) == false)
             {
-                ret = typeof(List<>).MakeGenericType(parent.CsType).CreateInstanceGetDefaultValue();
+                if (parent.MapType == typeof(ObservableCollection<>).MakeGenericType(parent.CsType))
+                    ret = parent.MapType.CreateInstanceGetDefaultValue();
+                else
+                    ret = typeof(List<>).MakeGenericType(parent.CsType).CreateInstanceGetDefaultValue();
                 fillIncludeMany?.Add(NativeTuple.Create(parent.IncludeManyKey, ret as IList, rowIndex));
             }
             else if (parent.SubSelectMany != null)
@@ -408,6 +412,7 @@ namespace FreeSql.Internal
             else
             {
                 var ctorParms = new object[ctorParmsLength];
+                var ctorParmsDefs = parent.Consturctor.GetParameters();
                 for (var c = 0; c < ctorParmsLength; c++)
                     ctorParms[c] = ReadAnonymous(parent.Childs[c], dr, ref index, notRead, null, rowIndex, fillIncludeMany, fillSubSelectMany);
                 ret = parent.Consturctor.Invoke(ctorParms);

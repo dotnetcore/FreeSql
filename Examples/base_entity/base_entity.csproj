@@ -22,6 +22,7 @@
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />
@@ -30,5 +31,10 @@
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
 	</ItemGroup>
-
+	
+    <ItemGroup>
+      <Reference Include="DmProvider">
+        <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
+      </Reference>
+    </ItemGroup>
 </Project>

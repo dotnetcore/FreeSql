@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>3.2.661</Version>
+		<Version>3.2.666-preview202200601</Version>
 	</PropertyGroup>
 	
 	<ItemGroup>

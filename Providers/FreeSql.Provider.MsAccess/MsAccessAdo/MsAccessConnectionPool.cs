@@ -63,8 +63,17 @@ namespace FreeSql.MsAccess
             {
                 _connectionString = value ?? "";
 
-                var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var minPoolSize = 0;
+                var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    minPoolSize = int.Parse(m.Groups[1].Value);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                }
+
+                pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success)
                 {
                     if (int.TryParse(m.Groups[1].Value, out var poolsize) && poolsize > 0) 
@@ -80,21 +89,13 @@ namespace FreeSql.MsAccess
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
-                var minPoolSize = 0;
-                pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
-
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
             }
         }
 
         public bool OnCheckAvailable(Object<DbConnection> obj)
         {
+            if (obj.Value == null) return false;
             if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
             return obj.Value.Ping(true);
         }

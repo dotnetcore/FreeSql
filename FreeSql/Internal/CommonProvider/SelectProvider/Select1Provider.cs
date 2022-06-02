@@ -671,17 +671,20 @@ namespace FreeSql.Internal.CommonProvider
                 var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
                 var setListValue = membersExpNotNull == null ?
                     Expression.Lambda<Action<T1, List<TNavigate>>>(
-                        Expression.Assign(
-                            Expression.MakeMemberAccess(membersExp, collMem.Member),
-                            Expression.TypeAs(listValueExp, collMem.Type)
-                        ), t1parm, listValueExp).Compile() :
-                    Expression.Lambda<Action<T1, List<TNavigate>>>(
-                        Expression.IfThen(
-                            membersExpNotNull,
-                            Expression.Assign(
-                                Expression.MakeMemberAccess(membersExp, collMem.Member),
-                                Expression.TypeAs(listValueExp, collMem.Type)
-                            )
+                        collMem.Type == typeof(ObservableCollection<TNavigate>) ?
+                        (Expression)Expression.IfThen(
+                            Expression.NotEqual(listValueExp, Expression.Constant(null, typeof(List<TNavigate>))),
+                            Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.New(typeof(ObservableCollection<TNavigate>).GetConstructor(new[] { typeof(List<TNavigate>) }), listValueExp))
+                        ) :
+                        Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.TypeAs(listValueExp, collMem.Type))
+                        , t1parm, listValueExp).Compile() :
+                    Expression.Lambda<Action<T1, List<TNavigate>>>(Expression.IfThen(membersExpNotNull,
+                        collMem.Type == typeof(ObservableCollection<TNavigate>) ?
+                        (Expression)Expression.IfThen(
+                            Expression.NotEqual(listValueExp, Expression.Constant(null, typeof(List<TNavigate>))),
+                            Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.New(typeof(ObservableCollection<TNavigate>).GetConstructor(new[] { typeof(List<TNavigate>) }), listValueExp))
+                        ) :
+                        Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.TypeAs(listValueExp, collMem.Type))
                         ), t1parm, listValueExp).Compile();
 
                 var returnTarget = Expression.Label(typeof(object));
