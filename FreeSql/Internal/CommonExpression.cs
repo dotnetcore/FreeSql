@@ -1314,7 +1314,7 @@ namespace FreeSql.Internal
 
                                                                 var sql4 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({fieldSql})" })?.ToString();
                                                                 asSelectBefores.Clear();
-                                                                return _common.IsNull($"({sql4.Replace(" \r\n", " \r\n    ")})", 0);
+                                                                return _common.IsNull($"({sql4.Replace(" \r\n", " \r\n    ")})", formatSql(exp3.Method.ReturnType.CreateInstanceGetDefaultValue(), exp3.Method.ReturnType, null, null));
                                                         }
 
                                                         var sql3 = manySubSelectAggMethod.Invoke(fsql, new object[] { exp3Args0, FieldAliasOptions.AsProperty }) as string;
@@ -1374,8 +1374,8 @@ namespace FreeSql.Internal
                                                     fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { tosqlField })?.ToString());
                                             if (string.IsNullOrEmpty(sqlSum) == false)
                                                 return tscClone1.subSelect001._limit <= 0 && tscClone1.subSelect001._skip <= 0 ?
-                                                    _common.IsNull($"({sqlSum.Replace(" \r\n", " \r\n    ")})", 0) :
-                                                    _common.IsNull($"({sqlSum})", 0);
+                                                    _common.IsNull($"({sqlSum.Replace(" \r\n", " \r\n    ")})", formatSql(exp3.Method.ReturnType.CreateInstanceGetDefaultValue(), exp3.Method.ReturnType, null, null)) :
+                                                    _common.IsNull($"({sqlSum})", formatSql(exp3.Method.ReturnType.CreateInstanceGetDefaultValue(), exp3.Method.ReturnType, null, null));
                                             break;
                                         case "ToList":
                                         case "ToOne":
@@ -2280,7 +2280,7 @@ namespace FreeSql.Internal
                                 commonExp.ReadAnonymousField(select._tables, field, map, ref index, callExp.Arguments[1], null, null, null, null, null, false);
                                 var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
 
-                                e.Result = commonExp._common.IsNull($"({select.ToSql($"{aggregateMethodName}({fieldSql})").Replace(" \r\n", " \r\n    ")})", 0);
+                                e.Result = commonExp._common.IsNull($"({select.ToSql($"{aggregateMethodName}({fieldSql})").Replace(" \r\n", " \r\n    ")})", commonExp.formatSql(callExp.Method.ReturnType.CreateInstanceGetDefaultValue(), callExp.Method.ReturnType, null, null));
                                 return;
                             }
                             throw throwCallExp($"不支持 {callExp.Arguments.Count}个参数的方法");
