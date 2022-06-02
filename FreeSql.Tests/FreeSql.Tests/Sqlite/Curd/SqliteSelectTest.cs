@@ -308,9 +308,33 @@ WHERE (((a.""Name"") in (SELECT s.""Title"" as1
             public bool? testBool1 { get; set; }
             public bool? testBool2 { get; set; }
         }
+        class UserRoleToList01
+        {
+            public Guid Id { get; set; }
+            [Navigate(nameof(RoleId))]
+            public RoleToList01 Role { get; set; }
+            public Guid RoleId { get; set; }
+        }
+        class RoleToList01
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+        }
         [Fact]
         public void ToList()
         {
+            var fsql = g.sqlite;
+            fsql.Delete<UserRoleToList01>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<RoleToList01>().Where("1=1").ExecuteAffrows();
+            var tlrole = new RoleToList01 { Name = "管理员" };
+            fsql.Insert(tlrole).ExecuteAffrows();
+            fsql.Insert(new UserRoleToList01 { RoleId = tlrole.Id }).ExecuteAffrows();
+            var lst_role_menu = g.sqlite.Select<UserRoleToList01>()
+                    .Include(f => f.Role)
+                    .ToList(f => new
+                    {
+                        RoleName = f.Role.Name,
+                    });
 
             g.sqlite.Delete<TestDtoLeftJoin>().Where("1=1").ExecuteAffrows();
             var testlist = select.Limit(10).ToList();
