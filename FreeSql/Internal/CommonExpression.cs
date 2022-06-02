@@ -198,7 +198,17 @@ namespace FreeSql.Internal
                         }
                         if (diymemexp != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
-                            field.Append(diymemexp._field);
+                            field.Append(diymemexp._field); 
+                            if (diymemexp._map.Childs.Any() == false) //处理 GroupBy(a => a.Title) ToSql(g => new { tit = a.Key }, FieldAliasOptions.AsProperty) 问题
+                            {
+                                if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
+                                else if (index == ReadAnonymousFieldAsCsName)
+                                {
+                                    var csname = GetFieldAsCsName(parent.CsName);
+                                    if (diymemexp._field.EndsWith(csname, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
+                                        field.Append(_common.FieldAsAlias(csname));
+                                }
+                            }
                             var parentProp = parent.Property;
                             diymemexp._map.CopyTo(parent);
                             parent.Property = parentProp; //若不加此行，会引用 GroupBy(..).ToList(a => new Dto { key = a.Key }) null 错误，CopyTo 之后 Property 变为 null

@@ -868,6 +868,17 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
                 .OrderBy(a => a.Key)
                 .ToList(a => a.Sum(a.Value.TypeGuid));
 
+            var aggsql110 = select
+                .GroupBy(a => a.Title)
+                .ToSql(b => new
+                {
+                    tit = b.Key,
+                    cou = b.Count(),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                }, FieldAliasOptions.AsProperty);
+            Assert.Equal(@"SELECT a.""TITLE"" ""TIT"", count(1) ""COU"", sum(a.""TYPEGUID"") ""SUM2"" 
+FROM ""TB_TOPIC22"" a 
+GROUP BY a.""TITLE""", aggsql110);
             var aggsql1 = select
                 .GroupBy(a => a.Title)
                 .ToSql(b => new
@@ -876,6 +887,9 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
                     cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
+            Assert.Equal(@"SELECT a.""TITLE"" as1, count(1) as2, sum(a.""TYPEGUID"") as3 
+FROM ""TB_TOPIC22"" a 
+GROUP BY a.""TITLE""", aggsql1);
             var aggtolist1 = select
                 .GroupBy(a => a.Title)
                 .ToList(b => new
