@@ -961,16 +961,21 @@ FROM [tb_topic22] a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT min(b.[Id]) 
     FROM [tb_topic22] b)), 0, (SELECT min(b.[Id]) 
-    FROM [tb_topic22] b)) as as6 
+    FROM [tb_topic22] b)) as as6, iif(isnull((SELECT min(b.[CreateTime]) 
+    FROM [tb_topic22] b)), '1970-01-01 00:00:00', (SELECT min(b.[CreateTime]) 
+    FROM [tb_topic22] b)) as as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime),
+                min3 = select.As("b").Where(b => b.Id < 0).Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -979,16 +984,20 @@ FROM [tb_topic22] a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT max(b.[Id]) 
     FROM [tb_topic22] b)), 0, (SELECT max(b.[Id]) 
-    FROM [tb_topic22] b)) as as6 
+    FROM [tb_topic22] b)) as as6, iif(isnull((SELECT max(b.[CreateTime]) 
+    FROM [tb_topic22] b)), '1970-01-01 00:00:00', (SELECT max(b.[CreateTime]) 
+    FROM [tb_topic22] b)) as as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]

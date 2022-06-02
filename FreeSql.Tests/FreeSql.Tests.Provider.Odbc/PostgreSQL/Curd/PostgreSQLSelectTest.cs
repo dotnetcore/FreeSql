@@ -941,15 +941,18 @@ FROM ""tb_topic"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT min(b.""id"") 
-    FROM ""tb_topic"" b), 0) as6 
+    FROM ""tb_topic"" b), 0) as6, coalesce((SELECT min(b.""createtime"") 
+    FROM ""tb_topic"" b), '0001-01-01 00:00:00.000000') as7 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -958,15 +961,18 @@ FROM ""tb_topic"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT max(b.""id"") 
-    FROM ""tb_topic"" b), 0) as6 
+    FROM ""tb_topic"" b), 0) as6, coalesce((SELECT max(b.""createtime"") 
+    FROM ""tb_topic"" b), '0001-01-01 00:00:00.000000') as7 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]

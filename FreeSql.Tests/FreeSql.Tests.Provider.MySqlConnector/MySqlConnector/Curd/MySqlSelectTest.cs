@@ -1085,15 +1085,18 @@ FROM `tb_topic` a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT min(b.`Id`) 
-    FROM `tb_topic` b), 0) as6 
+    FROM `tb_topic` b), 0) as6, ifnull((SELECT min(b.`CreateTime`) 
+    FROM `tb_topic` b), '0001-01-01 00:00:00.000') as7 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -1102,15 +1105,18 @@ FROM `tb_topic` a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
             Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT max(b.`Id`) 
-    FROM `tb_topic` b), 0) as6 
+    FROM `tb_topic` b), 0) as6, ifnull((SELECT max(b.`CreateTime`) 
+    FROM `tb_topic` b), '0001-01-01 00:00:00.000') as7 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]
