@@ -154,6 +154,7 @@ namespace FreeSql.Internal
                                 {
                                     case TableRefType.ManyToMany:
                                     case TableRefType.OneToMany:
+                                    case TableRefType.ArrayToMany:
                                         continue;
                                 }
                                 if (_tables.Any(a => a.Alias == $"{map.First().Table.Alias}__{memProp.Name}") == false) continue;
@@ -2194,6 +2195,8 @@ namespace FreeSql.Internal
                         for (var tidx = 0; tidx < memberTbref.Columns.Count; tidx++)
                             select.Where($"{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[tidx].Attribute.Name)} = {omtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[tidx].Attribute.Name)}");
                         break;
+                    case TableRefType.ArrayToMany:
+                        break;
                 }
 
             }
@@ -2240,6 +2243,8 @@ namespace FreeSql.Internal
                         case TableRefType.OneToMany:
                             if (select != null) return;
                             LocalInitSelectProvider();
+                            continue;
+                        case TableRefType.ArrayToMany:
                             continue;
                     }
                 }

@@ -430,6 +430,8 @@ namespace FreeSql.Internal.CommonProvider
                     var curTb = _commonUtils.GetTableByEntity(exp.Type);
                     _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
                     break;
+                case TableRefType.ArrayToMany:
+                    break;
             }
             return this;
         }
@@ -1171,6 +1173,8 @@ namespace FreeSql.Internal.CommonProvider
                                     setListValue(t1item.Item1, t1item.Item2);
                             dicList.Clear();
                         }
+                        break;
+                    case TableRefType.ArrayToMany:
                         break;
                 }
             };
