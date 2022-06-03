@@ -196,27 +196,38 @@ namespace FreeSql.Internal
                         }
                         break;
                     case MappingPriorityType.FluentApi:
-                        if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._columns.TryGetValue(proto.Name, out var trycol))
+                        var baseTypes = new List<Type>();
+                        var baseType = type;
+                        while (baseType != typeof(object) && baseType != null)
                         {
-                            if (!string.IsNullOrEmpty(trycol.Name)) attr.Name = trycol.Name;
-                            if (!string.IsNullOrEmpty(trycol.OldName)) attr.OldName = trycol.OldName;
-                            if (!string.IsNullOrEmpty(trycol.DbType)) attr.DbType = trycol.DbType;
-                            if (trycol._IsPrimary != null) attr._IsPrimary = trycol.IsPrimary;
-                            if (trycol._IsIdentity != null) attr._IsIdentity = trycol.IsIdentity;
-                            if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
-                            if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
-                            if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
-                            if (trycol.MapType != null) attr.MapType = trycol.MapType;
-                            if (trycol._Position != null) attr._Position = trycol.Position;
-                            if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
-                            if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
-                            if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
-                            if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
-                            if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
-                            if (trycol._Precision != null) attr.Precision = trycol.Precision;
-                            if (trycol._Scale != null) attr.Scale = trycol.Scale;
-                            if (!string.IsNullOrEmpty(trycol.RewriteSql)) attr.RewriteSql = trycol.RewriteSql;
-                            if (!string.IsNullOrEmpty(trycol.RereadSql)) attr.RereadSql = trycol.RereadSql;
+                            baseTypes.Add(baseType);
+                            baseType = baseType.BaseType;
+                        }
+                        for (var a = baseTypes.Count - 1; a >= 0; a--)
+                        {
+                            var entityType = baseTypes[a];
+                            if (dicConfigEntity.TryGetValue(entityType, out var trytb) && trytb._columns.TryGetValue(proto.Name, out var trycol))
+                            {
+                                if (!string.IsNullOrEmpty(trycol.Name)) attr.Name = trycol.Name;
+                                if (!string.IsNullOrEmpty(trycol.OldName)) attr.OldName = trycol.OldName;
+                                if (!string.IsNullOrEmpty(trycol.DbType)) attr.DbType = trycol.DbType;
+                                if (trycol._IsPrimary != null) attr._IsPrimary = trycol.IsPrimary;
+                                if (trycol._IsIdentity != null) attr._IsIdentity = trycol.IsIdentity;
+                                if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
+                                if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
+                                if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
+                                if (trycol.MapType != null) attr.MapType = trycol.MapType;
+                                if (trycol._Position != null) attr._Position = trycol.Position;
+                                if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
+                                if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
+                                if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
+                                if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
+                                if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
+                                if (trycol._Precision != null) attr.Precision = trycol.Precision;
+                                if (trycol._Scale != null) attr.Scale = trycol.Scale;
+                                if (!string.IsNullOrEmpty(trycol.RewriteSql)) attr.RewriteSql = trycol.RewriteSql;
+                                if (!string.IsNullOrEmpty(trycol.RereadSql)) attr.RereadSql = trycol.RereadSql;
+                            }
                         }
                         break;
                     case MappingPriorityType.Attribute:

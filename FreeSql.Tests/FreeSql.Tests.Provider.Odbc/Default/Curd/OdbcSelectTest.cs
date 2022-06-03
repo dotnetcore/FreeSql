@@ -849,7 +849,7 @@ FROM [tb_topic22] a", subquery);
             });
             Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT min(b.[Id]) 
     FROM [tb_topic22] b), 0) as6, isnull((SELECT min(b.[CreateTime]) 
-    FROM [tb_topic22] b), '1970-01-01 00:00:00.000') as7 
+    FROM [tb_topic22] b), '1970-01-01 00:00:00') as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -869,7 +869,7 @@ FROM [tb_topic22] a", subquery);
             });
             Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT max(b.[Id]) 
     FROM [tb_topic22] b), 0) as6, isnull((SELECT max(b.[CreateTime]) 
-    FROM [tb_topic22] b), '1970-01-01 00:00:00.000') as7 
+    FROM [tb_topic22] b), '1970-01-01 00:00:00') as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {

@@ -49,7 +49,7 @@ namespace FreeSql.DataAnnotations
         public ColumnFluent Property(string proto)
         {
             if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
-            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
+            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, _entityType);
         }
 
@@ -136,7 +136,7 @@ namespace FreeSql.DataAnnotations
         public ColumnFluent Property(string proto)
         {
             if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
-            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
+            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, typeof(T));
         }
 

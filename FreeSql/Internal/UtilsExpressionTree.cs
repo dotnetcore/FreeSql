@@ -28,6 +28,9 @@ namespace FreeSql.Internal
                 ) return;
             var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
             if (tbc.TryRemove(entity, out var trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
+            var reltypes = tbc.Keys.Where(a => entity.IsAssignableFrom(a)).ToArray();
+            foreach (var reltype in reltypes)
+                if (tbc.TryRemove(reltype, out trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
         }
         internal static TableInfo GetTableByEntity(Type entity, CommonUtils common)
         {

@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Data.SqlClient;
@@ -50,7 +50,7 @@ namespace FreeSql.Tests.DataAnnotations
                 {
                     a.Name("xxdkdkdk1222");
                     a.Property("Id").Name("Id22dd").IsIdentity(true);
-                    a.Property("Name").DbType("varchar(101)").IsNullable(true);
+                    a.Property("Name").Name("Name").DbType("varchar(101)").IsNullable(true);
                 })
 
                 .ConfigEntity<TestFluenttb2>(a =>
