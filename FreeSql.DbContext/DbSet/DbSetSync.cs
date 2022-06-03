@@ -166,8 +166,9 @@ namespace FreeSql
             if (tref == null) return;
             switch (tref.RefType)
             {
-                case Internal.Model.TableRefType.OneToOne:
-                case Internal.Model.TableRefType.ManyToOne:
+                case TableRefType.OneToOne:
+                case TableRefType.ManyToOne:
+                case TableRefType.ArrayToMany:
                     throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
             }
 
@@ -177,7 +178,7 @@ namespace FreeSql
             try
             {
                 AddOrUpdateNavigate(item, false, propertyName);
-                if (tref.RefType == Internal.Model.TableRefType.OneToMany)
+                if (tref.RefType == TableRefType.OneToMany)
                 {
                     DbContextFlushCommand();
                     //删除没有保存的数据，求出主体的条件
@@ -224,7 +225,7 @@ namespace FreeSql
                 DbSet<object> refSet = null;
                 switch (tref.RefType)
                 {
-                    case Internal.Model.TableRefType.OneToOne:
+                    case TableRefType.OneToOne:
                         refSet = GetDbSetObject(tref.RefEntityType);
                         var propValItem = GetItemValue(item, prop);
                         if (propValItem == null) return;
@@ -236,7 +237,8 @@ namespace FreeSql
                         if (isAdd) refSet.Add(propValItem);
                         else refSet.AddOrUpdate(propValItem);
                         return;
-                    case Internal.Model.TableRefType.ManyToOne:
+                    case TableRefType.ManyToOne:
+                    case TableRefType.ArrayToMany:
                         return;
                 }
 
@@ -714,7 +716,7 @@ namespace FreeSql
             {
                 return tb.Properties.Where(a => tb.ColumnsByCs.ContainsKey(a.Key) == false)
                     .Select(a => new NativeTuple<TableRef, PropertyInfo>(tb.GetTableRef(a.Key, false), a.Value))
-                    .Where(a => a.Item1 != null && a.Item1.RefType != TableRefType.ManyToOne)
+                    .Where(a => a.Item1 != null && new[] { TableRefType.OneToOne, TableRefType.OneToMany, TableRefType.ManyToMany }.Contains(a.Item1.RefType))
                     .ToList();
             }
             void LocalEach(DbSet<object> dbset, IEnumerable<object> items, bool isOneToOne)

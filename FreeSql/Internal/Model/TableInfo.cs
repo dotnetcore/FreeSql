@@ -150,6 +150,6 @@ namespace FreeSql.Internal.Model
     }
     public enum TableRefType
     {
-        OneToOne, ManyToOne, OneToMany, ManyToMany
+        OneToOne, ManyToOne, OneToMany, ManyToMany, ArrayToMany
     }
 }
