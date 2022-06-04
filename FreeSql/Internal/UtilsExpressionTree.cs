@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -623,6 +624,7 @@ namespace FreeSql.Internal
 
             //List 或 ICollection，一对多、多对多
             var propElementType = pnv.PropertyType.GetGenericArguments().FirstOrDefault() ?? pnv.PropertyType.GetElementType();
+            var propTypeIsObservableCollection = propElementType != null && pnv.PropertyType == typeof(ObservableCollection<>).MakeGenericType(propElementType);
             if (propElementType != null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
@@ -992,17 +994,18 @@ namespace FreeSql.Internal
                 {
                     var isArrayToMany = false;
                     var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var cscodeExtLogic = "";
                     //Pgsql Array[] To Many
                     if (common._orm.Ado.DataType == DataType.PostgreSQL)
                     {
                         //class User {
                         //  public int[] RoleIds { get; set; }
                         //  [Navigate(nameof(RoleIds))]
-                        //  public Role[] Roles { get; set; }
+                        //  public List<Role> Roles { get; set; }
                         //}
                         //class Role {
                         //  [Navigate(nameof(User.RoleIds))]
-                        //  public User[] Users { get; set; }
+                        //  public List<User> Users { get; set; }
                         //}
                         ColumnInfo trycol = null;
                         if (tbref.Primarys.Length == 1)
@@ -1038,11 +1041,14 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName).Append(")");
+                                cscodeExtLogic = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
+                                if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                lmbdWhere.Append(")");
                                 nvref.Columns.Add(trycol);
                                 nvref.RefColumns.Add(tbref.Primarys[0]);
                                 nvref.RefEntityType = tbref.Type;
-                                nvref.RefType = TableRefType.ArrayToMany;
+                                nvref.RefType = TableRefType.PgArrayToMany;
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             }
                         }
@@ -1080,11 +1086,14 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName).Append(")");
+                                cscodeExtLogic = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
+                                if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                lmbdWhere.Append(")");
                                 nvref.Columns.Add(tbref.Primarys[0]);
                                 nvref.RefColumns.Add(trycol);
                                 nvref.RefEntityType = tbref.Type;
-                                nvref.RefType = TableRefType.ArrayToMany;
+                                nvref.RefType = TableRefType.PgArrayToMany;
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             }
                         }
@@ -1205,6 +1214,7 @@ namespace FreeSql.Internal
                         if (vp?.Item2 == true)
                         { //get 重写
                             cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                                .Append(cscodeExtLogic)
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)

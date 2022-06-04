@@ -418,6 +418,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case TableRefType.ManyToMany:
                 case TableRefType.OneToMany:
+                case TableRefType.PgArrayToMany:
                     var funcType = typeof(Func<,>).MakeGenericType(_tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
@@ -429,8 +430,6 @@ namespace FreeSql.Internal.CommonProvider
                     _isIncluded = true;
                     var curTb = _commonUtils.GetTableByEntity(exp.Type);
                     _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
-                    break;
-                case TableRefType.ArrayToMany:
                     break;
             }
             return this;
@@ -1175,7 +1174,7 @@ namespace FreeSql.Internal.CommonProvider
                             dicList.Clear();
                         }
                         break;
-                    case TableRefType.ArrayToMany:
+                    case TableRefType.PgArrayToMany:
                         if (true)
                         {
                             var subList = new List<TNavigate>();
@@ -1256,7 +1255,7 @@ namespace FreeSql.Internal.CommonProvider
                             else if (tbref.Columns[0] == tb.Primarys[0])
                             {
                                 var listKeys = list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
-                                        .Select(a => Utils.GetDataReaderValue(tbref.RefColumns[0].CsType.GetElementType(), a)).ToArray();
+                                    .Select(a => Utils.GetDataReaderValue(tbref.RefColumns[0].CsType.GetElementType(), a)).ToArray();
                                 var listKeysSql = _commonUtils.GetNoneParamaterSqlValue(subSelect._params, "arrtm", tbref.RefColumns[0], tbref.RefColumns[0].CsType, listKeys);
                                 subSelect.Where($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)} && {listKeysSql}");
 
