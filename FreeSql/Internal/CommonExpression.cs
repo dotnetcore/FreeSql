@@ -154,7 +154,7 @@ namespace FreeSql.Internal
                                 {
                                     case TableRefType.ManyToMany:
                                     case TableRefType.OneToMany:
-                                    case TableRefType.ArrayToMany:
+                                    case TableRefType.PgArrayToMany:
                                         continue;
                                 }
                                 if (_tables.Any(a => a.Alias == $"{map.First().Table.Alias}__{memProp.Name}") == false) continue;
@@ -2195,7 +2195,13 @@ namespace FreeSql.Internal
                         for (var tidx = 0; tidx < memberTbref.Columns.Count; tidx++)
                             select.Where($"{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[tidx].Attribute.Name)} = {omtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[tidx].Attribute.Name)}");
                         break;
-                    case TableRefType.ArrayToMany:
+                    case TableRefType.PgArrayToMany:
+                        var amtReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
+                        amtReftbname = amtReftbname.Substring(0, amtReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
+                        if (memberTbref.RefColumns[0] == select._tables[0].Table.Primarys[0])
+                            select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)} @> {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)}");
+                        else if (memberTbref.Columns[0] == select._tables[0].Table.Primarys[0])
+                            select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)} @> {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)}");
                         break;
                 }
 
@@ -2244,7 +2250,9 @@ namespace FreeSql.Internal
                             if (select != null) return;
                             LocalInitSelectProvider();
                             continue;
-                        case TableRefType.ArrayToMany:
+                        case TableRefType.PgArrayToMany:
+                            if (select != null) return;
+                            LocalInitSelectProvider();
                             continue;
                     }
                 }

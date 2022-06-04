@@ -157,7 +157,7 @@ namespace FreeSql
             {
                 case TableRefType.OneToOne:
                 case TableRefType.ManyToOne:
-                case TableRefType.ArrayToMany:
+                case TableRefType.PgArrayToMany:
                     throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
             }
 
@@ -227,7 +227,7 @@ namespace FreeSql
                         else await refSet.AddOrUpdateAsync(propValItem);
                         return;
                     case TableRefType.ManyToOne:
-                    case TableRefType.ArrayToMany:
+                    case TableRefType.PgArrayToMany:
                         return;
                 }
 
