@@ -150,6 +150,22 @@ namespace FreeSql.Internal.Model
     }
     public enum TableRefType
     {
-        OneToOne, ManyToOne, OneToMany, ManyToMany, PgArrayToMany
+        OneToOne, ManyToOne, OneToMany, ManyToMany,
+        /// <summary>
+        /// PostgreSQL 数组类型专属功能<para></para>
+        /// 方式一：select * from Role where Id in (RoleIds)<para></para>
+        /// class User {<para></para>
+        /// ____public int[] RoleIds { get; set; }<para></para>
+        /// ____[Navigate(nameof(RoleIds))]<para></para>
+        /// ____public List&lt;Role&gt; Roles { get; set; }<para></para>
+        /// }<para></para>
+        /// 方式二：select * from User where RoleIds @&gt; Id<para></para>
+        /// class Role {<para></para>
+        /// ____public int Id { get; set; }<para></para>
+        /// ____[Navigate(nameof(User.RoleIds))]<para></para>
+        /// ____public List&lt;User&gt; Users { get; set; }<para></para>
+        /// }<para></para>
+        /// </summary>
+        PgArrayToMany
     }
 }

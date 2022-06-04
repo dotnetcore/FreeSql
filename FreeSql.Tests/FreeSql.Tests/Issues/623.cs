@@ -44,7 +44,7 @@ namespace FreeSql.Tests.Issues
 					FacilityCount = a.Sum(a.Value.FacilityCount),
 					FacilityOpenCount = a.Sum(a.Value.FacilityOpenCount)
 				});
-			Assert.Equal(@"SELECT a.`Dot`, sum(a.`FacilityCount`) as1, sum(a.`FacilityOpenCount`) as2 
+			Assert.Equal(@"SELECT a.`Dot` as1, sum(a.`FacilityCount`) as2, sum(a.`FacilityOpenCount`) as3 
 FROM `ts_facility` a 
 WHERE (a.`Date` = cast(date_format('2020-12-30 00:00:00.000','%Y-%m-%d') as datetime)) AND (((a.`EnterpriseId`) in (5))) AND (a.`FacilityType` = 1) 
 GROUP BY a.`Dot`", sql);
