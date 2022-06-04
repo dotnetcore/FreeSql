@@ -1014,7 +1014,8 @@ namespace FreeSql.Internal
                             {
                                 if (trytb.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
                                 {
-                                    if (trycol.CsType.IsArray == true && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trycol != null && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
                                     {
                                         nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trycol.CsName} 数组元素 与 {tbrefTypeName}.{tbref.Primarys[0].CsName} 类型不符");
                                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
@@ -1022,7 +1023,7 @@ namespace FreeSql.Internal
                                     }
                                 }
                             }
-                            if (nvref.Exception == null && trycol == null)
+                            if (pnvBind == null && trycol == null)
                             {
                                 var findtbrefPkCsName = tbref.Primarys[0].CsName.TrimStart('_');
                                 if (findtbrefPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
@@ -1059,7 +1060,8 @@ namespace FreeSql.Internal
                             {
                                 if (tbref.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
                                 {
-                                    if (trycol.CsType.IsArray == true && trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
                                     {
                                         nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trytb.Primarys[0].CsName} 与 {tbrefTypeName}.{trycol.CsName} 数组元素类型不符");
                                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
@@ -1067,7 +1069,7 @@ namespace FreeSql.Internal
                                     }
                                 }
                             }
-                            if (nvref.Exception == null && trycol == null)
+                            if (pnvBind != null && trycol == null)
                             {
                                 var findtrytbPkCsName = trytb.Primarys[0].CsName.TrimStart('_');
                                 if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
@@ -1086,9 +1088,12 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                cscodeExtLogic = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
                                 lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
-                                if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
+                                {
+                                    lmbdWhere.Append(".Value");
+                                    cscodeExtLogic = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                }
                                 lmbdWhere.Append(")");
                                 nvref.Columns.Add(tbref.Primarys[0]);
                                 nvref.RefColumns.Add(trycol);
