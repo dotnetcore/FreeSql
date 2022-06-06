@@ -1028,13 +1028,13 @@ namespace FreeSql.Internal
                             if (pnvBind == null && trycol == null)
                             {
                                 var findtbrefPkCsName = tbref.Primarys[0].CsName.TrimStart('_');
-                                if (findtbrefPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                                 var findtrytb = pnv.Name;
                                 if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
                                 findtrytb += tbref.CsName;
                                 if (
-                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtbrefPkCsName}", out trycol) == false && //骆峰命名
-                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtbrefPkCsName}", out trycol) == false //下划线命名
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}{findtbrefPkCsName}s", out trycol) == false && //骆峰命名
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}_{findtbrefPkCsName}s", out trycol) == false //下划线命名
                                     )
                                 {
                                 }
@@ -1077,11 +1077,11 @@ namespace FreeSql.Internal
                                 var findtrytbPkCsName = trytb.Primarys[0].CsName.TrimStart('_');
                                 if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                                 var findtrytb = pnv.Name;
-                                if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                                if (findtrytb.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - trytb.CsName.Length - 1);
                                 findtrytb += trytb.CsName;
                                 if (
-                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}s", out trycol) == false && //骆峰命名
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}s", out trycol) == false //下划线命名
                                     )
                                 {
                                 }
@@ -1098,7 +1098,7 @@ namespace FreeSql.Internal
                                     cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
                                 }
                                 lmbdWhere.Append(")");
-                                nvref.Columns.Add(tbref.Primarys[0]);
+                                nvref.Columns.Add(trytb.Primarys[0]);
                                 nvref.RefColumns.Add(trycol);
                                 nvref.RefEntityType = tbref.Type;
                                 nvref.RefType = TableRefType.PgArrayToMany;
