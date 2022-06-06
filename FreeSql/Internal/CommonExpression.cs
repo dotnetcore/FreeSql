@@ -2211,7 +2211,7 @@ namespace FreeSql.Internal
                             midSelect.Where($"{midSelect._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.MiddleColumns[memberTbref.Columns.Count + tidx].Attribute.Name)} = {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[tidx].Attribute.Name)}");
                         for (var tidx = 0; tidx < memberTbref.Columns.Count; tidx++)
                             midSelect.Where($"{midSelect._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.MiddleColumns[tidx].Attribute.Name)} = {mtmReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[tidx].Attribute.Name)}");
-                        select._where.Append($" AND exists({midSelect.ToSql("1").Replace(" \r\n", " \r\n    ")})");
+                        select.Where($"exists({midSelect.ToSql("1").Replace(" \r\n", " \r\n    ")})");
                         break;
                     case TableRefType.OneToMany:
                         var omtReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
