@@ -58,9 +58,35 @@ namespace FreeSql.Tests.PostgreSQL
             };
             Assert.Equal(6, fsql.Insert(users).ExecuteAffrows());
 
-            var roles3 = fsql.Select<RoleLazyLoading>().IncludeMany(a => a.Users).ToList();
-            Assert.Equal(3, roles3.Count);
-            var roles2 = roles3;
+            var users3 = fsql.Select<UserLazyLoading>().IncludeMany(a => a.Roles).ToList();
+            Assert.Equal(6, users3.Count);
+            var users2 = users3;
+            Assert.Equal(11, users2[0].UserId);
+            Assert.Equal(12, users2[1].UserId);
+            Assert.Equal(13, users2[2].UserId);
+            Assert.Equal(14, users2[3].UserId);
+            Assert.Equal(15, users2[4].UserId);
+            Assert.Equal(16, users2[5].UserId);
+            Assert.Equal("user1", users2[0].UserName);
+            Assert.Equal("user2", users2[1].UserName);
+            Assert.Equal("user3", users2[2].UserName);
+            Assert.Equal("user4", users2[3].UserName);
+            Assert.Equal("user5", users2[4].UserName);
+            Assert.Equal("user6", users2[5].UserName);
+            Assert.Equal("1,2", string.Join(",", users2[0].RoleIds));
+            Assert.Equal("1,2,3", string.Join(",", users2[1].RoleIds));
+            Assert.Equal("1,3", string.Join(",", users2[2].RoleIds));
+            Assert.Equal("3,2,1", string.Join(",", users2[3].RoleIds));
+            Assert.Null(users2[4].RoleIds);
+            Assert.Empty(users2[5].RoleIds);
+
+            var roles2 = users3[0].Roles;
+            Assert.Equal(1, roles2[0].RoleId);
+            Assert.Equal("role1", roles2[0].RoleName);
+            Assert.Equal(2, roles2[1].RoleId);
+            Assert.Equal("role2", roles2[1].RoleName);
+
+            roles2 = users3[1].Roles;
             Assert.Equal(1, roles2[0].RoleId);
             Assert.Equal("role1", roles2[0].RoleName);
             Assert.Equal(2, roles2[1].RoleId);
@@ -68,7 +94,34 @@ namespace FreeSql.Tests.PostgreSQL
             Assert.Equal(3, roles2[2].RoleId);
             Assert.Equal("role3", roles2[2].RoleName);
 
-            var users2 = roles2[0].Users;
+            roles2 = users3[2].Roles;
+            Assert.Equal(1, roles2[0].RoleId);
+            Assert.Equal("role1", roles2[0].RoleName);
+            Assert.Equal(3, roles2[1].RoleId);
+            Assert.Equal("role3", roles2[1].RoleName);
+
+            roles2 = users3[3].Roles;
+            Assert.Equal(3, roles2[0].RoleId);
+            Assert.Equal("role3", roles2[0].RoleName);
+            Assert.Equal(2, roles2[1].RoleId);
+            Assert.Equal("role2", roles2[1].RoleName);
+            Assert.Equal(1, roles2[2].RoleId);
+            Assert.Equal("role1", roles2[2].RoleName);
+
+            Assert.Null(users3[4].Roles);
+            Assert.Empty(users3[5].Roles);
+
+            var roles3 = fsql.Select<RoleLazyLoading>().IncludeMany(a => a.Users).ToList();
+            Assert.Equal(3, roles3.Count);
+            roles2 = roles3;
+            Assert.Equal(1, roles2[0].RoleId);
+            Assert.Equal("role1", roles2[0].RoleName);
+            Assert.Equal(2, roles2[1].RoleId);
+            Assert.Equal("role2", roles2[1].RoleName);
+            Assert.Equal(3, roles2[2].RoleId);
+            Assert.Equal("role3", roles2[2].RoleName);
+
+            users2 = roles2[0].Users;
             Assert.Equal(4, users2.Count);
             Assert.Equal(11, users2[0].UserId);
             Assert.Equal("user1", users2[0].UserName);
