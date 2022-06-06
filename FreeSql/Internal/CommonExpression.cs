@@ -1212,9 +1212,19 @@ namespace FreeSql.Internal
                                                 var amtReftbname = ExpressionLambdaToSql(Expression.MakeMemberAccess(asSelectParentExp, parm123Tb.Properties[parm123Tb.ColumnsByPosition[0].CsName]), tsc);
                                                 amtReftbname = amtReftbname.Substring(0, amtReftbname.Length - _common.QuoteSqlName(parm123Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                                                 if (parm123Ref.RefColumns[0] == fsqltables[0].Table.Primarys[0])
-                                                    (fsql as Select0Provider)._where.Append(" AND (").Append($"{amtReftbname}.{_common.QuoteSqlName(parm123Ref.Columns[0].Attribute.Name)} @> {fsqltables[0].Alias}.{_common.QuoteSqlName(parm123Ref.RefColumns[0].Attribute.Name)}").Append(")");
-                                                else if (parm123Ref.Columns[0] == fsqltables[0].Table.Primarys[0])
-                                                    (fsql as Select0Provider)._where.Append(" AND (").Append($"{amtReftbname}.{_common.QuoteSqlName(parm123Ref.RefColumns[0].Attribute.Name)} @> {fsqltables[0].Alias}.{_common.QuoteSqlName(parm123Ref.Columns[0].Attribute.Name)}").Append(")");
+                                                {
+                                                    var dbinfo = _common._orm.CodeFirst.GetDbInfo(parm123Ref.Columns[0].CsType);
+                                                    (fsql as Select0Provider)._where.Append(" AND (").Append($"{amtReftbname}.{_common.QuoteSqlName(parm123Ref.Columns[0].Attribute.Name)} @> ARRAY[{fsqltables[0].Alias}.{_common.QuoteSqlName(parm123Ref.RefColumns[0].Attribute.Name)}]::{dbinfo?.dbtype}").Append(")");
+                                                }
+                                                else if (parm123Ref.Columns[0] == parm123Tb.Primarys[0])
+                                                {
+                                                    var dbinfo = _common._orm.CodeFirst.GetDbInfo(parm123Ref.RefColumns[0].CsType);
+                                                    (fsql as Select0Provider)._where.Append(" AND (").Append($"{fsqltables[0].Alias}.{_common.QuoteSqlName(parm123Ref.RefColumns[0].Attribute.Name)} @> ARRAY[{amtReftbname}.{_common.QuoteSqlName(parm123Ref.Columns[0].Attribute.Name)}]::{dbinfo?.dbtype}").Append(")");
+                                                }
+                                                else
+                                                {
+                                                    ;
+                                                }
                                             }
                                             else
                                             {
@@ -2213,9 +2223,19 @@ namespace FreeSql.Internal
                         var amtReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
                         amtReftbname = amtReftbname.Substring(0, amtReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                         if (memberTbref.RefColumns[0] == select._tables[0].Table.Primarys[0])
-                            select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)} @> {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)}");
-                        else if (memberTbref.Columns[0] == select._tables[0].Table.Primarys[0])
-                            select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)} @> {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)}");
+                        {
+                            var dbinfo = commonExp._common._orm.CodeFirst.GetDbInfo(memberTbref.Columns[0].CsType);
+                            select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)} @> ARRAY[{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)}]::{dbinfo?.dbtype}");
+                        } 
+                        else if (memberTbref.Columns[0] == exp3Tb.Primarys[0])
+                        {
+                            var dbinfo = commonExp._common._orm.CodeFirst.GetDbInfo(memberTbref.RefColumns[0].CsType);
+                            select.Where($"{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)} @> ARRAY[{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)}]::{dbinfo?.dbtype}");
+                        }
+                        else
+                        {
+                            ;
+                        }
                         break;
                 }
 

@@ -1044,11 +1044,14 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                cscodeExtLogic1 = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
-                                cscodeExtLogic2 = $"			loc2 = this.{trycol.CsName}.Select(a => loc2.FirstOrDefault(b => b.{tbref.Primarys[0].CsName} == a)).ToList();";
-                                lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
-                                if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
-                                lmbdWhere.Append(")");
+                                if (isLazy)
+                                {
+                                    cscodeExtLogic1 = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                    cscodeExtLogic2 = $"			loc2 = this.{trycol.CsName}.Select(a => loc2.FirstOrDefault(b => b.{tbref.Primarys[0].CsName} == a)).ToList();";
+                                    lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                    lmbdWhere.Append(")");
+                                }
                                 nvref.Columns.Add(trycol);
                                 nvref.RefColumns.Add(tbref.Primarys[0]);
                                 nvref.RefEntityType = tbref.Type;
@@ -1091,13 +1094,16 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
-                                if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
+                                if (isLazy)
                                 {
-                                    lmbdWhere.Append(".Value");
-                                    cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                    lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
+                                    {
+                                        lmbdWhere.Append(".Value");
+                                        cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                    }
+                                    lmbdWhere.Append(")");
                                 }
-                                lmbdWhere.Append(")");
                                 nvref.Columns.Add(trytb.Primarys[0]);
                                 nvref.RefColumns.Add(trycol);
                                 nvref.RefEntityType = tbref.Type;
