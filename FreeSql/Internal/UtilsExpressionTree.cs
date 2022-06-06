@@ -969,9 +969,10 @@ namespace FreeSql.Internal
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
+                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
                                     .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.DisplayCsharp())
                                     .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
+                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;")
                                     .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                             else
                                 cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
@@ -994,7 +995,8 @@ namespace FreeSql.Internal
                 {
                     var isArrayToMany = false;
                     var lmbdWhere = isLazy ? new StringBuilder() : null;
-                    var cscodeExtLogic = "";
+                    var cscodeExtLogic1 = "";
+                    var cscodeExtLogic2 = "";
                     //Pgsql Array[] To Many
                     if (common._orm.Ado.DataType == DataType.PostgreSQL)
                     {
@@ -1042,7 +1044,8 @@ namespace FreeSql.Internal
                             isArrayToMany = trycol != null;
                             if (isArrayToMany)
                             {
-                                cscodeExtLogic = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                cscodeExtLogic1 = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                cscodeExtLogic2 = $"			loc2 = this.{trycol.CsName}.Select(a => loc2.FirstOrDefault(b => b.{tbref.Primarys[0].CsName} == a)).ToList();";
                                 lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
                                 if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
                                 lmbdWhere.Append(")");
@@ -1092,7 +1095,7 @@ namespace FreeSql.Internal
                                 if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
                                 {
                                     lmbdWhere.Append(".Value");
-                                    cscodeExtLogic = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                    cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
                                 }
                                 lmbdWhere.Append(")");
                                 nvref.Columns.Add(tbref.Primarys[0]);
@@ -1219,12 +1222,14 @@ namespace FreeSql.Internal
                         if (vp?.Item2 == true)
                         { //get 重写
                             cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
-                                .Append(cscodeExtLogic)
+                                .Append(cscodeExtLogic1)
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
                             {
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();")
+                                    .Append(cscodeExtLogic2)
+                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;");
                                 if (refprop != null)
                                 {
                                     cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
@@ -1381,7 +1386,8 @@ namespace FreeSql.Internal
                             .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                         if (nvref.Exception == null)
-                            cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+                            cscode.Append("				var loc3 = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+                                .Append("				base.").Append(pnv.Name).AppendLine(" = loc3;")
                                 .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                         else
                             cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
