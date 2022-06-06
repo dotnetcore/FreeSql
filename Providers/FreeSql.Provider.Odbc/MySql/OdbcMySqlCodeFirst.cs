@@ -289,7 +289,7 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                         if (dbcomment != (tb.Comment ?? ""))
                             sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" COMMENT ").Append(" ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
 
-                        sb.Append(sbalter);
+                        sb.Insert(0, sbalter);
                         continue;
                     }
 

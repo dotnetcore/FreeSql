@@ -29,6 +29,11 @@
             描述
             </summary>
         </member>
+        <member name="T:base_entity.Program.TUserImg">
+            <summary>
+            用户图片2
+            </summary>
+        </member>
         <member name="P:base_entity.Program.TUserImg.Id">
             <summary>
             主键
@@ -62,6 +67,11 @@
         <member name="P:base_entity.Program.TUserImg.CTime">
             <summary>
             创建日期
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CTime2">
+            <summary>
+            创建日期2
             </summary>
         </member>
         <member name="T:EMSServerModel.Model.Role">
