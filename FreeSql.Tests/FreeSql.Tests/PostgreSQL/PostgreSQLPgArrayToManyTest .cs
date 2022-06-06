@@ -58,6 +58,17 @@ namespace FreeSql.Tests.PostgreSQL
             };
             Assert.Equal(6, fsql.Insert(users).ExecuteAffrows());
 
+            var users4 = fsql.Select<UserLazyLoading>().IncludeMany(a => a.Roles).ToList(a => new
+            {
+                user = a, roles = a.Roles
+            });
+            var roles4 = fsql.Select<RoleLazyLoading>().IncludeMany(a => a.Users).ToList(a => new
+            {
+                role = a,
+                users = a.Users
+            });
+
+
             var users3 = fsql.Select<UserLazyLoading>().IncludeMany(a => a.Roles).ToList();
             Assert.Equal(6, users3.Count);
             var users2 = users3;

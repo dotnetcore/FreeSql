@@ -48,6 +48,7 @@ namespace FreeSql.Internal.Model
             }
             return tryref;
         }
+        public IEnumerable<KeyValuePair<string, TableRef>> GetAllTableRef() => _refs;
 
         //public void CopyTo(TableInfo target)
         //{
@@ -79,7 +80,7 @@ namespace FreeSql.Internal.Model
         //    target.VersionColumn = getOrCloneColumn(this.VersionColumn);
         //    foreach (var rf in this._refs) target._refs.TryAdd(rf.Key, new TableRef
         //    {
-                 
+
         //    });
 
 
