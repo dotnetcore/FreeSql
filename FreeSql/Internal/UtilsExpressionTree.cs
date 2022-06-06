@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -593,7 +594,7 @@ namespace FreeSql.Internal
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(CoreStrings.LazyLoading_CompilationError(trytbTypeName, ex.Message, cscode)); ;
+                    throw new Exception(CoreStrings.LazyLoading_CompilationError(trytbTypeName, ex.Message, cscode));
                 }
                 var type = assembly.GetExportedTypes()/*.DefinedTypes*/.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
                 trytb.TypeLazy = type;
@@ -623,6 +624,7 @@ namespace FreeSql.Internal
 
             //List 或 ICollection，一对多、多对多
             var propElementType = pnv.PropertyType.GetGenericArguments().FirstOrDefault() ?? pnv.PropertyType.GetElementType();
+            var propTypeIsObservableCollection = propElementType != null && pnv.PropertyType == typeof(ObservableCollection<>).MakeGenericType(propElementType);
             if (propElementType != null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
@@ -967,9 +969,10 @@ namespace FreeSql.Internal
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
+                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
                                     .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.DisplayCsharp())
                                     .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
+                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;")
                                     .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                             else
                                 cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
@@ -989,111 +992,235 @@ namespace FreeSql.Internal
                     }
                 }
                 else
-                { //One To Many
-                    List<ColumnInfo> bindColumns = new List<ColumnInfo>();
-                    if (pnvBind != null)
+                {
+                    var isArrayToMany = false;
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var cscodeExtLogic1 = "";
+                    var cscodeExtLogic2 = "";
+                    //Pgsql Array[] To Many
+                    if (common._orm.Ado.DataType == DataType.PostgreSQL)
                     {
-                        foreach (var bi in pnvBind)
+                        //class User {
+                        //  public int[] RoleIds { get; set; }
+                        //  [Navigate(nameof(RoleIds))]
+                        //  public List<Role> Roles { get; set; }
+                        //}
+                        //class Role {
+                        //  [Navigate(nameof(User.RoleIds))]
+                        //  public List<User> Users { get; set; }
+                        //}
+                        ColumnInfo trycol = null;
+                        if (tbref.Primarys.Length == 1)
                         {
-                            if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                            if (pnvBind?.Length == 1)
                             {
-                                nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, tbrefTypeName, bi));
+                                if (trytb.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
+                                {
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trycol != null && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    {
+                                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trycol.CsName} 数组元素 与 {tbrefTypeName}.{tbref.Primarys[0].CsName} 类型不符");
+                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                        //if (isLazy) throw nvref.Exception;
+                                    }
+                                }
+                            }
+                            if (pnvBind == null && trycol == null)
+                            {
+                                var findtbrefPkCsName = tbref.Primarys[0].CsName.TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                var findtrytb = pnv.Name;
+                                if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                                findtrytb += tbref.CsName;
+                                if (
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}{findtbrefPkCsName}s", out trycol) == false && //骆峰命名
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}_{findtbrefPkCsName}s", out trycol) == false //下划线命名
+                                    )
+                                {
+                                }
+                                if (trycol != null && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    trycol = null;
+                            }
+                            isArrayToMany = trycol != null;
+                            if (isArrayToMany)
+                            {
+                                if (isLazy)
+                                {
+                                    cscodeExtLogic1 = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                    cscodeExtLogic2 = $"			loc2 = this.{trycol.CsName}.Select(a => loc2.FirstOrDefault(b => b.{tbref.Primarys[0].CsName} == a)).ToList();";
+                                    lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                    lmbdWhere.Append(")");
+                                }
+                                nvref.Columns.Add(trycol);
+                                nvref.RefColumns.Add(tbref.Primarys[0]);
+                                nvref.RefEntityType = tbref.Type;
+                                nvref.RefType = TableRefType.PgArrayToMany;
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            }
+                        }
+                        
+                        if (nvref.Exception == null && trytb.Primarys.Length == 1 && isArrayToMany == false)
+                        {
+                            if (pnvBind?.Length == 1)
+                            {
+                                if (tbref.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
+                                {
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    {
+                                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trytb.Primarys[0].CsName} 与 {tbrefTypeName}.{trycol.CsName} 数组元素类型不符");
+                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                        //if (isLazy) throw nvref.Exception;
+                                    }
+                                }
+                            }
+                            if (pnvBind != null && trycol == null)
+                            {
+                                var findtrytbPkCsName = trytb.Primarys[0].CsName.TrimStart('_');
+                                if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                var findtrytb = pnv.Name;
+                                if (findtrytb.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - trytb.CsName.Length - 1);
+                                findtrytb += trytb.CsName;
+                                if (
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}s", out trycol) == false && //骆峰命名
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}s", out trycol) == false //下划线命名
+                                    )
+                                {
+                                }
+                                if (trycol != null && trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    trycol = null;
+                            }
+                            isArrayToMany = trycol != null;
+                            if (isArrayToMany)
+                            {
+                                if (isLazy)
+                                {
+                                    lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
+                                    {
+                                        lmbdWhere.Append(".Value");
+                                        cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                    }
+                                    lmbdWhere.Append(")");
+                                }
+                                nvref.Columns.Add(trytb.Primarys[0]);
+                                nvref.RefColumns.Add(trycol);
+                                nvref.RefEntityType = tbref.Type;
+                                nvref.RefType = TableRefType.PgArrayToMany;
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            }
+                        }
+
+                    }
+
+                    PropertyInfo refprop = null;
+                    if (isArrayToMany == false)
+                    {
+                        List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+                        //One To Many
+                        if (pnvBind != null)
+                        {
+                            foreach (var bi in pnvBind)
+                            {
+                                if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                                {
+                                    nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, tbrefTypeName, bi));
+                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                    //if (isLazy) throw nvref.Exception;
+                                    break;
+                                }
+                                bindColumns.Add(trybindcol);
+                            }
+                        }
+
+                        var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
+                        refprop = refcols.Count() == 1 ? refcols.First().Value : null;
+
+                        if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
+                        {
+                            nvref.Exception = new Exception(CoreStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, trytb.Primarys.Length));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                        }
+                        if (trytb.Primarys.Length > 1)
+                        {
+                            if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
+                            }
+                            else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                            }
+                        }
+                        for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
+                        {
+                            var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
+                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                            var findtrytb = pnv.Name;
+                            if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                            findtrytb += trytb.CsName;
+
+                            var trycol = bindColumns.Any() ? bindColumns[a] : null;
+                            if (trycol == null &&
+                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
+                                )
+                            {
+                                if (refprop != null &&
+                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+                                {
+
+                                }
+                            }
+                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
+                            {
+                                nvref.Exception = new Exception(CoreStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trytb.Primarys[a].CsName, tbref.CsName, trycol.CsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
                             }
-                            bindColumns.Add(trybindcol);
-                        }
-                    }
-
-                    PropertyInfo refprop = null;
-                    var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
-                    refprop = refcols.Count() == 1 ? refcols.First().Value : null;
-                    var lmbdWhere = isLazy ? new StringBuilder() : null;
-
-                    if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
-                    {
-                        nvref.Exception = new Exception(CoreStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, trytb.Primarys.Length));
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        //if (isLazy) throw nvref.Exception;
-                    }
-                    if (trytb.Primarys.Length > 1)
-                    {
-                        if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
-                        {
-                            var pkList = trytb.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
-                        }
-                        else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
-                        {
-                            var pkList = trytb.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
-                        }
-                    }
-                    for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
-                    {
-                        var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                        if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
-                        var findtrytb = pnv.Name;
-                        if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
-                        findtrytb += trytb.CsName;
-
-                        var trycol = bindColumns.Any() ? bindColumns[a] : null;
-                        if (trycol == null &&
-                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
-                            )
-                        {
-                            if (refprop != null &&
-                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+                            if (trycol == null)
                             {
-
+                                nvref.Exception = new Exception(CoreStrings.OneToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbref.CsName, findtrytb, findtrytbPkCsName)
+                                    + (refprop == null ? "" : CoreStrings.OneToMany_UseNavigate(refprop.Name, findtrytbPkCsName)));
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                                break;
                             }
-                        }
-                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
-                        {
-                            nvref.Exception = new Exception(CoreStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trytb.Primarys[a].CsName, tbref.CsName, trycol.CsName));
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
-                        if (trycol == null)
-                        {
-                            nvref.Exception = new Exception(CoreStrings.OneToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbref.CsName, findtrytb, findtrytbPkCsName)
-                                + (refprop == null ? "" : CoreStrings.OneToMany_UseNavigate(refprop.Name, findtrytbPkCsName)));
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
 
-                        nvref.Columns.Add(trytb.Primarys[a]);
-                        nvref.RefColumns.Add(trycol);
+                            nvref.Columns.Add(trytb.Primarys[a]);
+                            nvref.RefColumns.Add(trycol);
 
-                        if (isLazy && nvref.Exception == null)
-                        {
-                            if (a > 0) lmbdWhere.Append(" && ");
-                            lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
+                            if (isLazy && nvref.Exception == null)
+                            {
+                                if (a > 0) lmbdWhere.Append(" && ");
+                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
 
-                            if (refprop == null)
-                            { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
-                                var findtrytbName = trycol.CsName;
-                                if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
-                                {
-                                    findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
-                                    if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
-                                        refprop = null;
+                                if (refprop == null)
+                                { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
+                                    var findtrytbName = trycol.CsName;
+                                    if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
+                                    {
+                                        findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
+                                        if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
+                                            refprop = null;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
-                    {
-                        nvref.RefEntityType = tbref.Type;
-                        nvref.RefType = TableRefType.OneToMany;
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                    }
+                        if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                        {
+                            nvref.RefEntityType = tbref.Type;
+                            nvref.RefType = TableRefType.OneToMany;
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        }
 
+                    }
                     if (isLazy)
                     {
                         cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
@@ -1101,11 +1228,14 @@ namespace FreeSql.Internal
                         if (vp?.Item2 == true)
                         { //get 重写
                             cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                                .Append(cscodeExtLogic1)
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
                             {
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();")
+                                    .Append(cscodeExtLogic2)
+                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;");
                                 if (refprop != null)
                                 {
                                     cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
@@ -1133,7 +1263,8 @@ namespace FreeSql.Internal
                 }
             }
             else
-            { //一对一、多对一
+            {
+                //一对一、多对一
                 var tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
                 if (tbref == null) return;
                 if (tbref.Primarys.Any() == false)
@@ -1261,7 +1392,8 @@ namespace FreeSql.Internal
                             .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                         if (nvref.Exception == null)
-                            cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+                            cscode.Append("				var loc3 = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+                                .Append("				base.").Append(pnv.Name).AppendLine(" = loc3;")
                                 .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                         else
                             cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");

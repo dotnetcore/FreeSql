@@ -155,8 +155,9 @@ namespace FreeSql
             if (tref == null) return;
             switch (tref.RefType)
             {
-                case Internal.Model.TableRefType.OneToOne:
-                case Internal.Model.TableRefType.ManyToOne:
+                case TableRefType.OneToOne:
+                case TableRefType.ManyToOne:
+                case TableRefType.PgArrayToMany:
                     throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
             }
 
@@ -166,7 +167,7 @@ namespace FreeSql
             try
             {
                 await AddOrUpdateNavigateAsync(item, false, propertyName, cancellationToken);
-                if (tref.RefType == Internal.Model.TableRefType.OneToMany)
+                if (tref.RefType == TableRefType.OneToMany)
                 {
                     await DbContextFlushCommandAsync(cancellationToken);
                     //删除没有保存的数据，求出主体的条件
@@ -213,7 +214,7 @@ namespace FreeSql
                 DbSet<object> refSet = null;
                 switch (tref.RefType)
                 {
-                    case Internal.Model.TableRefType.OneToOne:
+                    case TableRefType.OneToOne:
                         refSet = GetDbSetObject(tref.RefEntityType);
                         var propValItem = GetItemValue(item, prop);
                         if (propValItem == null) return;
@@ -225,7 +226,8 @@ namespace FreeSql
                         if (isAdd) await refSet.AddAsync(propValItem);
                         else await refSet.AddOrUpdateAsync(propValItem);
                         return;
-                    case Internal.Model.TableRefType.ManyToOne:
+                    case TableRefType.ManyToOne:
+                    case TableRefType.PgArrayToMany:
                         return;
                 }
 
@@ -234,7 +236,7 @@ namespace FreeSql
                 refSet = GetDbSetObject(tref.RefEntityType);
                 switch (tref.RefType)
                 {
-                    case Internal.Model.TableRefType.ManyToMany:
+                    case TableRefType.ManyToMany:
                         var curList = new List<object>();
                         foreach (var propValItem in propValEach)
                         {
@@ -327,7 +329,7 @@ namespace FreeSql
                             await midSet.AddRangeAsync(midListAdd, cancellationToken);
                         }
                         break;
-                    case Internal.Model.TableRefType.OneToMany:
+                    case TableRefType.OneToMany:
                         var addList = new List<object>();
                         var addOrUpdateList = new List<object>();
                         foreach (var propValItem in propValEach)

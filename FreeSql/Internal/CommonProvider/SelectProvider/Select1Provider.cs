@@ -222,6 +222,17 @@ namespace FreeSql.Internal.CommonProvider
                 var bindings = new List<MemberBinding>();
                 if (imni.IsOutputPrimary) bindings.AddRange(imni.Table.Primarys.Select(a => Expression.Bind(imni.Table.Properties[a.CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[a.CsName]))));
                 if (imni.Childs.Any()) bindings.AddRange(imni.Childs.Select(a => Expression.Bind(imni.Table.Properties[a.Key], GetIncludeManyNewInitExpression(a.Value))));
+                var pgarrayToManys = imni.Table.GetAllTableRef().Select(tr =>
+                {
+                    if (tr.Value.RefType != TableRefType.PgArrayToMany) return null;
+                    var reftb = _orm.CodeFirst.GetTableByEntity(tr.Value.RefEntityType);
+                    if (tr.Value.RefColumns[0] == reftb.Primarys[0])
+                    {
+                        bindings.Add(Expression.Bind(imni.Table.Properties[tr.Value.Columns[0].CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[tr.Value.Columns[0].CsName])));
+                        return tr.Key;
+                    }
+                    return null;
+                }).ToList();
                 return Expression.MemberInit(imni.Table.Type.InternalNewExpression(), bindings);
             }
 
@@ -418,6 +429,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case TableRefType.ManyToMany:
                 case TableRefType.OneToMany:
+                case TableRefType.PgArrayToMany:
                     var funcType = typeof(Func<,>).MakeGenericType(_tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
@@ -668,10 +680,11 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 //members.Clear(); 此行影响 ToChunk 第二次
 
+                var isObservableCollection = collMem.Type == typeof(ObservableCollection<TNavigate>);
                 var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
                 var setListValue = membersExpNotNull == null ?
                     Expression.Lambda<Action<T1, List<TNavigate>>>(
-                        collMem.Type == typeof(ObservableCollection<TNavigate>) ?
+                        isObservableCollection ?
                         (Expression)Expression.IfThen(
                             Expression.NotEqual(listValueExp, Expression.Constant(null, typeof(List<TNavigate>))),
                             Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.New(typeof(ObservableCollection<TNavigate>).GetConstructor(new[] { typeof(List<TNavigate>) }), listValueExp))
@@ -679,7 +692,7 @@ namespace FreeSql.Internal.CommonProvider
                         Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.TypeAs(listValueExp, collMem.Type))
                         , t1parm, listValueExp).Compile() :
                     Expression.Lambda<Action<T1, List<TNavigate>>>(Expression.IfThen(membersExpNotNull,
-                        collMem.Type == typeof(ObservableCollection<TNavigate>) ?
+                        isObservableCollection ?
                         (Expression)Expression.IfThen(
                             Expression.NotEqual(listValueExp, Expression.Constant(null, typeof(List<TNavigate>))),
                             Expression.Assign(Expression.MakeMemberAccess(membersExp, collMem.Member), Expression.New(typeof(ObservableCollection<TNavigate>).GetConstructor(new[] { typeof(List<TNavigate>) }), listValueExp))
@@ -1170,6 +1183,128 @@ namespace FreeSql.Internal.CommonProvider
                                 foreach (var t1item in t1items)
                                     setListValue(t1item.Item1, t1item.Item2);
                             dicList.Clear();
+                        }
+                        break;
+                    case TableRefType.PgArrayToMany:
+                        if (true)
+                        {
+                            var subList = new List<TNavigate>();
+                            var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
+                            if (tbref.RefColumns[0] == tbref2.Primarys[0])
+                            {
+                                var listKeys = list.Select(a =>
+                                {
+                                    var arrVal = getListValue(a, tbref.Columns[0].CsName, 0) as Array;
+                                    if (arrVal == null) return null;
+                                    var arrObjVal = new object[arrVal.Length];
+                                    arrVal.CopyTo(arrObjVal, 0);
+                                    return arrObjVal;
+                                }).ToArray();
+                                var arrExp = Expression.NewArrayInit(tbref.RefColumns[0].CsType, listKeys.Where(a => a != null).SelectMany(a => a).Distinct()
+                                    .Select(a => Expression.Constant(Utils.GetDataReaderValue(tbref.RefColumns[0].CsType, a), tbref.RefColumns[0].CsType)).ToArray());
+                                var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
+                                var containsMethod = _dicTypeMethod.GetOrAdd(tbref.RefColumns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
+                                    typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.RefColumns[0].CsType);
+                                var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
+                                subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
+                                    Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAsync(true, cancellationToken);
+                                    else subList = await subSelect.ToListAsync<TNavigate>(selectExp, cancellationToken);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToList(true);
+                                    else subList = subSelect.ToList<TNavigate>(selectExp);
+                                }
+
+                                if (subList.Any() == false)
+                                {
+                                    foreach (var item in list)
+                                        setListValue(item, new List<TNavigate>());
+                                    return;
+                                }
+                                var dicSubList = subList.ToDictionary(a => EntityUtilExtensions.GetEntityValueWithPropertyName(_orm, tbref.RefEntityType, a, tbref.RefColumns[0].CsName)?.ToString(), a => a);
+
+                                var parentNavs = new List<string>();
+                                foreach (var navProp in tbref2.Properties)
+                                {
+                                    if (tbref2.ColumnsByCs.ContainsKey(navProp.Key)) continue;
+                                    if (tbref2.ColumnsByCsIgnore.ContainsKey(navProp.Key)) continue;
+                                    var tr2ref = tbref2.GetTableRef(navProp.Key, false);
+                                    if (tr2ref == null) continue;
+                                    if (tr2ref.RefType != TableRefType.ManyToOne) continue;
+                                    if (tr2ref.RefEntityType != tb.Type) continue;
+                                    if (string.Join(",", tr2ref.Columns.Select(a => a.CsName).OrderBy(a => a)) != string.Join(",", tbref.RefColumns.Select(a => a.CsName).OrderBy(a => a))) continue; //- 修复 IncludeMany 只填充子属性中双向关系的 ManyToOne 对象值；防止把 ManyToOne 多个相同类型的导航属性值都填充了
+                                    parentNavs.Add(navProp.Key);
+                                }
+                                for (var y = 0; y < list.Count; y++)
+                                {
+                                    var item = list[y];
+                                    var dicListKeys = listKeys[y];
+                                    if (dicListKeys == null) continue;
+                                    var navs = new List<TNavigate>();
+                                    foreach (var dlk in dicListKeys)
+                                    {
+                                        if (dlk == null)
+                                        {
+                                            navs.Add(null);
+                                            continue;
+                                        }
+                                        var dicListKey = dlk.ToString();
+                                        dicSubList.TryGetValue(dicListKey, out var nav);
+                                        navs.Add(nav);
+                                    }
+                                    setListValue(item, navs);
+                                }
+                                dicSubList.Clear();
+                                subList.Clear();
+                            }
+                            else if (tbref.Columns[0] == tb.Primarys[0])
+                            {
+                                var listKeys = list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
+                                    .Select(a => Utils.GetDataReaderValue(tbref.RefColumns[0].CsType.GetElementType(), a)).ToArray();
+                                var listKeysSql = _commonUtils.GetNoneParamaterSqlValue(subSelect._params, "arrtm", tbref.RefColumns[0], tbref.RefColumns[0].CsType, listKeys);
+                                subSelect.Where($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)} && {listKeysSql}");
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAsync(true, cancellationToken);
+                                    else subList = await subSelect.ToListAsync<TNavigate>(selectExp, cancellationToken);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToList(true);
+                                    else subList = subSelect.ToList<TNavigate>(selectExp);
+                                }
+
+                                if (subList.Any() == false)
+                                {
+                                    foreach (var item in list)
+                                        setListValue(item, new List<TNavigate>());
+                                    return;
+                                }
+                                var subListDic = subList.Select(a => {
+                                    var arrVal = EntityUtilExtensions.GetEntityValueWithPropertyName(_orm, tbref2.Type, a, tbref.RefColumns[0].CsName) as Array;
+                                    var arrObjVal = new object[arrVal.Length];
+                                    arrVal.CopyTo(arrObjVal, 0);
+                                    return arrObjVal.Select(b => NativeTuple.Create(a, b?.ToString()));
+                                }).SelectMany(a => a).GroupBy(a => a.Item2).ToDictionary(a => a.Key, a => a.Select(b => b.Item1).ToList());
+                                foreach (var item in list)
+                                {
+                                    var itemKey = getListValue(item, tbref.Columns[0].CsName, 0)?.ToString();
+                                    subListDic.TryGetValue(itemKey, out var navs);
+                                    setListValue(item, navs);
+                                }
+                            }
                         }
                         break;
                 }
