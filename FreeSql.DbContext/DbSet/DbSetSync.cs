@@ -862,6 +862,12 @@ namespace FreeSql
                     }
                 }
 
+                var atms = navs.Where(a => a.Item1.RefType == TableRefType.PgArrayToMany).ToList();
+                if (atms.Any())
+                {
+
+                }
+
                 if (dbset == rootDbSet)
                 {
                     if (CanRemove(data, true) == false) return;
