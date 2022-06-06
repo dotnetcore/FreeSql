@@ -1184,11 +1184,12 @@ namespace FreeSql.Internal.CommonProvider
                                 var listKeys = list.Select(a =>
                                 {
                                     var arrVal = getListValue(a, tbref.Columns[0].CsName, 0) as Array;
+                                    if (arrVal == null) return null;
                                     var arrObjVal = new object[arrVal.Length];
                                     arrVal.CopyTo(arrObjVal, 0);
                                     return arrObjVal;
-                                }).Where(a => a != null).ToArray();
-                                var arrExp = Expression.NewArrayInit(tbref.RefColumns[0].CsType, listKeys.SelectMany(a => a).Distinct()
+                                }).ToArray();
+                                var arrExp = Expression.NewArrayInit(tbref.RefColumns[0].CsType, listKeys.Where(a => a != null).SelectMany(a => a).Distinct()
                                     .Select(a => Expression.Constant(Utils.GetDataReaderValue(tbref.RefColumns[0].CsType, a), tbref.RefColumns[0].CsType)).ToArray());
                                 var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
                                 var containsMethod = _dicTypeMethod.GetOrAdd(tbref.RefColumns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
@@ -1235,6 +1236,7 @@ namespace FreeSql.Internal.CommonProvider
                                 {
                                     var item = list[y];
                                     var dicListKeys = listKeys[y];
+                                    if (dicListKeys == null) continue;
                                     var navs = new List<TNavigate>();
                                     foreach (var dlk in dicListKeys)
                                     {
