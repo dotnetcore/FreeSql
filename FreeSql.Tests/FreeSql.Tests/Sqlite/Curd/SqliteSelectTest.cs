@@ -1126,6 +1126,24 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
         [Fact]
         public void AsTable()
         {
+            var fsql = g.sqlite;
+            var asTableSubSql = fsql.Select<TestTypeParentInfo>().AsTable((_, old) => $"{old}_01").ToSql(a => new
+            {
+                a.Id,
+                max = fsql.Select<TestTypeInfo>().Max(b => b.Guid),
+                any = a.Types.Any(b => b.Name == "xx"),
+                any2 = a.Types.AsSelect().Any(b => b.Name == "xx"),
+                sub = fsql.Select<TestTypeInfo>().Where(b => b.Guid == a.Id).ToList()
+            });
+            Assert.Equal(@"SELECT a.""Id"" as1, ifnull((SELECT max(a.""Guid"") 
+    FROM ""TestTypeInfo_01"" a), 0) as2, exists(SELECT 1 
+    FROM ""TestTypeInfo_01"" b 
+    WHERE (b.""ParentId"" = a.""Id"") AND (b.""Name"" = 'xx') 
+    limit 0,1) as3, exists(SELECT 1 
+    FROM ""TestTypeInfo_01"" b 
+    WHERE (b.""Name"" = 'xx') AND (b.""ParentId"" = a.""Id"") 
+    limit 0,1) as4 
+FROM ""TestTypeParentInfo_01"" a", asTableSubSql);
 
             var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
 

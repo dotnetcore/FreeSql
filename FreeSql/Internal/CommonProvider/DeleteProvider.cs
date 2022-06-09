@@ -102,7 +102,7 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
         {
             if (condition == false || exp == null) return this;
-            return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, exp?.Body, null, _params));
         }
         public IDelete<T1> Where(string sql, object parms = null) => WhereIf(true, sql, parms);
         public IDelete<T1> WhereIf(bool condition, string sql, object parms = null)

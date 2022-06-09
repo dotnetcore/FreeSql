@@ -993,6 +993,7 @@ namespace FreeSql.Internal
                                     break;
                                 }
                                 object fsql = null;
+                                Select0Provider fsqlSelect0 = null;
                                 List<SelectTableInfo> fsqltables = null;
                                 var fsqltable1SetAlias = false;
                                 Type fsqlType = null;
@@ -1071,9 +1072,7 @@ namespace FreeSql.Internal
                                         if (fsql == null) fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
                                         fsqlType = fsql?.GetType();
                                         if (fsqlType == null) break;
-                                        var fsqlSelect0 = fsql as Select0Provider;
-                                        if (tsc._tableRule != null)
-                                            fsqlSelect0._tableRules.Add(tsc._tableRule);
+                                        fsqlSelect0 = fsql as Select0Provider;
                                         switch (exp3.Method.Name)
                                         {
                                             case "Any": //exists
@@ -1196,6 +1195,9 @@ namespace FreeSql.Internal
                                 }
                                 if (fsql != null)
                                 {
+                                    if (fsqlSelect0 != null && tsc._tableRule != null && fsqlSelect0._tableRules.Any() == false)
+                                        fsqlSelect0._tableRules.Add(tsc._tableRule);
+
                                     if (asSelectParentExp != null)
                                     {
                                         //执行 AsSelect() 的关联，OneToMany，ManyToMany，PgArrayToMany

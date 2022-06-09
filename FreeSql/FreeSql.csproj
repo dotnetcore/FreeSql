@@ -37,6 +37,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
+	    <DependentUpon>Select1Provider2`16.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
 	  <Compile Update="Properties\CoreStrings.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
@@ -45,6 +50,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="Internal\CommonProvider\SelectProvider\T4Temp\Select1Provider2`16.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>Select1Provider2`16.cs</LastGenOutput>
+	  </None>
 	  <None Update="Properties\CoreStrings.Designer.tt">
 	    <Generator>TextTemplatingFileGenerator</Generator>
 	    <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
