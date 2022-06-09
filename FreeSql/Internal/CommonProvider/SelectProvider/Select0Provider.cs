@@ -23,6 +23,7 @@ namespace FreeSql.Internal.CommonProvider
         public List<DbParameter> _params = new List<DbParameter>();
         public List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         public List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
+        public Func<Type, string, string> _tableRule => _tableRules?.FirstOrDefault();
         public Func<Type, string, string> _aliasRule;
         public string _tosqlAppendContent;
         public StringBuilder _join = new StringBuilder();
@@ -269,7 +270,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         public string GetNestSelectSql(Expression select, string affield, Func<string, string> ToSql)
@@ -789,7 +790,7 @@ namespace FreeSql.Internal.CommonProvider
             if (condition == false) return this as TSelect;
             Expression exp = ConvertStringPropertyToExpression(property);
             if (exp == null) return this as TSelect;
-            var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null);
+            var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null);
             if (isAscending) return this.OrderBy(field);
             return this.OrderBy($"{field} DESC");
         }
@@ -923,7 +924,7 @@ namespace FreeSql.Internal.CommonProvider
                         return new string[0];
                     }
 
-                    var sql = _commonExpression.ExpressionWhereLambda(_tables, exp, null, null, _params);
+                    var sql = _commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, null, null, _params);
 
                     sb.Append(sql);
                 }

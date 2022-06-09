@@ -377,8 +377,8 @@ namespace FreeSql.Internal.CommonProvider
         public abstract int ExecuteAffrows();
         public abstract List<T1> ExecuteUpdated();
 
-        public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
-        public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
+        public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
+        public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
 
         public IUpdate<T1> IgnoreColumns(string[] columns)
         {
@@ -493,7 +493,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (tempPrimarys != null)
             {
-                var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
+                var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
                 _tempPrimarys = cols.Keys.Select(a => _table.ColumnsByCs.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
             }
             return this;
@@ -525,7 +525,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
         {
             var cols = new List<SelectColumnInfo>();
-            _commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true, null);
+            _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, column?.Body, true, null);
             if (cols.Count != 1) return this;
             SetPriv(cols.First().Column, value);
             return this;
@@ -544,7 +544,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case ExpressionType.Equal:
                     var equalBinaryExp = body as BinaryExpression;
-                    var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, body, null, null);
+                    var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, body, null, null);
                     if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //#311
                     _set.Append(", ").Append(eqval);
                     return this;
@@ -590,7 +590,7 @@ namespace FreeSql.Internal.CommonProvider
             if (body is BinaryExpression == false &&
                 nodeType != ExpressionType.Call) return this;
             var cols = new List<SelectColumnInfo>();
-            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, body, null, null);
+            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, cols, body, null, null);
             if (cols.Any() == false) return this;
             foreach (var col in cols)
             {
@@ -642,7 +642,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
         {
             if (condition == false || exp == null) return this;
-            return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, exp?.Body, null, _params));
         }
         public IUpdate<T1> Where(string sql, object parms = null)
         {
