@@ -30,7 +30,7 @@ namespace FreeSql.Odbc.KingbaseES
             if (columns != null)
             {
                 var colsList = new List<ColumnInfo>();
-                var cols = _pgsqlInsert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
+                var cols = _pgsqlInsert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null).ToDictionary(a => a, a => true);
                 foreach (var col in _pgsqlInsert.InternalTable.Columns.Values)
                     if (cols.ContainsKey(col.Attribute.Name))
                         colsList.Add(col);

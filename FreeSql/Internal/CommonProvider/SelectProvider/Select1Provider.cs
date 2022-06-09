@@ -60,7 +60,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "OrderBy":
                             if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool))
                             {
-                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
                                 if (ifcond == "1" || ifcond == "'t'")
                                     this.InternalOrderBy(expCall.Arguments.LastOrDefault());
                                 break;
@@ -70,7 +70,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "OrderByDescending":
                             if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool))
                             {
-                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
                                 if (ifcond == "1" || ifcond == "'t'" || ifcond == "-1")//MsAccess -1
                                     this.InternalOrderByDescending(expCall.Arguments.LastOrDefault());
                                 break;
@@ -197,7 +197,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
 
@@ -241,7 +241,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 
@@ -440,7 +440,7 @@ namespace FreeSql.Internal.CommonProvider
                 case TableRefType.OneToOne:
                     _isIncluded = true;
                     var curTb = _commonUtils.GetTableByEntity(exp.Type);
-                    _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
+                    _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
                     break;
             }
             return this;
@@ -459,7 +459,7 @@ namespace FreeSql.Internal.CommonProvider
 
             _isIncluded = true;
             _tables[0].Parameter = navigateSelector.Parameters[0];
-            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
+            _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
             return this;
         }
 
@@ -536,7 +536,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tbNav == null) throw new Exception(CoreStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
-                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
+                _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
 
             TableRef tbref = null;
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
@@ -1377,7 +1377,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
 
@@ -1410,7 +1410,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 

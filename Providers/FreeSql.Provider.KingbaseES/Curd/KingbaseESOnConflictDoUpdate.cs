@@ -30,7 +30,7 @@ namespace FreeSql.KingbaseES
             if (columns != null)
             {
                 var colsList = new List<ColumnInfo>();
-                var cols = _insert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
+                var cols = _insert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null).ToDictionary(a => a, a => true);
                 foreach (var col in _insert.InternalTable.Columns.Values)
                     if (cols.ContainsKey(col.Attribute.Name))
                         colsList.Add(col);

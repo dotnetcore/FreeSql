@@ -70,7 +70,7 @@ public static class FreeSqlExtensionsLinqSql
     internal static void InternalJoin2<T1>(Select1Provider<T1> s1p, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector, LambdaExpression resultSelector) where T1 : class
     {
         s1p._tables[0].Parameter = resultSelector.Parameters[0];
-        s1p._commonExpression.ExpressionLambdaToSql(outerKeySelector, new CommonExpression.ExpTSC { _tables = s1p._tables });
+        s1p._commonExpression.ExpressionLambdaToSql(outerKeySelector, new CommonExpression.ExpTSC { _tables = s1p._tables, _tableRule = s1p._tableRule });
         s1p.InternalJoin(Expression.Lambda(typeof(Func<,,>).MakeGenericType(typeof(T1), innerKeySelector.Parameters[0].Type, typeof(bool)),
             Expression.Equal(outerKeySelector.Body, innerKeySelector.Body),
             new[] { outerKeySelector.Parameters[0], innerKeySelector.Parameters[0] }

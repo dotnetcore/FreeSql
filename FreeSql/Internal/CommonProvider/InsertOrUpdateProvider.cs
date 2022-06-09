@@ -67,7 +67,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IInsertOrUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
+        public IInsertOrUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
         public IInsertOrUpdate<T1> UpdateColumns(string[] columns)
         {
             var cols = columns.Distinct().ToDictionary(a => a);

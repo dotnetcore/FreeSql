@@ -83,14 +83,14 @@ namespace FreeSql.Internal.CommonProvider
                                 return null;
                         }
                     }
-                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
+                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
             }
             return null;
         }
 
         public void InternalHaving(Expression exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, _select._tableRule, exp, this, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
         }
@@ -105,7 +105,7 @@ namespace FreeSql.Internal.CommonProvider
                         InternalOrderBy(newExp.Arguments[a], isDescending);
                 return;
             }
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, _select._tableRule, exp, this, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
@@ -115,7 +115,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, null, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -128,7 +128,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, null, this, null, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, null, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -143,7 +143,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, null, this, null, null, null, false);
             var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
             return InternalToSql(fieldSql);
         }
@@ -269,7 +269,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _lambdaParameter = select?.Parameters[0];
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, null, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
@@ -283,7 +283,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _lambdaParameter = elementSelector?.Parameters[0];
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, null, this, null, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, null, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
             var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TElement));
