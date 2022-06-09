@@ -25,9 +25,9 @@ namespace FreeSql.MsAccess.Curd
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(1, 1000);
 
         public override IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true) =>
-            throw new NotImplementedException("蛋疼的 access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select ..");
+            throw new NotImplementedException(CoreStrings.S_Access_InsertOnlyOneAtTime);
 
-        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.Provider.MsAccess 未实现该功能");
+        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException($"FreeSql.Provider.MsAccess {CoreStrings.S_Not_Implemented_Feature}");
 
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
@@ -69,7 +69,7 @@ namespace FreeSql.MsAccess.Curd
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(1, 1000, cancellationToken);
         public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(1, 1000, cancellationToken);
 
-        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.MsAccess 未实现该功能");
+        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.MsAccess {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

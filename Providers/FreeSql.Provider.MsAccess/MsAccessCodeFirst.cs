@@ -80,8 +80,8 @@ namespace FreeSql.MsAccess
             {
                 if (sb.Length > 0) sb.Append("\r\n");
                 var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                if (tb == null) throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.entityType.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.entityType.FullName));
                 var tbname = tb.DbName;
                 var tboldname = tb.DbOldName; //旧表名
                 if (string.Compare(tbname, tboldname, true) == 0) tboldname = null;
@@ -177,7 +177,7 @@ namespace FreeSql.MsAccess
                     istmpatler = true;
                 }
                 if (tboldname != null && isexistsTb == true)
-                    throw new Exception($"旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名");
+                    throw new Exception(CoreStrings.S_OldTableExists(tboldname, tbname));
 
                 DataTable schemaColumns = null;
                 DataTable schemaDataTypes = null;
@@ -394,7 +394,8 @@ namespace FreeSql.MsAccess
                 }
 
                 Dictionary<string, bool> dicDropTable = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                Action<string> dropTable = tn => {
+                Action<string> dropTable = tn =>
+                {
                     if (dicDropTable.ContainsKey(tn)) return;
                     dicDropTable.Add(tn, true);
                     sb.Append("DROP TABLE ").Append(_commonUtils.QuoteSqlName(tn)).Append(";\r\n");

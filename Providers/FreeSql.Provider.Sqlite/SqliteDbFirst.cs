@@ -102,7 +102,7 @@ namespace FreeSql.Sqlite
                     if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar(255)"]);
                     return DbType.String;
             }
-            throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
+            throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
         static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);

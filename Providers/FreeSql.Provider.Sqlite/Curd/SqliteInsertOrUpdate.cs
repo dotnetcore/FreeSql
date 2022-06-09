@@ -46,14 +46,14 @@ namespace FreeSql.Sqlite.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        if (_updateIgnore.Any()) throw new Exception($"fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作");
+                        if (_updateIgnore.Any()) throw new Exception(CoreStrings.S_InsertOrUpdate_Unable_UpdateColumns);
                         sql = insert.ToSql();
                         if (sql?.StartsWith("INSERT INTO ") == true)
                             sql = $"REPLACE INTO {sql.Substring("INSERT INTO ".Length)}";
                     }
                     else
                     {
-                        if (_table.Primarys.Any() == false) throw new Exception($"fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite 要求实体类 {_table.CsName} 必须有主键");
+                        if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
                         sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
                             sb.Append(" \r\n WHERE NOT EXISTS(").Append(
                                 _orm.Select<T1>()

@@ -35,7 +35,7 @@ namespace FreeSql.Odbc.Default
                 if (_limit > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Top) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
                 sb.Append(field);
                 if (_skip > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Top)
-                    throw new NotImplementedException("FreeSql.Odbc.Default 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id");
+                    throw new NotImplementedException(CoreStrings.S_NotImplementSkipOffset("Default"));
 
                 sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();

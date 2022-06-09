@@ -34,7 +34,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
     public static void ExecuteMySqlBulkCopy<T>(this IInsert<T> that, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;
-        if (insert == null) throw new Exception("ExecuteMySqlBulkCopy 是 FreeSql.Provider.MySqlConnector 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteMySqlBulkCopy", "MySqlConnector"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -81,7 +81,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteMySqlBulkCopy 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecuteMySqlBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
@@ -94,7 +94,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
     async public static Task ExecuteMySqlBulkCopyAsync<T>(this IInsert<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;
-        if (insert == null) throw new Exception("ExecuteMySqlBulkCopyAsync 是 FreeSql.Provider.MySqlConnector 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteMySqlBulkCopyAsync", "MySqlConnector"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -141,7 +141,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteMySqlBulkCopyAsync 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecuteMySqlBulkCopyAsync {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

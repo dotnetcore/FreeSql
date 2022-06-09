@@ -46,7 +46,7 @@ namespace FreeSql.PostgreSQL
     {
 
         internal PostgreSQLConnectionPool _pool;
-        public string Name { get; set; } = "PostgreSQL NpgsqlConnection 对象池";
+        public string Name { get; set; } = $"PostgreSQL NpgsqlConnection {CoreStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 50;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
@@ -122,8 +122,8 @@ namespace FreeSql.PostgreSQL
             {
                 if (obj.Value == null)
                 {
-                    _pool.SetUnavailable(new Exception("连接字符串错误"), obj.LastGetTimeCopy);
-                    throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
@@ -152,8 +152,8 @@ namespace FreeSql.PostgreSQL
             {
                 if (obj.Value == null)
                 {
-                    _pool.SetUnavailable(new Exception("连接字符串错误"), obj.LastGetTimeCopy);
-                    throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)

@@ -54,7 +54,7 @@ namespace FreeSql.MySql.Curd
                     }
                     else
                     {
-                        if (_table.Primarys.Any() == false) throw new Exception($"fsql.InsertOrUpdate + IfExistsDoNothing + MySql 要求实体类 {_table.CsName} 必须有主键");
+                        if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
                         sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
                             sb.Append(" \r\n FROM dual WHERE NOT EXISTS(").Append(
                                 _orm.Select<T1>()

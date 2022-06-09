@@ -29,7 +29,7 @@ public static partial class FreeSqlDamengGlobalExtensions
     public static void ExecuteDmBulkCopy<T>(this IInsert<T> that, DmBulkCopyOptions copyOptions = DmBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.Dameng.Curd.DamengInsert<T>;
-        if (insert == null) throw new Exception("ExecuteDmBulkCopy 是 FreeSql.Provider.Dameng 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteDmBulkCopy", "Dameng"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -95,7 +95,7 @@ public static partial class FreeSqlDamengGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteDmBulkCopy 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecuteDmBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

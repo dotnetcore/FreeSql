@@ -73,7 +73,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     public static void ExecuteSqlBulkCopy<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
-        if (insert == null) throw new Exception("ExecuteSqlBulkCopy 是 FreeSql.Provider.SqlServer 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteSqlBulkCopy", "SqlServer"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -139,7 +139,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteSqlBulkCopy 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecuteSqlBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
@@ -152,7 +152,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
-        if (insert == null) throw new Exception("ExecuteSqlBulkCopyAsync 是 FreeSql.Provider.SqlServer 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteSqlBulkCopyAsync", "SqlServer"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -218,7 +218,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteSqlBulkCopyAsync 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecuteSqlBulkCopyAsync {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

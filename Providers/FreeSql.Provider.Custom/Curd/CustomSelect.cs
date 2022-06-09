@@ -35,7 +35,7 @@ namespace FreeSql.Custom
                 if (_limit > 0 && _utils.Adapter.SelectTopStyle == CustomAdapter.SelecTopStyle.Top) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
                 sb.Append(field);
                 if (_skip > 0 && _utils.Adapter.SelectTopStyle == CustomAdapter.SelecTopStyle.Top)
-                    throw new NotImplementedException("FreeSql.Provider.Custom 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id");
+                throw new NotImplementedException(CoreStrings.S_NotImplementSkipOffset("Custom"));
 
                 sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();

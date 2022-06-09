@@ -5259,6 +5259,181 @@
             运行时错误，反射获取 IncludeMany 方法失败
             </summary>
         </member>
+        <member name="P:FreeSql.CoreStrings.S_Access_InsertOnlyOneAtTime">
+            <summary>
+            蛋疼的 Access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select ..
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_BaseEntity_Initialization_Error">
+            <summary>
+            BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_BlockAccess_WaitForRecovery(System.Object,System.Object)">
+            <summary>
+            【{thisName}】Block access and wait for recovery: {exMessage}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_CannotBeConverted_To_ISelect(System.Object)">
+            <summary>
+            无法将 IQueryable&lt;{typeofName}&gt; 转换为 ISelect&lt;{typeofName}&gt;，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_ConnectionStringError">
+            <summary>
+            连接字符串错误
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_ConnectionStringError_Check(System.Object)">
+            <summary>
+            【{thisName}】连接字符串错误，请检查。
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_ConnectionStringError_CheckProject">
+            <summary>
+            连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_ConnectionStringError_CheckProjectConnection(System.Object)">
+            <summary>
+            【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_CustomAdapter_Cannot_Use_CreateCommand">
+            <summary>
+            FreeSql.Provider.CustomAdapter 无法使用 CreateCommand
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory">
+            <summary>
+            FreeSql.Provider.CustomAdapter 仅支持 UseConnectionFactory 方式构建 IFreeSql
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_Dameng_NotSupport_TablespaceSchemas(System.Object)">
+            <summary>
+            达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_DB_Parameter_Error_NoConnectionString">
+            <summary>
+            -DB 参数错误，未提供 ConnectionString
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_DB_ParameterError">
+            <summary>
+            -DB 参数错误，格式为：MySql,ConnectionString
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_DB_ParameterError_UnsupportedType(System.Object)">
+            <summary>
+            -DB 参数错误，不支持的类型：\"{dbargs}\"
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_Features_Unique(System.Object,System.Object)">
+            <summary>
+            {method} 是 FreeSql.Provider.{provider} 特有的功能
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_InsertOrUpdate_Unable_UpdateColumns">
+            <summary>
+            fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_MasterDatabase">
+            <summary>
+            主库
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_MygisGeometry_NotImplement(System.Object)">
+            <summary>
+            MygisGeometry.Parse 未实现 \"{wkt}\"
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_NameOptions_Incorrect">
+            <summary>
+            -NameOptions 参数错误，格式为：0,0,0,0
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_Not_Implemented_Feature">
+            <summary>
+             未实现该功能
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_Not_Implemented_FeedBack">
+            <summary>
+            未实现错误，请反馈给作者
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_NotFound_Name(System.Object)">
+            <summary>
+            找不到 {name}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_NotImplementSkipOffset(System.Object)">
+            <summary>
+            FreeSql.Provider.{providerName} 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_ObjectPool">
+            <summary>
+            对象池
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_OldTableExists(System.Object,System.Object)">
+            <summary>
+            旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_OnConflictDoUpdate_MustIsPrimary">
+            <summary>
+            OnConflictDoUpdate 功能要求实体类必须设置 IsPrimary 属性
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_Oracle_NotSupport_TablespaceSchemas(System.Object)">
+            <summary>
+            Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_ParsingFailed_UseRestoreToSelect(System.Object,System.Object)">
+            <summary>
+            解析失败 {callExpMethodName} {message}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_RequiresEntityPrimaryKey(System.Object,System.Object)">
+            <summary>
+            fsql.InsertOrUpdate + IfExistsDoNothing + {providerName}要求实体类 {tableCsName} 必须有主键
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_SelectManayErrorType(System.Object)">
+            <summary>
+            SelectMany 错误的类型：{typeFullName}
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.S_SlaveDatabase">
+            <summary>
+            从库
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_Type_IsNot_Migrable(System.Object)">
+            <summary>
+            类型 {objentityTypeFullName} 不可迁移
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_Type_IsNot_Migrable_0Attributes(System.Object)">
+            <summary>
+            类型 {objentityTypeFullName} 不可迁移，可迁移属性0个
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_TypeMappingNotImplemented(System.Object)">
+            <summary>
+            未实现 {columnDbTypeTextFull} 类型映射
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.S_WrongParameter(System.Object)">
+            <summary>
+            错误的参数设置：{args}
+            </summary>
+        </member>
         <member name="M:FreeSql.CoreStrings.Set_Column_IsNullable_False(System.Object)">
             <summary>
             {qoteSql} is NULL，除非设置特性 [Column(IsNullable = false)]

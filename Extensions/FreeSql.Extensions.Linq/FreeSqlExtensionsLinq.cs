@@ -33,7 +33,7 @@ public static class FreeSqlExtensionsLinqSql
     /// <returns></returns>
     public static ISelect<T1> RestoreToSelect<T1>(this IQueryable<T1> that) where T1 : class
     {
-        var queryable = that as QueryableProvider<T1, T1> ?? throw new Exception($"无法将 IQueryable<{typeof(T1).Name}> 转换为 ISelect<{typeof(T1).Name}>，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider");
+        var queryable = that as QueryableProvider<T1, T1> ?? throw new Exception(CoreStrings.S_CannotBeConverted_To_ISelect(typeof(T1).Name));
         return queryable._select;
     }
 

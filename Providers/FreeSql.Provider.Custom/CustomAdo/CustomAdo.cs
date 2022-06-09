@@ -23,7 +23,7 @@ namespace FreeSql.Custom
                 _CreateParameterCommand = CreateCommand();
                 return;
             }
-            throw new Exception("FreeSql.Provider.CustomAdapter 仅支持 UseConnectionFactory 方式构建 IFreeSql");
+            throw new Exception(CoreStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
         }
         CustomAdapter Adapter => (_util == null ? FreeSqlCustomAdapterGlobalExtensions.DefaultAdapter : _util._orm.GetCustomAdapter());
 
@@ -65,7 +65,7 @@ namespace FreeSql.Custom
                 cmd.Connection = null;
                 return cmd;
             }
-            throw new Exception("FreeSql.Provider.CustomAdapter 无法使用 CreateCommand");
+            throw new Exception(CoreStrings.S_CustomAdapter_Cannot_Use_CreateCommand);
         }
         public DbParameter CreateParameter()
         {

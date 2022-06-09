@@ -450,6 +450,146 @@
   <data name="RunTimeError_Reflection_IncludeMany" xml:space="preserve">
     <value>运行时错误，反射获取 IncludeMany 方法失败</value>
   </data>
+  <data name="S_Access_InsertOnlyOneAtTime" xml:space="preserve">
+    <value>蛋疼的 Access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select ..</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_BaseEntity_Initialization_Error" xml:space="preserve">
+    <value>BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_BlockAccess_WaitForRecovery" xml:space="preserve">
+    <value>【{thisName}】Block access and wait for recovery: {exMessage}</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_CannotBeConverted_To_ISelect" xml:space="preserve">
+    <value>无法将 IQueryable&lt;{typeofName}&gt; 转换为 ISelect&lt;{typeofName}&gt;，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_ConnectionStringError" xml:space="preserve">
+    <value>连接字符串错误</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_ConnectionStringError_Check" xml:space="preserve">
+    <value>【{thisName}】连接字符串错误，请检查。</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_ConnectionStringError_CheckProject " xml:space="preserve">
+    <value>连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_ConnectionStringError_CheckProjectConnection" xml:space="preserve">
+    <value>【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_CustomAdapter_Cannot_Use_CreateCommand" xml:space="preserve">
+    <value>FreeSql.Provider.CustomAdapter 无法使用 CreateCommand</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_CustomAdapter_OnlySuppport_UseConnectionFactory " xml:space="preserve">
+    <value>FreeSql.Provider.CustomAdapter 仅支持 UseConnectionFactory 方式构建 IFreeSql</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_Dameng_NotSupport_TablespaceSchemas  " xml:space="preserve">
+    <value>达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_DB_Parameter_Error_NoConnectionString" xml:space="preserve">
+    <value>-DB 参数错误，未提供 ConnectionString</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_DB_ParameterError" xml:space="preserve">
+    <value>-DB 参数错误，格式为：MySql,ConnectionString</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_DB_ParameterError_UnsupportedType" xml:space="preserve">
+    <value>-DB 参数错误，不支持的类型："{dbargs}"</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_Features_Unique" xml:space="preserve">
+    <value>{method} 是 FreeSql.Provider.{provider} 特有的功能</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_InsertOrUpdate_Unable_UpdateColumns" xml:space="preserve">
+    <value>fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_MasterDatabase" xml:space="preserve">
+    <value>主库</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_MygisGeometry_NotImplement" xml:space="preserve">
+    <value>MygisGeometry.Parse 未实现 "{wkt}"</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_NameOptions_Incorrect" xml:space="preserve">
+    <value>-NameOptions 参数错误，格式为：0,0,0,0</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_Not_Implemented_Feature" xml:space="preserve">
+    <value> 未实现该功能</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_Not_Implemented_FeedBack" xml:space="preserve">
+    <value>未实现错误，请反馈给作者</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_NotFound_Name" xml:space="preserve">
+    <value>找不到 {name}</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_NotImplementSkipOffset" xml:space="preserve">
+    <value>FreeSql.Provider.{providerName} 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_ObjectPool" xml:space="preserve">
+    <value>对象池</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_OldTableExists" xml:space="preserve">
+    <value>旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_OnConflictDoUpdate_MustIsPrimary" xml:space="preserve">
+    <value>OnConflictDoUpdate 功能要求实体类必须设置 IsPrimary 属性</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_Oracle_NotSupport_TablespaceSchemas" xml:space="preserve">
+    <value>Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_ParsingFailed_UseRestoreToSelect" xml:space="preserve">
+    <value>解析失败 {callExpMethodName} {message}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_RequiresEntityPrimaryKey" xml:space="preserve">
+    <value>fsql.InsertOrUpdate + IfExistsDoNothing + {providerName}要求实体类 {tableCsName} 必须有主键</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_SelectManayErrorType" xml:space="preserve">
+    <value>SelectMany 错误的类型：{typeFullName}</value>
+    <comment>Extensions</comment>
+  </data>
+  <data name="S_SlaveDatabase" xml:space="preserve">
+    <value>从库</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_Type_IsNot_Migrable" xml:space="preserve">
+    <value>类型 {objentityTypeFullName} 不可迁移</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_Type_IsNot_Migrable_0Attributes" xml:space="preserve">
+    <value>类型 {objentityTypeFullName} 不可迁移，可迁移属性0个</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_TypeMappingNotImplemented" xml:space="preserve">
+    <value>未实现 {columnDbTypeTextFull} 类型映射</value>
+    <comment>Providers</comment>
+  </data>
+  <data name="S_WrongParameter" xml:space="preserve">
+    <value>错误的参数设置：{args}</value>
+    <comment>Extensions</comment>
+  </data>
   <data name="Set_Column_IsNullable_False" xml:space="preserve">
     <value>{qoteSql} is NULL，除非设置特性 [Column(IsNullable = false)]</value>
   </data>
@@ -494,8 +634,5 @@
   </data>
   <data name="Use_InsertDict_Method" xml:space="preserve">
     <value>请使用 fsql.InsertDict(dict) 方法插入字典数据</value>
-  </data>
-  <data name="A" xml:space="preserve">
-    <value>Test</value>
   </data>
 </root>
