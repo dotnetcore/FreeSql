@@ -22,12 +22,12 @@ namespace FreeSql.Oracle
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new OracleConnectionPool("主库", masterConnectionString, null, null);
+                MasterPool = new OracleConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
             {
                 foreach (var slaveConnectionString in slaveConnectionStrings)
                 {
-                    var slavePool = new OracleConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    var slavePool = new OracleConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                     SlavePools.Add(slavePool);
                 }
             }

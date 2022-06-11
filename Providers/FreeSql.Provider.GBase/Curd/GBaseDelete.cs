@@ -16,11 +16,11 @@ namespace FreeSql.GBase.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Provider.GBase 未实现该功能");
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Provider.GBase {CoreStrings.S_Not_Implemented_Feature}");
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.GBase 未实现该功能");
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.GBase {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

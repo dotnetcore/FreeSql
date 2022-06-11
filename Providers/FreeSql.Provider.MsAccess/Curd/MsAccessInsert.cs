@@ -26,7 +26,7 @@ namespace FreeSql.MsAccess.Curd
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1, 1000);
 
         public override IInsert<T1> BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true) => 
-            throw new NotImplementedException("蛋疼的 access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select ..");
+            throw new NotImplementedException(CoreStrings.S_Access_InsertOnlyOneAtTime);
 
         protected override int RawExecuteAffrows()
         {

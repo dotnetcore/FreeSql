@@ -27,12 +27,12 @@ namespace FreeSql.MySql
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new MySqlConnectionPool("主库", masterConnectionString, null, null);
+                MasterPool = new MySqlConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
             {
                 foreach (var slaveConnectionString in slaveConnectionStrings)
                 {
-                    var slavePool = new MySqlConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    var slavePool = new MySqlConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                     SlavePools.Add(slavePool);
                 }
             }

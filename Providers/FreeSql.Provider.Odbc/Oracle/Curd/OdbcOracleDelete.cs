@@ -16,11 +16,11 @@ namespace FreeSql.Odbc.Oracle
         {
         }
 
-        public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Odbc.Oracle 未实现该功能");
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Odbc.Oracle {CoreStrings.S_Not_Implemented_Feature}");
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Odbc.Oracle 未实现该功能");
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Odbc.Oracle {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

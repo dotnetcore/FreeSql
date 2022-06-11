@@ -1,4 +1,4 @@
-﻿[中文](README.zh-CN.md) | **English**
+﻿[中文](README.zh-CN.MD) | **English**
 
 # Preface
 

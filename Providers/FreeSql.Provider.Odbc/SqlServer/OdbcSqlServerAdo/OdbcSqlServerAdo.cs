@@ -23,12 +23,12 @@ namespace FreeSql.Odbc.SqlServer
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new OdbcSqlServerConnectionPool("主库", masterConnectionString, null, null);
+                MasterPool = new OdbcSqlServerConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
             {
                 foreach (var slaveConnectionString in slaveConnectionStrings)
                 {
-                    var slavePool = new OdbcSqlServerConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    var slavePool = new OdbcSqlServerConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                     SlavePools.Add(slavePool);
                 }
             }

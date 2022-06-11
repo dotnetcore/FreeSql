@@ -180,9 +180,12 @@ namespace <#= model.Namespace #>
         result.Class = Path.GetFileNameWithoutExtension(resourceFile);
 
         result.ResourceName = resourceNamespace + "." + result.Class;
-		
+		if(File.Exists(resourceFile.Replace(".resx", ".zh-Hans.resx")))
+        {
+            resourceFile = resourceFile.Replace(".resx", ".zh-Hans.resx");
+        }
         List<ResXDataNode> sortedResources;
-        using (var reader = new ResXResourceReader(resourceFile.Replace(".resx", ".zh-Hans.resx")))
+        using (var reader = new ResXResourceReader(resourceFile))
         {
             reader.UseResXDataNodes = true;
             sortedResources = Enumerable.ToList(

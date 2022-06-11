@@ -24,7 +24,7 @@ namespace FreeSql.Odbc.PostgreSQL
         public OdbcPostgreSQLOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _pgsqlInsert = insert as OdbcPostgreSQLInsert<T1>;
-            if (_pgsqlInsert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.Odbc/PostgreSQL 特有的功能");
+            if (_pgsqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "Odbc/PostgreSQL"));
             if (_pgsqlInsert._noneParameterFlag == "c") _pgsqlInsert._noneParameterFlag = "cu";
 
             if (columns != null)
@@ -38,7 +38,7 @@ namespace FreeSql.Odbc.PostgreSQL
             }
             if (_columns == null || _columns.Any() == false)
                 _columns = _pgsqlInsert.InternalTable.Primarys;
-            if (_columns.Any() == false) throw new Exception("OnConflictDoUpdate 功能要求实体类必须设置 IsPrimary 属性");
+            if (_columns.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()

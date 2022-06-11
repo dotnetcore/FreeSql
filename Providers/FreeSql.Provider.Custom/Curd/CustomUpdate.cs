@@ -23,7 +23,7 @@ namespace FreeSql.Custom
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
-        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
 
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
@@ -65,7 +65,7 @@ namespace FreeSql.Custom
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255, cancellationToken);
         public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255, cancellationToken);
 
-        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

@@ -22,7 +22,7 @@ namespace FreeSql.Oracle.Curd
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
-        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.Provider.Oracle 未实现该功能");
+        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException($"FreeSql.Provider.Oracle {CoreStrings.S_Not_Implemented_Feature}");
 
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
@@ -68,7 +68,7 @@ namespace FreeSql.Oracle.Curd
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
 
-        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.Oracle 未实现该功能");
+        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.Oracle {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

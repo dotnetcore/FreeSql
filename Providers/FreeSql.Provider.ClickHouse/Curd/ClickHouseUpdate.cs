@@ -28,7 +28,7 @@ namespace FreeSql.ClickHouse.Curd
 
         public override int ExecuteAffrows() => SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
         public override List<T1> ExecuteUpdated() => SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
-        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.ClickHouse.Custom 未实现该功能 未实现该功能");
+        protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
             if (primarys.Length == 1)
@@ -293,7 +293,7 @@ namespace FreeSql.ClickHouse.Curd
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
         public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.ClickHouse.Custom 未实现该功能 未实现该功能");
+        protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
 
         async protected override Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         

@@ -16,7 +16,7 @@ namespace FreeSql.ClickHouse.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Provider.ClickHouse 未实现该功能");
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
 
         public override string ToSql()
         {
@@ -25,7 +25,7 @@ namespace FreeSql.ClickHouse.Curd
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.ClickHouse 未实现该功能");
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

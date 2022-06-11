@@ -3,6 +3,7 @@ using FreeSql.PostgreSQL.Curd;
 using Npgsql;
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
@@ -51,7 +52,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     public static void ExecutePgCopy<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
-        if (insert == null) throw new Exception("ExecutePgCopy 是 FreeSql.Provider.PostgreSQL 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecutePgCopy", "PostgreSQL"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -109,7 +110,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecutePgCopy 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecutePgCopy {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
@@ -123,7 +124,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
-        if (insert == null) throw new Exception("ExecutePgCopyAsync 是 FreeSql.Provider.PostgreSQL 特有的功能");
+        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecutePgCopyAsync", "PostgreSQL"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -180,7 +181,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecutePgCopyAsync 未实现错误，请反馈给作者");
+                throw new NotImplementedException($"ExecutePgCopyAsync {CoreStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

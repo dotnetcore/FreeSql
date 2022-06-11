@@ -159,7 +159,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
 
                     case "-nameoptions":
                         ArgsNameOptions = args[a + 1].Split(',').Select(opt => opt == "1").ToArray();
-                        if (ArgsNameOptions.Length != 4) throw new ArgumentException("-NameOptions 参数错误，格式为：0,0,0,0");
+                        if (ArgsNameOptions.Length != 4) throw new ArgumentException(CoreStrings.S_NameOptions_Incorrect);
                         a++;
                         break;
                     case "-namespace":
@@ -168,7 +168,8 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         break;
                     case "-db":
                         var dbargs = args[a + 1].Split(',', 2);
-                        if (dbargs.Length != 2) throw new ArgumentException("-DB 参数错误，格式为：MySql,ConnectionString");
+                        if (dbargs.Length != 2) throw new ArgumentException(CoreStrings.S_DB_ParameterError);
+
                         switch (dbargs[0].Trim().ToLower())
                         {
                             case "mysql": ArgsDbType = DataType.MySql; break;
@@ -181,7 +182,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "kingbasees": ArgsDbType = DataType.KingbaseES; break;
                             case "shentong": ArgsDbType = DataType.ShenTong; break;
                             case "clickhouse": ArgsDbType = DataType.ClickHouse; break;
-                            default: throw new ArgumentException($"-DB 参数错误，不支持的类型：\"{dbargs[0]}\"");
+                            default: throw new ArgumentException(CoreStrings.S_DB_ParameterError_UnsupportedType(dbargs[0]));
                         }
                         ArgsConnectionString = dbargs[1].Trim();
                         a++;
@@ -208,11 +209,11 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         a++;
                         break;
                     default:
-                        throw new ArgumentException($"错误的参数设置：{args[a]}");
+                        throw new ArgumentException(CoreStrings.S_WrongParameter(args[a]));
                 }
             }
 
-            if (string.IsNullOrEmpty(ArgsConnectionString)) throw new ArgumentException($"-DB 参数错误，未提供 ConnectionString");
+            if (string.IsNullOrEmpty(ArgsConnectionString)) throw new ArgumentException(CoreStrings.S_DB_Parameter_Error_NoConnectionString);
 
             RazorEngine.Engine.Razor = RazorEngineService.Create(new RazorEngine.Configuration.TemplateServiceConfiguration
             {

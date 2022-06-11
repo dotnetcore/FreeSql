@@ -46,7 +46,7 @@ namespace FreeSql.Odbc.SqlServer
                 }
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" \r\nWHERE ");
-                if (validx == -1) throw new ArgumentException("找不到 WHERE ");
+                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("WHERE"));
                 sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
                     .Append(sql.Substring(validx)).ToString();
@@ -139,7 +139,7 @@ namespace FreeSql.Odbc.SqlServer
                 }
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" \r\nWHERE ");
-                if (validx == -1) throw new ArgumentException("找不到 WHERE ");
+                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("WHERE"));
                 sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
                     .Append(sql.Substring(validx)).ToString();
