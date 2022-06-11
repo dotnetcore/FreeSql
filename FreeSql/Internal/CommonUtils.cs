@@ -635,25 +635,28 @@ namespace FreeSql.Internal
                         if (string.IsNullOrEmpty(comment) == false) dic.Add("", comment); //class注释
                     }
 
-                    var props = localType.GetPropertiesDictIgnoreCase().Values;
-                    foreach (var prop in props)
+                    foreach (var entityType in localType.GetInterfaces().Concat(new[] { localType }))
                     {
-                        className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
-                        node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
-                        if (node == null)
+                        var props = entityType.GetPropertiesDictIgnoreCase().Values;
+                        foreach (var prop in props)
                         {
-                            if (level == 0 && prop.DeclaringType.Assembly != localType.Assembly)
+                            className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
+                            node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
+                            if (node == null)
                             {
-                                var cbs = LocalGetComment(prop.DeclaringType, level + 1);
-                                if (cbs != null && cbs.TryGetValue(prop.Name, out var otherComment) && string.IsNullOrEmpty(otherComment) == false)
-                                    dic.Add(prop.Name, otherComment);
+                                if (level == 0 && prop.DeclaringType.Assembly != entityType.Assembly)
+                                {
+                                    var cbs = LocalGetComment(prop.DeclaringType, level + 1);
+                                    if (cbs != null && cbs.TryGetValue(prop.Name, out var otherComment) && string.IsNullOrEmpty(otherComment) == false)
+                                        dic.Add(prop.Name, otherComment);
+                                }
+                                continue;
                             }
-                            continue;
-                        }
-                        var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
-                        if (string.IsNullOrEmpty(comment)) continue;
+                            var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+                            if (string.IsNullOrEmpty(comment)) continue;
 
-                        dic.Add(prop.Name, comment);
+                            dic.Add(prop.Name, comment);
+                        }
                     }
                 }
                 return dic;

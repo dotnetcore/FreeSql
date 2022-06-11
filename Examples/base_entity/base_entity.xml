@@ -74,6 +74,11 @@
             创建日期2
             </summary>
         </member>
+        <member name="P:base_entity.Program.IDeleteSoft.IsDeleted">
+            <summary>
+            软删除
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

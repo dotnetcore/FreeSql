@@ -265,6 +265,18 @@ namespace base_entity
             public string Name { get; set; }
         }
 
+        interface IDeleteSoft
+        {
+            /// <summary>
+            /// 软删除
+            /// </summary>
+            bool IsDeleted { get; set; }
+        }
+        class TestComment01 : IDeleteSoft
+        {
+            public bool IsDeleted { get; set; }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -313,6 +325,7 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.CodeFirst.GetTableByEntity(typeof(TestComment01));
 
             fsql.Select<TUserImg>();
 
