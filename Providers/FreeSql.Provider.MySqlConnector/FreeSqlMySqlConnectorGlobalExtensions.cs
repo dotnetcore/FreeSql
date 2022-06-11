@@ -43,6 +43,8 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         {
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
+            for (int i = 0; i < dt.Columns.Count; i++)
+                bulkCopy.ColumnMappings.Add(new MySqlBulkCopyColumnMapping(i, dt.Columns[i].ColumnName));
             bulkCopy.WriteToServer(dt);
         };
 
@@ -103,6 +105,8 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         {
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
+            for (int i = 0; i < dt.Columns.Count; i++)
+                bulkCopy.ColumnMappings.Add(new MySqlBulkCopyColumnMapping(i, dt.Columns[i].ColumnName));
             await bulkCopy.WriteToServerAsync(dt, cancellationToken);
         };
 
