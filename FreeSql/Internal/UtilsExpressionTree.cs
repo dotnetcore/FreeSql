@@ -2298,7 +2298,9 @@ namespace FreeSql.Internal
                                         Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("False")),
                                         Expression.OrElse(
                                             Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("false")),
-                                            Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0"))))),
+                                            Expression.OrElse(
+                                                Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("f")),
+                                                Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0")))))),
                             typeof(object))
                         );
                         break;

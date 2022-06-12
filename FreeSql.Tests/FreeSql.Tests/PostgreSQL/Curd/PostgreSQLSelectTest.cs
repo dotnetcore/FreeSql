@@ -266,6 +266,11 @@ WHERE (((a.""name"") in (SELECT s.""title"" as1
             public int id { get; set; }
             public string name { get; set; } //这是join表的属性
             public int ParentId { get; set; } //这是join表的属性
+
+            public bool? testBool1 { get; set; }
+            public bool? testBool2 { get; set; }
+            public bool testBool3 { get; set; }
+            public bool testBool4 { get; set; }
         }
         class TestDto2
         {
@@ -283,8 +288,11 @@ WHERE (((a.""name"") in (SELECT s.""title"" as1
         [Fact]
         public void ToList()
         {
-
-            var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+            var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title, testBool1 = false, testBool2 = true, testBool3 = false, testBool4 = true });
+            Assert.False(testDto1[0].testBool1);
+            Assert.True(testDto1[0].testBool2);
+            Assert.False(testDto1[0].testBool3);
+            Assert.True(testDto1[0].testBool4);
             var testDto2 = select.Limit(10).ToList(a => new TestDto());
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });
             var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
