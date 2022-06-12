@@ -143,10 +143,10 @@ namespace FreeSql
             if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("DbSet"));
             if (entityType == _entityType) return this;
             var newtb = _db.OrmOriginal.CodeFirst.GetTableByEntity(entityType);
-            _entityType = entityType;
             _tablePriv = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("DbSet"));
             _tableIdentitysPriv = null;
             _tableReturnColumnsPriv = null;
+            _entityType = entityType;
             return this;
         }
 
