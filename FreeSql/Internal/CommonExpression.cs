@@ -691,7 +691,7 @@ namespace FreeSql.Internal
                     }
                 }
             }
-            if (leftExp.Type.NullableTypeOrThis() == typeof(bool) && (leftExp.NodeType != ExpressionType.MemberAccess && rightExp.NodeType != ExpressionType.MemberAccess))
+            if (leftExp.Type.NullableTypeOrThis() == typeof(bool) && (left.EndsWith(" IS NOT NULL") || left.EndsWith(" IS NULL") || leftExp.NodeType != ExpressionType.MemberAccess && rightExp.NodeType != ExpressionType.MemberAccess))
             {
                 var leftExpCall = leftExp as MethodCallExpression;
                 if (leftExpCall == null || !(leftExpCall.Method.DeclaringType == typeof(SqlExt) && leftExpCall.Method.Name == nameof(SqlExt.IsNull)))

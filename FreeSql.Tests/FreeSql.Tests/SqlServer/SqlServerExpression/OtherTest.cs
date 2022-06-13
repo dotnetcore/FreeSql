@@ -39,6 +39,9 @@ namespace FreeSql.Tests.SqlServerExpression
         [Fact]
         public void Boolean()
         {
+            var s1 = select.Where(a => a.testFieldBoolNullable.HasValue).ToList();
+            var s2 = select.GroupBy(a => new { IsCheck = a.testFieldBoolNullable.HasValue ? true : false }).ToList(g => g.Key);
+
             var t1 = select.Where(a => a.testFieldBool == true).ToList();
             var t2 = select.Where(a => a.testFieldBool != true).ToList();
             var t3 = select.Where(a => a.testFieldBool == false).ToList();
