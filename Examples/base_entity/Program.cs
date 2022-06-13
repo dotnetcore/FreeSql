@@ -277,12 +277,31 @@ namespace base_entity
             public bool IsDeleted { get; set; }
         }
 
+        static void TestExp(IFreeSql fsql)
+        {
+            var tasks = new List<Task>();
+
+            for (var a = 0; a < 1000; a++)
+            {
+                var task = Task.Run(async () =>
+                {
+                    var name = "123";
+                    var result = await fsql.Select<Rsbasedoc2>()
+                        .Where(t => t.Name == name
+                            && fsql.Select<Rsbasedoc2>().Any(t2 => t2.Id == t.Id)).ToListAsync();
+                });
+                tasks.Add(task);
+            }
+            Task.WaitAll(tasks.ToArray());
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
+                .UseGenerateCommandParameterWithLambda(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
@@ -294,7 +313,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -324,6 +343,8 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            TestExp(fsql);
 
             fsql.CodeFirst.GetTableByEntity(typeof(TestComment01));
 
