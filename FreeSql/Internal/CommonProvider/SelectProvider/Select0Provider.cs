@@ -21,6 +21,7 @@ namespace FreeSql.Internal.CommonProvider
         public string _select = "SELECT ", _orderby, _groupby, _having;
         public StringBuilder _where = new StringBuilder();
         public List<DbParameter> _params = new List<DbParameter>();
+        public List<DbParameter> _paramsInit;
         public List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         public List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
         public Func<Type, string, string> _tableRule => _tableRules?.FirstOrDefault();
@@ -46,12 +47,17 @@ namespace FreeSql.Internal.CommonProvider
         public Func<bool> _cancel;
         public bool _is_AsTreeCte;
 
+        public Select0Provider()
+        {
+            _paramsInit = _params;
+        }
+
         int _disposeCounter;
         ~Select0Provider()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             _where.Clear();
-            //_params.Clear(); 子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
+            if (_paramsInit == _params) _params.Clear(); //子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
             _tables.Clear();
             _tableRules.Clear();
             _join.Clear();
