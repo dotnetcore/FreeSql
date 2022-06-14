@@ -648,14 +648,18 @@ namespace FreeSql.Internal
                                 {
                                     var cbs = LocalGetComment(prop.DeclaringType, level + 1);
                                     if (cbs != null && cbs.TryGetValue(prop.Name, out var otherComment) && string.IsNullOrEmpty(otherComment) == false)
-                                        dic.Add(prop.Name, otherComment);
+                                    {
+                                        if (dic.ContainsKey(prop.Name)) dic[prop.Name] = otherComment;
+                                        else dic.Add(prop.Name, otherComment);
+                                    }
                                 }
                                 continue;
                             }
                             var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
                             if (string.IsNullOrEmpty(comment)) continue;
 
-                            dic.Add(prop.Name, comment);
+                            if (dic.ContainsKey(prop.Name)) dic[prop.Name] = comment;
+                            else dic.Add(prop.Name, comment);
                         }
                     }
                 }
