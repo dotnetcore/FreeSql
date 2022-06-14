@@ -326,7 +326,7 @@ left join sys_description d on d.objoid = a.oid and objsubid = 0
 where b.nspname not in ('DIRECTORIES', 'INFO_SCHEM', 'REPLICATION', 'STAGENT', 'SYSAUDIT', 'SYSDBA', 'SYSFTSDBA', 'SYSSECURE', 'SYS_GLOBAL_TEMP', 'WMSYS') and a.relkind in ('r') and b.nspname = {0} and a.relname = {1}
 and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')", tbname[0], tbname[1])));
                     if (dbcomment != (tb.Comment ?? ""))
-                        sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
+                        sbalter.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
 
                     sb.Append(sbalter);
                     continue;

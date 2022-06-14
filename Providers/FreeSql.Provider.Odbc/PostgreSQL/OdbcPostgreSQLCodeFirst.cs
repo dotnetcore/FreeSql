@@ -360,7 +360,7 @@ left join pg_description d on d.objoid = a.oid and objsubid = 0
 where b.nspname not in ('pg_catalog', 'information_schema') and a.relkind in ('r') and b.nspname = {0} and a.relname = {1}
 and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geometry_columns','public.raster_columns','public.raster_overviews')", tbname[0], tbname[1])));
                     if (dbcomment != (tb.Comment ?? ""))
-                        sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
+                        sbalter.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
 
                     sb.Append(sbalter);
                     continue;
