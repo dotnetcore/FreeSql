@@ -494,7 +494,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tempPrimarys != null)
             {
                 var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
-                _tempPrimarys = cols.Keys.Select(a => _table.ColumnsByCs.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
+                _tempPrimarys = cols.Keys.Select(a => _table.Columns.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
             }
             return this;
         }
