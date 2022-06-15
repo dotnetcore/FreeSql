@@ -5291,12 +5291,12 @@
         </member>
         <member name="P:FreeSql.CoreStrings.S_ConnectionStringError_CheckProject">
             <summary>
-            连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64
+            连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.S_ConnectionStringError_CheckProjectConnection(System.Object)">
             <summary>
-            【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64
+            【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.S_CustomAdapter_Cannot_Use_CreateCommand">
@@ -5326,7 +5326,7 @@
         </member>
         <member name="M:FreeSql.CoreStrings.S_DB_ParameterError_UnsupportedType(System.Object)">
             <summary>
-            -DB 参数错误，不支持的类型：\"{dbargs}\"
+            -DB 参数错误，不支持的类型："{dbargs}"
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.S_Features_Unique(System.Object,System.Object)">
@@ -5346,7 +5346,7 @@
         </member>
         <member name="M:FreeSql.CoreStrings.S_MygisGeometry_NotImplement(System.Object)">
             <summary>
-            MygisGeometry.Parse 未实现 \"{wkt}\"
+            MygisGeometry.Parse 未实现 "{wkt}"
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.S_NameOptions_Incorrect">

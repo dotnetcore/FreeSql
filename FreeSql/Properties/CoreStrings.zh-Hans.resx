@@ -474,12 +474,12 @@
     <value>【{thisName}】连接字符串错误，请检查。</value>
     <comment>Providers</comment>
   </data>
-  <data name="S_ConnectionStringError_CheckProject " xml:space="preserve">
-    <value>连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64</value>
+  <data name="S_ConnectionStringError_CheckProject" xml:space="preserve">
+    <value>连接字符串错误，或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台</value>
     <comment>Providers</comment>
   </data>
   <data name="S_ConnectionStringError_CheckProjectConnection" xml:space="preserve">
-    <value>【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64</value>
+    <value>【{thisName}】连接字符串错误，请检查。或者检查项目属性 &gt; 生成 &gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台</value>
     <comment>Providers</comment>
   </data>
   <data name="S_CustomAdapter_Cannot_Use_CreateCommand" xml:space="preserve">

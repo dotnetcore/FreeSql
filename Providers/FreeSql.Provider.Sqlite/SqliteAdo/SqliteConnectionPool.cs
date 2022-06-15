@@ -160,8 +160,8 @@ namespace FreeSql.Sqlite
             {
                 if (obj.Value == null)
                 {
-                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError_CheckProject), obj.LastGetTimeCopy);
+                    throw new Exception(CoreStrings.S_ConnectionStringError_CheckProjectConnection(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)

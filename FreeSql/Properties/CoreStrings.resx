@@ -522,11 +522,11 @@
   <data name="S_ConnectionStringError_Check" xml:space="preserve">
     <value>FreeSql:[{thisName}] Connection string error, please check.</value>
   </data>
-  <data name="S_ConnectionStringError_CheckProject " xml:space="preserve">
-    <value>FreeSql:Connection string error, or check project properties &gt; Build &gt; Target Platform: x86 | x64</value>
+  <data name="S_ConnectionStringError_CheckProject" xml:space="preserve">
+    <value>FreeSql:Connection string error, or check project properties &gt; Build &gt; Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform</value>
   </data>
   <data name="S_ConnectionStringError_CheckProjectConnection" xml:space="preserve">
-    <value>FreeSql:[{thisName}] Connection string error, please check. Or check Project Properties &gt; Build &gt; Target Platform: x86 | x64</value>
+    <value>FreeSql:[{thisName}] Connection string error, please check. Or check Project Properties &gt; Build &gt; Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform</value>
   </data>
   <data name="S_CustomAdapter_Cannot_Use_CreateCommand" xml:space="preserve">
     <value>FreeSql:FreeSql.Provider.CustomAdapter cannot use CreateCommand</value>
