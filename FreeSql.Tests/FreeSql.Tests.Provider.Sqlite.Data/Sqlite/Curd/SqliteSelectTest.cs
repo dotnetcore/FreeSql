@@ -2541,10 +2541,52 @@ WHERE (((name,no) in (('testname01','testname01')) OR not((a.""no"") LIKE '%test
             public ts_dyfilter_enum01_status status { get; set; }
         }
         public enum ts_dyfilter_enum01_status { staring, stoped, finished }
+
+
+        [Fact]
+        public void WhereDynamicFilter2()
+        {
+            var fsql = g.sqlite;
+
+            var dyfilterJson = @"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""RegCount FreeSql.Tests.Sqlite.DynamicFilterMyCustom, FreeSql.Tests.Provider.Sqlite.Data"",
+      ""Operator"" : ""Custom"",
+      ""Value"" : ""19""
+    },
+    {
+      ""Field"" : ""name"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""testname01""
+    }
+  ]
+}";
+            var dyfilter = JsonConvert.DeserializeObject<DynamicFilterInfo>(dyfilterJson);
+            var sql = fsql.Select<ts_dyfilter_enum01>().WhereDynamicFilter(dyfilter).ToSql();
+
+        }
     }
 
+    class RegLog
+    {
+        public Guid tid { get; set; }
+    }
     public class DynamicFilterMyCustom
     {
+        [DynamicFilterCustom]
+        public static string RegCount(object sender, string value)
+        {
+            var count = int.Parse(value);
+
+            var select = sender as Select0Provider;
+            var sql = select._orm.Select<RegLog>().ToSql("count(1)");
+            return $"({sql}) > {count}";
+        }
+
         [DynamicFilterCustom]
         public static string MyRawSql(object sender, string value) => value;
 

@@ -993,6 +993,7 @@ namespace FreeSql.Internal
                                     break;
                                 }
                                 object fsql = null;
+                                Expression fsqlExpLambda = null;
                                 Select0Provider fsqlSelect0 = null;
                                 List<SelectTableInfo> fsqltables = null;
                                 var fsqltable1SetAlias = false;
@@ -1069,7 +1070,11 @@ namespace FreeSql.Internal
                                                 while (exp3StackOld.Any()) exp3Stack.Push(exp3StackOld.Pop());
                                             }
                                         }
-                                        if (fsql == null) fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
+                                        if (fsql == null)
+                                        {
+                                            fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
+                                            fsqlExpLambda = exp3tmp;
+                                        }
                                         fsqlType = fsql?.GetType();
                                         if (fsqlType == null) break;
                                         fsqlSelect0 = fsql as Select0Provider;
@@ -1133,6 +1138,10 @@ namespace FreeSql.Internal
                                             if (arg3Exp.NodeType == ExpressionType.Constant)
                                             {
                                                 args[a] = (arg3Exp as ConstantExpression)?.Value;
+                                            }
+                                            else if (arg3Exp == fsqlExpLambda)
+                                            {
+                                                args[a] = fsql;
                                             }
                                             else
                                             {

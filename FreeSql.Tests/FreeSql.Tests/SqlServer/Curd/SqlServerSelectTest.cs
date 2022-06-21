@@ -1890,6 +1890,27 @@ INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2
             Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
 FROM [tb_topic22] a 
 INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock(SqlServerLock.NoLock)
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock(SqlServerLock.NoLock)
+                .Where(a => orm.Select<TestTypeInfo>()
+                    .WithLock(SqlServerLock.NoLock, null).Where(b => b.Guid == a.TypeGuid).Any())
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id] 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [TestTypeInfo] b With(NoLock) 
+    WHERE (b.[Guid] = a.[TypeGuid])))", sql2);
         }
         [Fact]
         public void ForUpdate()
