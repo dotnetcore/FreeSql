@@ -49,6 +49,25 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     }
     internal static ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>> _dicSetGlobalSelectWithLock = new ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>>();
 
+    /// <summary>
+    /// 使用merge on条件替换默认主键条件
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="columns"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static IInsertOrUpdate<T> OnColumns<T>(this IInsertOrUpdate<T> that, params string[] columns) where T : class
+    {
+        var insertOrUpdate = that as FreeSql.SqlServer.Curd.SqlServerInsertOrUpdate<T>;
+        if (insertOrUpdate == null) throw new Exception(CoreStrings.S_Features_Unique("OnColumns", "SqlServer"));
+        if (columns.Length > 0)
+        {
+            insertOrUpdate._columns = columns;
+        }
+        return that;
+    }
+
     #region ExecuteSqlBulkCopy
     /// <summary>
     /// SqlServer SqlCopyBulk 批量插入功能<para></para>
