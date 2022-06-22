@@ -31,15 +31,15 @@ namespace FreeSql.Odbc.SqlServer
 
             string getMergeSql(List<T1> data)
             {
-                if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
+                if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
 
                 var sb = new StringBuilder();
                 if (IdentityColumn != null) sb.Append("SET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" ON;\r\n");
                 sb.Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
-                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
+                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _tempPrimarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
 
-                var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>

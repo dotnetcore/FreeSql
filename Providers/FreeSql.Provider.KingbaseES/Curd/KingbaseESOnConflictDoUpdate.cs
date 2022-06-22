@@ -18,7 +18,7 @@ namespace FreeSql.KingbaseES
         internal KingbaseESUpdate<T1> _update => _updatePriv ?? 
             (_updatePriv = new KingbaseESUpdate<T1>(_insert.InternalOrm, _insert.InternalCommonUtils, _insert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
                 .NoneParameter().SetSource(_insert.InternalSource) as KingbaseESUpdate<T1>);
-        ColumnInfo[] _columns;
+        internal ColumnInfo[] _tempPrimarys;
         bool _doNothing;
 
         public KingbaseESOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
@@ -34,11 +34,11 @@ namespace FreeSql.KingbaseES
                 foreach (var col in _insert.InternalTable.Columns.Values)
                     if (cols.ContainsKey(col.Attribute.Name))
                         colsList.Add(col);
-                _columns = colsList.ToArray();
+                _tempPrimarys = colsList.ToArray();
             }
-            if (_columns == null || _columns.Any() == false)
-                _columns = _insert.InternalTable.Primarys;
-            if (_columns.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
+            if (_tempPrimarys == null || _tempPrimarys.Any() == false)
+                _tempPrimarys = _insert.InternalTable.Primarys;
+            if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()
@@ -96,10 +96,10 @@ namespace FreeSql.KingbaseES
         {
             var sb = new StringBuilder();
             sb.Append(_insert.ToSql()).Append("\r\nON CONFLICT(");
-            for (var a = 0; a < _columns.Length; a++)
+            for (var a = 0; a < _tempPrimarys.Length; a++)
             {
                 if (a > 0) sb.Append(", ");
-                sb.Append(_insert.InternalCommonUtils.QuoteSqlName(_columns[a].Attribute.Name));
+                sb.Append(_insert.InternalCommonUtils.QuoteSqlName(_tempPrimarys[a].Attribute.Name));
             }
             if (_doNothing)
             {

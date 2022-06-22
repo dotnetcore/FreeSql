@@ -47,14 +47,14 @@ namespace FreeSql.MySql.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                        var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                         sql = new OnDuplicateKeyUpdate<T1>(insert)
                             .UpdateColumns(cols.Select(a => a.Attribute.Name).ToArray())
                             .ToSql();
                     }
                     else
                     {
-                        if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
+                        if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
                         sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
                             sb.Append(" \r\n FROM dual WHERE NOT EXISTS(").Append(
                                 _orm.Select<T1>()

@@ -10,8 +10,6 @@ namespace FreeSql.SqlServer.Curd
 
     class SqlServerInsertOrUpdate<T1> : Internal.CommonProvider.InsertOrUpdateProvider<T1> where T1 : class
     {
-        internal string[] _columns;
-
         public SqlServerInsertOrUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
             : base(orm, commonUtils, commonExpression)
         {
@@ -33,20 +31,15 @@ namespace FreeSql.SqlServer.Curd
 
             string getMergeSql(List<T1> data)
             {
-                if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
+                if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
 
                 var sb = new StringBuilder();
                 if (IdentityColumn != null) sb.Append("SET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" ON;\r\n");
                 sb.Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
-                IEnumerable<string> onColumns;
-                if (_columns?.Length > 0)
-                    onColumns = _columns.Select(a => $"t1.{_commonUtils.QuoteSqlName(a)} = t2.{_commonUtils.QuoteSqlName(a)}");
-                else
-                    onColumns = _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}");
-                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", onColumns)).Append(") \r\n");
+                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _tempPrimarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
 
-                var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>

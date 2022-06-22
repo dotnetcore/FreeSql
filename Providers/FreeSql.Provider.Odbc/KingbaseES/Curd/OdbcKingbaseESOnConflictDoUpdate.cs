@@ -18,7 +18,7 @@ namespace FreeSql.Odbc.KingbaseES
         internal OdbcKingbaseESUpdate<T1> _pgsqlUpdate => _pgsqlUpdatePriv ?? 
             (_pgsqlUpdatePriv = new OdbcKingbaseESUpdate<T1>(_pgsqlInsert.InternalOrm, _pgsqlInsert.InternalCommonUtils, _pgsqlInsert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
                 .NoneParameter().SetSource(_pgsqlInsert.InternalSource) as OdbcKingbaseESUpdate<T1>);
-        ColumnInfo[] _columns;
+        internal ColumnInfo[] _tempPrimarys;
         bool _doNothing;
 
         public OdbcKingbaseESOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
@@ -34,11 +34,11 @@ namespace FreeSql.Odbc.KingbaseES
                 foreach (var col in _pgsqlInsert.InternalTable.Columns.Values)
                     if (cols.ContainsKey(col.Attribute.Name))
                         colsList.Add(col);
-                _columns = colsList.ToArray();
+                _tempPrimarys = colsList.ToArray();
             }
-            if (_columns == null || _columns.Any() == false)
-                _columns = _pgsqlInsert.InternalTable.Primarys;
-            if (_columns.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
+            if (_tempPrimarys == null || _tempPrimarys.Any() == false)
+                _tempPrimarys = _pgsqlInsert.InternalTable.Primarys;
+            if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()
@@ -96,10 +96,10 @@ namespace FreeSql.Odbc.KingbaseES
         {
             var sb = new StringBuilder();
             sb.Append(_pgsqlInsert.ToSql()).Append("\r\nON CONFLICT(");
-            for (var a = 0; a < _columns.Length; a++)
+            for (var a = 0; a < _tempPrimarys.Length; a++)
             {
                 if (a > 0) sb.Append(", ");
-                sb.Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_columns[a].Attribute.Name));
+                sb.Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_tempPrimarys[a].Attribute.Name));
             }
             if (_doNothing)
             {

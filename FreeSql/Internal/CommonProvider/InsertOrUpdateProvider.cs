@@ -14,22 +14,27 @@ using System.Threading.Tasks;
 namespace FreeSql.Internal.CommonProvider
 {
 
-    public abstract partial class InsertOrUpdateProvider<T1> : IInsertOrUpdate<T1> where T1 : class
+    public abstract partial class InsertOrUpdateProvider
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
-        public List<T1> _source = new List<T1>();
         public bool _doNothing = false;
         public Dictionary<string, bool> _updateIgnore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
+        public ColumnInfo[] _tempPrimarys;
         public Func<string, string> _tableRule;
         public DbParameter[] _params;
         public DbTransaction _transaction;
         public DbConnection _connection;
         public int _commandTimeout = 0;
-        public ColumnInfo IdentityColumn { get; private set; }
+        public ColumnInfo IdentityColumn { get; protected set; }
+    }
+
+    public abstract partial class InsertOrUpdateProvider<T1> : InsertOrUpdateProvider, IInsertOrUpdate<T1> where T1 : class
+    {
+        public List<T1> _source = new List<T1>();
 
         public InsertOrUpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -37,6 +42,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
+            _tempPrimarys = _table?.Primarys ?? new ColumnInfo[0];
             if (_table == null && typeof(T1) != typeof(Dictionary<string, object>))
                 throw new Exception(CoreStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(typeof(T1)));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
@@ -107,12 +113,18 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public IInsertOrUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
-        public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source)
+        public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
             UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
+
+            if (tempPrimarys != null)
+            {
+                var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
+                _tempPrimarys = cols.Keys.Select(a => _table.Columns.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
+            }
             return this;
         }
 
@@ -161,6 +173,7 @@ namespace FreeSql.Internal.CommonProvider
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IInsertOrUpdate"));
+            _tempPrimarys = _table.Primarys;
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
             return this;
@@ -221,7 +234,7 @@ namespace FreeSql.Internal.CommonProvider
             if (source.Any() == false) return NativeTuple.Create(new List<T1>[0], new List<T1>[0]);
             if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(new[] { source }, new List<T1>[0]);
             if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>[0], new[] { source });
-            if (IdentityColumn == null) return NativeTuple.Create(LocalSplitSourceByAsTable(source), new List<T1>[0]);
+            if (IdentityColumn == null || _tempPrimarys != _table.Primarys) return NativeTuple.Create(LocalSplitSourceByAsTable(source), new List<T1>[0]);
             var item1 = new List<T1>();
             var item2 = new List<T1>();
             foreach (var item in source)

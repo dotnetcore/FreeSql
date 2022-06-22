@@ -53,7 +53,7 @@ namespace FreeSql.Sqlite.Curd
                     }
                     else
                     {
-                        if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
+                        if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
                         sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
                             sb.Append(" \r\n WHERE NOT EXISTS(").Append(
                                 _orm.Select<T1>()

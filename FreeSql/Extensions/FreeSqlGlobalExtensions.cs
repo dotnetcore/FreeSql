@@ -1112,6 +1112,7 @@ SELECT ");
         public InsertOrUpdateDictImpl WherePrimary(params string[] primarys)
         {
             UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, primarys);
+            _insertOrUpdateProvider._tempPrimarys = _insertOrUpdateProvider._table.Primarys;
             return this;
         }
 
