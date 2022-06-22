@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using SaleIDO.Entity.Storeage;
 using System;
@@ -371,6 +371,31 @@ WHEN NOT MATCHED THEN
             var lst = fsql.Select<tbiou03>().Where(a => a.id1 == 1 && a.id2 == "01" || a.id1 == 2 && a.id2 == "02" || a.id1 == 3 && a.id2 == "03" || a.id1 == 4 && a.id2 == "04").ToList();
             Assert.Equal(4, lst.Where(a => a.name == "00" + a.id1).Count());
         }
+
+        [Fact]
+        public void InsertOrUpdate_OnColumns()
+        {
+            var iou = fsql.InsertOrUpdate<tbiou03>()
+                .SetSource(new[] { new tbiou03 { id1 = 1, id2 = "01", name = "001" }, new tbiou03 { id1 = 2, id2 = "02", name = "002" }, new tbiou03 { id1 = 3, id2 = "03", name = "003" }, new tbiou03 { id1 = 4, id2 = "04", name = "004" } })
+                .OnColumns("name");
+            var sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO [tbiou03] t1 
+USING (SELECT 1 as [id1], N'01' as [id2], N'001' as [name] 
+UNION ALL
+ SELECT 2, N'02', N'002' 
+UNION ALL
+ SELECT 3, N'03', N'003' 
+UNION ALL
+ SELECT 4, N'04', N'004' ) t2 ON (t1.[name] = t2.[name]) 
+WHEN MATCHED THEN 
+  update set [name] = t2.[name] 
+WHEN NOT MATCHED THEN 
+  insert ([id1], [id2], [name]) 
+  values (t2.[id1], t2.[id2], t2.[name]);", sql);
+            Assert.Equal(4, iou.ExecuteAffrows());
+
+        }
+
         class tbiou03
         {
             [Column(IsPrimary = true)]
