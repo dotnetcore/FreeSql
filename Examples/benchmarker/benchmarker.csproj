@@ -7,10 +7,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-		<PackageReference Include="Dapper" Version="2.0.78" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.0" />
-		<PackageReference Include="SqlSugarCore" Version="5.0.2.9" />
+		<PackageReference Include="Dapper" Version="2.0.123" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.17" />
+		<PackageReference Include="SqlSugarCore" Version="5.0.9.1" />
 	</ItemGroup>
 
 	<ItemGroup>

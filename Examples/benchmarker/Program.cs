@@ -17,7 +17,10 @@ namespace FreeSql.Bechmarker
         public static void Main(string[] args)
         {
             //var summaryInsert = BenchmarkRunner.Run<OrmVsInsert>();
-            var summarySelect = BenchmarkRunner.Run<OrmVsSelect>();
+            var summarySelect = BenchmarkRunner.Run<OrmVsSelect>(new BenchmarkDotNet.Configs.DebugBuildConfig
+            {
+                
+            });
             //var summaryUpdate = BenchmarkRunner.Run<OrmVsUpdate>();
 
             Console.ReadKey();
@@ -29,7 +32,7 @@ namespace FreeSql.Bechmarker
     {
         public static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.SqlServer,
-                    "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20",
+                    "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=103;TrustServerCertificate=true;Encrypt=False",
                     typeof(FreeSql.SqlServer.SqlServerProvider<>))
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
                 .UseAutoSyncStructure(false)
@@ -41,7 +44,7 @@ namespace FreeSql.Bechmarker
         {
             get => new SqlSugarClient(new ConnectionConfig()
             {
-                ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=102;TrustServerCertificate=true;Encrypt=False",
                 DbType = DbType.SqlServer,
                 //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
                 //DbType = DbType.MySql,
@@ -55,7 +58,7 @@ namespace FreeSql.Bechmarker
         public DbSet<Song> Songs { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+            optionsBuilder.UseSqlServer("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=101;TrustServerCertificate=true;Encrypt=False");
             //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
         }
     }
@@ -120,7 +123,7 @@ namespace FreeSql.Bechmarker
         [Benchmark]
         public int DapperInsert()
         {
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=31"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=100;TrustServerCertificate=true;Encrypt=False"))
             {
                 foreach (var song in songs)
                 {
@@ -166,7 +169,7 @@ values('{song.Create_time.Value.ToString("yyyy-MM-dd HH:mm:ss")}',{(song.Is_dele
         [Benchmark]
         public int DapperUpdate()
         {
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=31"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=100;TrustServerCertificate=true;Encrypt=False"))
             {
                 foreach (var song in songs)
                 {
@@ -198,7 +201,7 @@ where id = {song.Id}");
             {
                 db.Songs.Take(1).AsNoTracking().ToList();
             }
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=31"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=100;TrustServerCertificate=true;Encrypt=False"))
             {
                 Dapper.SqlMapper.Query<Song>(conn, $"select top {1} Id,Create_time,Is_deleted,Title,Url from dapper_song").ToList();
             }
@@ -235,7 +238,7 @@ where id = {song.Id}");
                 db.Songs.AddRange(songs);
                 db.SaveChanges();
             }
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=31"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=100;TrustServerCertificate=true;Encrypt=False"))
             {
                 foreach (var song in songs)
                 {
@@ -263,7 +266,7 @@ values('{song.Create_time.Value.ToString("yyyy-MM-dd HH:mm:ss")}',{(song.Is_dele
         [Benchmark]
         public List<Song> DapperSelete()
         {
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=31"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=100;TrustServerCertificate=true;Encrypt=False"))
             {
                 return Dapper.SqlMapper.Query<Song>(conn, $"select top {size} Id,Create_time,Is_deleted,Title,Url from dapper_song").ToList();
             }
