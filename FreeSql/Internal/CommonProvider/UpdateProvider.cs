@@ -21,6 +21,8 @@ namespace FreeSql.Internal.CommonProvider
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
         public ColumnInfo[] _tempPrimarys;
+        public ColumnInfo _versionColumn;
+        public bool _ignoreVersion = false;
         public Func<string, string> _tableRule;
         public StringBuilder _where = new StringBuilder();
         public List<GlobalFilter.Item> _whereGlobalFilter;
@@ -51,6 +53,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             _tempPrimarys = _table?.Primarys ?? new ColumnInfo[0];
+            _versionColumn = _table?.VersionColumn;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
@@ -86,7 +89,8 @@ namespace FreeSql.Internal.CommonProvider
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
             _batchProgress = null;
             _interceptSql = null;
-            _updateVersionValue = null;
+            _versionColumn = _table?.VersionColumn;
+            _ignoreVersion = false;
         }
 
         public IUpdate<T1> WithTransaction(DbTransaction transaction)
@@ -129,16 +133,16 @@ namespace FreeSql.Internal.CommonProvider
 
         protected void ValidateVersionAndThrow(int affrows, string sql, DbParameter[] dbParms)
         {
-            if (_table.VersionColumn != null && _source.Count > 0)
+            if (_versionColumn != null && _source.Count > 0)
             {
                 if (affrows != _source.Count)
                     throw new DbUpdateVersionException(CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(_source.Count, affrows), _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
                 {
-                    if (_table.VersionColumn.Attribute.MapType == typeof(byte[]))
-                        _orm.SetEntityValueWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, _updateVersionValue);
+                    if (_versionColumn.Attribute.MapType == typeof(byte[]))
+                        _orm.SetEntityValueWithPropertyName(_table.Type, d, _versionColumn.CsName, _updateVersionValue);
                     else
-                        _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, 1);
+                        _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _versionColumn.CsName, 1);
                 }
             }
         }
@@ -484,7 +488,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public IUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
-        public IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
+        public IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null, bool ignoreVersion = false)
         {
             if (source == null || source.Any() == false) return this;
             GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
@@ -496,6 +500,8 @@ namespace FreeSql.Internal.CommonProvider
                 var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
                 _tempPrimarys = cols.Keys.Select(a => _table.Columns.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
             }
+            _ignoreVersion = ignoreVersion;
+            _versionColumn = _ignoreVersion ? null : _table?.VersionColumn;
             return this;
         }
         public IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore)
@@ -768,6 +774,7 @@ namespace FreeSql.Internal.CommonProvider
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IUpdate"));
             _tempPrimarys = _table.Primarys;
+            _versionColumn = _ignoreVersion ? null : _table.VersionColumn;
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IgnoreCanUpdate();
             return this;
@@ -988,13 +995,13 @@ namespace FreeSql.Internal.CommonProvider
                         sb.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(col.DbUpdateValue);
             }
 
-            if (_table.VersionColumn != null)
+            if (_versionColumn != null)
             {
-                var vcname = _commonUtils.QuoteSqlName(_table.VersionColumn.Attribute.Name);
-                if (_table.VersionColumn.Attribute.MapType == typeof(byte[]))
+                var vcname = _commonUtils.QuoteSqlName(_versionColumn.Attribute.Name);
+                if (_versionColumn.Attribute.MapType == typeof(byte[]))
                 {
                     _updateVersionValue = Utils.GuidToBytes(Guid.NewGuid());
-                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _table.VersionColumn, _table.VersionColumn.Attribute.MapType, _updateVersionValue));
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue));
                 }
                 else
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
@@ -1023,9 +1030,9 @@ namespace FreeSql.Internal.CommonProvider
                     sb.Append(" AND ").Append(globalFilterCondi);
             }
 
-            if (_table.VersionColumn != null)
+            if (_versionColumn != null)
             {
-                var versionCondi = WhereCaseSource(_table.VersionColumn.CsName, sqlval => sqlval);
+                var versionCondi = WhereCaseSource(_versionColumn.CsName, sqlval => sqlval);
                 if (string.IsNullOrEmpty(versionCondi) == false)
                     sb.Append(" AND ").Append(versionCondi);
             }

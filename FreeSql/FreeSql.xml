@@ -2878,13 +2878,14 @@
             <param name="source">实体</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IUpdate`1.SetSource(System.Collections.Generic.IEnumerable{`0},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+        <member name="M:FreeSql.IUpdate`1.SetSource(System.Collections.Generic.IEnumerable{`0},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Boolean)">
             <summary>
             更新数据，设置更新的实体集合<para></para>
             注意：实体必须定义主键，并且最终会自动附加条件 where id in (source.Id)
             </summary>
             <param name="source">实体集合</param>
             <param name="tempPrimarys">根据临时主键更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}</param>
+            <param name="validateVersion">是否检查 IsVersion 乐观锁版本号</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.SetSourceIgnore(`0,System.Func{System.Object,System.Boolean})">
