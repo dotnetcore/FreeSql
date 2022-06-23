@@ -2885,7 +2885,7 @@
             </summary>
             <param name="source">实体集合</param>
             <param name="tempPrimarys">根据临时主键更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}</param>
-            <param name="validateVersion">是否检查 IsVersion 乐观锁版本号</param>
+            <param name="ignoreVersion">忽略 IsVersion 乐观锁版本号</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.SetSourceIgnore(`0,System.Func{System.Object,System.Boolean})">
