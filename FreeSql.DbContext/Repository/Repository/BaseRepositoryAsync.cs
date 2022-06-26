@@ -19,7 +19,7 @@ namespace FreeSql
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
             var affrows = await delete.ExecuteAffrowsAsync(cancellationToken);
-            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = EntityType, Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
         public virtual Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)

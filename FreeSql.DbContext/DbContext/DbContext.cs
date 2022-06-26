@@ -263,6 +263,10 @@ namespace FreeSql
                 /// </summary>
                 public object BeforeObject { get; set; }
                 public EntityChangeType Type { get; set; }
+                /// <summary>
+                /// 实体类型
+                /// </summary>
+                public Type EntityType { get; set; }
             }
             /// <summary>
             /// 实体变化记录
