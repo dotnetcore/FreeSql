@@ -90,7 +90,7 @@ namespace FreeSql
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
             var affrows = delete.ExecuteAffrows();
-            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = EntityType, Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
         public virtual int Delete(TEntity entity)

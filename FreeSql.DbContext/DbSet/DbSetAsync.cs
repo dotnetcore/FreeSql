@@ -26,7 +26,7 @@ namespace FreeSql
         {
             if (adds.Any() == false) return 0;
             var affrows = await this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
-            _db._entityChangeReport.AddRange(adds.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Insert }));
+            _db._entityChangeReport.AddRange(adds.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a.Value, Type = DbContext.EntityChangeType.Insert }));
             return affrows;
         }
 
@@ -53,7 +53,7 @@ namespace FreeSql
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync(cancellationToken);
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
-                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
@@ -62,7 +62,7 @@ namespace FreeSql
                         {
                             await DbContextFlushCommandAsync(cancellationToken);
                             var newval = (await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken)).First();
-                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = newval, Type = DbContext.EntityChangeType.Insert });
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
@@ -77,7 +77,7 @@ namespace FreeSql
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync(cancellationToken);
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
-                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
@@ -115,7 +115,7 @@ namespace FreeSql
                         await DbContextFlushCommandAsync(cancellationToken);
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken);
                         if (rets.Count != data.Count()) throw new Exception(DbContextStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
-                        _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a, Type = DbContext.EntityChangeType.Insert }));
+                        _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a, Type = DbContext.EntityChangeType.Insert }));
                         var idx = 0;
                         foreach (var s in data)
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
@@ -266,7 +266,7 @@ namespace FreeSql
                             foreach (var midWhere in midWheres) delall.Where(midWhere);
                             var sql = delall.ToSql();
                             await delall.ExecuteAffrowsAsync(cancellationToken);
-                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
                         }
                         else //保存
                         {
@@ -404,10 +404,12 @@ namespace FreeSql
 
                 var update = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig);
                 var affrows = await update.ExecuteAffrowsAsync(cancellationToken);
-                _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo { 
-                    Object = a.Value, 
-                    BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? CreateEntityState(beforeVal.Value).Value : null, 
-                    Type = DbContext.EntityChangeType.Update 
+                _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo
+                {
+                    EntityType = _entityType,
+                    Object = a.Value,
+                    BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? CreateEntityState(beforeVal.Value).Value : null,
+                    Type = DbContext.EntityChangeType.Update
                 }));
 
                 foreach (var newval in data)
@@ -471,7 +473,7 @@ namespace FreeSql
         {
             if (dels.Any() == false) return 0;
             var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
-            _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
+            _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return affrows;
         }
         async public Task<int> RemoveAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
