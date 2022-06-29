@@ -260,6 +260,17 @@ WHERE (a.[Id] = {item.Id})", sql);
             var ret = fsql.Select<Topic>().Where(a => a.Title.Contains(guid)).ToList();
             Assert.NotEmpty(ret);
             Assert.Equal($"Test{guid}Contains01", ret[0].Title);
+
+
+            list.Add(select.Where(a => a.Title.Contains("%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => (a.Title + "aaa").Contains("aaa" + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name + "%")).ToList());
         }
         [Fact]
         public void ToLower()

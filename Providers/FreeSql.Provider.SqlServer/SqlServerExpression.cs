@@ -127,7 +127,7 @@ namespace FreeSql.SqlServer
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = objExp.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
                         tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
                         tsc.isNotSetMapColumnTmp = false;
@@ -320,6 +320,12 @@ namespace FreeSql.SqlServer
                     case "Contains":
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value.Contains("%"))
+                        {
+                            if (exp.Method.Name == "StartsWith") return $"charindex({args0Value}, {left}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"charindex({args0Value}, {left}) = len({args0Value})";
+                            return $"charindex({args0Value}, {left}) > 0";
+                        }
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar(max))+'%')")}";
                         if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar(max)))")}";
                         if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";

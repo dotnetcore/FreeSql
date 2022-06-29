@@ -146,7 +146,7 @@ namespace FreeSql.Odbc.KingbaseES
                                 tsc.SetMapColumnTmp(null);
                                 var args1 = getExp(callExp.Arguments[argIndex]);
                                 var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                                var oldDbParams = objExp.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                                var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
                                 tsc.isNotSetMapColumnTmp = true;
                                 left = objExp == null ? null : getExp(objExp);
                                 tsc.isNotSetMapColumnTmp = false;
@@ -368,6 +368,12 @@ namespace FreeSql.Odbc.KingbaseES
                     case "Contains":
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value.Contains("%"))
+                        {
+                            if (exp.Method.Name == "StartsWith") return $"strpos({args0Value}, {left}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"strpos({args0Value}, {left}) = char_length({args0Value})";
+                            return $"strpos({args0Value}, {left}) > 0";
+                        }
                         var likeOpt = "LIKE";
                         if (exp.Arguments.Count > 1)
                         {

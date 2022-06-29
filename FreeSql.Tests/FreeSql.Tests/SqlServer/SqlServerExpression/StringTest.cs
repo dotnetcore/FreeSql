@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using Microsoft.EntityFrameworkCore.Internal;
 using System;
@@ -71,7 +71,7 @@ namespace FreeSql.Tests.SqlServerExpression
         {
             var fsql = g.sqlserver;
             fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
-            fsql.Insert(new[] { new StringJoin01 { name = "±±¾©" }, new StringJoin01 { name = "ÉÏº£" }, new StringJoin01 { name = "ÉîÛÚ" }, }).ExecuteAffrows();
+            fsql.Insert(new[] { new StringJoin01 { name = "åŒ—äº¬" }, new StringJoin01 { name = "ä¸Šæµ·" }, new StringJoin01 { name = "æ·±åœ³" }, }).ExecuteAffrows();
 
             var val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.name));
             var val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
@@ -133,7 +133,7 @@ namespace FreeSql.Tests.SqlServerExpression
                 {
                     w.Id,
                     w.UserName,
-                    µ±Ç°½ÇÉ« = string.Join(",", repo.Orm
+                    å½“å‰è§’è‰² = string.Join(",", repo.Orm
                         .Select<StringJoin02UserRole, StringJoin02Role>()
                         .LeftJoin((b, c) => b.RoleId == c.Id)
                         .Where((b, c) => b.UserId == w.Id)
@@ -142,18 +142,18 @@ namespace FreeSql.Tests.SqlServerExpression
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);
             Assert.Equal("user01", result[0].UserName);
-            Assert.Equal("role01,role02,role03", result[0].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role02,role03", result[0].å½“å‰è§’è‰²);
 
             Assert.Equal(users[1].Id, result[1].Id);
             Assert.Equal("user02", result[1].UserName);
-            Assert.Equal("role01,role03", result[1].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role03", result[1].å½“å‰è§’è‰²);
 
             result = repo.Select.ToList(w =>
                 new
                 {
                     w.Id,
                     w.UserName,
-                    µ±Ç°½ÇÉ« = string.Join(",", repo.Orm
+                    å½“å‰è§’è‰² = string.Join(",", repo.Orm
                         .Select<StringJoin02UserRole, StringJoin02Role>()
                         .LeftJoin(b => b.t1.RoleId == b.t2.Id)
                         .Where(b => b.t1.UserId == w.Id)
@@ -162,11 +162,11 @@ namespace FreeSql.Tests.SqlServerExpression
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);
             Assert.Equal("user01", result[0].UserName);
-            Assert.Equal("role01,role02,role03", result[0].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role02,role03", result[0].å½“å‰è§’è‰²);
 
             Assert.Equal(users[1].Id, result[1].Id);
             Assert.Equal("user02", result[1].UserName);
-            Assert.Equal("role01,role03", result[1].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role03", result[1].å½“å‰è§’è‰²);
         }
         class StringJoin02User
         {
@@ -223,16 +223,16 @@ namespace FreeSql.Tests.SqlServerExpression
                 {
                     w.Id,
                     w.UserName,
-                    µ±Ç°½ÇÉ« = string.Join(",", w.Roles.AsSelect().ToList(b => b.RoleName))
+                    å½“å‰è§’è‰² = string.Join(",", w.Roles.AsSelect().ToList(b => b.RoleName))
                 });
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);
             Assert.Equal("user01", result[0].UserName);
-            Assert.Equal("role01,role02,role03", result[0].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role02,role03", result[0].å½“å‰è§’è‰²);
 
             Assert.Equal(users[1].Id, result[1].Id);
             Assert.Equal("user02", result[1].UserName);
-            Assert.Equal("role01,role03", result[1].µ±Ç°½ÇÉ«);
+            Assert.Equal("role01,role03", result[1].å½“å‰è§’è‰²);
         }
         class StringJoin03User
         {
@@ -276,7 +276,7 @@ namespace FreeSql.Tests.SqlServerExpression
         [Fact]
         public void Format()
         {
-            var item = g.sqlserver.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.sqlserver.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -299,9 +299,9 @@ WHERE (a.[Id] = {item.Id})", sql);
         [Fact]
         public void Format4()
         {
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.sqlserver.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ä¸ª {} æ—¶ï¼ŒArguments è§£æå‡ºæ¥æ˜¯åˆ†å¼€çš„
+            //4ä¸ª {} æ—¶ï¼ŒArguments[1] åªèƒ½è§£æè¿™ä¸ªå‡ºæ¥ï¼Œç„¶åé‡Œé¢æ˜¯ NewArray []
+            var item = g.sqlserver.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",
@@ -400,6 +400,27 @@ WHERE (a.[Id] = {item.Id})", sql);
             list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar)).ToList());
             list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar + 1)).ToList());
             list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.Type.Name)).ToList());
+
+
+            list.Add(select.Where(a => a.Title.Contains("%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => (a.Title + "aaa").Contains("aaa" + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => a.TitleVarchar.Contains("aaa%")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.TitleVarchar + "%")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.TitleVarchar + 1 + "%")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains("aaa%")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar + "%")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar + 1 + "%")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.Type.Name + "%")).ToList());
         }
         [Fact]
         public void ToLower()

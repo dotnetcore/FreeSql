@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +55,7 @@ namespace FreeSql.Tests.FirebirdExpression
         {
             var fsql = g.firebird;
             fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
-            fsql.Insert(new[] { new StringJoin01 { name = "±±¾©" }, new StringJoin01 { name = "ÉÏº£" }, new StringJoin01 { name = "ÉîÛÚ" }, }).ExecuteAffrows();
+            fsql.Insert(new[] { new StringJoin01 { name = "åŒ—äº¬" }, new StringJoin01 { name = "ä¸Šæµ·" }, new StringJoin01 { name = "æ·±åœ³" }, }).ExecuteAffrows();
 
             var val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.name));
             var val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
@@ -96,7 +96,7 @@ namespace FreeSql.Tests.FirebirdExpression
         [Fact]
         public void Format()
         {
-            var item = g.firebird.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.firebird.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -119,9 +119,9 @@ WHERE (a.""ID"" = {item.Id})", sql);
         [Fact]
         public void Format4()
         {
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.firebird.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ä¸ª {} æ—¶ï¼ŒArguments è§£æå‡ºæ¥æ˜¯åˆ†å¼€çš„
+            //4ä¸ª {} æ—¶ï¼ŒArguments[1] åªèƒ½è§£æè¿™ä¸ªå‡ºæ¥ï¼Œç„¶åé‡Œé¢æ˜¯ NewArray []
+            var item = g.firebird.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",
@@ -279,6 +279,17 @@ WHERE (a.""ID"" = {item.Id})", sql);
             //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8
             //FROM `tb_topic` a, `TestTypeInfo` a__Type
             //WHERE((concat(a.`Title`, 'aaa')) LIKE concat('%', a__Type.`Name`, '%'))
+
+
+            list.Add(select.Where(a => a.Title.Contains("%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => (a.Title + "aaa").Contains("aaa" + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name + "%")).ToList());
         }
         [Fact]
         public void ToLower()
