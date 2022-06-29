@@ -659,9 +659,21 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
         {
             var sqltmp1 = select.Where(a => a.Id == 0 && (a.Title == "x" || a.Title == "y") && a.Clicks == 1).ToSql();
             var sqltmp2 = select.Where(a => a.Id.Equals(true) && (a.Title.Equals("x") || a.Title.Equals("y")) && a.Clicks.Equals(1)).ToSql();
-            var sqltmp3 = select.Where(a => a.Id == 0).Where(a => ((a.Title == "x" && a.Title == "z") || a.Title == "y")).ToSql();
+            Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
+FROM ""TB_TOPIC22"" a 
+WHERE (a.""ID"" = 1 AND ((a.""TITLE"" = 'x') OR (a.""TITLE"" = 'y')) AND a.""CLICKS"" = 1)", sqltmp2);
 
-            var sqltmp4 = select.Where(a => (a.Id - 10) / 2 > 0).ToSql();
+            var sqltmp3Id = true;
+            var sqltmp3Title1 = "x";
+            var sqltmp3Title2 = "y";
+            var sqltmp3Clicks = 1;
+            var sqltmp3 = select.Where(a => a.Id.Equals(sqltmp3Id) && (a.Title.Equals(sqltmp3Title1) || a.Title.Equals(sqltmp3Title2)) && a.Clicks.Equals(sqltmp3Clicks)).ToSql();
+            Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
+FROM ""TB_TOPIC22"" a 
+WHERE (a.""ID"" = 1 AND ((a.""TITLE"" = 'x') OR (a.""TITLE"" = 'y')) AND a.""CLICKS"" = 1)", sqltmp3);
+
+            var sqltmp4 = select.Where(a => a.Id == 0).Where(a => ((a.Title == "x" && a.Title == "z") || a.Title == "y")).ToSql();
+            var sqltmp5 = select.Where(a => (a.Id - 10) / 2 > 0).ToSql();
 
             //����е�������a.Type��a.Type.Parent ���ǵ�������
             var query = select.Where(a => a.Id == 10);
