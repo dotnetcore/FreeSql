@@ -418,6 +418,42 @@ namespace base_entity
             }
 
 
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "123,1234,123444"
+            });
+
+            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
+            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
+
+            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+
+            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
+            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist[1]["title"] = "newtitle";
+            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist.Clear();
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 1
+            });
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2
+            });
+            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+
             var sql1 = fsql.Select<User1, UserGroup>()
                 .RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId")
                 .Where((a, b) => a.IsDeleted == false)
@@ -748,41 +784,7 @@ namespace base_entity
                 
             });
 
-            Dictionary<string, object> dic = new Dictionary<string, object>();
-            dic.Add("id", 1);
-            dic.Add("name", "xxxx");
-            var diclist = new List<Dictionary<string, object>>();
-            diclist.Add(dic);
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 2,
-                ["name"] = "yyyy"
-            });
-
-            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
-            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
-            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
-            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
-
-            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
-            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
-            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
-            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
-
-            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
-            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
-            diclist[1]["title"] = "newtitle";
-            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
-            diclist.Clear();
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 1
-            });
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 2
-            });
-            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            
 
 
             for (var a = 0; a < 10000; a++)

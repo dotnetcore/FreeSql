@@ -1,6 +1,7 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
@@ -178,6 +179,60 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name
             var sql1111111 = select.Where(a => inarray2n.Contains(a.Int)).ToList();
             var sql1122222 = select.Where(a => inarray2n.Contains(a.Int) == false).ToList();
             var sql1133333 = select.Where(a => !inarray2n.Contains(a.Int)).ToList();
+        }
+
+        [Fact]
+        public void ArrayUseGenerateCommandParameterWithLambda()
+        {
+            using (var fsql = new FreeSqlBuilder()
+                .UseConnectionString(DataType.Sqlite, "data source=:memory:")
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(null, (cmd, log) => Trace.WriteLine(log))
+                .Build())
+            {
+                var arr = new[] { 1L, 2L, 3L }.Select(x => x);
+                var ids = arr.Select(x => x);
+                var sql001 = fsql.Select<TableAllType>().Where(x => ids.Contains(x.Id)).ToSql();
+                Assert.Equal(@"SELECT a.""Id"", a.""id2"", a.""Bool"", a.""SByte"", a.""Short"", a.""Int"", a.""Long"", a.""Byte"", a.""UShort"", a.""UInt"", a.""ULong"", a.""Double"", a.""Float"", a.""Decimal"", a.""TimeSpan"", a.""DateTime"", a.""DateTimeOffSet"", a.""Bytes"", a.""String"", a.""Guid"", a.""BoolNullable"", a.""SByteNullable"", a.""ShortNullable"", a.""IntNullable"", a.""testFielLongNullable"", a.""ByteNullable"", a.""UShortNullable"", a.""UIntNullable"", a.""ULongNullable"", a.""DoubleNullable"", a.""FloatNullable"", a.""DecimalNullable"", a.""TimeSpanNullable"", a.""DateTimeNullable"", a.""DateTimeOffSetNullable"", a.""GuidNullable"", a.""Enum1"", a.""Enum1Nullable"", a.""Enum2"", a.""Enum2Nullable"" 
+FROM ""tb_alltype"" a 
+WHERE (((a.""Id"") in (1,2,3)))", sql001);
+
+                IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
+                var testlinq = fsql.Select<TableAllType>().Where(a => testlinqlist.Contains(a.Int)).ToList();
+                var testlinq2list = new string[] { };
+                var testlinq2 = g.sqlite.Delete<TableAllType>().Where(a => testlinq2list.Contains(a.String)).ToSql();
+                Assert.Equal("DELETE FROM \"tb_alltype\" WHERE (((\"String\") in (NULL)))", testlinq2);
+
+                //in not in
+                var sql111 = fsql.Select<TableAllType>().Where(a => new[] { 1, 2, 3 }.Contains(a.Int)).ToList();
+                var sql112 = fsql.Select<TableAllType>().Where(a => new[] { 1, 2, 3 }.Contains(a.Int) == false).ToList();
+                var sql113 = fsql.Select<TableAllType>().Where(a => !new[] { 1, 2, 3 }.Contains(a.Int)).ToList();
+
+                var inarray = new[] { 1, 2, 3 };
+                var sql1111 = fsql.Select<TableAllType>().Where(a => inarray.Contains(a.Int)).ToList();
+                var sql1122 = fsql.Select<TableAllType>().Where(a => inarray.Contains(a.Int) == false).ToList();
+                var sql1133 = fsql.Select<TableAllType>().Where(a => !inarray.Contains(a.Int)).ToList();
+
+                //in not in
+                var sql11111 = fsql.Select<TableAllType>().Where(a => new List<int>() { 1, 2, 3 }.Contains(a.Int)).ToList();
+                var sql11222 = fsql.Select<TableAllType>().Where(a => new List<int>() { 1, 2, 3 }.Contains(a.Int) == false).ToList();
+                var sql11333 = fsql.Select<TableAllType>().Where(a => !new List<int>() { 1, 2, 3 }.Contains(a.Int)).ToList();
+
+                var sql11111a = fsql.Select<TableAllType>().Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.Int)).ToList();
+                var sql11222b = fsql.Select<TableAllType>().Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.Int) == false).ToList();
+                var sql11333c = fsql.Select<TableAllType>().Where(a => !new List<int>(new[] { 1, 2, 3 }).Contains(a.Int)).ToList();
+
+                var inarray2 = new List<int>() { 1, 2, 3 };
+                var sql111111 = fsql.Select<TableAllType>().Where(a => inarray.Contains(a.Int)).ToList();
+                var sql112222 = fsql.Select<TableAllType>().Where(a => inarray.Contains(a.Int) == false).ToList();
+                var sql113333 = fsql.Select<TableAllType>().Where(a => !inarray.Contains(a.Int)).ToList();
+
+                var inarray2n = Enumerable.Range(1, 3333).ToArray();
+                var sql1111111 = fsql.Select<TableAllType>().Where(a => inarray2n.Contains(a.Int)).ToList();
+                var sql1122222 = fsql.Select<TableAllType>().Where(a => inarray2n.Contains(a.Int) == false).ToList();
+                var sql1133333 = fsql.Select<TableAllType>().Where(a => !inarray2n.Contains(a.Int)).ToList();
+            }
         }
 
         [Table(Name = "tb_alltype")]

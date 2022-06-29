@@ -177,12 +177,12 @@ namespace FreeSql.PostgreSQL
                                 tsc.SetMapColumnTmp(null);
                                 var args1 = getExp(callExp.Arguments[argIndex]);
                                 var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                                //var oldDbParams = tsc.SetDbParamsReturnOld(null); #900 UseGenerateCommandParameterWithLambda(true) 子查询 bug
+                                var oldDbParams = objExp.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
                                 tsc.isNotSetMapColumnTmp = true;
                                 left = objExp == null ? null : getExp(objExp);
                                 tsc.isNotSetMapColumnTmp = false;
                                 tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                                //tsc.SetDbParamsReturnOld(oldDbParams);
+                                if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                                 //判断 in 或 array @> array
                                 if (left.StartsWith("array[") || left.EndsWith("]"))
                                     return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
