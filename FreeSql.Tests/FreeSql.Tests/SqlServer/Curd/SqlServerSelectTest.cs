@@ -81,6 +81,25 @@ namespace FreeSql.Tests.SqlServer
         }
 
         [Fact]
+        public void NegateLambda()
+        {
+            var fsql = g.sqlserver;
+
+            var t0 = fsql.Select<Tag>().ToSql(a => new
+            {
+                Id = -a.Id,
+                Ddd2 = -a.Ddd
+            });
+            Assert.Equal(@"SELECT -(a.[Id]) as1, -(a.[Ddd]) as2 
+FROM [Tag] a", t0);
+
+            var t1 = fsql.Select<Tag>().Where(a => -a.Id > -100).ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
+FROM [Tag] a 
+WHERE (-(a.[Id]) > -100)", t1);
+        }
+
+        [Fact]
         public void AsSelect()
         {
             var fsql = g.sqlserver;

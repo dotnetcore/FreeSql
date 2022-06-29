@@ -57,7 +57,7 @@ namespace FreeSql.Internal
                 case ExpressionType.Lambda: return ReadAnonymousField(_tables, _tableRule, field, parent, ref index, (exp as LambdaExpression)?.Body, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked:
-                    parent.DbField = $"-({ExpressionLambdaToSql(exp, getTSC())})";
+                    parent.DbField = $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(GetFieldAsCsName(parent.CsName)));
@@ -787,7 +787,7 @@ namespace FreeSql.Internal
                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)enum)
                     return ExpressionLambdaToSql(expOperand, tsc);
                 case ExpressionType.Negate:
-                case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
+                case ExpressionType.NegateChecked: return $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc)})";
                 case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
