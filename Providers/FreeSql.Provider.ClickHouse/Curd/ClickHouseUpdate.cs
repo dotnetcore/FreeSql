@@ -68,6 +68,7 @@ namespace FreeSql.ClickHouse.Curd
         public override void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
         {
             if (_where.Length == 0 && _source.Any() == false) return;
+            if (_source.Any() == false && _set.Length == 0 && _setIncr.Length == 0) return;
 
             if (_table.AsTableImpl != null && isAsTableSplited == false && _source == _sourceOld && _source.Any())
             {

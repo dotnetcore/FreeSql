@@ -177,6 +177,7 @@ namespace FreeSql.Internal.CommonProvider
                 sb.Append(sql).Append("\r\n\r\n;\r\n\r\n");
             });
             if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
+            if (sb.Length == 0) return null;
             return sb.ToString();
         }
 

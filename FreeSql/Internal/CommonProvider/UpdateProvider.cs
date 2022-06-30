@@ -797,6 +797,7 @@ namespace FreeSql.Internal.CommonProvider
                 sb2.Append(sql).Append("\r\n\r\n;\r\n\r\n");
             });
             if (sb2.Length > 0) sb2.Remove(sb2.Length - 9, 9);
+            if (sb2.Length == 0) return null;
             return sb2.ToString();
         }
 
@@ -866,6 +867,7 @@ namespace FreeSql.Internal.CommonProvider
         public virtual void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
         {
             if (_where.Length == 0 && _source.Any() == false) return;
+            if (_source.Any() == false && _set.Length == 0 && _setIncr.Length == 0) return;
 
             if (_table.AsTableImpl != null && isAsTableSplited == false && _source == _sourceOld && _source.Any())
             {

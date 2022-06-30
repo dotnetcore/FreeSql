@@ -20,7 +20,7 @@ namespace FreeSql.ClickHouse.Curd
 
         public override string ToSql()
         {
-            return base.ToSql().Replace("DELETE FROM ", "ALTER TABLE ").Replace(" WHERE ", " DELETE WHERE ");
+            return base.ToSql()?.Replace("DELETE FROM ", "ALTER TABLE ").Replace(" WHERE ", " DELETE WHERE ");
         }
 
 #if net40
