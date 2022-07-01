@@ -602,6 +602,13 @@ public static partial class FreeSqlGlobalExtensions
         if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
         if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
 
+        var tableRule = select._tableRule;
+        var tbDbName = (tableRule?.Invoke(tb.Type, tb.DbName) ?? tb.DbName);
+        if (select._orm.CodeFirst.IsSyncStructureToLower) tbDbName = tbDbName.ToLower();
+        if (select._orm.CodeFirst.IsSyncStructureToUpper) tbDbName = tbDbName.ToUpper();
+        if (select._orm.CodeFirst.IsAutoSyncStructure)
+            select._orm.CodeFirst.SyncStructure(tb.Type, tbDbName);
+
         switch (select._orm.Ado.DataType)
         {
             case DataType.GBase:
@@ -649,16 +656,16 @@ public static partial class FreeSqlGlobalExtensions
   FROM (
     SELECT @cte_ids as cte_ids, (
       SELECT @cte_ids := group_concat({select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}) 
-      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} 
+      FROM {select._commonUtils.QuoteSqlName(tbDbName)} 
       WHERE find_in_set({select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)}, @cte_ids)
     ) as cte_cids, @cte_level := @cte_idcte_levels + 1 as cte_level
-    FROM {select._commonUtils.QuoteSqlName(tb.DbName)}, (
+    FROM {select._commonUtils.QuoteSqlName(tbDbName)}, (
       SELECT @cte_ids := a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, @cte_idcte_levels := 0 
-      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} a
+      FROM {select._commonUtils.QuoteSqlName(tbDbName)} a
       WHERE 1=1{select._where}
       LIMIT 1) cte_tbb
     WHERE @cte_ids IS NOT NULL
-  ) cte_tbc, {select._commonUtils.QuoteSqlName(tb.DbName)} a
+  ) cte_tbc, {select._commonUtils.QuoteSqlName(tbDbName)} a
   WHERE find_in_set(a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, cte_tbc.cte_ids)";
                         select.WithSql(mysql56Sql).OrderBy("a.cte_level DESC");
                         select._where.Clear();
@@ -666,14 +673,14 @@ public static partial class FreeSqlGlobalExtensions
                     }
                     mysql56Sql = $@"SELECT cte_tbc.cte_level, {select.GetAllFieldExpressionTreeLevel2().Field}
 FROM (
-    SELECT @cte_pid as cte_id, (SELECT @cte_pid := {select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)} FROM {select._commonUtils.QuoteSqlName(tb.DbName)} WHERE {select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)} = cte_id) as cte_pid, @cte_level := @cte_level + 1 as cte_level
-    FROM {select._commonUtils.QuoteSqlName(tb.DbName)}, (
+    SELECT @cte_pid as cte_id, (SELECT @cte_pid := {select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)} FROM {select._commonUtils.QuoteSqlName(tbDbName)} WHERE {select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)} = cte_id) as cte_pid, @cte_level := @cte_level + 1 as cte_level
+    FROM {select._commonUtils.QuoteSqlName(tbDbName)}, (
       SELECT @cte_pid := a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, @cte_level := 0 
-      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} a
+      FROM {select._commonUtils.QuoteSqlName(tbDbName)} a
       WHERE 1=1{select._where}
       LIMIT 1) cte_tbb
 ) cte_tbc
-JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}";
+JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}";
                     select.WithSql(mysql56Sql).OrderBy("a.cte_level");
                     select._where.Clear();
                     return select;
@@ -732,10 +739,12 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
         }
         if (select._orm.CodeFirst.IsAutoSyncStructure)
             (select._orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(tb.Type, cteName); //#476
+
+        select._tableRules.Clear();
         var sql2 = select
             .AsAlias((type, old) => type == tb.Type ? old.Replace("wct2", "wct1") : old)
-            .AsTable((type, old) => type == tb.Type ? cteName : old)
-            .InnerJoin($"{select._commonUtils.QuoteSqlName(tb.DbName)} wct2 ON {sql2InnerJoinOn}")
+            .AsTable((type, old) => type == tb.Type ? cteName : (tableRule?.Invoke(type, old) ?? old))
+            .InnerJoin($"{select._commonUtils.QuoteSqlName(tbDbName)} wct2 ON {sql2InnerJoinOn}")
             .ToSql($"wct1.cte_level + 1 as cte_level, {sql2ctePath}{sql2Field}").Trim();
 
         var newSelect = select._orm.Select<T1>()
