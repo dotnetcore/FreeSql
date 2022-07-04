@@ -326,6 +326,7 @@ namespace FreeSql.Internal
                             break;
                     }
                 }
+                if (colattr.MapType == typeof(string) && colattr.IsVersion == true) colattr.StringLength = 40;
                 if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16;
                 if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
                 {
@@ -395,7 +396,8 @@ namespace FreeSql.Internal
             trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
             if (trytb.VersionColumn != null)
             {
-                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && trytb.VersionColumn.Attribute.MapType != typeof(byte[]))
+                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || 
+                    trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(trytb.VersionColumn.Attribute.MapType))
                     throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
             }
             tbattr?.ParseAsTable(trytb);

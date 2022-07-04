@@ -206,6 +206,14 @@ namespace FreeSql.ClickHouse.Curd
                     _updateVersionValue = Utils.GuidToBytes(Guid.NewGuid());
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _table.VersionColumn, _table.VersionColumn.Attribute.MapType, _updateVersionValue));
                 }
+                else if (_versionColumn.Attribute.MapType == typeof(string))
+                {
+                    _updateVersionValue = Guid.NewGuid().ToString();
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue) :
+                        _commonUtils.QuoteWriteParamterAdapter(_versionColumn.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+                    if (_noneParameter == false)
+                        _commonUtils.AppendParamter(_paramsSource, null, _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue);
+                }
                 else
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
             }

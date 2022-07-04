@@ -13,6 +13,131 @@ namespace FreeSql.Tests.SqlServer
     public class SqlServerCodeFirstTest
     {
         [Fact]
+        public void VersionInt()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<VersionInt01>().Where("1=1").ExecuteAffrows();
+            var item = new VersionInt01 { name = "name01" };
+            fsql.Insert(item).ExecuteAffrows();
+
+            item = fsql.Select<VersionInt01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.Equal(0, item.version);
+
+            item.name = "name02";
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = @p_0, [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}') AND [version] = 0", fsql.Update<VersionInt01>().SetSource(item).ToSql());
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = N'name02', [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}') AND [version] = 0", fsql.Update<VersionInt01>().SetSource(item).NoneParameter().ToSql());
+            Assert.Equal(1, fsql.Update<VersionInt01>().SetSource(item).ExecuteAffrows());
+            item = fsql.Select<VersionInt01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.Equal("name02", item.name);
+            Assert.Equal(1, item.version);
+
+            item.name = "name03";
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = @p_0, [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}') AND [version] = 1", fsql.Update<VersionInt01>().SetSource(item).ToSql());
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = N'name03', [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}') AND [version] = 1", fsql.Update<VersionInt01>().SetSource(item).NoneParameter().ToSql());
+            Assert.Equal(1, fsql.Update<VersionInt01>().SetSource(item).ExecuteAffrows());
+            item = fsql.Select<VersionInt01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.Equal("name03", item.name);
+            Assert.Equal(2, item.version);
+
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = @p_0, [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}')", fsql.Update<VersionInt01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ToSql());
+            Assert.Equal($@"UPDATE [VersionInt01] SET [name] = N'name04', [version] = isnull([version], 0) + 1 
+WHERE ([id] = '{item.id}')", fsql.Update<VersionInt01>().NoneParameter().Set(a => a.name, "name04").Where(a => a.id == item.id).ToSql());
+            Assert.Equal(1, fsql.Update<VersionInt01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ExecuteAffrows());
+            item = fsql.Select<VersionInt01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.Equal("name04", item.name);
+            Assert.Equal(3, item.version);
+        }
+        class VersionInt01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            [Column(IsVersion = true)]
+            public int version { get; set; }
+        }
+
+        [Fact]
+        public void VersionBytes()
+        {
+            bool LocalEqualsVersion(byte[] v1, byte[] v2)
+            {
+                if (v1.Length == v2.Length)
+                {
+                    for (var y = 0; y < v2.Length; y++)
+                        if (v1[y] != v2[y]) return false;
+                    return true;
+                }
+                return false;
+            }
+
+            var fsql = g.sqlserver;
+            fsql.Delete<VersionBytes01>().Where("1=1").ExecuteAffrows();
+            var item = new VersionBytes01 { name = "name01" };
+            fsql.Insert(item).ExecuteAffrows();
+            var itemVersion = item.version;
+            Assert.NotNull(itemVersion);
+
+            item = fsql.Select<VersionBytes01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.True(LocalEqualsVersion(itemVersion, item.version));
+
+            item.name = "name02";
+            var sql = fsql.Update<VersionBytes01>().SetSource(item).ToSql();
+            Assert.Equal(1, fsql.Update<VersionBytes01>().SetSource(item).ExecuteAffrows());
+
+            item.name = "name03";
+            Assert.Equal(1, fsql.Update<VersionBytes01>().SetSource(item).ExecuteAffrows());
+
+            Assert.Equal(1, fsql.Update<VersionBytes01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ExecuteAffrows());
+        }
+        class VersionBytes01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            [Column(IsVersion = true)]
+            public byte[] version { get; set; }
+        }
+
+        [Fact]
+        public void VersionString()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<VersionString01>().Where("1=1").ExecuteAffrows();
+            var item = new VersionString01 { name = "name01" };
+            fsql.Insert(item).ExecuteAffrows();
+            var itemVersion = item.version;
+            Assert.NotNull(itemVersion);
+
+            item = fsql.Select<VersionString01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(item);
+            Assert.Equal(itemVersion, item.version);
+
+            item.name = "name02";
+            var sql = fsql.Update<VersionString01>().SetSource(item).ToSql();
+            Assert.Equal(1, fsql.Update<VersionString01>().SetSource(item).ExecuteAffrows());
+
+            item.name = "name03";
+            Assert.Equal(1, fsql.Update<VersionString01>().SetSource(item).ExecuteAffrows());
+
+            Assert.Equal(1, fsql.Update<VersionString01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ExecuteAffrows());
+        }
+        class VersionString01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            [Column(IsVersion = true)]
+            public string version { get; set; }
+        }
+
+        [Fact]
         public void Test_0String()
         {
             var fsql = g.sqlserver;

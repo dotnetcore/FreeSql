@@ -827,7 +827,7 @@ namespace FreeSql
                 policyName, UnavailableExceptionMessage);
 
         /// <summary>
-        /// 属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable
+        /// 属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable
         /// </summary>
         public static string Properties_AsRowLock_Must_Numeric_Byte(object trytbVersionColumnCsName)
             => string.Format(

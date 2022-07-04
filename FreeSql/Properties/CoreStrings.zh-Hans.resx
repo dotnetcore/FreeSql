@@ -433,7 +433,7 @@
     <value>【{policyName}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableExceptionMessage}</value>
   </data>
   <data name="Properties_AsRowLock_Must_Numeric_Byte" xml:space="preserve">
-    <value>属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable</value>
+    <value>属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable</value>
   </data>
   <data name="Properties_Cannot_Null" xml:space="preserve">
     <value>properties 参数不能为空</value>

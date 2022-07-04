@@ -37,7 +37,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
-        public byte[] _updateVersionValue;
+        public object _updateVersionValue;
     }
 
     public abstract partial class UpdateProvider<T1> : UpdateProvider, IUpdate<T1>
@@ -139,7 +139,9 @@ namespace FreeSql.Internal.CommonProvider
                     throw new DbUpdateVersionException(CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(_source.Count, affrows), _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
                 {
-                    if (_versionColumn.Attribute.MapType == typeof(byte[]))
+                    if (_versionColumn.Attribute.MapType == typeof(byte[])) 
+                        _orm.SetEntityValueWithPropertyName(_table.Type, d, _versionColumn.CsName, _updateVersionValue);
+                    else if (_versionColumn.Attribute.MapType == typeof(string))
                         _orm.SetEntityValueWithPropertyName(_table.Type, d, _versionColumn.CsName, _updateVersionValue);
                     else
                         _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _versionColumn.CsName, 1);
@@ -1003,6 +1005,11 @@ namespace FreeSql.Internal.CommonProvider
                 if (_versionColumn.Attribute.MapType == typeof(byte[]))
                 {
                     _updateVersionValue = Utils.GuidToBytes(Guid.NewGuid());
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue));
+                }
+                else if (_versionColumn.Attribute.MapType == typeof(string))
+                {
+                    _updateVersionValue = Guid.NewGuid().ToString();
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue));
                 }
                 else

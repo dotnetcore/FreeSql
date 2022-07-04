@@ -433,7 +433,7 @@
     <value>FreeSql: The {policyName} status is unavailable and cannot be used until the background checker is restored. {UnavailableExceptionMessage}</value>
   </data>
   <data name="Properties_AsRowLock_Must_Numeric_Byte" xml:space="preserve">
-    <value>FreeSql: The property {trytbVersionColumnCsName} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[], and it cannot be Nullable</value>
+    <value>FreeSql: The property {trytbVersionColumnCsName} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[] or string, and it cannot be Nullable</value>
   </data>
   <data name="Properties_Cannot_Null" xml:space="preserve">
     <value>FreeSql: Properrties parameter cannot be empty</value>

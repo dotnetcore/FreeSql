@@ -734,7 +734,8 @@ namespace FreeSql.Tests
                  .ToList(a => new
                  {
                      a.Key,
-                     sss = a.Sum(a.Value.Item1.OptionsEntity04)
+                     sss = a.Sum(a.Value.Item1.OptionsEntity04),
+                     xxx = SqlExt.DistinctCount(a.Value.Item2.Title)
                  });
 
 

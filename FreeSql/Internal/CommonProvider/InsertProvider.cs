@@ -188,10 +188,22 @@ namespace FreeSql.Internal.CommonProvider
                             col.SetValue(data, val = FreeUtil.NewMongodbId());
                     }
                 }
+                if (col.Attribute.IsVersion)
+                {
+                    if (col.Attribute.MapType == typeof(byte[]))
+                    {
+                        if (val == null || (val is byte[] bytes && bytes.Length == 0))
+                            col.SetValue(data, val = Utils.GuidToBytes(Guid.NewGuid()));
+                    }
+                    else if (col.Attribute.MapType == typeof(string))
+                    {
+                        var verval = col.GetDbValue(data) as string;
+                        if (string.IsNullOrWhiteSpace(verval))
+                            col.SetValue(data, val = Guid.NewGuid().ToString());
+                    }
+                }
                 if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
                     col.SetValue(data, val = "");
-                if (col.Attribute.MapType == typeof(byte[]) && (val == null || (val is byte[] bytes && bytes.Length == 0)) && col.Attribute.IsVersion)
-                    col.SetValue(data, val = Utils.GuidToBytes(Guid.NewGuid()));
             }
         }
 
