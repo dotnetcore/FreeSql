@@ -173,7 +173,7 @@ namespace FreeSql.Internal
                     }
                     else
                     {
-                        if (select != null && findIncludeMany != null && select._includeToList.Any() && exp.Type.IsGenericType &&
+                        if (_tables != null && select != null && findIncludeMany != null && select._includeToList.Any() && exp.Type.IsGenericType &&
                             typeof(IEnumerable).IsAssignableFrom(exp.Type) &&
                             typeof(ICollection<>).MakeGenericType(exp.Type.GetGenericArguments().FirstOrDefault()).IsAssignableFrom(exp.Type))
                         {

@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -181,6 +182,91 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name
             var sql1133333 = select.Where(a => !inarray2n.Contains(a.Int)).ToList();
         }
 
+        [Fact]
+        public void SubSelectUseGenerateCommandParameterWithLambda()
+        {
+            using (var fsql = new FreeSqlBuilder()
+                .UseConnectionString(DataType.Sqlite, "data source=:memory:")
+                .UseConnectionString(DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(null, (cmd, log) => Trace.WriteLine(log))
+                .Build())
+            {
+                var guidval = Guid.NewGuid();
+                var strval = "nameval";
+                var timeval = DateTime.Now;
+                var decval1 = 1.1M;
+                var decval2 = 2.2M;
+
+                var subselect = fsql.Select<ssugcpwl01>();
+                var sql = subselect.ToSql(a => new
+                {
+                    a.id, a.name, a.createTime,
+                    sum1 = fsql.Select<TableAllType>().Where(b => b.Guid == guidval).Sum(b => b.Int),
+                    sum2 = fsql.Select<TableAllType>().Where(b => b.String == strval).Sum(b => b.Long),
+                    sum3 = fsql.Select<TableAllType>().Where(b => b.DateTime == timeval).Sum(b => b.Decimal),
+                    sum4 = fsql.Select<TableAllType>().Where(b => b.Decimal == decval1).Sum(b => b.Decimal),
+                    sum5 = fsql.Select<TableAllType>().Where(b => b.Decimal == decval2).Sum(b => b.Decimal),
+                });
+                var subselect0 = subselect as Select0Provider;
+                Assert.Equal(5, subselect0._params.Count);
+                Assert.Equal("@exp_0", subselect0._params[0].ParameterName);
+                Assert.Equal("@exp_1", subselect0._params[1].ParameterName);
+                Assert.Equal("@exp_2", subselect0._params[2].ParameterName);
+                Assert.Equal("@exp_3", subselect0._params[3].ParameterName);
+                Assert.Equal("@exp_4", subselect0._params[4].ParameterName);
+                Assert.Equal(@"SELECT a.[id] as1, a.[name] as2, a.[createTime] as3, isnull((SELECT sum(b.[Int]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Guid] = @exp_0)), 0) as4, isnull((SELECT sum(b.[Long]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[String] = @exp_1)), 0) as5, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[DateTime] = @exp_2)), 0) as6, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Decimal] = @exp_3)), 0) as7, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Decimal] = @exp_4)), 0) as8 
+FROM [ssugcpwl01] a", sql);
+
+                var groupselect = fsql.Select<ssugcpwl01>().GroupBy(a => a.name);
+                sql = groupselect.ToSql(a => new
+                {
+                    a.Key,
+                    sum1 = fsql.Select<TableAllType>().Where(b => b.Guid == guidval).Sum(b => b.Int),
+                    sum2 = fsql.Select<TableAllType>().Where(b => b.String == strval).Sum(b => b.Long),
+                    sum3 = fsql.Select<TableAllType>().Where(b => b.DateTime == timeval).Sum(b => b.Decimal),
+                    sum4 = fsql.Select<TableAllType>().Where(b => b.Decimal == decval1).Sum(b => b.Decimal),
+                    sum5 = fsql.Select<TableAllType>().Where(b => b.Decimal == decval2).Sum(b => b.Decimal),
+                });
+                var groupselect0 = groupselect as SelectGroupingProvider;
+                Assert.Equal(5, groupselect0._select._params.Count);
+                Assert.Equal("@exp_0", groupselect0._select._params[0].ParameterName);
+                Assert.Equal("@exp_1", groupselect0._select._params[1].ParameterName);
+                Assert.Equal("@exp_2", groupselect0._select._params[2].ParameterName);
+                Assert.Equal("@exp_3", groupselect0._select._params[3].ParameterName);
+                Assert.Equal("@exp_4", groupselect0._select._params[4].ParameterName);
+                Assert.Equal(@"SELECT a.[name] as1, isnull((SELECT sum(b.[Int]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Guid] = @exp_0)), 0) as2, isnull((SELECT sum(b.[Long]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[String] = @exp_1)), 0) as3, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[DateTime] = @exp_2)), 0) as4, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Decimal] = @exp_3)), 0) as5, isnull((SELECT sum(b.[Decimal]) 
+    FROM [tb_alltype] b 
+    WHERE (b.[Decimal] = @exp_4)), 0) as6 
+FROM [ssugcpwl01] a 
+GROUP BY a.[name]", sql);
+            }
+        }
+        class ssugcpwl01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            public DateTime createTime { get; set; }
+        }
         [Fact]
         public void ArrayUseGenerateCommandParameterWithLambda()
         {
