@@ -1,6 +1,7 @@
 ﻿using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -93,7 +94,10 @@ namespace FreeSql.Internal.CommonProvider
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data == null || table == null) return;
-            if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
+            if (typeof(T1) == typeof(object) && new[]
+                {
+                    table.Type, table.TypeLazy
+                }.Contains(data.GetType()) == false)
                 throw new Exception(CoreStrings.DataType_AsType_Inconsistent(data.GetType().DisplayCsharp(), table.Type.DisplayCsharp()));
             if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
@@ -112,11 +116,32 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        public IInsertOrUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
+        public IInsertOrUpdate<T1> SetSource(T1 source) => this.SetSource(new[]
+        {
+            source
+        });
         public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
-            UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
+            if (source is IEnumerable<IDictionary<string, object>> dicType)
+            {
+                var tempDict = new Dictionary<string, object>();
+                foreach (var item in dicType)
+                { 
+                    foreach (string key in item.Keys)
+                    {
+                        if (!tempDict.ContainsKey(key))
+                        {
+                            tempDict[key] = item[key];
+                        }
+                    }
+                }
+                UpdateProvider<IDictionary>.GetDictionaryTableInfo(tempDict, _orm, ref _table);
+            }
+            else
+            {
+                UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
+            }
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
 
@@ -223,7 +248,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        byte _SplitSourceByIdentityValueIsNullFlag = 0; //防止重复计算 SplitSource
+        byte _SplitSourceByIdentityValueIsNullFlag = 0;//防止重复计算 SplitSource
         /// <summary>
         /// 如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
         /// </summary>
@@ -232,15 +257,23 @@ namespace FreeSql.Internal.CommonProvider
         public NativeTuple<List<T1>[], List<T1>[]> SplitSourceByIdentityValueIsNull(List<T1> source)
         {
             if (source.Any() == false) return NativeTuple.Create(new List<T1>[0], new List<T1>[0]);
-            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(new[] { source }, new List<T1>[0]);
-            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>[0], new[] { source });
+            if (_SplitSourceByIdentityValueIsNullFlag == 1)
+                return NativeTuple.Create(new[]
+                {
+                    source
+                }, new List<T1>[0]);
+            if (_SplitSourceByIdentityValueIsNullFlag == 2)
+                return NativeTuple.Create(new List<T1>[0], new[]
+                {
+                    source
+                });
             if (IdentityColumn == null || _tempPrimarys != _table.Primarys) return NativeTuple.Create(LocalSplitSourceByAsTable(source), new List<T1>[0]);
             var item1 = new List<T1>();
             var item2 = new List<T1>();
             foreach (var item in source)
             {
                 if (object.Equals(_orm.GetEntityValueWithPropertyName(_table.Type, item, IdentityColumn.CsName), IdentityColumn.CsType.CreateInstanceGetDefaultValue()))
-                    item2.Add(item); //自增无值的，记录为直接插入
+                    item2.Add(item);//自增无值的，记录为直接插入
                 else
                     item1.Add(item);
             }
@@ -258,7 +291,10 @@ namespace FreeSql.Internal.CommonProvider
                     }).GroupBy(a => a.splitKey, a => a.item).Select(a => a.ToList()).ToArray();
                     return atarr;
                 }
-                return new[] { loc1 };
+                return new[]
+                {
+                    loc1
+                };
             }
         }
 
