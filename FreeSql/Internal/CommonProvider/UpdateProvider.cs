@@ -451,6 +451,20 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
+        public static void GetDictionaryTableInfo(IEnumerable<T1> source, IFreeSql orm, ref TableInfo table)
+        {
+            if (table == null && typeof(T1) == typeof(Dictionary<string, object>) && source is IEnumerable<Dictionary<string, object>> dicType)
+            {
+                var tempDict = new Dictionary<string, object>();
+                foreach (var item in dicType)
+                    foreach (string key in item.Keys)
+                        if (!tempDict.ContainsKey(key) && !(item[key] is null))
+                            tempDict[key] = item[key];
+                UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(tempDict, orm, ref table);
+                return;
+            }
+            GetDictionaryTableInfo(source.FirstOrDefault(), orm, ref table);
+        }
         public static void GetDictionaryTableInfo(T1 source, IFreeSql orm, ref TableInfo table)
         {
             if (table == null && typeof(T1) == typeof(Dictionary<string, object>))
@@ -493,7 +507,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null, bool ignoreVersion = false)
         {
             if (source == null || source.Any() == false) return this;
-            GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
+            GetDictionaryTableInfo(source, _orm, ref _table);
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
 

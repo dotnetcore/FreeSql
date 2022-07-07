@@ -133,7 +133,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
-                UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
+                UpdateProvider<T1>.GetDictionaryTableInfo(source, _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
             }
@@ -144,7 +144,7 @@ namespace FreeSql.Internal.CommonProvider
             if (source != null)
             {
                 source = source.Where(a => a != null).ToList();
-                UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
+                UpdateProvider<T1>.GetDictionaryTableInfo(source, _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
 
