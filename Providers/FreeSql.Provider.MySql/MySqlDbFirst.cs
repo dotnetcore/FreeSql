@@ -278,14 +278,14 @@ a.column_type,
 case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
 case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity',
 a.column_comment 'comment',
-a.column_default 'default_value'
+a.column_default 'default_value',
+a.ordinal_position
 from information_schema.columns a
 where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseIn}) and {loc8}
 ";
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var position = 0;
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
@@ -299,6 +299,8 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                 bool is_identity = string.Concat(row[6]) == "1";
                 string comment = string.Concat(row[7]);
                 string defaultValue = string.Concat(row[8]);
+                var position = int.Parse(string.Concat(row[9]));
+
                 if (max_length == 0) max_length = -1;
                 if (database.Length == 1)
                 {
@@ -316,7 +318,7 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     Table = loc2[table_id],
                     Comment = comment,
                     DefaultValue = defaultValue,
-                    Position = ++position
+                    Position = position
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);
