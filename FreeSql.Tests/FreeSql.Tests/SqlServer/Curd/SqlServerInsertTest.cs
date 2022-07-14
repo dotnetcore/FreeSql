@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using SaleIDO.Entity.Storeage;
 using System;
@@ -79,6 +79,7 @@ namespace FreeSql.Tests.SqlServer
             dicRet = fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteInserted();
             dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
 
+            var sss = fsql.InsertOrUpdateDict(dic).AsTable("table1");
             sql1 = fsql.InsertOrUpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
             sql2 = fsql.InsertOrUpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
 

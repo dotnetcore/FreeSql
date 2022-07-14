@@ -29,21 +29,21 @@ namespace FreeSql.Tests.DataContext.SqlServer
 
         private void ClearDataBase()
         {
-            var dataTables = SqlServer.DbFirst.GetTablesByDatabase();
-            if (dataTables.Any(item => item.Name == "TopicAddField" && item.Schema == "dbo2"))
-            {
-                SqlServer.Ado.ExecuteNonQuery("TRUNCATE TABLE dbo2.TopicAddField ");
-                SqlServer.Ado.ExecuteNonQuery("DROP TABLE dbo2.TopicAddField");
-                SqlServer.Ado.ExecuteNonQuery("DROP SCHEMA dbo2");
-            }
+            //var dataTables = SqlServer.DbFirst.GetTablesByDatabase();
+            //if (dataTables.Any(item => item.Name == "TopicAddField" && item.Schema == "dbo2"))
+            //{
+            //    SqlServer.Ado.ExecuteNonQuery("TRUNCATE TABLE dbo2.TopicAddField ");
+            //    SqlServer.Ado.ExecuteNonQuery("DROP TABLE dbo2.TopicAddField");
+            //    SqlServer.Ado.ExecuteNonQuery("DROP SCHEMA dbo2");
+            //}
 
-            var tempTables = new string[] { "cccccdddwww", "song", "tag", "Song_tag", "tb_alltype", "tb_topic", "tb_topic22",
-                "tb_topic22211", "tb_topic111333", "TestTypeInfo", "TestTypeInfo333", "TestTypeParentInfo",
-                "TestTypeParentInfo23123", "xxdkdkdk1222", "xxx"};
-            foreach (var tempTable in tempTables)
-            {
-                //DeleteTmpTable(dataTables, tempTable);
-            }
+            //var tempTables = new string[] { "cccccdddwww", "song", "tag", "Song_tag", "tb_alltype", "tb_topic", "tb_topic22",
+            //    "tb_topic22211", "tb_topic111333", "TestTypeInfo", "TestTypeInfo333", "TestTypeParentInfo",
+            //    "TestTypeParentInfo23123", "xxdkdkdk1222", "xxx"};
+            //foreach (var tempTable in tempTables)
+            //{
+            //    //DeleteTmpTable(dataTables, tempTable);
+            //}
         }
 
         private void DeleteTmpTable(List<DatabaseModel.DbTableInfo> dbTables, string deleteTableName, string schemaName = "dbo")

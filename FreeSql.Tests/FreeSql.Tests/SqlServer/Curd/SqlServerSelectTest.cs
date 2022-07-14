@@ -1,9 +1,13 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.SqlServer;
 using FreeSql.Tests.DataContext.SqlServer;
 using NetTaste;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer
@@ -967,8 +971,61 @@ ORDER BY newid()", t1);
         [Fact]
         public void Skip_Offset()
         {
-            var sql = select.Offset(10).Limit(10).ToList();
+            var list = select.Offset(10).Limit(10).ToList();
+
+            var sqlSkip = select.Skip(10).ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a 
+ORDER BY a.[Id] 
+OFFSET 10 ROW", sqlSkip);
+            list = select.Skip(10).ToList();
+
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+                var commUtils = (fsql.Select<object>() as Select0Provider)._commonUtils as SqlServerUtils;
+                commUtils.ServerVersion = 9;
+                sqlSkip = fsql.Select<Topic>().Skip(10).ToSql();
+                Assert.Equal(@"WITH t AS ( SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime], ROW_NUMBER() OVER(ORDER BY a.[Id]) AS __rownum__ 
+FROM [tb_topic22] a ) SELECT t.* FROM t where __rownum__ > 10", sqlSkip);
+                list = fsql.Select<Topic>().Skip(10).ToList();
+
+                sqlSkip = fsql.Select<Topic>().Limit(10).ToSql();
+                Assert.Equal(@"SELECT TOP 10 a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a 
+ORDER BY a.[Id]", sqlSkip);
+                list = fsql.Select<Topic>().Limit(10).ToList();
+
+                sqlSkip = fsql.Select<Topic>().Skip(10).Limit(10).ToSql();
+                Assert.Equal(@"WITH t AS ( SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime], ROW_NUMBER() OVER(ORDER BY a.[Id]) AS __rownum__ 
+FROM [tb_topic22] a ) SELECT t.* FROM t where __rownum__ between 11 and 20", sqlSkip);
+                list = fsql.Select<Topic>().Skip(10).Limit(10).ToList();
+
+
+                sqlSkip = fsql.Select<Topic>().Skip(10).OrderBy(a => a.Title).ToSql();
+                Assert.Equal(@"WITH t AS ( SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime], ROW_NUMBER() OVER(ORDER BY a.[Title]) AS __rownum__ 
+FROM [tb_topic22] a ) SELECT t.* FROM t where __rownum__ > 10", sqlSkip);
+                list = fsql.Select<Topic>().Skip(10).OrderBy(a => a.Title).ToList();
+
+                sqlSkip = fsql.Select<Topic>().Limit(10).OrderBy(a => a.Title).ToSql();
+                Assert.Equal(@"SELECT TOP 10 a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a 
+ORDER BY a.[Title]", sqlSkip);
+                list = fsql.Select<Topic>().Limit(10).OrderBy(a => a.Title).ToList();
+
+                sqlSkip = fsql.Select<Topic>().Skip(10).Limit(10).OrderBy(a => a.Title).ToSql();
+                Assert.Equal(@"WITH t AS ( SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime], ROW_NUMBER() OVER(ORDER BY a.[Title]) AS __rownum__ 
+FROM [tb_topic22] a ) SELECT t.* FROM t where __rownum__ between 11 and 20", sqlSkip);
+                list = fsql.Select<Topic>().Skip(10).Limit(10).OrderBy(a => a.Title).ToList();
+            }
         }
+
         [Fact]
         public void Take_Limit()
         {

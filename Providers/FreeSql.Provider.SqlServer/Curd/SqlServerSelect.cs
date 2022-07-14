@@ -42,7 +42,7 @@ namespace FreeSql.SqlServer.Curd
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
                 sb.Append(field);
 
-                if (_limit > 0)
+                if (_limit > 0 || _skip > 0)
                 {
                     if (string.IsNullOrEmpty(_orderby))
                     {
@@ -56,7 +56,7 @@ namespace FreeSql.SqlServer.Curd
                             _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
                     if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
-                        sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
+                        sb.Append(", ROW_NUMBER() OVER(").Append(_orderby.Trim('\r', '\n', ' ')).Append(") AS __rownum__");
                 }
                 sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
@@ -133,7 +133,13 @@ namespace FreeSql.SqlServer.Curd
                 if (_skip <= 0)
                     sb.Append(_orderby);
                 else
-                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
+                {
+                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__");
+                    if (_limit > 0)
+                        sb.Append(" between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
+                    else
+                        sb.Append(" > ").Append(_skip);
+                }
 
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");

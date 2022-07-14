@@ -16,6 +16,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -301,7 +302,7 @@ namespace base_entity
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
-                .UseGenerateCommandParameterWithLambda(true)
+               
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
@@ -311,7 +312,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
 
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
@@ -339,10 +340,16 @@ namespace base_entity
 
                 .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText + "\r\n"))
                 .UseLazyLoading(true)
-                .UseGenerateCommandParameterWithLambda(true)
+                //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            Dictionary<string, object> dic22 = new Dictionary<string, object>();
+            dic22.Add("id", 1);
+            dic22.Add("name", "xxxx");
+            dic22.Add("bytes", Encoding.UTF8.GetBytes("我是中国人"));
+            var sqlBytes = fsql.InsertDict(dic22).AsTable("table1").ToSql();
 
             var sqlToYear = fsql.Select<User1>().ToSql(a => a.CreateTime.Year);
 
