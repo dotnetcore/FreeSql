@@ -14,6 +14,7 @@ namespace FreeSql.Extensions.EntityUtil
 
         static readonly MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
         static readonly MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
+        static readonly MethodInfo MethodDecimalToString = typeof(decimal).GetMethod("ToString", new[] { typeof(string) });
         static readonly PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
         static readonly MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
         static readonly MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
@@ -59,11 +60,11 @@ namespace FreeSql.Extensions.EntityUtil
                         if (pks[a].CsType == typeof(Guid?)) newguid = Expression.Convert(newguid, typeof(Guid?));
                         expthen = Expression.Block(
                             new Expression[]{
-                            Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), newguid),
-                            a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                            Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                            )
+                                Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), newguid),
+                                a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+                                Expression.Call(var2Sb, MethodStringBuilderAppend,
+                                    Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+                                )
                             }.Where(c => c != null).ToArray()
                         );
                     }
@@ -82,6 +83,34 @@ namespace FreeSql.Extensions.EntityUtil
                     {
                         expthen = Expression.Assign(var3IsNull, Expression.Constant(true));
                     }
+                    Expression propExp = Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]);
+                    var blockExps = new List<Expression>();
+                    if (a > 0) blockExps.Add(Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)));
+                    if (pks[a].CsType == typeof(decimal))
+                    {
+                        blockExps.Add(
+                            Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(
+                                Expression.Call(propExp, MethodDecimalToString, Expression.Constant("g0", typeof(string)))
+                            , typeof(object)))
+                        );
+                    }
+                    else if (pks[a].CsType == typeof(decimal?))
+                    {
+                        blockExps.Add(
+                            Expression.IfThen(
+                                Expression.NotEqual(propExp, Expression.Default(pks[a].CsType)),
+                                Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(
+                                    Expression.Call(Expression.Convert(propExp, typeof(decimal)), MethodDecimalToString, Expression.Constant("g0", typeof(string)))
+                                , typeof(object)))
+                            )
+                        );
+                    }
+                    else
+                    {
+                        blockExps.Add(
+                            Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(propExp, typeof(object)))
+                        );
+                    }
                     if (pks[a].Attribute.IsIdentity || isguid || pks[a].CsType == typeof(string) || pks[a].CsType.IsNullableType())
                     {
                         exps.Add(
@@ -93,14 +122,7 @@ namespace FreeSql.Extensions.EntityUtil
                                         Expression.IsTrue(parm2),
                                         expthen
                                     ),
-                                    Expression.Block(
-                                        new Expression[]{
-                                            a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                            Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                                Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                            )
-                                        }.Where(c => c != null).ToArray()
-                                    )
+                                    Expression.Block(blockExps.ToArray())
                                 )
                             )
                         );
@@ -110,14 +132,7 @@ namespace FreeSql.Extensions.EntityUtil
                         exps.Add(
                             Expression.IfThen(
                                 Expression.IsFalse(var3IsNull),
-                                Expression.Block(
-                                    new Expression[]{
-                                        a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                        Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                        )
-                                    }.Where(c => c != null).ToArray()
-                                )
+                                Expression.Block(blockExps.ToArray())
                             )
                         );
                     }
