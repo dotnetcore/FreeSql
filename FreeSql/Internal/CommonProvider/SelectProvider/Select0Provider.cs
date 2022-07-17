@@ -832,8 +832,8 @@ namespace FreeSql.Internal.CommonProvider
                             var fiValue0MethodReturn = fiValue0Method?.Invoke(null, fiValue0Method.GetParameters()
                                     .Select(a => a.ParameterType == typeof(object) ? (object)this : 
                                         (a.ParameterType == typeof(string) ? (object)(fi.Value?.ToString()) : (object)null))
-                                    .ToArray())?.ToString();
-                            exp = Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn, typeof(string)));
+                                    .ToArray());
+                            exp = fiValue0MethodReturn is Expression expression ? expression : Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn?.ToString(), typeof(string)));
                             break;
 
                         case DynamicFilterOperator.Contains:
