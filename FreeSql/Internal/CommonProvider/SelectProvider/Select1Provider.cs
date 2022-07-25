@@ -141,11 +141,12 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     sql2 = select2sp._tableRule(select2sp._tables[0].Table.Type, null);
                     if (sql2.StartsWith("(") && sql2.EndsWith(")")) sql2 = sql2.Substring(1, sql2.Length - 2);
+                    if (sql2.StartsWith(" \r\n")) sql2 = sql2.Substring(3);
                 }
                 if (string.IsNullOrWhiteSpace(sql2))
                     sql2 = select2?.ToSql("*");
             }
-            return ret.WithSql(null, sql2);
+            return ret.WithSql(null, $" \r\n{sql2}");
         }
 
         public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns)

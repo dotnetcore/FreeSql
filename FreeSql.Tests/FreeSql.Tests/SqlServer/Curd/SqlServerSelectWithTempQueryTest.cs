@@ -174,6 +174,57 @@ WHERE (a.[rownum] = 1)";
             Assert.Equal(list04[1].Id, 4);
             Assert.Equal(list04[2].rownum, 1);
             Assert.Equal(list04[2].Id, 5);
+
+
+            var sql05 = fsql.Select<TwoTablePartitionBy_User>()
+                 .Where(a => a.Id > 0)
+                 .WithTempQuery(a => new
+                 {
+                     a.Id,
+                     a.Nickname
+                 })
+                 .GroupBy(a => new { a.Nickname })
+                 .WithTempQuery(a => new
+                 {
+                     a.Key,
+                     sum1 = a.Sum(a.Value.Id),
+                     cou1 = a.Count()
+                 })
+                 .ToSql();
+            var assertSql05 = @"SELECT * 
+FROM ( 
+    SELECT a.[Nickname], sum(a.[Id]) [sum1], count(1) [cou1] 
+    FROM ( 
+        SELECT a.[Id], a.[Nickname] 
+        FROM [TwoTablePartitionBy_User] a 
+        WHERE (a.[Id] > 0) ) a 
+    GROUP BY a.[Nickname] ) a";
+            Assert.Equal(assertSql05, sql05);
+            var list05 = fsql.Select<TwoTablePartitionBy_User>()
+                 .Where(a => a.Id > 0)
+                 .WithTempQuery(a => new
+                 {
+                     a.Id,
+                     a.Nickname
+                 })
+                 .GroupBy(a => new { a.Nickname })
+                 .WithTempQuery(a => new
+                 {
+                     a.Key,
+                     sum1 = a.Sum(a.Value.Id),
+                     cou1 = a.Count()
+                 })
+                 .ToList();
+            Assert.Equal(3, list05.Count);
+            Assert.Equal("name01", list05[0].Key.Nickname);
+            Assert.Equal(6, list05[0].sum1);
+            Assert.Equal(3, list05[0].cou1);
+            Assert.Equal("name02", list05[1].Key.Nickname);
+            Assert.Equal(4, list05[1].sum1);
+            Assert.Equal(1, list05[1].cou1);
+            Assert.Equal("name03", list05[2].Key.Nickname);
+            Assert.Equal(11, list05[2].sum1);
+            Assert.Equal(2, list05[2].cou1);
         }
         class SingleTablePartitionBy_User
         {
@@ -527,7 +578,8 @@ FROM (
         SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
         FROM [TwoTablePartitionBy_User] a ) a 
     WHERE (a.[rownum] = 1) ) a 
-INNER JOIN (SELECT a.[UserId], a.[Remark] 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
     FROM [TwoTablePartitionBy_UserExt] a) b ON a.[Id] = b.[UserId] 
 WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
             Assert.Equal(sql07, assertSql07);
@@ -567,7 +619,8 @@ WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
-INNER JOIN (SELECT a.[UserId], a.[Remark] 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
     FROM [TwoTablePartitionBy_UserExt] a 
     WHERE (a.[UserId] > 0)) b ON a.[Id] = b.[UserId] 
 WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
@@ -599,7 +652,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                     rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
                 })
                 .Where(a => a.rownum == 1)
-                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => new { b.UserId, b.Remark }).WithTempQuery(b => b.Key))
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).WithTempQuery(b => new { b.UserId, b.Remark }))
                 .InnerJoin((a, b) => a.user.Id == b.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
@@ -607,10 +660,10 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
-INNER JOIN ( SELECT a.[UserId], a.[Remark] 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
     FROM [TwoTablePartitionBy_UserExt] a 
-    WHERE (a.[UserId] > 0) 
-    GROUP BY a.[UserId], a.[Remark] ) b ON a.[Id] = b.[UserId] 
+    WHERE (a.[UserId] > 0) ) b ON a.[Id] = b.[UserId] 
 WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
             Assert.Equal(sql09, assertSql09);
             var list09 = fsql.Select<TwoTablePartitionBy_User>()
@@ -620,7 +673,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                     rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
                 })
                 .Where(a => a.rownum == 1)
-                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => new { b.UserId, b.Remark }).WithTempQuery(b => b.Key))
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).WithTempQuery(b => new { b.UserId, b.Remark }))
                 .InnerJoin((a, b) => a.user.Id == b.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToList<TwoTablePartitionBy_UserDto>();
@@ -631,6 +684,48 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
             Assert.Equal(list09[1].rownum, 1);
             Assert.Equal(list09[1].Id, 0);
             Assert.Equal(list09[1].remark, "remark05");
+
+
+            var sql091 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    user = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => new { b.UserId, b.Remark }).WithTempQuery(b => b.Key))
+                .InnerJoin((a, b) => a.user.Id == b.UserId)
+                .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
+                .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
+            var assertSql091 = @"SELECT a.[rownum] as1, b.[Remark] as2 
+FROM ( 
+    SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+    FROM [TwoTablePartitionBy_User] a ) a 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0) 
+    GROUP BY a.[UserId], a.[Remark] ) b ON a.[Id] = b.[UserId] 
+WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
+            Assert.Equal(sql091, assertSql091);
+            var list091 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    user = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => new { b.UserId, b.Remark }).WithTempQuery(b => b.Key))
+                .InnerJoin((a, b) => a.user.Id == b.UserId)
+                .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
+                .ToList<TwoTablePartitionBy_UserDto>();
+            Assert.Equal(list091.Count, 2);
+            Assert.Equal(list091[0].rownum, 1);
+            Assert.Equal(list091[0].Id, 0);
+            Assert.Equal(list091[0].remark, "remark04");
+            Assert.Equal(list091[1].rownum, 1);
+            Assert.Equal(list091[1].Id, 0);
+            Assert.Equal(list091[1].remark, "remark05");
 
 
             var sql10 = fsql.Select<TwoTablePartitionBy_User>()
@@ -648,7 +743,8 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
-INNER JOIN ( SELECT a.[UserId], a.[Remark], sum(a.[UserId]) [rownum] 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark], sum(a.[UserId]) [rownum] 
     FROM [TwoTablePartitionBy_UserExt] a 
     WHERE (a.[UserId] > 0) 
     GROUP BY a.[UserId], a.[Remark] ) b ON a.[Id] = b.[UserId] 
@@ -689,7 +785,8 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
-INNER JOIN ( SELECT a.[UserId] [uid], sum(a.[UserId]) [rownum] 
+INNER JOIN ( 
+    SELECT a.[UserId] [uid], sum(a.[UserId]) [rownum] 
     FROM [TwoTablePartitionBy_UserExt] a 
     WHERE (a.[UserId] > 0) 
     GROUP BY a.[UserId] ) b ON a.[Id] = b.[uid] 

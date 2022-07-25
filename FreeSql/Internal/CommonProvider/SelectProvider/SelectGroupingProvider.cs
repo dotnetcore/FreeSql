@@ -38,7 +38,8 @@ namespace FreeSql.Internal.CommonProvider
                 ParseExpMapResult = _map;
                 return _map.DbField;
             }
-            var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
+            var firstMember = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression);
+            var parentName = firstMember?.Member.Name;
             switch (parentName)
             {
                 case "Key":
@@ -51,29 +52,57 @@ namespace FreeSql.Internal.CommonProvider
                     ParseExpMapResult = read;
                     return read.DbField;
                 case "Value":
-                    var tb = _tables.First();
+                    var curtables = _tables;
+                    SelectTableInfo curtable = null;
                     var foridx = 0;
-                    if (members.Length > 1)
+                    if (_select._diymemexpWithTempQuery != null && _select._diymemexpWithTempQuery is Select0Provider.WithTempQueryParser tempQueryParser)
                     {
-                        var mem0 = (members.FirstOrDefault() as MemberExpression);
-                        var mem0Name = mem0?.Member.Name;
-                        if (mem0Name?.StartsWith("Item") == true && int.TryParse(mem0Name.Substring(4), out var tryitemidx))
+                        if (_select._tables.Count == 1)
+                            curtable = _select._tables[0];
+                        else
                         {
-                            if (tryitemidx == 1) foridx++;
-                            else
+                            curtables = _select._tables;
+                            LocalValueInitData();
+                        }
+                        if (tempQueryParser._outsideTable.Contains(curtable))
+                        {
+                            for (var a = 0; a < members.Length; a++)
+                                members[a] = new CommonExpression.ReplaceVisitor().Modify(members[a], firstMember, curtable.Parameter);
+                            var ret = _select._diymemexpWithTempQuery.ParseExp(members);
+                            ParseExpMapResult = _select._diymemexpWithTempQuery.ParseExpMapResult;
+                            return ret;
+                        }
+                    }
+                    else
+                    {
+                        LocalValueInitData();
+                    }
+
+                    void LocalValueInitData()
+                    {
+                        curtable = curtables.First();
+                        if (members.Length > 1)
+                        {
+                            var mem0 = (members.FirstOrDefault() as MemberExpression);
+                            var mem0Name = mem0?.Member.Name;
+                            if (mem0Name?.StartsWith("Item") == true && int.TryParse(mem0Name.Substring(4), out var tryitemidx))
                             {
-                                //var alias = $"SP10{(char)(96 + tryitemidx)}";
-                                var tmptb = _tables.Where((a, idx) => //a.AliasInit == alias && 
-                                    a.Table.Type == mem0.Type && idx == tryitemidx - 1).FirstOrDefault();
-                                if (tmptb != null)
+                                if (tryitemidx == 1) foridx++;
+                                else
                                 {
-                                    tb = tmptb;
-                                    foridx++;
+                                    //var alias = $"SP10{(char)(96 + tryitemidx)}";
+                                    var tmptb = curtables.Where((a, idx) => //a.AliasInit == alias && 
+                                        a.Table.Type == mem0.Type && idx == tryitemidx - 1).FirstOrDefault();
+                                    if (tmptb != null)
+                                    {
+                                        curtable = tmptb;
+                                        foridx++;
+                                    }
                                 }
                             }
                         }
                     }
-                    var parmExp = Expression.Parameter(tb.Table.Type, tb.Alias);
+                    var parmExp = Expression.Parameter(curtable.Table.Type, curtable.Alias);
                     Expression retExp = parmExp;
                     for (var a = foridx; a < members.Length; a++)
                     {
@@ -205,7 +234,7 @@ namespace FreeSql.Internal.CommonProvider
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
             var parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
-            var sql = this.ToSql(parser._insideSelectList[0].InsideField);
+            var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
             return ret;

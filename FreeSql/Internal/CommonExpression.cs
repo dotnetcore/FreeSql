@@ -51,14 +51,14 @@ namespace FreeSql.Internal
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select, 
             BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<string> findIncludeMany, List<Expression> findSubSelectMany, bool isAllDtoMap)
         {
-            void LocalSetFieldAlias(ref int localIndex)
+            void LocalSetFieldAlias(ref int localIndex, bool isdiymemexp)
             {
                 if (localIndex >= 0)
                 {
                     parent.DbNestedField = $"as{++localIndex}";
                     field.Append(_common.FieldAsAlias(parent.DbNestedField));
                 }
-                else if (diymemexp?.ParseExpMapResult != null)
+                else if (isdiymemexp && diymemexp?.ParseExpMapResult != null)
                     parent.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
                 else if (string.IsNullOrEmpty(parent.CsName) == false)
                 {
@@ -77,7 +77,7 @@ namespace FreeSql.Internal
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index);
+                    LocalSetFieldAlias(ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Convert: return ReadAnonymousField(_tables, _tableRule, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
@@ -96,7 +96,7 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index);
+                    LocalSetFieldAlias(ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Conditional:
@@ -125,7 +125,7 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index);
+                    LocalSetFieldAlias(ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Parameter:
@@ -273,7 +273,7 @@ namespace FreeSql.Internal
                             if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
                         }
                         field.Append(", ").Append(pdbfield);
-                        LocalSetFieldAlias(ref index);
+                        LocalSetFieldAlias(ref index, true);
                         return false;
                     }
                     return false;
@@ -486,7 +486,7 @@ namespace FreeSql.Internal
             }
             parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
             field.Append(", ").Append(parent.DbField);
-            LocalSetFieldAlias(ref index);
+            LocalSetFieldAlias(ref index, false);
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
             return false;
         }
@@ -2177,6 +2177,23 @@ namespace FreeSql.Internal
                     return sb.ToString();
             }
             return null;
+        }
+        public class ReplaceVisitor : ExpressionVisitor
+        {
+            private Expression _oldexp;
+            private Expression _newexp;
+            public Expression Modify(Expression find, Expression oldexp, Expression newexp)
+            {
+                this._oldexp = oldexp;
+                this._newexp = newexp;
+                return Visit(find);
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression == _oldexp)
+                    return Expression.Property(_newexp, node.Member.Name);
+                return base.VisitMember(node);
+            }
         }
         public class ReplaceParameterVisitor : ExpressionVisitor
         {
