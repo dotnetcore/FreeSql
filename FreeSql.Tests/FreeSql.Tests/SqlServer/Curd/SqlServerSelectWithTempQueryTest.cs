@@ -672,6 +672,47 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
             Assert.Equal(list10[1].rownum, 1);
             Assert.Equal(list10[1].Id, 0);
             Assert.Null(list10[1].remark);
+
+
+            var sql11 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    user = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => b.UserId).WithTempQuery(b => new { uid = b.Key, rownum = b.Sum(b.Value.UserId) }))
+                .InnerJoin((a, b) => a.user.Id == b.uid)
+                .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
+                .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
+            var assertSql11 = @"SELECT a.[rownum] as1 
+FROM ( 
+    SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+    FROM [TwoTablePartitionBy_User] a ) a 
+INNER JOIN ( SELECT a.[UserId] [uid], sum(a.[UserId]) [rownum] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0) 
+    GROUP BY a.[UserId] ) b ON a.[Id] = b.[uid] 
+WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
+            Assert.Equal(sql11, assertSql11);
+            var list11 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    user = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0).GroupBy(b => b.UserId).WithTempQuery(b => new { uid = b.Key, rownum = b.Sum(b.Value.UserId) }))
+                .InnerJoin((a, b) => a.user.Id == b.uid)
+                .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
+                .ToList<TwoTablePartitionBy_UserDto>();
+            Assert.Equal(list11.Count, 2);
+            Assert.Equal(list11[0].rownum, 1);
+            Assert.Equal(list11[0].Id, 0);
+            Assert.Null(list11[0].remark);
+            Assert.Equal(list11[1].rownum, 1);
+            Assert.Equal(list11[1].Id, 0);
+            Assert.Null(list11[1].remark);
         }
         class TwoTablePartitionBy_User
         {
