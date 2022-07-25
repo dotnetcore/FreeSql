@@ -27,16 +27,14 @@ namespace FreeSql.Internal.CommonProvider
 
         protected ISelect<T1> InternalFrom(LambdaExpression lambdaExp)
         {
-            if (lambdaExp != null)
+            if (lambdaExp == null) return this;
+            for (var a = 1; a < lambdaExp.Parameters.Count; a++)
             {
-                for (var a = 1; a < lambdaExp.Parameters.Count; a++)
-                {
-                    var tb = _commonUtils.GetTableByEntity(lambdaExp.Parameters[a].Type);
-                    if (tb == null) throw new ArgumentException(CoreStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
-                    _tables.Add(new SelectTableInfo { Table = tb, Alias = lambdaExp.Parameters[a].Name, On = null, Type = SelectTableInfoType.From });
-                }
+                var tb = _commonUtils.GetTableByEntity(lambdaExp.Parameters[a].Type);
+                if (tb == null) throw new ArgumentException(CoreStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
+                _tables.Add(new SelectTableInfo { Table = tb, Alias = lambdaExp.Parameters[a].Name, On = null, Type = SelectTableInfoType.From });
             }
-            var exp = lambdaExp?.Body;
+            var exp = lambdaExp.Body;
             if (exp?.NodeType == ExpressionType.Call)
             {
                 var expCall = exp as MethodCallExpression;
@@ -60,7 +58,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "OrderBy":
                             if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool))
                             {
-                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, _diymemexpWithTempQuery);
                                 if (ifcond == "1" || ifcond == "'t'")
                                     this.InternalOrderBy(expCall.Arguments.LastOrDefault());
                                 break;
@@ -70,7 +68,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "OrderByDescending":
                             if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool))
                             {
-                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+                                var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, _tableRule, null, SelectTableInfoType.From, expCall.Arguments[0], false, _diymemexpWithTempQuery);
                                 if (ifcond == "1" || ifcond == "'t'" || ifcond == "-1")//MsAccess -1
                                     this.InternalOrderByDescending(expCall.Arguments.LastOrDefault());
                                 break;
@@ -108,22 +106,47 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalAvg(column?.Body);
         }
 
-        public abstract ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;
-        public abstract ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class;
-        public abstract ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5> From<T2, T3, T4, T5>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6> From<T2, T3, T4, T5, T6>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7> From<T2, T3, T4, T5, T6, T7>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
+        public abstract ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp = null) where T2 : class;
+        public abstract ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class;
+        public abstract ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5> From<T2, T3, T4, T5>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6> From<T2, T3, T4, T5, T6>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7> From<T2, T3, T4, T5, T6, T7>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
 
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class;
-        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class;
+        public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
+
+
+        public ISelect<T1, T2> FromQuery<T2>(ISelect<T2> select2) where T2 : class
+        {
+            var ret = From<T2>();
+            var retsp = ret as Select0Provider;
+            var rettbs = retsp._tables;
+            if (rettbs[1].Table == null) rettbs[1].Table = TableInfo.GetDefaultTable(typeof(T2));
+            (_diymemexpWithTempQuery as WithTempQueryParser)?.Append(select2, rettbs[1]);
+            var select2sp = select2 as Select0Provider;
+            string sql2 = null;
+            if (select2sp._diymemexpWithTempQuery == null) 
+                sql2 = select2?.ToSql(a => a, FieldAliasOptions.AsProperty);
+            else
+            {
+                if (select2sp._tableRule != null && select2sp.IsDefaultSqlContent == true)
+                {
+                    sql2 = select2sp._tableRule(select2sp._tables[0].Table.Type, null);
+                    if (sql2.StartsWith("(") && sql2.EndsWith(")")) sql2 = sql2.Substring(1, sql2.Length - 2);
+                }
+                if (string.IsNullOrWhiteSpace(sql2))
+                    sql2 = select2?.ToSql("*");
+            }
+            return ret.WithSql(null, sql2);
+        }
 
         public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns)
         {
@@ -197,7 +220,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, _diymemexpWithTempQuery, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
 
@@ -241,7 +264,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 
@@ -396,6 +419,8 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, TDto>> selector) => InternalWithTempQuery<TDto>(selector);
+
         public bool Any(Expression<Func<T1, bool>> exp)
         {
             var oldwhere = _where.ToString();
@@ -440,7 +465,7 @@ namespace FreeSql.Internal.CommonProvider
                 case TableRefType.OneToOne:
                     _isIncluded = true;
                     var curTb = _commonUtils.GetTableByEntity(exp.Type);
-                    _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
+                    _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), _diymemexpWithTempQuery, null, null);
                     break;
             }
             return this;
@@ -459,7 +484,7 @@ namespace FreeSql.Internal.CommonProvider
 
             _isIncluded = true;
             _tables[0].Parameter = navigateSelector.Parameters[0];
-            _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
+            _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), _diymemexpWithTempQuery, null, null);
             return this;
         }
 
@@ -536,7 +561,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tbNav == null) throw new Exception(CoreStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
-                _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
+                _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), _diymemexpWithTempQuery, null, null);
 
             TableRef tbref = null;
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
@@ -1377,7 +1402,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select.Body, this, _diymemexpWithTempQuery, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
 
@@ -1410,7 +1435,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, otherNewInit, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 

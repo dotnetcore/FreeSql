@@ -28,7 +28,7 @@ namespace FreeSql.Internal.CommonProvider
                 var property = properties[propIdx];
                 var exp = ConvertStringPropertyToExpression(property);
                 if (exp == null) throw new Exception(CoreStrings.Property_Cannot_Find(property));
-                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null);
+                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery);
                 if (propIdx > 0) sbfield.Append(", ");
                 sbfield.Append(field);
                 //if (field != property)
@@ -547,13 +547,21 @@ namespace FreeSql.Internal.CommonProvider
         static EventHandler<Aop.AuditDataReaderEventArgs> _OldAuditDataReaderHandler;
         public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2(bool isRereadSql = true)
         {
+            if (_diymemexpWithTempQuery != null)
+            {
+                return new GetAllFieldExpressionTreeInfo
+                {
+                    Field = "*",
+                    Read = (orm, dr) => throw new Exception("GetAllFieldExpressionTreeInfo.Read Is Null")
+                };
+            }
             if (_selectExpression != null) //ToSql
             {
                 var af = this.GetExpressionField(_selectExpression);
                 return new GetAllFieldExpressionTreeInfo
                 {
                     Field = af.field,
-                    Read = (dr, idx) => throw new Exception("GetAllFieldExpressionTreeInfo.Read Is Null")
+                    Read = (orm, dr) => throw new Exception("GetAllFieldExpressionTreeInfo.Read Is Null")
                 };
             }
             if (_OldAuditDataReaderHandler != _orm.Aop.AuditDataReaderHandler)
@@ -751,7 +759,7 @@ namespace FreeSql.Internal.CommonProvider
 
         protected double InternalAvg(Expression exp)
         {
-            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0)
             {
                 var list = this.ToList<double>(field);
@@ -764,7 +772,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected TMember InternalMax<TMember>(Expression exp)
         {
-            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return this.ToList<TMember>(field).Max();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -772,7 +780,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected TMember InternalMin<TMember>(Expression exp)
         {
-            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return this.ToList<TMember>(field).Min();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -780,7 +788,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected decimal InternalSum(Expression exp)
         {
-            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return this.ToList<decimal>(field).Sum();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -793,14 +801,14 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, columns, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, columns, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             var sql = field.ToString();
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
         public TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
-            _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, null, _whereGlobalFilter);
+            _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);
             return this as TSelect;
         }
         protected TSelect InternalJoin<T2>(Expression exp, SelectTableInfoType joinType)
@@ -808,7 +816,7 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _commonUtils.GetTableByEntity(typeof(T2));
             if (tb == null) throw new ArgumentException(CoreStrings.T2_Type_Error);
             _tables.Add(new SelectTableInfo { Table = tb, Alias = $"IJ{_tables.Count}", On = null, Type = joinType });
-            _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, null, _whereGlobalFilter);
+            _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);
             return this as TSelect;
         }
         protected TSelect InternalOrderBy(Expression column)
@@ -819,10 +827,10 @@ namespace FreeSql.Internal.CommonProvider
                 case ExpressionType.New:
                     var newExp = column as NewExpression;
                     if (newExp == null) break;
-                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, null));
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, _diymemexpWithTempQuery));
                     return this as TSelect;
             }
-            return this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, null));
+            return this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, _diymemexpWithTempQuery));
         }
         protected TSelect InternalOrderByDescending(Expression column)
         {
@@ -832,10 +840,10 @@ namespace FreeSql.Internal.CommonProvider
                 case ExpressionType.New:
                     var newExp = column as NewExpression;
                     if (newExp == null) break;
-                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, null)} DESC");
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, _diymemexpWithTempQuery)} DESC");
                     return this as TSelect;
             }
-            return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, null)} DESC");
+            return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, _diymemexpWithTempQuery)} DESC");
         }
 
         public List<TReturn> InternalToList<TReturn>(Expression select)
@@ -845,7 +853,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, null, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, new ReadAnonymousTypeOtherInfo[0]);
 
@@ -862,7 +870,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, null, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
@@ -947,7 +955,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             
             var childs = map.Childs;
             if (childs.Any() == false) throw new ArgumentException(CoreStrings.InsertInto_No_Property_Selected(typeof(TTargetEntity).DisplayCsharp()));
@@ -1028,7 +1036,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
                 var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
                 if (GetTableRuleUnions().Count <= 1) return this.ToListMapReader<TReturn>(af).FirstOrDefault();
 
@@ -1041,7 +1049,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, null, _whereGlobalFilter, _params));
+        public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, _diymemexpWithTempQuery, _whereGlobalFilter, _params));
 
         #region Async
 #if net40
@@ -1055,7 +1063,7 @@ namespace FreeSql.Internal.CommonProvider
                 var property = properties[propIdx];
                 var exp = ConvertStringPropertyToExpression(property);
                 if (exp == null) throw new Exception(CoreStrings.Property_Cannot_Find(property));
-                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null);
+                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery);
                 if (propIdx > 0) sbfield.Append(", ");
                 sbfield.Append(field);
                 //if (field != property)
@@ -1299,7 +1307,7 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<double> InternalAvgAsync(Expression exp, CancellationToken cancellationToken)
         {
-            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0)
             {
                 var list = await this.ToListAsync<double>(field, cancellationToken);
@@ -1312,7 +1320,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp, CancellationToken cancellationToken)
         {
-            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<TMember>(field, cancellationToken)).Max();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -1320,7 +1328,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         async protected Task<TMember> InternalMinAsync<TMember>(Expression exp, CancellationToken cancellationToken)
         {
-            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<TMember>(field, cancellationToken)).Min();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -1328,7 +1336,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         async protected Task<decimal> InternalSumAsync(Expression exp, CancellationToken cancellationToken)
         {
-            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}";
+            var field = $"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery)}){_commonUtils.FieldAsAlias("as1")}";
             if (_limit <= 0 && _skip <= 0) return (await this.ToListAsync<decimal>(field, cancellationToken)).Sum();
 
             var sql = GetNestSelectSql(exp, field, ToSql);
@@ -1344,7 +1352,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, null, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, new ReadAnonymousTypeOtherInfo[0], cancellationToken);
 
@@ -1361,7 +1369,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, null, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
@@ -1521,7 +1529,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
                 var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
                 if (GetTableRuleUnions().Count <= 1) return (await this.ToListMapReaderAsync<TReturn>(af, cancellationToken)).FirstOrDefault();
 

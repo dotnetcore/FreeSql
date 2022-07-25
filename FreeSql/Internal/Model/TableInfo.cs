@@ -50,6 +50,18 @@ namespace FreeSql.Internal.Model
         }
         public IEnumerable<KeyValuePair<string, TableRef>> GetAllTableRef() => _refs;
 
+        public static TableInfo GetDefaultTable(Type type) => new TableInfo
+        {
+            CsName = type.Name,
+            DbName = type.Name,
+            DisableSyncStructure = true,
+            Primarys = new ColumnInfo[0],
+            ColumnsByPosition = new ColumnInfo[0],
+            ColumnsByCanUpdateDbUpdateValue = new ColumnInfo[0],
+            Properties = type.GetPropertiesDictIgnoreCase(),
+            Type = type,
+        };
+
         //public void CopyTo(TableInfo target)
         //{
         //    target.Type = this.Type;

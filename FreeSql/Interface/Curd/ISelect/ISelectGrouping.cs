@@ -75,6 +75,13 @@ namespace FreeSql
         /// <returns></returns>
         string ToSql(string field);
 
+        /// <summary>
+        /// 嵌套查询 select * from ( select ... from table group by ... ) a
+        /// </summary>
+        /// <typeparam name="TDto"></typeparam>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TDto>> selector);
 
         /// <summary>
         /// 查询向后偏移行数

@@ -120,6 +120,8 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
 
         ISelect<<#=NewStr #>> WithSql(<#=string.Join(",",WithSql)#>, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<<#=NewStr #>, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
@@ -149,6 +151,8 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<<#=NewStr #>>, TDto>> selector);
 
         #endregion
 

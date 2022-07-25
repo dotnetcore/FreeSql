@@ -2627,6 +2627,14 @@
             <param name="parms">参数</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.WithTempQuery``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            嵌套查询 select * from ( select ... from table ... ) a
+            </summary>
+            <typeparam name="TDto"></typeparam>
+            <param name="selector"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelectFromExpression`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
@@ -2714,6 +2722,14 @@
             返回即将执行的SQL语句
             </summary>
             <param name="field">指定字段</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelectGrouping`2.WithTempQuery``1(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},``0}})">
+            <summary>
+            嵌套查询 select * from ( select ... from table group by ... ) a
+            </summary>
+            <typeparam name="TDto"></typeparam>
+            <param name="selector"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelectGrouping`2.Skip(System.Int32)">

@@ -83,6 +83,12 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<TDto> ISelect<<#=NewStr #>>.WithTempQuery<TDto>(Expression<Func<<#=NewStr #>, TDto>> selector)
+        {
+            for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
+            return this.InternalWithTempQuery<TDto>(selector);
+        }
+
         double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
         {
             if (column == null) return default(double);
@@ -219,14 +225,14 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this.Where(null);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, null, _whereGlobalFilter, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params));
         }
 
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WhereIf(bool condition, Expression<Func<<#=NewStr #>, bool>> exp)
         {
             if (condition == false || exp == null) return this;
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, null, _whereGlobalFilter, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params));
         }
 
         bool ISelect<<#=NewStr #>>.Any(Expression<Func<<#=NewStr #>, bool>> exp)
@@ -234,7 +240,7 @@ namespace FreeSql.Internal.CommonProvider
             if (exp == null) return this.Any();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             var oldwhere = _where.ToString();
-            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, null, _whereGlobalFilter, _params)).Any();
+            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params)).Any();
             _where.Clear().Append(oldwhere);
             return ret;
         }
@@ -248,6 +254,12 @@ namespace FreeSql.Internal.CommonProvider
 
 
         #region HzyTuple 元组
+
+        ISelect<TDto> ISelect<<#=NewStr #>>.WithTempQuery<TDto>(Expression<Func<HzyTuple<<#=NewStr #>>, TDto>> selector)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(selector, _tables);
+            return (this as ISelect<<#=NewStr #>>).WithTempQuery<TDto>((Expression<Func<<#=NewStr #>, TDto>>)expModify);
+        } 
 
         double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
         {
@@ -436,7 +448,7 @@ namespace FreeSql.Internal.CommonProvider
             if (exp == null) return await this.AnyAsync();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             var oldwhere = _where.ToString();
-            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, null, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
             _where.Clear().Append(oldwhere);
             return ret;
         }

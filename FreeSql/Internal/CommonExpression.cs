@@ -25,6 +25,7 @@ namespace FreeSql.Internal
         public ParameterExpression _lambdaParameter;
         public ReadAnonymousTypeInfo _map;
         public string _field;
+        public ReadAnonymousTypeInfo ParseExpMapResult { get; protected set; }
         public abstract string ParseExp(Expression[] members);
     }
 
@@ -50,6 +51,23 @@ namespace FreeSql.Internal
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select, 
             BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<string> findIncludeMany, List<Expression> findSubSelectMany, bool isAllDtoMap)
         {
+            void LocalSetFieldAlias(ref int localIndex)
+            {
+                if (localIndex >= 0)
+                {
+                    parent.DbNestedField = $"as{++localIndex}";
+                    field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                }
+                else if (diymemexp?.ParseExpMapResult != null)
+                    parent.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
+                else if (string.IsNullOrEmpty(parent.CsName) == false)
+                {
+                    parent.DbNestedField = GetFieldAsCsName(parent.CsName);
+                    if (localIndex == ReadAnonymousFieldAsCsName && parent.DbField.EndsWith(parent.DbNestedField, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
+                        field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                }
+            }
+
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter, dbParams = select?._params }; //#462 添加 DbParams 解决
             switch (exp.NodeType)
             {
@@ -59,8 +77,7 @@ namespace FreeSql.Internal
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
-                    if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(GetFieldAsCsName(parent.CsName)));
+                    LocalSetFieldAlias(ref index);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Convert: return ReadAnonymousField(_tables, _tableRule, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
@@ -79,8 +96,7 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
-                    if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(GetFieldAsCsName(parent.CsName)));
+                    LocalSetFieldAlias(ref index);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Conditional:
@@ -109,13 +125,12 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                     field.Append(", ").Append(parent.DbField);
-                    if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(GetFieldAsCsName(parent.CsName)));
+                    LocalSetFieldAlias(ref index);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
-                    if (_common.GetTableByEntity(exp.Type) != null &&
+                    if ((_common.GetTableByEntity(exp.Type) != null || exp.Type.IsAnonymousType() && diymemexp != null) &&
                         //判断 [JsonMap] 并非导航对象
                         (exp.NodeType == ExpressionType.Parameter || exp is MemberExpression expMem && (
                             _common.GetTableByEntity(expMem.Expression.Type)?.ColumnsByCs.ContainsKey(expMem.Member.Name) == false ||
@@ -126,6 +141,28 @@ namespace FreeSql.Internal
                         //加载表所有字段
                         var map = new List<SelectColumnInfo>();
                         ExpressionSelectColumn_MemberAccess(_tables, _tableRule, map, SelectTableInfoType.From, exp, true, diymemexp);
+                        if (map.Any() == false)
+                        {
+                            if (diymemexp != null && diymemexp.ParseExpMapResult != null)
+                            {
+                                var withTempQueryParser = diymemexp as Select0Provider.WithTempQueryParser;
+                                diymemexp.ParseExpMapResult.CopyTo(parent);
+                                foreach (var child in parent.GetAllChilds())
+                                {
+                                    if (withTempQueryParser != null)
+                                        field.Append(", ").Append(withTempQueryParser.ParseExpMatchedTable.Alias).Append(".").Append(child.DbNestedField);
+                                    else
+                                        field.Append(", ").Append(child.DbField);
+                                    if (index >= 0)
+                                    {
+                                        child.DbNestedField = $"as{++index}";
+                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
+                                    }
+                                }
+                                return false;
+                            }
+                            throw new Exception($"未能加载它的所有成员，不支持解析表达式树 {exp}");
+                        }
                         var tb = parent.Table = map.First().Table.Table;
                         parent.CsType = tb.Type;
                         parent.Consturctor = tb.Type.InternalGetTypeConstructor0OrFirst();
@@ -137,14 +174,19 @@ namespace FreeSql.Internal
                                 Property = tb.Properties.TryGetValue(map[idx].Column.CsName, out var tryprop) ? tryprop : tb.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.Instance),
                                 CsName = map[idx].Column.CsName,
                                 DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}",
+                                DbNestedField = _common.QuoteSqlName(map[idx].Column.Attribute.Name),
                                 CsType = map[idx].Column.CsType,
                                 MapType = map[idx].Column.Attribute.MapType
                             };
                             field.Append(", ").Append(_common.RereadColumn(map[idx].Column, child.DbField));
-                            if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
+                            if (index >= 0)
+                            {
+                                child.DbNestedField = $"as{++index}";
+                                field.Append(_common.FieldAsAlias(child.DbNestedField));
+                            }
                             parent.Childs.Add(child);
                         }
-                        if (_tables.Count > 1)
+                        if (_tables?.Count > 1)
                         { //如果下级导航属性被 Include 过，则将他们也查询出来
                             foreach (var memProp in tb.Properties.Values)
                             {
@@ -199,15 +241,19 @@ namespace FreeSql.Internal
                         }
                         if (diymemexp != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
-                            field.Append(diymemexp._field); 
+                            field.Append(diymemexp._field);
                             if (diymemexp._map.Childs.Any() == false) //处理 GroupBy(a => a.Title) ToSql(g => new { tit = a.Key }, FieldAliasOptions.AsProperty) 问题
                             {
-                                if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                                else if (index == ReadAnonymousFieldAsCsName)
+                                if (index >= 0)
                                 {
-                                    var csname = GetFieldAsCsName(parent.CsName);
-                                    if (diymemexp._field.EndsWith(csname, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
-                                        field.Append(_common.FieldAsAlias(csname));
+                                    parent.DbNestedField = $"as{++index}";
+                                    field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                                }
+                                else if (string.IsNullOrEmpty(parent.CsName) == false)
+                                {
+                                    parent.DbNestedField = GetFieldAsCsName(parent.CsName);
+                                    if (index == ReadAnonymousFieldAsCsName && diymemexp._field.EndsWith(parent.DbNestedField, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
+                                        field.Append(_common.FieldAsAlias(parent.DbNestedField));
                                 }
                             }
                             var parentProp = parent.Property;
@@ -217,20 +263,14 @@ namespace FreeSql.Internal
                         }
                         if (parent.CsType == null) parent.CsType = exp.Type;
                         var pdbfield = parent.DbField = ExpressionLambdaToSql(exp, getTSC());
-                        if (parent.MapType == null || _tables?.Any(a => a.Table.IsRereadSql) == true)
+                        if (parent.MapType == null || _tables?.Any(a => a.Table?.IsRereadSql == true) == true)
                         {
                             var findcol = SearchColumnByField(_tables, null, parent.DbField);
                             if (parent.MapType == null) parent.MapType = findcol?.Attribute.MapType ?? exp.Type;
                             if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
                         }
                         field.Append(", ").Append(pdbfield);
-                        if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                        else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false)
-                        {
-                            var csname = GetFieldAsCsName(parent.CsName);
-                            if (parent.DbField.EndsWith(csname, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
-                                field.Append(_common.FieldAsAlias(csname));
-                        }
+                        LocalSetFieldAlias(ref index);
                         return false;
                     }
                     return false;
@@ -263,7 +303,34 @@ namespace FreeSql.Internal
                         {
                             foreach (var dtTb in _tables)
                             {
-                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
+                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false)
+                                {
+                                    if (diymemexp != null && dtTb.Parameter != null && dtTb.Parameter.Type.GetPropertiesDictIgnoreCase().TryGetValue(dtoProp.Name, out var dtTbProp))
+                                    {
+                                        var dbfield = diymemexp.ParseExp(new Expression[] { Expression.MakeMemberAccess(dtTb.Parameter, dtTbProp) });
+                                        if (diymemexp.ParseExpMapResult != null)
+                                        {
+                                            var diychild = new ReadAnonymousTypeInfo
+                                            {
+                                                Property = dtoProp,
+                                                CsName = dtoProp.Name,
+                                                CsType = dtTbProp.PropertyType,
+                                                MapType = dtTbProp.PropertyType
+                                            };
+                                            parent.Childs.Add(diychild);
+                                            diychild.DbField = $"{dtTb.Alias}.{diymemexp.ParseExpMapResult.DbNestedField}";
+                                            diychild.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
+                                            field.Append(", ").Append(diychild.DbField);
+                                            if (index >= 0)
+                                            {
+                                                diychild.DbNestedField = $"as{++index}";
+                                                field.Append(_common.FieldAsAlias(diychild.DbNestedField));
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    continue;
+                                }
                                 if (trydtocol.Attribute.IsIgnore == true) continue;
                                 if (dicBindings?.ContainsKey(dtoProp.Name) == true) continue;
 
@@ -280,8 +347,13 @@ namespace FreeSql.Internal
                                 else
                                 {
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                    child.DbNestedField = _common.QuoteSqlName(trydtocol.Attribute.Name);
                                     field.Append(", ").Append(_common.RereadColumn(trydtocol, child.DbField));
-                                    if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
+                                    if (index >= 0)
+                                    {
+                                        child.DbNestedField = $"as{++index}";
+                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
+                                    }
                                 }
                                 break;
                             }
@@ -328,15 +400,18 @@ namespace FreeSql.Internal
                         //处理构造参数
                         for (var a = 0; a < newExp.Arguments.Count; a++)
                         {
+                            var csname = newExp.Members != null ? newExp.Members[a].Name : (newExp.Arguments[a] as MemberExpression)?.Member.Name;
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
-                                CsName = newExp.Members != null ? newExp.Members[a].Name : (newExp.Arguments[a] as MemberExpression)?.Member.Name,
+                                CsName = csname,
                                 CsType = newExp.Arguments[a].Type,
                                 MapType = newExp.Arguments[a].Type
                             };
                             parent.Childs.Add(child);
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, newExp.Arguments[a], select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
+                            if (child.CsName == null) 
+                                child.CsName = csname;
                         }
                     }
                     else
@@ -348,7 +423,34 @@ namespace FreeSql.Internal
                         {
                             foreach (var dtTb in _tables)
                             {
-                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
+                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false)
+                                {
+                                    if (diymemexp != null && dtTb.Parameter != null && dtTb.Parameter.Type.GetPropertiesDictIgnoreCase().TryGetValue(dtoProp.Name, out var dtTbProp))
+                                    {
+                                        var dbfield = diymemexp.ParseExp(new Expression[] { Expression.MakeMemberAccess(dtTb.Parameter, dtTbProp) });
+                                        if (diymemexp.ParseExpMapResult != null)
+                                        {
+                                            var diychild = new ReadAnonymousTypeInfo
+                                            {
+                                                Property = dtoProp,
+                                                CsName = dtoProp.Name,
+                                                CsType = dtTbProp.PropertyType,
+                                                MapType = dtTbProp.PropertyType
+                                            };
+                                            parent.Childs.Add(diychild);
+                                            diychild.DbField = $"{dtTb.Alias}.{diymemexp.ParseExpMapResult.DbNestedField}";
+                                            diychild.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
+                                            field.Append(", ").Append(diychild.DbField);
+                                            if (index >= 0)
+                                            {
+                                                diychild.DbNestedField = $"as{++index}";
+                                                field.Append(_common.FieldAsAlias(diychild.DbNestedField));
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    continue;
+                                }
                                 if (trydtocol.Attribute.IsIgnore == true) continue;
 
                                 var child = new ReadAnonymousTypeInfo
@@ -364,8 +466,13 @@ namespace FreeSql.Internal
                                 else
                                 {
                                     child.DbField = _common.RereadColumn(trydtocol, $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}");
+                                    child.DbNestedField = _common.QuoteSqlName(trydtocol.Attribute.Name);
                                     field.Append(", ").Append(child.DbField);
-                                    if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
+                                    if (index >= 0)
+                                    {
+                                        child.DbNestedField = $"as{++index}";
+                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
+                                    }
                                 }
                                 break;
                             }
@@ -376,8 +483,7 @@ namespace FreeSql.Internal
             }
             parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
             field.Append(", ").Append(parent.DbField);
-            if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-            else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(GetFieldAsCsName(parent.CsName)));
+            LocalSetFieldAlias(ref index);
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
             return false;
         }
@@ -458,8 +564,8 @@ namespace FreeSql.Internal
                 var testCol = _common.TrimQuoteSqlName(field).Split(new[] { '.' }, 2);
                 if (testCol.Length == 2)
                 {
-                    var testTb = _tables.Where(a => a.Alias == testCol[0]).ToArray();
-                    if (testTb.Length == 1 && testTb[0].Table.Columns.TryGetValue(testCol[1], out var trytstcol))
+                    var testTb = _tables.Where(a => a.Table != null && a.Alias == testCol[0]).ToArray();
+                    if (testTb.Length == 1 && testTb[0].Table.Columns.TryGetValue(testCol[1], out var trytstcol) == true)
                         return trytstcol;
                 }
             }
@@ -530,6 +636,12 @@ namespace FreeSql.Internal
 
         public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<DbParameter> dbParams)
         {
+            if (_tables?.Count > 1)
+            {
+                foreach (var tb in _tables)
+                    if (tb.Parameter != null && tb.AliasInit.StartsWith("SP10"))
+                        tb.Alias = tb.Parameter.Name;
+            }
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter, dbParams = dbParams });
             return GetBoolString(exp, sql);
         }
@@ -537,6 +649,12 @@ namespace FreeSql.Internal
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, SelectTableInfoType tbtype, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter)
         {
             var tbidx = _tables.Count;
+            if (tbidx > 1)
+            {
+                foreach (var tb in _tables)
+                    if (tb.Parameter != null && tb.AliasInit.StartsWith("SP10"))
+                        tb.Alias = tb.Parameter.Name;
+            }
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter });
             sql = GetBoolString(exp, sql);
 
@@ -777,6 +895,7 @@ namespace FreeSql.Internal
                     return $"not({ExpressionLambdaToSql(notExp, tsc)})";
                 case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
                 case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, tsc);
+                case ExpressionType.Invoke: return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                 case ExpressionType.TypeAs:
                 case ExpressionType.Convert:
                 case ExpressionType.ConvertChecked:
@@ -1563,8 +1682,8 @@ namespace FreeSql.Internal
                     {
                         var expStackFirst = expStack.First();
                         var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
-                        var expText = tsc.diymemexp.ParseExp(expStack.Where((a, b) => b >= bidx).ToArray());
-                        if (string.IsNullOrEmpty(expText) == false) return expText;
+                        var diyexpResult = tsc.diymemexp.ParseExp(expStack.Where((a, b) => b >= bidx).ToArray());
+                        if (string.IsNullOrEmpty(diyexpResult) == false) return diyexpResult;
                     }
                     var psgpdymes = _subSelectParentDiyMemExps.Value; //解决：分组之后的子查询解析
                     if (psgpdymes?.Any() == true)
@@ -1572,8 +1691,8 @@ namespace FreeSql.Internal
                         var expStackFirst = expStack.First();
                         if (expStackFirst.NodeType == ExpressionType.Parameter)
                         {
-                            var expText = psgpdymes.Where(a => a._lambdaParameter == expStackFirst).FirstOrDefault()?.ParseExp(expStack.Where((a, b) => b >= 2).ToArray());
-                            if (string.IsNullOrEmpty(expText) == false) return expText;
+                            var diyexpResult = psgpdymes.Where(a => a._lambdaParameter == expStackFirst).FirstOrDefault()?.ParseExp(expStack.Where((a, b) => b >= 2).ToArray());
+                            if (string.IsNullOrEmpty(diyexpResult) == false) return diyexpResult;
                         }
                     }
 

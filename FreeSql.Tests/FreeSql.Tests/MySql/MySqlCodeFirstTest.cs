@@ -12,6 +12,23 @@ namespace FreeSql.Tests.MySql
     public class MySqlCodeFirstTest
     {
         [Fact]
+        public void Test_Bool01()
+        {
+            var fsql = g.mysql;
+            var dt = fsql.Insert(
+                new[] {
+                    new test_bool01 { id = Guid.NewGuid(), isdeleted = true},
+                    new test_bool01 { id = Guid.NewGuid(), isdeleted = false},
+                }).ToDataTable();
+        }
+
+        class test_bool01
+        {
+            public Guid id { get; set; }
+            public bool isdeleted { get; set; }
+        }
+
+        [Fact]
         public void Test_0String()
         {
             var fsql = g.mysql;

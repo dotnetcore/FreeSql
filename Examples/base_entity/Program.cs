@@ -304,7 +304,7 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
                
 
-                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
 
@@ -312,7 +312,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
 
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
@@ -344,6 +344,82 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var anysql01 = fsql.Select<Permission>().Where(a => a.Roles.Any(b => b.Users.Any(c => c.UserName == "admin"))).ToSql();
+
+            var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
+                .AsTableImpl;
+
+            atimpl.GetTableNameByColumnValue(DateTime.Parse("2023-7-1"), autoExpand: true);
+
+
+            fsql.Select<User1, UserGroup>()
+                .InnerJoin((a, b) => a.GroupId == b.Id)
+                .Where((a, b) => b.GroupName == "group1")
+                .WithTempQuery((a, b) => new
+                {
+                    User = a,
+                    GroupName = b.GroupName,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(b.GroupName).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToList();
+
+            var sqlt1 = fsql.Select<User1>()
+                .ToSql(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                }, FieldAliasOptions.AsProperty);
+            sqlt1 = fsql.Select<User1>()
+                .WithSql(sqlt1)
+                .Where("a.rownum = 1")
+                .ToSql();
+
+            var sqlt2 = fsql.Select<User1>()
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToSql();
+            var sqlt22 = fsql.Select<User1>()
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToList();
+            var sqlt23 = fsql.Select<User1>()
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToList(a => new
+                {
+                    a.item,
+                    a.rownum
+                });
+
+            var sqlt24 = fsql.Select<User1>()
+                .GroupBy(a => new { a.Nickname })
+                .WithTempQuery(g => new
+                {
+                    g.Key.Nickname,
+                    sum1 = g.Sum(g.Value.Avatar.Length)
+                })
+                .Where(a => a.Nickname != null)
+                .ToList();
+
+
+
+            Func<string> getName = () => "xxx";
+            fsql.GlobalFilter.Apply<User1>("fil1", a => a.Nickname == getName());
+            var gnsql = fsql.Select<User1>().ToSql();
 
             Dictionary<string, object> dic22 = new Dictionary<string, object>();
             dic22.Add("id", 1);
@@ -1111,21 +1187,21 @@ namespace base_entity
 
                 var ug1s2 = UserGroup.Select.Where(a => a.User1s.AsSelect().Any(b => b.Nickname == "x1")).Limit(10).ToList();
 
-                var r1 = new Role();
-                r1.Id = "管理员";
-                await r1.SaveAsync();
+                //var r1 = new Role();
+                //r1.Id = "管理员";
+                //await r1.SaveAsync();
 
-                var r2 = new Role();
-                r2.Id = "超级会员";
-                await r2.SaveAsync();
+                //var r2 = new Role();
+                //r2.Id = "超级会员";
+                //await r2.SaveAsync();
 
-                var ru1 = new RoleUser1();
-                ru1.User1Id = u1.Id;
-                ru1.RoleId = r1.Id;
-                await ru1.SaveAsync();
+                //var ru1 = new RoleUser1();
+                //ru1.User1Id = u1.Id;
+                //ru1.RoleId = r1.Id;
+                //await ru1.SaveAsync();
 
-                ru1.RoleId = r2.Id;
-                await ru1.SaveAsync();
+                //ru1.RoleId = r2.Id;
+                //await ru1.SaveAsync();
 
                 var u1roles = await User1.Select.IncludeMany(a => a.Roles).ToListAsync();
                 var u1roles2 = await User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToListAsync();
@@ -1181,4 +1257,119 @@ namespace base_entity
             }
         }
     }
+
+    [Table(Name = "t_user")]
+    public partial class User
+    {
+        [Column(IsPrimary = true)]
+        public string User_id { get; set; }
+
+        [Column(IsNullable = false)]
+        public string UserName { get; set; }
+
+        [Column(IsNullable = false)]
+        public string UserPassword { get; set; }
+
+        public DateTime? CreateDate { get; set; }
+
+        public DateTime? ModifyDate { get; set; }
+
+
+        #region 外键 => 导航属性，ManyToMany
+
+        [Navigate(ManyToMany = typeof(user_role))]
+        public List<Role> Roles { get; set; }
+
+
+        #endregion
+    }
+
+    [Table(Name = "t_role")]
+    public partial class Role
+    {
+
+        [Column(IsPrimary = true)]
+        public int ID { get; set; }
+
+        [Column(IsNullable = false)]
+        public string Rolename { get; set; }
+
+        [Column(DbType = "NTEXT")]
+        public string Description { get; set; }
+
+        #region 外键 => 导航属性，ManyToMany
+        /// <summary>
+        /// 关联的用户集合
+        /// </summary>
+        [Navigate(ManyToMany = typeof(user_role))]
+        public List<User> Users { get; set; }
+        /// <summary>
+        /// 关联的权限集合
+        /// </summary>
+        [Navigate(ManyToMany = typeof(role_permission))]
+        public List<Permission> Permissions { get; set; }
+
+        #endregion
+
+
+    }
+
+    [Table(Name = "t_permission")]
+    public partial class Permission
+    {
+
+        [Column(IsPrimary = true)]
+        public int ID { get; set; }
+        public string PermissionName { get; set; }
+
+        [Column(DbType = "NTEXT")]
+        public string Description { get; set; }
+
+
+        #region 外键 => 导航属性，ManyToMany
+
+        [Navigate(ManyToMany = typeof(role_permission))]
+        public List<Role> Roles { get; set; }
+
+        #endregion
+    }
+
+
+    [Table(Name = "user_role")]
+    public partial class user_role
+    {
+        [Column(IsPrimary = true)]
+        public string User_id { get; set; }
+
+        [Column(IsPrimary = true)]
+        public int Role_id { get; set; }
+
+
+        #region 外键 => 导航属性，ManyToMany
+        [Navigate(nameof(User_id))]
+        public User user { get; set; }
+        [Navigate(nameof(Role_id))]
+        public Role role { get; set; }
+
+        #endregion
+    }
+
+    [Table(Name = "role_permission")]
+    public partial class role_permission
+    {
+        [Column(IsPrimary = true)]
+        public int Role_id { get; set; }
+
+        [Column(IsPrimary = true)]
+        public int Permission_id { get; set; }
+
+
+        #region 外键 => 导航属性，ManyToMany
+        [Navigate(nameof(Role_id))]
+        public Role role { get; set; }
+        [Navigate(nameof(Permission_id))]
+        public Permission permission { get; set; }
+        #endregion
+    }
+
 }

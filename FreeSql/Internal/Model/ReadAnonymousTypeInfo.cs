@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -15,6 +16,7 @@ namespace FreeSql.Internal.Model
         public Type CsType { get; set; }
         public Type MapType { get; set; }
         public string DbField { get; set; }
+        public string DbNestedField { get; set; }
         public ConstructorInfo Consturctor { get; set; }
         public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();
         public TableInfo Table { get; set; }
@@ -31,12 +33,37 @@ namespace FreeSql.Internal.Model
             target.CsType = CsType;
             target.MapType = MapType;
             target.DbField = DbField;
+            target.DbNestedField = DbNestedField;
             target.Consturctor = Consturctor;
-            target.Childs = Childs;
+            LocalEachCopyChilds(Childs, target.Childs);
             target.Table = Table;
             target.IsEntity = IsEntity;
             target.IsDefaultCtor = IsDefaultCtor;
             target.IncludeManyKey = IncludeManyKey;
+
+            void LocalEachCopyChilds(List<ReadAnonymousTypeInfo> from, List<ReadAnonymousTypeInfo> to)
+            {
+                foreach(var fromChild in from)
+                {
+                    var toChild = new ReadAnonymousTypeInfo();
+                    fromChild.CopyTo(toChild);
+                    to.Add(toChild);
+                }
+            }
+        }
+
+        public List<ReadAnonymousTypeInfo> GetAllChilds(int maxDepth = 10)
+        {
+            if (maxDepth <= 0) return new List<ReadAnonymousTypeInfo>();
+            var allchilds = new List<ReadAnonymousTypeInfo>();
+            foreach (var child in Childs)
+            {
+                if (child.Childs.Any())
+                    allchilds.AddRange(child.GetAllChilds(maxDepth - 1));
+                else
+                    allchilds.Add(child);
+            }
+            return allchilds;
         }
     }
     public class ReadAnonymousTypeAfInfo

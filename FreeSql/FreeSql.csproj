@@ -50,6 +50,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>ISelect2`16.cs</LastGenOutput>
+	  </None>
 	  <None Update="Internal\CommonProvider\SelectProvider\T4Temp\Select1Provider2`16.tt">
 	    <Generator>TextTemplatingFileGenerator</Generator>
 	    <LastGenOutput>Select1Provider2`16.cs</LastGenOutput>

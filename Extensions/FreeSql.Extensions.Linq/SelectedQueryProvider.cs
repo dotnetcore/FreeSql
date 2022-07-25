@@ -73,13 +73,19 @@ namespace FreeSql.Internal.CommonProvider
 
         public override string ParseExp(Expression[] members)
         {
-            if (members.Any() == false) return _map.DbField;
+            ParseExpMapResult = null;
+            if (members.Any() == false)
+            {
+                ParseExpMapResult = _map;
+                return _map.DbField;
+            }
             var read = _map;
             for (var a = 0; a < members.Length; a++)
             {
                 read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
                 if (read == null) return null;
             }
+            ParseExpMapResult = read;
             return read.DbField;
         }
 

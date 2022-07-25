@@ -32,7 +32,12 @@ namespace FreeSql.Internal.CommonProvider
 
         public override string ParseExp(Expression[] members)
         {
-            if (members.Any() == false) return _map.DbField;
+            ParseExpMapResult = null;
+            if (members.Any() == false)
+            {
+                ParseExpMapResult = _map;
+                return _map.DbField;
+            }
             var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
             switch (parentName)
             {
@@ -43,6 +48,7 @@ namespace FreeSql.Internal.CommonProvider
                         read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
                         if (read == null) return null;
                     }
+                    ParseExpMapResult = read;
                     return read.DbField;
                 case "Value":
                     var tb = _tables.First();
@@ -191,6 +197,19 @@ namespace FreeSql.Internal.CommonProvider
             return InternalToSql(select, fieldAlias);
         }
         public string ToSql(string field) => InternalToSql(field);
+
+        public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TDto>> selector)
+        {
+            if (_orm.CodeFirst.IsAutoSyncStructure)
+                (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+            var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+            if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+            var parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
+            var sql = this.ToSql(parser._insideSelectList[0].InsideField);
+            ret.WithSql(sql);
+            ret._diymemexpWithTempQuery = parser;
+            return ret;
+        }
 
         public ISelectGrouping<TKey, TValue> Skip(int offset)
         {

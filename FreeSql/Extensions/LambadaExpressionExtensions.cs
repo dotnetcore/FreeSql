@@ -233,6 +233,12 @@ namespace System.Linq.Expressions
             test.Visit(exp);
             return test.Result;
         }
+        public static ParameterExpression GetParameter(this Expression exp)
+        {
+            var test = new GetParameterExpressionVisitor();
+            test.Visit(exp);
+            return test.Result;
+        }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public static bool IsStringJoin(this MethodCallExpression exp, out Expression tolistObjectExpOut, out MethodInfo toListMethodOut, out LambdaExpression toListArgs0Out)
@@ -354,6 +360,17 @@ namespace System.Linq.Expressions
         protected override Expression VisitParameter(ParameterExpression node)
         {
             if (!Result) Result = true;
+            return node;
+        }
+    }
+
+    internal class GetParameterExpressionVisitor : ExpressionVisitor
+    {
+        public ParameterExpression Result { get; private set; }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (Result == null) Result = node;
             return node;
         }
     }

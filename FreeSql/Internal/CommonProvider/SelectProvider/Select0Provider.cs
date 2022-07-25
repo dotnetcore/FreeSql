@@ -46,6 +46,11 @@ namespace FreeSql.Internal.CommonProvider
         public List<GlobalFilter.Item> _whereGlobalFilter;
         public Func<bool> _cancel;
         public bool _is_AsTreeCte;
+        public BaseDiyMemberExpression _diymemexpWithTempQuery;
+
+        public bool IsDefaultSqlContent => _distinct == false && _is_AsTreeCte == false && _tables.Count == 1 && _where.Length == 0 && _join.Length == 0 &&
+            string.IsNullOrWhiteSpace(_orderby) && string.IsNullOrWhiteSpace(_groupby) && string.IsNullOrWhiteSpace(_tosqlAppendContent) &&
+            _aliasRule == null && _selectExpression == null;
 
         public Select0Provider()
         {
@@ -71,6 +76,7 @@ namespace FreeSql.Internal.CommonProvider
             _selectExpression = null;
             _whereGlobalFilter?.Clear();
             _cancel = null;
+            _diymemexpWithTempQuery = null;
         }
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
@@ -86,7 +92,16 @@ namespace FreeSql.Internal.CommonProvider
             to._params = new List<DbParameter>(from._params.ToArray());
 
             if (lambParms == null)
-                to._tables = new List<SelectTableInfo>(from._tables.ToArray());
+            {
+                if (to._tables.Count <= from._tables.Count)
+                    to._tables = new List<SelectTableInfo>(from._tables.ToArray());
+                else
+                {
+                    to._tables = new List<SelectTableInfo>(to._tables);
+                    for (var a = 0; a < from._tables.Count; a++)
+                        to._tables[a] = from._tables[a];
+                }
+            }
             else
             {
                 var findedIndexs = new List<int>();
@@ -131,6 +146,95 @@ namespace FreeSql.Internal.CommonProvider
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
             to._cancel = from._cancel;
             to._is_AsTreeCte = from._is_AsTreeCte;
+            to._diymemexpWithTempQuery = from._diymemexpWithTempQuery;
+        }
+
+        internal class WithTempQueryParser : BaseDiyMemberExpression
+        {
+            public List<InsideInfo> _insideSelectList = new List<InsideInfo>();
+            public List<SelectTableInfo> _outsideTable = new List<SelectTableInfo>();
+            public WithTempQueryParser(Select0Provider insideSelect, SelectGroupingProvider insideSelectGroup, Expression selector, SelectTableInfo outsideTable)
+            {
+                _insideSelectList.Add(new InsideInfo(insideSelect, insideSelectGroup, selector));
+                _outsideTable.Add(outsideTable);
+            }
+            public class InsideInfo
+            {
+                public Select0Provider InsideSelect { get; }
+                public SelectGroupingProvider InsideSelectGroup { get; }
+                public CommonExpression InsideComonExp;
+                public string InsideField { get; }
+                public ReadAnonymousTypeAfInfo InsideAf { get; }
+                public ReadAnonymousTypeInfo InsideMap { get; }
+
+                public InsideInfo(Select0Provider insideSelect, SelectGroupingProvider insideSelectGroup, Expression selector)
+                {
+                    InsideSelect = insideSelect;
+                    InsideSelectGroup = insideSelectGroup;
+
+                    InsideMap = new ReadAnonymousTypeInfo();
+                    var field = new StringBuilder();
+                    var index = CommonExpression.ReadAnonymousFieldAsCsName; //AsProperty
+
+                    if (selector != null)
+                    {
+                        if (insideSelectGroup != null)
+                            InsideSelect._commonExpression.ReadAnonymousField(null, insideSelect._tableRule, field, InsideMap, ref index, selector, insideSelect, InsideSelectGroup, null, null, null, false);
+                        else if (insideSelect != null)
+                            InsideSelect._commonExpression.ReadAnonymousField(insideSelect._tables, InsideSelect._tableRule, field, InsideMap, ref index, selector, null, insideSelect._diymemexpWithTempQuery, insideSelect._whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
+                    }
+                    InsideField = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+                    InsideAf = new ReadAnonymousTypeAfInfo(InsideMap, "*");
+                }
+            }
+
+            public WithTempQueryParser Append<TDto>(ISelect<TDto> select, SelectTableInfo outsideTable)
+            {
+                if (outsideTable != null && (select as Select0Provider)?._diymemexpWithTempQuery is WithTempQueryParser withTempQuery)
+                {
+                    _insideSelectList.Add(withTempQuery._insideSelectList[0]);
+                    _outsideTable.Add(outsideTable);
+                }
+                return this;
+            }
+
+            public SelectTableInfo ParseExpMatchedTable { get; private set; }
+            public override string ParseExp(Expression[] members)
+            {
+                ParseExpMapResult = null;
+                ParseExpMatchedTable = GetOutsideSelectTable(members.FirstOrDefault()?.GetParameter());
+                var insideIndex = _outsideTable.FindIndex(a => a == ParseExpMatchedTable);
+                if (insideIndex == -1)
+                {
+                    ParseExpMatchedTable = null;
+                    return null;
+                }
+                var insideData = _insideSelectList[insideIndex];
+                if (members.Any() == false)
+                {
+                    ParseExpMapResult = insideData.InsideMap;
+                    return $"{ParseExpMatchedTable.Alias}.{insideData.InsideMap.DbNestedField}";
+                }
+                var read = insideData.InsideMap;
+                for (var a = 0; a < members.Length; a++)
+                {
+                    read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
+                    if (read == null) return null;
+                }
+                ParseExpMapResult = read;
+                return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
+            }
+            public SelectTableInfo GetOutsideSelectTable(ParameterExpression parameterExp)
+            {
+                if (parameterExp == null) return _outsideTable[0];
+                var find = _outsideTable.Where(a => a.Parameter == parameterExp).ToArray();
+                if (find.Length == 1) return find[0];
+                find = _outsideTable.Where(a => a.Table.Type == parameterExp.Type).ToArray();
+                if (find.Length == 1) return find[0];
+                find = _outsideTable.Where(a => a.Alias == parameterExp.Name).ToArray();
+                if (find.Length == 1) return find[0];
+                return _outsideTable[0];
+            }
         }
 
         public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
@@ -276,7 +380,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         public string GetNestSelectSql(Expression select, string affield, Func<string, string> ToSql)
@@ -762,6 +866,18 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect AsTable(Func<Type, string, string> tableRule)
         {
+            if (_tableRules.Count == 1 && _diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser tempQueryParser)
+            {
+                var oldTableRule = _tableRules[0];
+                var newTableRule = tableRule;
+                _tableRules.Clear();
+                tableRule = (type, old) =>
+                {
+                    var tbname = newTableRule(type, null);
+                    if (tbname != null) return tbname;
+                    return oldTableRule(type, old);
+                };
+            }
             if (tableRule != null) _tableRules.Add(tableRule);
             return this as TSelect;
         }
@@ -796,7 +912,7 @@ namespace FreeSql.Internal.CommonProvider
             if (condition == false) return this as TSelect;
             Expression exp = ConvertStringPropertyToExpression(property);
             if (exp == null) return this as TSelect;
-            var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, null);
+            var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery);
             if (isAscending) return this.OrderBy(field);
             return this.OrderBy($"{field} DESC");
         }
@@ -930,7 +1046,7 @@ namespace FreeSql.Internal.CommonProvider
                         return new string[0];
                     }
 
-                    var sql = _commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, null, null, _params);
+                    var sql = _commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, _diymemexpWithTempQuery, null, _params);
 
                     sb.Append(sql);
                 }
@@ -1042,6 +1158,19 @@ namespace FreeSql.Internal.CommonProvider
             return this as TSelect;
         }
 
+        public ISelect<TDto> InternalWithTempQuery<TDto>(Expression selector)
+        {
+            if (_orm.CodeFirst.IsAutoSyncStructure)
+                (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+            var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+            if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+            var parser = new WithTempQueryParser(this, null, selector, ret._tables[0]);
+            var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
+            ret.WithSql(sql);
+            ret._diymemexpWithTempQuery = parser;
+            return ret;
+        }
+
         public bool Any()
         {
             this.Limit(1);
@@ -1079,6 +1208,7 @@ namespace FreeSql.Internal.CommonProvider
         public List<T1> ToList() => ToList(false);
         public virtual List<T1> ToList(bool includeNestedMembers)
         {
+            if (_diymemexpWithTempQuery != null) return this.ToListMapReaderPrivate<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null);
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
             return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
@@ -1123,6 +1253,7 @@ namespace FreeSql.Internal.CommonProvider
         public Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default) => ToListAsync(false, cancellationToken);
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
+            if (_diymemexpWithTempQuery != null) return this.ToListMapReaderPrivateAsync<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null, cancellationToken);
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);
             return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
         }

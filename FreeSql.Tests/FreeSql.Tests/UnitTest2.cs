@@ -532,7 +532,7 @@ namespace FreeSql.Tests
             };
 
 
-            var dbs = g.sqlserver.DbFirst.GetDatabases();
+            //var dbs = g.sqlserver.DbFirst.GetDatabases();
             var tbs = g.sqlserver.DbFirst.GetTablesByDatabase("ds_shop");
 
             var dicParamslist = g.sqlite.Select<SysModule>().Page(1, 10)

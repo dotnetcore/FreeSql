@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,6 +9,13 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
+
+
+
+
+
+
+
 
     public interface ISelect<T1, T2> : ISelect0<ISelect<T1, T2>, T1> where T2 : class
     {
@@ -83,6 +91,8 @@ namespace FreeSql
 
         ISelect<T1, T2> WithSql(string sqlT1, string sqlT2, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2>, bool>> exp);
@@ -112,6 +122,8 @@ namespace FreeSql
         ISelect<T1, T2> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2>, TMember>> column);
         ISelect<T1, T2> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2>, TMember>> column);
         ISelect<T1, T2> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2>, TDto>> selector);
 
         #endregion
 
@@ -195,6 +207,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3> WithSql(string sqlT1, string sqlT2, string sqlT3, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3>, bool>> exp);
@@ -224,6 +238,8 @@ namespace FreeSql
         ISelect<T1, T2, T3> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3>, TMember>> column);
         ISelect<T1, T2, T3> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3>, TMember>> column);
         ISelect<T1, T2, T3> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3>, TDto>> selector);
 
         #endregion
 
@@ -307,6 +323,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4>, bool>> exp);
@@ -336,6 +354,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TMember>> column);
         ISelect<T1, T2, T3, T4> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TMember>> column);
         ISelect<T1, T2, T3, T4> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TDto>> selector);
 
         #endregion
 
@@ -419,6 +439,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, bool>> exp);
@@ -448,6 +470,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TDto>> selector);
 
         #endregion
 
@@ -531,6 +555,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, bool>> exp);
@@ -560,6 +586,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TDto>> selector);
 
         #endregion
 
@@ -643,6 +671,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
@@ -672,6 +702,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TDto>> selector);
 
         #endregion
 
@@ -755,6 +787,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp);
@@ -784,6 +818,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TDto>> selector);
 
         #endregion
 
@@ -867,6 +903,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, bool>> exp);
@@ -896,6 +934,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TDto>> selector);
 
         #endregion
 
@@ -979,6 +1019,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, bool>> exp);
@@ -1008,6 +1050,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TDto>> selector);
 
         #endregion
 
@@ -1091,6 +1135,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, bool>> exp);
@@ -1120,6 +1166,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TDto>> selector);
 
         #endregion
 
@@ -1203,6 +1251,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, bool>> exp);
@@ -1232,6 +1282,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TDto>> selector);
 
         #endregion
 
@@ -1315,6 +1367,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, bool>> exp);
@@ -1344,6 +1398,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TDto>> selector);
 
         #endregion
 
@@ -1427,6 +1483,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, bool>> exp);
@@ -1456,6 +1514,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TDto>> selector);
 
         #endregion
 
@@ -1539,6 +1599,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, bool>> exp);
@@ -1568,6 +1630,8 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TMember>> column, bool descending = false);
+
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TDto>> selector);
 
         #endregion
 
@@ -1651,6 +1715,8 @@ namespace FreeSql
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, string sqlT16, object parms = null);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TDto>> selector);
+
         #region HzyTuple 元组
 
         bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, bool>> exp);
@@ -1681,8 +1747,12 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TMember>> column, bool descending = false);
 
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TDto>> selector);
+
         #endregion
 
     }
 
 }
+
+
