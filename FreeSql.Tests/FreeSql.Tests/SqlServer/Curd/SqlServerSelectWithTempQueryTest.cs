@@ -810,6 +810,51 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
             Assert.Equal(list11[1].rownum, 1);
             Assert.Equal(list11[1].Id, 0);
             Assert.Null(list11[1].remark);
+
+
+            var sql12 = fsql.Select<TwoTablePartitionBy_User>()
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .GroupBy((a, b) => new { a.Nickname })
+                .ToSql(g => new
+                {
+                    g.Key,
+                    sum1 = g.Sum(g.Value.Item1.Id),
+                    sum2 = g.Sum(g.Value.Item2.UserId),
+                });
+            var assertSql12 = @"SELECT a.[Nickname], sum(a.[Id]) as1, sum(b.[UserId]) as2 
+FROM [TwoTablePartitionBy_User] a 
+LEFT JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0)) b ON a.[Id] = b.[UserId] 
+WHERE (a.[Id] > 0 AND b.[UserId] > 0) 
+GROUP BY a.[Nickname]";
+            Assert.Equal(sql12, assertSql12);
+            var list12 = fsql.Select<TwoTablePartitionBy_User>()
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .GroupBy((a, b) => new { a.Nickname })
+                .ToList(g => new
+                {
+                    g.Key,
+                    sum1 = g.Sum(g.Value.Item1.Id),
+                    sum2 = g.Sum(g.Value.Item2.UserId),
+                });
+            Assert.Equal(list12.Count, 3);
+            Assert.Equal("name01", list12[0].Key.Nickname);
+            Assert.Equal(6, list12[0].sum1);
+            Assert.Equal(6, list12[0].sum2);
+            Assert.Equal("name02", list12[1].Key.Nickname);
+            Assert.Equal(4, list12[1].sum1);
+            Assert.Equal(4, list12[1].sum2);
+            Assert.Equal("name03", list12[2].Key.Nickname);
+            Assert.Equal(11, list12[2].sum1);
+            Assert.Equal(11, list12[2].sum2);
         }
         class TwoTablePartitionBy_User
         {
