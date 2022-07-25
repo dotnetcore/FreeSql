@@ -100,6 +100,7 @@ namespace FreeSql
                     if (itemType == typeof(object)) return;
                     if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
                     if (_db.OrmOriginal.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
+                    if (itemType.GetConstructor(System.Type.EmptyTypes) == null) return;
                     var dbset = _db.Set(itemType);
                     dbset?.GetType().GetMethod("TrackToList", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(dbset, new object[] { list });
                     return;
