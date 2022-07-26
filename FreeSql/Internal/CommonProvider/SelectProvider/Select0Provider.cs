@@ -218,6 +218,11 @@ namespace FreeSql.Internal.CommonProvider
                     return $"{ParseExpMatchedTable.Alias}.{insideData.InsideMap.DbNestedField}";
                 }
                 var read = insideData.InsideMap;
+                if (members.Length == 1 && members[0] == ParseExpMatchedTable.Parameter)
+                {
+                    ParseExpMapResult = read;
+                    return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
+                }
                 for (var a = 0; a < members.Length; a++)
                 {
                     read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();

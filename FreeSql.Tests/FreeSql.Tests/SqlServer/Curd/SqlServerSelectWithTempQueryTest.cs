@@ -964,6 +964,68 @@ WHERE (a.[rownum] = 1)";
             Assert.Equal(list14[2].user.Nickname, "name03");
             Assert.Equal(list14[2].userext.UserId, 5);
             Assert.Equal(list14[2].userext.Remark, "remark05");
+
+
+            var sql15 = fsql.Select<TwoTablePartitionBy_User>()
+                 .WithTempQuery(a => new
+                 {
+                     user = a,
+                     rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                 })
+                 .Where(a => a.rownum == 1)
+                 .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0)
+                     .GroupBy(b => new { b.UserId, b.Remark })
+                     .WithTempQuery(b => new { b.Key, sum1 = b.Sum(b.Value.UserId) }))
+                 .InnerJoin((a, b) => a.user.Id == b.Key.UserId)
+                 .Where((a, b) => a.user.Nickname == "name02" || a.user.Nickname == "name03")
+                 .ToSql((a, b) => new
+                 {
+                     user = a.user,
+                     rownum = a.rownum,
+                     groupby = b
+                 }, FieldAliasOptions.AsProperty);
+            var assertSql15 = @"SELECT a.[Id], a.[Nickname], a.[rownum], b.[UserId], b.[Remark], b.[sum1] 
+FROM ( 
+    SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+    FROM [TwoTablePartitionBy_User] a ) a 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark], sum(a.[UserId]) [sum1] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0) 
+    GROUP BY a.[UserId], a.[Remark] ) b ON a.[Id] = b.[UserId] 
+WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name02' OR a.[Nickname] = N'name03'))";
+            Assert.Equal(sql15, assertSql15);
+            var list15 = fsql.Select<TwoTablePartitionBy_User>()
+                 .WithTempQuery(a => new
+                 {
+                     user = a,
+                     rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                 })
+                 .Where(a => a.rownum == 1)
+                 .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0)
+                     .GroupBy(b => new { b.UserId, b.Remark })
+                     .WithTempQuery(b => new { b.Key, sum1 = b.Sum(b.Value.UserId) }))
+                 .InnerJoin((a, b) => a.user.Id == b.Key.UserId)
+                 .Where((a, b) => a.user.Nickname == "name02" || a.user.Nickname == "name03")
+                 .ToList((a, b) => new
+                 {
+                     user = a.user,
+                     rownum = a.rownum,
+                     groupby = b
+                 });
+            Assert.Equal(list15.Count, 2);
+            Assert.Equal("remark04", list15[0].groupby.Key.Remark);
+            Assert.Equal(4, list15[0].groupby.Key.UserId);
+            Assert.Equal(4, list15[0].groupby.sum1);
+            Assert.Equal(1, list15[0].rownum);
+            Assert.Equal(4, list15[0].user.Id);
+            Assert.Equal("name02", list15[0].user.Nickname);
+            Assert.Equal("remark05", list15[1].groupby.Key.Remark);
+            Assert.Equal(5, list15[1].groupby.Key.UserId);
+            Assert.Equal(5, list15[1].groupby.sum1);
+            Assert.Equal(1, list15[1].rownum);
+            Assert.Equal(5, list15[1].user.Id);
+            Assert.Equal("name03", list15[1].user.Nickname);
         }
         class TwoTablePartitionBy_User
         {

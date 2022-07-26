@@ -1683,9 +1683,12 @@ namespace FreeSql.Internal
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
                     if (tsc.diymemexp != null)
                     {
-                        var expStackFirst = expStack.First();
+                        var expStackFirst = expStack.First() as ParameterExpression;
                         var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
-                        var diyexpResult = tsc.diymemexp.ParseExp(expStack.Where((a, b) => b >= bidx).ToArray());
+                        var diyexpMembers = expStack.Where((a, b) => b >= bidx).ToArray();
+                        if (diyexpMembers.Any() == false && tsc.diymemexp != null && tsc.diymemexp is Select0Provider.WithTempQueryParser tempQueryParser && tempQueryParser.GetOutsideSelectTable(expStackFirst) != null)
+                            diyexpMembers = expStack.ToArray();
+                        var diyexpResult = tsc.diymemexp.ParseExp(diyexpMembers);
                         if (string.IsNullOrEmpty(diyexpResult) == false) return diyexpResult;
                     }
                     var psgpdymes = _subSelectParentDiyMemExps.Value; //解决：分组之后的子查询解析
