@@ -197,7 +197,7 @@ namespace FreeSql
             var tb = _db.OrmOriginal.CodeFirst.GetTableByEntity(EntityType);
             if (tb.Primarys.Length != 1) throw new Exception(DbContextStrings.EntityType_PrimaryKeyIsNotOne(EntityType.Name));
             if (tb.Primarys[0].CsType.NullableTypeOrThis() != typeof(TKey).NullableTypeOrThis()) throw new Exception(DbContextStrings.EntityType_PrimaryKeyError(EntityType.Name, typeof(TKey).FullName));
-            var obj = Activator.CreateInstance(tb.Type);
+            var obj = tb.Type.CreateInstanceGetDefaultValue();
             _db.OrmOriginal.SetEntityValueWithPropertyName(tb.Type, obj, tb.Primarys[0].CsName, id);
             var ret = obj as TEntity;
             if (ret == null) throw new Exception(DbContextStrings.EntityType_CannotConvert(EntityType.Name, typeof(TEntity).Name));

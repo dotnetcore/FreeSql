@@ -323,7 +323,7 @@ namespace FreeSql
                             midSet.RemoveRange(midListDel); //删除未保存的项
                             foreach (var curItem in curList)
                             {
-                                var newItem = Activator.CreateInstance(tref.RefMiddleEntityType);
+                                var newItem = tref.RefMiddleEntityType.CreateInstanceGetDefaultValue();
                                 for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
                                 {
                                     var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.MiddleColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
