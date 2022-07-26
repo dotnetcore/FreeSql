@@ -219,7 +219,7 @@ namespace FreeSql
         public DbSet<TEntity> AttachOnlyPrimary(TEntity data)
         {
             if (data == null) return this;
-            var pkitem = (TEntity)Activator.CreateInstance(_entityType);
+            var pkitem = (TEntity)_entityType.CreateInstanceGetDefaultValue();
             foreach (var pk in _db.OrmOriginal.CodeFirst.GetTableByEntity(_entityType).Primarys)
             {
                 var colVal = _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, data, pk.CsName);
@@ -267,8 +267,8 @@ namespace FreeSql
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
-            var state = new EntityState((TEntity)Activator.CreateInstance(_entityType), key);
-            _db.OrmOriginal.MapEntityValue(_entityType, data, state.Value);
+            var state = new EntityState((TEntity)_entityType.CreateInstanceGetDefaultValue(), key);
+           _db.OrmOriginal.MapEntityValue(_entityType, data, state.Value);
             return state;
         }
         bool? ExistsInStates(TEntity data)
