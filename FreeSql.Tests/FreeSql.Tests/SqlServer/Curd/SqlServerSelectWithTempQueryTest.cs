@@ -903,6 +903,67 @@ LEFT JOIN (
 WHERE (a.[Id] > 0 AND b.[UserId] > 0) 
 GROUP BY a.[Nickname]";
             Assert.Equal(sql13, assertSql13);
+
+
+            var sql14 = fsql.Select<TwoTablePartitionBy_User>()
+                .Where(a => a.Id > 0)
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0))
+                .InnerJoin((a, b) => a.item.Id == b.UserId)
+                .ToSql((a, b) => new
+                {
+                    user = a.item,
+                    rownum = a.rownum,
+                    userext = b
+                });
+            var assertSql14 = @"SELECT a.[Id] as1, a.[Nickname] as2, a.[rownum] as3, b.[UserId] as4, b.[Remark] as5 
+FROM ( 
+    SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+    FROM [TwoTablePartitionBy_User] a 
+    WHERE (a.[Id] > 0) ) a 
+INNER JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0)) b ON a.[Id] = b.[UserId] 
+WHERE (a.[rownum] = 1)";
+            Assert.Equal(sql14, assertSql14);
+            var list14 = fsql.Select<TwoTablePartitionBy_User>()
+                .Where(a => a.Id > 0)
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().Where(b => b.UserId > 0))
+                .InnerJoin((a, b) => a.item.Id == b.UserId)
+                .ToList((a, b) => new
+                {
+                    user = a.item,
+                    rownum = a.rownum,
+                    userext = b
+                });
+            Assert.Equal(list14.Count, 3);
+            Assert.Equal(list14[0].rownum, 1);
+            Assert.Equal(list14[0].user.Id, 1);
+            Assert.Equal(list14[0].user.Nickname, "name01");
+            Assert.Equal(list14[0].userext.UserId, 1);
+            Assert.Equal(list14[0].userext.Remark, "remark01");
+            Assert.Equal(list14[1].rownum, 1);
+            Assert.Equal(list14[1].user.Id, 4);
+            Assert.Equal(list14[1].user.Nickname, "name02");
+            Assert.Equal(list14[1].userext.UserId, 4);
+            Assert.Equal(list14[1].userext.Remark, "remark04");
+            Assert.Equal(list14[2].rownum, 1);
+            Assert.Equal(list14[2].user.Id, 5);
+            Assert.Equal(list14[2].user.Nickname, "name03");
+            Assert.Equal(list14[2].userext.UserId, 5);
+            Assert.Equal(list14[2].userext.Remark, "remark05");
         }
         class TwoTablePartitionBy_User
         {

@@ -203,6 +203,8 @@ namespace FreeSql.Internal.CommonProvider
             {
                 ParseExpMapResult = null;
                 ParseExpMatchedTable = GetOutsideSelectTable(members.FirstOrDefault()?.GetParameter());
+                if (ParseExpMatchedTable == null) return null;
+
                 var insideIndex = _outsideTable.FindIndex(a => a == ParseExpMatchedTable);
                 if (insideIndex == -1)
                 {
@@ -226,14 +228,14 @@ namespace FreeSql.Internal.CommonProvider
             }
             public SelectTableInfo GetOutsideSelectTable(ParameterExpression parameterExp)
             {
-                if (parameterExp == null) return _outsideTable[0];
+                if (parameterExp == null) return null;
                 var find = _outsideTable.Where(a => a.Parameter == parameterExp).ToArray();
                 if (find.Length == 1) return find[0];
                 find = _outsideTable.Where(a => a.Table.Type == parameterExp.Type).ToArray();
                 if (find.Length == 1) return find[0];
                 find = _outsideTable.Where(a => a.Alias == parameterExp.Name).ToArray();
                 if (find.Length == 1) return find[0];
-                return _outsideTable[0];
+                return null;
             }
         }
 
