@@ -146,7 +146,25 @@ namespace FreeSql.Internal.CommonProvider
                 if (string.IsNullOrWhiteSpace(sql2))
                     sql2 = select2?.ToSql("*");
             }
-            return ret.WithSql(null, $" \r\n{sql2}");
+            if (retsp._tableRules.Count > 0)
+            {
+                var tbrules = retsp._tableRules.ToList();
+                retsp._tableRules.Clear();
+                tbrules.ForEach(tbrule =>
+                {
+                    var tbruler1 = tbrule(typeof(T1), retsp._tables[0].Table.DbName);
+                    if (string.IsNullOrWhiteSpace(tbruler1) == false)
+                        retsp._tableRules.Add((type, old) =>
+                        {
+                            if (type == typeof(T1)) return tbruler1;
+                            if (type == typeof(T2)) return $"( \r\n{sql2})";
+
+                            return old;
+                        });
+                });
+            }
+            if (retsp._tableRules.Count == 0) ret.WithSql(null, $" \r\n{sql2}");
+            return ret;
         }
 
         public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns)

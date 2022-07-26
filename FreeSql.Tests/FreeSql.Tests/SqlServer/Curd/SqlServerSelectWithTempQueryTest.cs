@@ -559,6 +559,31 @@ WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
             Assert.Equal(list06[1].remark, "remark05");
 
 
+            var sql061 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    user = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .WithTempQuery(a => a.user)
+                .From<TwoTablePartitionBy_UserExt>()
+                .AsTable((type, old) => type == typeof(TwoTablePartitionBy_UserExt) ? old.Replace("TwoTablePartitionBy_", "") : old)
+                .InnerJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Nickname == "name03" || a.Nickname == "name02")
+                .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
+            var assertSql061 = @"SELECT a.[Id] as1, b.[Remark] as2 
+FROM ( 
+    SELECT a.[Id], a.[Nickname] 
+    FROM ( 
+        SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+        FROM [TwoTablePartitionBy_User] a ) a 
+    WHERE (a.[rownum] = 1) ) a 
+INNER JOIN [UserExt] b ON a.[Id] = b.[UserId] 
+WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
+            Assert.Equal(sql061, assertSql061);
+
+
             var sql07 = fsql.Select<TwoTablePartitionBy_User>()
                 .WithTempQuery(a => new
                 {
@@ -855,6 +880,29 @@ GROUP BY a.[Nickname]";
             Assert.Equal("name03", list12[2].Key.Nickname);
             Assert.Equal(11, list12[2].sum1);
             Assert.Equal(11, list12[2].sum2);
+
+
+            var sql13 = fsql.Select<TwoTablePartitionBy_User>().AsTable((_, old) => old.Replace("TwoTablePartitionBy_", ""))
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().AsTable((_, old) => old.Replace("TwoTablePartitionBy_", ""))
+                    .Where(b => b.UserId > 0))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .GroupBy((a, b) => new { a.Nickname })
+                .ToSql(g => new
+                {
+                    g.Key,
+                    sum1 = g.Sum(g.Value.Item1.Id),
+                    sum2 = g.Sum(g.Value.Item2.UserId),
+                });
+            var assertSql13 = @"SELECT a.[Nickname], sum(a.[Id]) as1, sum(b.[UserId]) as2 
+FROM [User] a 
+LEFT JOIN ( 
+    SELECT a.[UserId], a.[Remark] 
+    FROM [UserExt] a 
+    WHERE (a.[UserId] > 0)) b ON a.[Id] = b.[UserId] 
+WHERE (a.[Id] > 0 AND b.[UserId] > 0) 
+GROUP BY a.[Nickname]";
+            Assert.Equal(sql13, assertSql13);
         }
         class TwoTablePartitionBy_User
         {

@@ -873,9 +873,9 @@ namespace FreeSql.Internal.CommonProvider
                 _tableRules.Clear();
                 tableRule = (type, old) =>
                 {
-                    var tbname = newTableRule(type, null);
-                    if (tbname != null) return tbname;
-                    return oldTableRule(type, old);
+                    old = oldTableRule(type, old);
+                    var newname = newTableRule(type, old);
+                    return string.IsNullOrWhiteSpace(newname) ? old : newname;
                 };
             }
             if (tableRule != null) _tableRules.Add(tableRule);
