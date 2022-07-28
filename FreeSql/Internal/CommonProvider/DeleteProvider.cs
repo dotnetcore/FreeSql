@@ -66,7 +66,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public int ExecuteAffrows()
+        public virtual int ExecuteAffrows()
         {
             var affrows = 0;
             DbParameter[] dbParms = null;

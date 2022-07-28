@@ -14,7 +14,7 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
+        async public virtual Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var affrows = 0;
             DbParameter[] dbParms = null;
