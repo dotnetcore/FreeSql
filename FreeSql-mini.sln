@@ -75,6 +75,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.GBase", "P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SqliteCore", "Providers\FreeSql.Provider.SqliteCore\FreeSql.Provider.SqliteCore.csproj", "{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "base_entity", "Examples\base_entity\base_entity.csproj", "{9D82A683-2950-4E8A-B078-A422ECA6AAA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -397,6 +399,18 @@ Global
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x64.Build.0 = Release|Any CPU
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x86.ActiveCfg = Release|Any CPU
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x86.Build.0 = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|x64.Build.0 = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Debug|x86.Build.0 = Debug|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x64.Build.0 = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -424,6 +438,7 @@ Global
 		{86C56235-5D37-4422-807B-B31681C7D01C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{BDE8EDC6-2646-45E0-A921-39CD1538A8C5} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{9D82A683-2950-4E8A-B078-A422ECA6AAA5} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
