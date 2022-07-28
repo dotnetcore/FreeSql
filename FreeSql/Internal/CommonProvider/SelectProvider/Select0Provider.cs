@@ -1170,6 +1170,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_orm.CodeFirst.IsAutoSyncStructure)
                 (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+            ret._params.AddRange(_params);
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
             var parser = new WithTempQueryParser(this, null, selector, ret._tables[0]);
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
