@@ -2352,7 +2352,7 @@ namespace FreeSql.Internal
                         var mtmReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
                         mtmReftbname = mtmReftbname.Substring(0, mtmReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                         var midSelect = commonExp._common._orm.Select<object>().As($"M{select._tables[0].Alias}_M{mtmReftbname}").AsType(memberTbref.RefMiddleEntityType) as Select1Provider<object>;
-                        select._tableRules.ForEach(o => midSelect.AsTable(o));
+                        if (tableRule != null) midSelect._tableRules.Add(tableRule);
                         switch (commonExp._ado.DataType)
                         {
                             case DataType.Oracle:
@@ -2409,8 +2409,7 @@ namespace FreeSql.Internal
                     Type = SelectTableInfoType.Parent,
                     Parameter = a.Parameter
                 }));
-                if (tableRule != null)
-                    select._tableRules.Add(tableRule);
+                if (tableRule != null) select._tableRules.Add(tableRule);
             }
             while (true)
             {
