@@ -48,7 +48,7 @@ namespace FreeSql.Internal
             if (_common.CodeFirst.IsSyncStructureToUpper) csname = csname.ToUpper();
             return csname;
         }
-        public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select, 
+        public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select,
             BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<string> findIncludeMany, List<Expression> findSubSelectMany, bool isAllDtoMap)
         {
             void LocalSetFieldAlias(ref int localIndex, bool isdiymemexp)
@@ -413,7 +413,7 @@ namespace FreeSql.Internal
                             };
                             parent.Childs.Add(child);
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, newExp.Arguments[a], select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
-                            if (child.CsName == null) 
+                            if (child.CsName == null)
                                 child.CsName = csname;
                         }
                     }
@@ -1337,7 +1337,7 @@ namespace FreeSql.Internal
                                             fsqltables[0].Alias = $"tb_{fsqltables.Count}";
                                             fsqltables[0].Parameter = Expression.Parameter(asSelectEntityType, fsqltables[0].Alias);
                                         }
-                                        
+
                                         var parm123Tb = _common.GetTableByEntity(asSelectParentExp.Type);
                                         var parm123Ref = parm123Tb.GetTableRef(asSelectParentExp1.Member.Name, true);
                                         if (parm123Ref != null)
@@ -2352,6 +2352,7 @@ namespace FreeSql.Internal
                         var mtmReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
                         mtmReftbname = mtmReftbname.Substring(0, mtmReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                         var midSelect = commonExp._common._orm.Select<object>().As($"M{select._tables[0].Alias}_M{mtmReftbname}").AsType(memberTbref.RefMiddleEntityType) as Select1Provider<object>;
+                        select._tableRules.ForEach(o => midSelect.AsTable(o));
                         switch (commonExp._ado.DataType)
                         {
                             case DataType.Oracle:
@@ -2383,7 +2384,7 @@ namespace FreeSql.Internal
                         {
                             var dbinfo = commonExp._common._orm.CodeFirst.GetDbInfo(memberTbref.Columns[0].CsType);
                             select.Where($"{amtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[0].Attribute.Name)} @> ARRAY[{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[0].Attribute.Name)}]::{dbinfo?.dbtype}");
-                        } 
+                        }
                         else if (memberTbref.Columns[0] == exp3Tb.Primarys[0])
                         {
                             var dbinfo = commonExp._common._orm.CodeFirst.GetDbInfo(memberTbref.RefColumns[0].CsType);
@@ -2599,7 +2600,7 @@ namespace FreeSql.Internal
                             }
                             throw throwCallExp(CoreStrings.Not_Support);
                     }
-                    Exception throwCallExp(string message) => new Exception(CoreStrings.Parsing_Failed(callExp.Method.Name,message));
+                    Exception throwCallExp(string message) => new Exception(CoreStrings.Parsing_Failed(callExp.Method.Name, message));
                 }
             }
         }
