@@ -57,14 +57,14 @@ namespace FreeSql.ClickHouse.Curd
                 {
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                    var data = ToDataTable();
                     using (var conn = _orm.Ado.MasterPool.Get())
                     {
                         using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                         {
-                            DestinationTableName = _table.DbName,
+                            DestinationTableName = data.TableName,
                             BatchSize = _source.Count
                         };
-                        var data = ToDataTable();
                         bulkCopyInterface.WriteToServerAsync(data, default).Wait();
                     }
                     return affrows;
@@ -167,14 +167,14 @@ namespace FreeSql.ClickHouse.Curd
                 {
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                    var data = ToDataTable();
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                         {
-                            DestinationTableName = _table.DbName,
+                            DestinationTableName = data.TableName,
                             BatchSize = _source.Count
                         };
-                        var data = ToDataTable();
                         await bulkCopyInterface.WriteToServerAsync(data, default);
                     }
                     return affrows;

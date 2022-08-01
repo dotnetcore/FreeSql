@@ -296,6 +296,22 @@ namespace base_entity
             Task.WaitAll(tasks.ToArray());
         }
 
+        class TreeModel
+        {
+            public int id { get; set; }
+            public int parentid { get; set; }
+            public string code { get; set; }
+
+            [Navigate(nameof(parentid))]
+            public TreeModel Parent { get; set; }
+            [Navigate(nameof(parentid))]
+            public List<TreeModel> Childs { get; set; }
+        }
+
+        class DateModel
+        {
+            public DateTime Date { get; set; }
+        }
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -345,10 +361,39 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.CodeFirst.ConfigEntity<User1>(a =>
+            {
+                a.Name("FSCHEDULER");
+            });
+
+            var dates = Enumerable.Range(0, 5)
+                .Select(a => new DateModel { Date = DateTime.Parse("2022-08-01").AddDays(a) })
+                .ToArray();
+            var datesSql1 = fsql.Select<User1>()
+                .GroupBy(a => a.CreateTime.Date)
+                .WithTempQuery(a => new
+                {
+                    date = a.Key,
+                    sum1 = a.Sum(a.Value.Nickname.Length)
+                })
+                .FromQuery(fsql.Select<DateModel>().WithMemory(dates))
+                .RightJoin((a, b) => a.date == b.Date)
+                .ToSql();
+
+
+
+            var treeSql1 = fsql.Select<TreeModel>()
+                .WhereCascade(a => a.code == "xxx")
+                .Where(a => a.id == 123)
+                .AsTreeCte()
+                .ToSql();
+
             var list = new List<User1>();
             list.Add(new User1 { Id = Guid.NewGuid() });
             list.Add(new User1 { Id = Guid.NewGuid() });
             list.Add(new User1 { Id = Guid.NewGuid() });
+
+            var listSql3 = fsql.InsertOrUpdate<User1>().IfExistsDoNothing().SetSource(list).ToSql();
 
             var listSql = fsql.Select<User1>()
                 .WithMemory(list)
