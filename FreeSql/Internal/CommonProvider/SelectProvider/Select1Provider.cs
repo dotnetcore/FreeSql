@@ -437,6 +437,15 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }
+        public ISelect<T1> WithMemory(IEnumerable<T1> source)
+        {
+            var sb = new StringBuilder();
+            (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
+                .WriteSourceSelectUnionAll(source.Select(a => (object)a).ToList(), sb, _params);
+
+            try { return WithSql(sb.ToString()); }
+            finally { sb.Clear(); }
+        }
 
         public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, TDto>> selector) => InternalWithTempQuery<TDto>(selector);
 

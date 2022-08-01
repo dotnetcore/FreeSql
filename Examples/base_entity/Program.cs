@@ -345,6 +345,25 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var list = new List<User1>();
+            list.Add(new User1 { Id = Guid.NewGuid() });
+            list.Add(new User1 { Id = Guid.NewGuid() });
+            list.Add(new User1 { Id = Guid.NewGuid() });
+
+            var listSql = fsql.Select<User1>()
+                .WithMemory(list)
+                .ToSql();
+
+            var listSql2 = fsql.Select<UserGroup>()
+                .FromQuery(fsql.Select<User1>().WithMemory(list))
+                .InnerJoin((a, b) => a.Id == b.GroupId)
+                .ToSql();
+
+            var listSql2Result = fsql.Select<UserGroup>()
+                .FromQuery(fsql.Select<User1>().WithMemory(list))
+                .InnerJoin((a, b) => a.Id == b.GroupId)
+                .ToList();
+
             var anysql01 = fsql.Select<Permission>().Where(a => a.Roles.Any(b => b.Users.Any(c => c.UserName == "admin"))).ToSql();
 
             var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))

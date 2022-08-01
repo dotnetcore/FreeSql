@@ -369,6 +369,12 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         ISelect<T1> WithSql(string sql, object parms = null);
+        /// <summary>
+        /// 实现 select .. from ( select .. UNION ALL select .. ) a 这样的功能（基于内存数据）
+        /// </summary>
+        /// <param name="source">内存数据</param>
+        /// <returns></returns>
+        ISelect<T1> WithMemory(IEnumerable<T1> source);
 
         /// <summary>
         /// 嵌套查询 select * from ( select ... from table ... ) a
