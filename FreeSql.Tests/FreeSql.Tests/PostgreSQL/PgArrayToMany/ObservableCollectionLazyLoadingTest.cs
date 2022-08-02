@@ -63,8 +63,8 @@ namespace FreeSql.Tests.PostgreSQL.PgArrayToMany
             Assert.Equal(@"SELECT a.""userid"", a.""roleids"", a.""username"" 
 FROM ""pgarray_tomany_user_observablecollection_lazyloading"" a 
 WHERE (exists(SELECT 1 
-    FROM ""pgarray_tomany_role_observablecollection_lazyloading"" b 
-    WHERE (a.""roleids"" @> ARRAY[b.""roleid""]::int4[]) AND (b.""rolename"" = 'role1') 
+    FROM ""pgarray_tomany_role_observablecollection_lazyloading"" sub_b 
+    WHERE (a.""roleids"" @> ARRAY[sub_b.""roleid""]::int4[]) AND (sub_b.""rolename"" = 'role1') 
     limit 1))", users5Select.ToSql());
             var users5 = users5Select.ToList();
             Assert.Equal(4, users5.Count);
@@ -82,8 +82,8 @@ WHERE (exists(SELECT 1
             Assert.Equal(@"SELECT a.""roleid"", a.""rolename"" 
 FROM ""pgarray_tomany_role_observablecollection_lazyloading"" a 
 WHERE (exists(SELECT 1 
-    FROM ""pgarray_tomany_user_observablecollection_lazyloading"" b 
-    WHERE (b.""roleids"" @> ARRAY[a.""roleid""]::int4[]) AND (b.""username"" = 'user1') 
+    FROM ""pgarray_tomany_user_observablecollection_lazyloading"" sub_b 
+    WHERE (sub_b.""roleids"" @> ARRAY[a.""roleid""]::int4[]) AND (sub_b.""username"" = 'user1') 
     limit 1))", roles5Select.ToSql());
             var roles5 = roles5Select.ToList();
             Assert.Equal(2, roles5.Count);

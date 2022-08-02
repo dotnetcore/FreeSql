@@ -1143,8 +1143,8 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             });
             Assert.Equal(@"SELECT a.""Id"" as1, ifnull((SELECT max(a.""Guid"") 
     FROM ""TestTypeInfo_01"" a), 0) as2, exists(SELECT 1 
-    FROM ""TestTypeInfo_01"" b 
-    WHERE (b.""ParentId"" = a.""Id"") AND (b.""Name"" = 'xx') 
+    FROM ""TestTypeInfo_01"" sub_b 
+    WHERE (sub_b.""ParentId"" = a.""Id"") AND (sub_b.""Name"" = 'xx') 
     limit 0,1) as3, exists(SELECT 1 
     FROM ""TestTypeInfo_01"" b 
     WHERE (b.""Name"" = 'xx') AND (b.""ParentId"" = a.""Id"") 

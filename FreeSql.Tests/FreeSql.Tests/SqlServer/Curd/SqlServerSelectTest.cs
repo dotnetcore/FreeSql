@@ -850,6 +850,13 @@ WHERE (((a.[Name]) in (SELECT s.[Title] as1
                 .Any()
                 ).Any()
             ).ToList();
+
+            var sqlAliasA = select.Where(p => select.Where(a => a.Id == p.Id).Any()).ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [tb_topic22] sub_a 
+    WHERE (sub_a.[Id] = a.[Id])))", sqlAliasA);
         }
         [Fact]
         public void GroupBy()
