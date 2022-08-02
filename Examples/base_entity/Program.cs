@@ -753,62 +753,65 @@ namespace base_entity
             }).Where(a => a.ConcurrentDictionarys.Length > 0).ToArray();
 
             #region pgsql poco
-            //            fsql.Aop.ParseExpression += (_, e) =>
+            //fsql.Aop.ParseExpression += (_, e) =>
+            //{
+            //    //解析 POCO Jsonb   a.Customer.Name
+            //    if (e.Expression is MemberExpression memExp)
+            //    {
+            //        var parentMemExps = new Stack<MemberExpression>();
+            //        parentMemExps.Push(memExp);
+            //        while (true)
+            //        {
+            //            switch (memExp.Expression.NodeType)
             //            {
-            //                //解析 POCO Jsonb   a.Customer.Name
-            //                if (e.Expression is MemberExpression memExp)
-            //                {
-            //                    var parentMemExps = new Stack<MemberExpression>();
+            //                case ExpressionType.MemberAccess:
+            //                    memExp = memExp.Expression as MemberExpression;
+            //                    if (memExp == null) return;
             //                    parentMemExps.Push(memExp);
-            //                    while (true)
+            //                    break;
+            //                case ExpressionType.Parameter:
+            //                    var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
+            //                    if (tb == null) return;
+            //                    if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
+            //                    if (new[] { typeof(JToken), typeof(JObject), typeof(JArray) }.Contains(trycol.Attribute.MapType.NullableTypeOrThis()) == false) return;
+            //                    var tmpcol = tb.ColumnsByPosition.OrderBy(a => a.Attribute.Name.Length).First();
+            //                    var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[tmpcol.CsName]));
+            //                    result = result.Replace(tmpcol.Attribute.Name, trycol.Attribute.Name);
+            //                    while (parentMemExps.Any())
             //                    {
-            //                        switch (memExp.Expression.NodeType)
-            //                        {
-            //                            case ExpressionType.MemberAccess:
-            //                                memExp = memExp.Expression as MemberExpression;
-            //                                if (memExp == null) return;
-            //                                parentMemExps.Push(memExp);
-            //                                break;
-            //                            case ExpressionType.Parameter:
-            //                                var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
-            //                                if (tb == null) return;
-            //                                if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
-            //                                if (new[] { typeof(JToken), typeof(JObject), typeof(JArray) }.Contains(trycol.Attribute.MapType.NullableTypeOrThis()) == false) return;
-            //                                var tmpcol = tb.ColumnsByPosition.OrderBy(a => a.Attribute.Name.Length).First();
-            //                                var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[tmpcol.CsName]));
-            //                                result = result.Replace(tmpcol.Attribute.Name, trycol.Attribute.Name);
-            //                                while (parentMemExps.Any())
-            //                                {
-            //                                    memExp = parentMemExps.Pop();
-            //                                    result = $"{result}->>'{memExp.Member.Name}'";
-            //                                }
-            //                                e.Result = result;
-            //                                return;
-            //                        }
+            //                        memExp = parentMemExps.Pop();
+            //                        result = $"{result}->>'{memExp.Member.Name}'";
             //                    }
-            //                }
-            //            };
+            //                    e.Result = result;
+            //                    return;
+            //            }
+            //        }
+            //    }
+            //};
 
-            //            var methodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
-            //            var methodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
-            //            var jsonConvertSettings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
-            //            FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Customer)] = true;
-            //            FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
-            //            {
-            //                return Expression.IfThenElse(
-            //                    Expression.TypeIs(valueExp, typeof(Customer)),
-            //                    Expression.Return(returnTarget, Expression.Call(methodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(jsonConvertSettings)), typeof(object)),
-            //                    elseExp);
-            //            });
-            //            FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
-            //            {
-            //                if (type == typeof(Customer)) return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(methodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type));
-            //                return null;
-            //            });
+            //void RegisterPocoType(Type pocoType)
+            //{
+            //    var methodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
+            //    var methodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
+            //    var jsonConvertSettings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
+            //    FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple[pocoType] = true;
+            //    FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
+            //    {
+            //        return Expression.IfThenElse(
+            //            Expression.TypeIs(valueExp, pocoType),
+            //            Expression.Return(returnTarget, Expression.Call(methodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(jsonConvertSettings)), typeof(object)),
+            //            elseExp);
+            //    });
+            //    FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
+            //    {
+            //        if (type == pocoType) return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(methodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type));
+            //        return null;
+            //    });
+            //}
 
-            //            var seid = fsql.Insert(new SomeEntity
-            //            {
-            //                Customer = JsonConvert.DeserializeObject<Customer>(@"{
+            //var seid = fsql.Insert(new SomeEntity
+            //{
+            //    Customer = JsonConvert.DeserializeObject<Customer>(@"{
             //    ""Age"": 25,
             //    ""Name"": ""Joe"",
             //    ""Orders"": [
@@ -816,12 +819,12 @@ namespace base_entity
             //        { ""OrderPrice"": 23, ""ShippingAddress"": ""Some address 2"" }
             //    ]
             //}")
-            //            }).ExecuteIdentity();
-            //            var selist = fsql.Select<SomeEntity>().ToList();
+            //}).ExecuteIdentity();
+            //var selist = fsql.Select<SomeEntity>().ToList();
 
-            //            var joes = fsql.Select<SomeEntity>()
-            //                .Where(e => e.Customer.Name == "Joe")
-            //                .ToSql();
+            //var joes = fsql.Select<SomeEntity>()
+            //    .Where(e => e.Customer.Name == "Joe")
+            //    .ToSql();
             #endregion
 
             var testitems = new[]

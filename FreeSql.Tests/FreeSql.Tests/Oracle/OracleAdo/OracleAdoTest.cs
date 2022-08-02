@@ -1,5 +1,6 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace FreeSql.Tests.Oracle
@@ -55,6 +56,7 @@ namespace FreeSql.Tests.Oracle
             var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
 
             var t6 = g.oracle.Ado.Query<xxx>("select * from TB_TOPIC where id in :ids", new { ids = new[] { 1, 2, 3 } });
+            var t7 = g.oracle.Ado.Query<xxx>("select * from TB_TOPIC where id in :ids", new { ids = new List<int>(new[] { 1, 2, 3 }) });
         }
 
         [Fact]
