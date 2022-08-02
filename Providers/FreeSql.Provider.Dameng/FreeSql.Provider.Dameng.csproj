@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+		<TargetFrameworks>netcoreapp31;netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 达梦数据库 Ado.net (DmProvider)</Description>
@@ -20,6 +20,7 @@
 	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 		<None Include="lib\DmProvider\netstandard2.0\DmProvider.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
+		<None Include="lib\DmProvider\netcoreapp31\DmProvider.dll" Pack="true" PackagePath="\lib\netcoreapp31\" />
 		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
 		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib/**/*.dll">
