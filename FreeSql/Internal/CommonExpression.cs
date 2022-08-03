@@ -2347,7 +2347,13 @@ namespace FreeSql.Internal
             void LocalSetSelectProviderAlias(string alias)
             {
                 if (selectSetAliased) return;
-                if (new[] { "a", "b", "c", "d" }.Contains(alias)) alias = $"sub_{alias}";
+                if (alias.Length == 1)
+                {
+                    //if (new[] { "a", "b", "c", "d" }.Contains(alias)) alias = $"sub_{alias}";
+                    var aliasAscii = (int)alias[0];
+                    if (Enumerable.Range(97, 5).Any(a => a == aliasAscii)) 
+                        alias = $"sub_{alias}";
+                }
                 selectSetAliased = true;
                 select._tables[0].Alias = alias;
                 select._tables[0].AliasInit = alias;
