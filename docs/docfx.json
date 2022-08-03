@@ -39,18 +39,23 @@
       "src": [
         {
           "files": [
-            "Providers/FreeSql.Provider.MySql/*.csproj",
+            "Providers/FreeSql.Provider.ClickHouse/*.csproj",
             "Providers/FreeSql.Provider.Dameng/*.csproj",
+            "Providers/FreeSql.Provider.Custom/*.csproj",
+            "Providers/FreeSql.Provider.Firebird/*.csproj",
+            "Providers/FreeSql.Provider.GBase/*.csproj",
             "Providers/FreeSql.Provider.KingbaseES/*.csproj",
             "Providers/FreeSql.Provider.MsAccess/*.csproj",
+            "Providers/FreeSql.Provider.MySql/*.csproj",
             "Providers/FreeSql.Provider.MySqlConnector/*.csproj",
             "Providers/FreeSql.Provider.Odbc/*.csproj",
             "Providers/FreeSql.Provider.Oracle/*.csproj",
             "Providers/FreeSql.Provider.PostgreSQL/*.csproj",
             "Providers/FreeSql.Provider.ShenTong*.csproj",
-            "Providers/FreeSql.Provider.Sqlite/*.csproj",
             "Providers/FreeSql.Provider.SqlServer/*.csproj",
-            "Providers/FreeSql.Provider.SqlServerForSystem/*.csproj"
+            "Providers/FreeSql.Provider.SqlServerForSystem/*.csproj",
+            "Providers/FreeSql.Provider.Sqlite/*.csproj",
+            "Providers/FreeSql.Provider.SqliteCore/*.csproj"
           ],
           "exclude": [
             "**/bin/**",
