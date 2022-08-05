@@ -2250,6 +2250,12 @@ FROM ""TestTypeParentInfo_01"" a", asTableSubSql);
             Assert.Equal(2, g.sqlite.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ExecuteAffrows());
             Assert.Equal(5, g.sqlite.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.sqlite.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
+
+            var sql = g.sqlite.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").Set(a => a.pk3, "pk3?").ToSql();
+            Assert.Equal(@"UPDATE ""ToUpd3Pk"" SET ""name"" = @p_0, ""pk3"" = @p_1 
+WHERE (""pk1"" || ',ftb_upd,' || ""pk2"" || ',ftb_upd,' || ""pk3"" in (select * from (SELECT a.""pk1"" || ',ftb_upd,' || a.""pk2"" || ',ftb_upd,' || a.""pk3"" as as1 
+FROM ""ToUpd3Pk"" a 
+WHERE ((a.""name"") LIKE 'name%')) ftb_upd))", sql);
         }
 
         [Fact]
