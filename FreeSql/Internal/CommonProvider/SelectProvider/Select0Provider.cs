@@ -322,7 +322,14 @@ namespace FreeSql.Internal.CommonProvider
         internal Select0Provider SetSameSelectPendingShareData(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
             _SameSelectPendingShareData = data;
-            _SameSelectPendingShareData?.ForEach(a => _params.AddRange(a?.Item2 ?? new DbParameter[0]));
+            //_SameSelectPendingShareData?.ForEach(a => _params.AddRange(a?.Item2 ?? new DbParameter[0])); #1205 SqlServer BUG 参数化重复
+            if (_SameSelectPendingShareData?.Any() == true)
+            {
+                var last = _SameSelectPendingShareData.Last();
+                if (last == null && _SameSelectPendingShareData.Count > 1) last = _SameSelectPendingShareData[_SameSelectPendingShareData.Count - 2];
+                if (last != null) 
+                    _params.AddRange(last.Item2 ?? new DbParameter[0]);
+            }
             return this;
         }
         internal bool SameSelectPending(ref string sql, ReadAnonymousTypeOtherInfo csspsod)

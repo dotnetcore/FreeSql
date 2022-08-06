@@ -79,16 +79,6 @@
             软删除
             </summary>
         </member>
-        <member name="P:base_entity.Role.Users">
-            <summary>
-            关联的用户集合
-            </summary>
-        </member>
-        <member name="P:base_entity.Role.Permissions">
-            <summary>
-            关联的权限集合
-            </summary>
-        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

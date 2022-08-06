@@ -361,10 +361,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            fsql.CodeFirst.ConfigEntity<User1>(a =>
-            {
-                a.Name("FSCHEDULER");
-            });
+            InitData();
+            InitData();
 
             var dates = Enumerable.Range(0, 5)
                 .Select(a => new DateModel { Date = DateTime.Parse("2022-08-01").AddDays(a) })
@@ -409,7 +407,6 @@ namespace base_entity
                 .InnerJoin((a, b) => a.Id == b.GroupId)
                 .ToList();
 
-            var anysql01 = fsql.Select<Permission>().Where(a => a.Roles.Any(b => b.Users.Any(c => c.UserName == "admin"))).ToSql();
 
             var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
                 .AsTableImpl;
@@ -613,6 +610,8 @@ namespace base_entity
             sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
             var tinc01 = fsql.Select<UserGroup>().IncludeMany(a => a.User1s.Where(b => b.GroupId == a.Id)).ToList();
+
+            fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
             var tsub01 = fsql.Select<UserGroup>()
                 .ToList(a => new
                 {
@@ -1200,6 +1199,16 @@ namespace base_entity
             //fsql.Aop.ConfigEntityProperty += ConfigEntityProperty;
 
 
+            
+
+            
+
+            Console.WriteLine("按任意键结束。。。");
+            Console.ReadKey();
+        }
+
+        static void InitData()
+        {
             Task.Run(async () =>
             {
                 using (var uow = BaseEntity.Orm.CreateUnitOfWork())
@@ -1254,31 +1263,26 @@ namespace base_entity
 
                 var ug1s2 = UserGroup.Select.Where(a => a.User1s.AsSelect().Any(b => b.Nickname == "x1")).Limit(10).ToList();
 
-                //var r1 = new Role();
-                //r1.Id = "管理员";
-                //await r1.SaveAsync();
+                var r1 = new Role();
+                r1.Id = "管理员";
+                await r1.SaveAsync();
 
-                //var r2 = new Role();
-                //r2.Id = "超级会员";
-                //await r2.SaveAsync();
+                var r2 = new Role();
+                r2.Id = "超级会员";
+                await r2.SaveAsync();
 
-                //var ru1 = new RoleUser1();
-                //ru1.User1Id = u1.Id;
-                //ru1.RoleId = r1.Id;
-                //await ru1.SaveAsync();
+                var ru1 = new RoleUser1();
+                ru1.User1Id = u1.Id;
+                ru1.RoleId = r1.Id;
+                await ru1.SaveAsync();
 
-                //ru1.RoleId = r2.Id;
-                //await ru1.SaveAsync();
+                ru1.RoleId = r2.Id;
+                await ru1.SaveAsync();
 
                 var u1roles = await User1.Select.IncludeMany(a => a.Roles).ToListAsync();
                 var u1roles2 = await User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToListAsync();
 
             }).Wait();
-
-            
-
-            Console.WriteLine("按任意键结束。。。");
-            Console.ReadKey();
         }
 
         public static List<T1> ToListIgnore<T1>(this ISelect<T1> that, Expression<Func<T1, object>> selector)
@@ -1323,120 +1327,6 @@ namespace base_entity
                 return node;
             }
         }
-    }
-
-    [Table(Name = "t_user")]
-    public partial class User
-    {
-        [Column(IsPrimary = true)]
-        public string User_id { get; set; }
-
-        [Column(IsNullable = false)]
-        public string UserName { get; set; }
-
-        [Column(IsNullable = false)]
-        public string UserPassword { get; set; }
-
-        public DateTime? CreateDate { get; set; }
-
-        public DateTime? ModifyDate { get; set; }
-
-
-        #region 外键 => 导航属性，ManyToMany
-
-        [Navigate(ManyToMany = typeof(user_role))]
-        public List<Role> Roles { get; set; }
-
-
-        #endregion
-    }
-
-    [Table(Name = "t_role")]
-    public partial class Role
-    {
-
-        [Column(IsPrimary = true)]
-        public int ID { get; set; }
-
-        [Column(IsNullable = false)]
-        public string Rolename { get; set; }
-
-        [Column(DbType = "NTEXT")]
-        public string Description { get; set; }
-
-        #region 外键 => 导航属性，ManyToMany
-        /// <summary>
-        /// 关联的用户集合
-        /// </summary>
-        [Navigate(ManyToMany = typeof(user_role))]
-        public List<User> Users { get; set; }
-        /// <summary>
-        /// 关联的权限集合
-        /// </summary>
-        [Navigate(ManyToMany = typeof(role_permission))]
-        public List<Permission> Permissions { get; set; }
-
-        #endregion
-
-
-    }
-
-    [Table(Name = "t_permission")]
-    public partial class Permission
-    {
-
-        [Column(IsPrimary = true)]
-        public int ID { get; set; }
-        public string PermissionName { get; set; }
-
-        [Column(DbType = "NTEXT")]
-        public string Description { get; set; }
-
-
-        #region 外键 => 导航属性，ManyToMany
-
-        [Navigate(ManyToMany = typeof(role_permission))]
-        public List<Role> Roles { get; set; }
-
-        #endregion
-    }
-
-
-    [Table(Name = "user_role")]
-    public partial class user_role
-    {
-        [Column(IsPrimary = true)]
-        public string User_id { get; set; }
-
-        [Column(IsPrimary = true)]
-        public int Role_id { get; set; }
-
-
-        #region 外键 => 导航属性，ManyToMany
-        [Navigate(nameof(User_id))]
-        public User user { get; set; }
-        [Navigate(nameof(Role_id))]
-        public Role role { get; set; }
-
-        #endregion
-    }
-
-    [Table(Name = "role_permission")]
-    public partial class role_permission
-    {
-        [Column(IsPrimary = true)]
-        public int Role_id { get; set; }
-
-        [Column(IsPrimary = true)]
-        public int Permission_id { get; set; }
-
-
-        #region 外键 => 导航属性，ManyToMany
-        [Navigate(nameof(Role_id))]
-        public Role role { get; set; }
-        [Navigate(nameof(Permission_id))]
-        public Permission permission { get; set; }
-        #endregion
     }
 
 }
