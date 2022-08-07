@@ -41,11 +41,6 @@
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
 	  </Compile>
-	  <Compile Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>ISelect2`16.tt</DependentUpon>
-	  </Compile>
 	  <Compile Update="Properties\CoreStrings.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
