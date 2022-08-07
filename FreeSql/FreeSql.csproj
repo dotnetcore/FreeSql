@@ -10,7 +10,6 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
-		<PackageId>$(AssemblyName)</PackageId>
 		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
@@ -41,6 +40,11 @@
 	    <DependentUpon>Select1Provider2`16.tt</DependentUpon>
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
+	  </Compile>
+	  <Compile Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>ISelect2`16.tt</DependentUpon>
 	  </Compile>
 	  <Compile Update="Properties\CoreStrings.Designer.cs">
 	    <DesignTime>True</DesignTime>
