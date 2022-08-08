@@ -1012,7 +1012,7 @@ namespace FreeSql.Internal.CommonProvider
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}-01-01").AddYears(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00:00").AddHours(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?:\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00").AddMinutes(1).ToString("yyyy-MM-dd HH:mm:ss");
-                            else throw new ArgumentException(CoreStrings.DateRange_DateFormat_yyyy);
+                            else if (!Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?:\d\d?:\d\d?$")) throw new ArgumentException(CoreStrings.DateRange_DateFormat_yyyy);
 
                             if (Regex.IsMatch(fiValueDateRangeArray[0], @"^\d\d\d\d[\-/]\d\d?$")) fiValueDateRangeArray[0] = DateTime.Parse($"{fiValueDateRangeArray[0]}-01").ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[0], @"^\d\d\d\d$")) fiValueDateRangeArray[0] = DateTime.Parse($"{fiValueDateRangeArray[0]}-01-01").ToString("yyyy-MM-dd HH:mm:ss");
@@ -1040,7 +1040,12 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var fiValueList = new List<string>();
                             foreach (var fiValueIeItem in fiValueIe)
-                                fiValueList.Add(string.Concat(fiValueIeItem));
+                            {
+                                if (fiValueIeItem is DateTime fiValueIeItemDateTime)
+                                    fiValueList.Add(fiValueIeItemDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                                else
+                                    fiValueList.Add(string.Concat(fiValueIeItem));
+                            }
                             return fiValueList.ToArray();
                         }
                         var fiValueType = fi.Value.GetType();
@@ -1052,7 +1057,12 @@ namespace FreeSql.Internal.CommonProvider
                                 fiValueIe = fiValueType.GetMethod("EnumerateArray", new Type[0])?.Invoke(fi.Value, null) as IEnumerable;
                                 var fiValueList = new List<string>();
                                 foreach (var fiValueIeItem in fiValueIe)
-                                    fiValueList.Add(string.Concat(fiValueIeItem));
+                                {
+                                    if (fiValueIeItem is DateTime fiValueIeItemDateTime)
+                                        fiValueList.Add(fiValueIeItemDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                                    else
+                                        fiValueList.Add(string.Concat(fiValueIeItem));
+                                }
                                 return fiValueList.ToArray();
                             }
                             return fi.Value.ToString().Split(',');
