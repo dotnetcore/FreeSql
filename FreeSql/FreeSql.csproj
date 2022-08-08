@@ -10,7 +10,6 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
-		<PackageId>$(AssemblyName)</PackageId>
 		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
