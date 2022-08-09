@@ -312,6 +312,11 @@ namespace base_entity
         {
             public DateTime Date { get; set; }
         }
+        record TestClass(string Name)
+        {
+            public Guid Id { get; set; }
+            public string[] Tags { get; init; } = Array.Empty<string>();
+        }
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -360,6 +365,23 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+
+            fsql.UseJsonMap();
+
+            fsql.CodeFirst.ConfigEntity<TestClass>(cf =>
+            {
+	            cf.Property(p => p.Name).IsNullable(false);
+	            cf.Property(p => p.Tags).JsonMap();
+            });
+
+            fsql.Insert(new TestClass("test 1")
+            {
+                Tags = new[] { "a", "b" },
+            })
+            .ExecuteAffrows();
+            var records = fsql.Queryable<TestClass>().ToList();
+
 
             InitData();
             InitData();

@@ -2018,9 +2018,9 @@ namespace FreeSql.Internal
         {
             var returnTarget = Expression.Label(typeof(object));
             var valueExp = Expression.Variable(typeof(object), "locvalue");
-            Func<Expression> funcGetExpression = () =>
+            Expression LocalFuncGetExpression(bool ignoreArray = false)
             {
-                if (type.IsArray)
+                if (!ignoreArray && type.IsArray)
                 {
                     switch (type.FullName)
                     {
@@ -2059,33 +2059,37 @@ namespace FreeSql.Internal
                     return Expression.IfThenElse(
                         Expression.TypeEqual(valueExp, type),
                         Expression.Return(returnTarget, valueExp),
-                        Expression.Block(
-                            new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
-                            Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
-                            Expression.IfThenElse(
-                                Expression.Equal(arrExp, Expression.Constant(null)),
-                                Expression.Assign(arrLenExp, Expression.Constant(0)),
-                                Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
-                            ),
-                            Expression.Assign(arrXExp, Expression.Constant(0)),
-                            Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
-                            Expression.Loop(
+                        Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, typeof(string)), //JSON
+                            LocalFuncGetExpression(true),
+                            Expression.Block(
+                                new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
+                                Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
                                 Expression.IfThenElse(
-                                    Expression.LessThan(arrXExp, arrLenExp),
-                                    Expression.Block(
-                                        Expression.Assign(arrReadValExp, GetDataReaderValueBlockExpression(elementType, Expression.Call(arrExp, MethodArrayGetValue, arrXExp))),
-                                        Expression.IfThenElse(
-                                            Expression.Equal(arrReadValExp, Expression.Constant(null)),
-                                            Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Default(elementType)),
-                                            Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Convert(arrReadValExp, elementType))
-                                        ),
-                                        Expression.PostIncrementAssign(arrXExp)
-                                    ),
-                                    Expression.Break(label, arrXExp)
+                                    Expression.Equal(arrExp, Expression.Constant(null)),
+                                    Expression.Assign(arrLenExp, Expression.Constant(0)),
+                                    Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
                                 ),
-                                label
-                            ),
-                            Expression.Return(returnTarget, arrNewExp)
+                                Expression.Assign(arrXExp, Expression.Constant(0)),
+                                Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
+                                Expression.Loop(
+                                    Expression.IfThenElse(
+                                        Expression.LessThan(arrXExp, arrLenExp),
+                                        Expression.Block(
+                                            Expression.Assign(arrReadValExp, GetDataReaderValueBlockExpression(elementType, Expression.Call(arrExp, MethodArrayGetValue, arrXExp))),
+                                            Expression.IfThenElse(
+                                                Expression.Equal(arrReadValExp, Expression.Constant(null)),
+                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Default(elementType)),
+                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Convert(arrReadValExp, elementType))
+                                            ),
+                                            Expression.PostIncrementAssign(arrXExp)
+                                        ),
+                                        Expression.Break(label, arrXExp)
+                                    ),
+                                    label
+                                ),
+                                Expression.Return(returnTarget, arrNewExp)
+                            )
                         )
                     );
                 }
@@ -2387,7 +2391,7 @@ namespace FreeSql.Internal
                         Expression.Equal(valueExp, Expression.Constant(DBNull.Value))
                     ),
                     Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                    funcGetExpression()
+                    LocalFuncGetExpression()
                 ),
                 Expression.Label(returnTarget, Expression.Default(typeof(object)))
             );
