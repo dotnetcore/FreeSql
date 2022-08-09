@@ -156,6 +156,9 @@ namespace FreeSql.Tests.Sqlite
             sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"tb_topic\" SET \"Clicks\" = ifnull(\"Clicks\", 0) * 10 / 1 WHERE (\"Id\" = 1)", sql);
 
+            sql = update.Set(a => a.Title + "xxxx").Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = ifnull(\"Title\", '') || 'xxxx' WHERE (\"Id\" = 1)", sql);
+
             sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = (\"Id\" - 10) WHERE (\"Id\" = 1)", sql);
 
