@@ -8,9 +8,12 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 	</PropertyGroup>
 
+	<!--
+	经常出于版本交叉问题，暂时关闭，在每个项目上设置版本号
 	<PropertyGroup>
-		<Version>3.2.666-preview20220810</Version>
+		<Version>3.2.666-preview20220811</Version>
 	</PropertyGroup>
+	-->
 	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
