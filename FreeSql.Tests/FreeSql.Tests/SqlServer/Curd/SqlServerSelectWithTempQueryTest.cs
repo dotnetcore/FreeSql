@@ -59,6 +59,40 @@ WHERE (a.[rownum] = 1)";
             Assert.Equal(list01[2].item.Nickname, "name03");
 
 
+            var sql011 = fsql.Select<SingleTablePartitionBy_User>()
+                .GroupBy(a => a.Nickname)
+                .WithTempQuery(g => new { min = g.Min(g.Value.Id) })
+                .From<SingleTablePartitionBy_User>()
+                .InnerJoin((a, b) => a.min == b.Id)
+                .ToSql((a, b) => new { item1 = a, item2 = b });
+            var assertSql011 = @"SELECT a.[min] as1, b.[Id] as2, b.[Nickname] as3 
+FROM ( 
+    SELECT min(a.[Id]) [min] 
+    FROM [SingleTablePartitionBy_User] a 
+    GROUP BY a.[Nickname] ) a 
+INNER JOIN [SingleTablePartitionBy_User] b ON a.[min] = b.[Id]";
+            Assert.Equal(assertSql011, sql011);
+
+            var sel011 = fsql.Select<SingleTablePartitionBy_User>()
+                .GroupBy(a => a.Nickname)
+                .WithTempQuery(g => new { min = g.Min(g.Value.Id) })
+                .From<SingleTablePartitionBy_User>()
+                .InnerJoin((a, b) => a.min == b.Id);
+            Assert.Equal(assertSql011, sel011.ToSql((a, b) => new { item1 = a, item2 = b }));
+
+            var list011 = sel011.ToList((a, b) => new { item1 = a, item2 = b });
+            Assert.Equal(3, list011.Count);
+            Assert.Equal(list011[0].item1.min, 1);
+            Assert.Equal(list011[0].item2.Id, 1);
+            Assert.Equal(list011[0].item2.Nickname, "name01");
+            Assert.Equal(list011[1].item1.min, 4);
+            Assert.Equal(list011[1].item2.Id, 4);
+            Assert.Equal(list011[1].item2.Nickname, "name02");
+            Assert.Equal(list011[2].item1.min, 5);
+            Assert.Equal(list011[2].item2.Id, 5);
+            Assert.Equal(list011[2].item2.Nickname, "name03");
+
+
             var sql02 = fsql.Select<SingleTablePartitionBy_User>()
                 .WithTempQuery(a => new
                 {
