@@ -149,6 +149,11 @@
             用户
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._1208.DoorDeviceEntity02.Users">
+            <summary>
+            用户
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
             <summary>
             收款金额

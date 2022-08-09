@@ -1241,14 +1241,8 @@ namespace FreeSql.Internal
                                         }
                                         if (tsc.whereGlobalFilter != null)
                                         {
-                                            if (tsc.whereGlobalFilter.Any() == false)
-                                                fsqlSelect0._whereGlobalFilter.Clear();
-                                            else
-                                            {
-                                                var fsqlGlobalFilter = fsqlSelect0._whereGlobalFilter;
-                                                if (fsqlGlobalFilter != tsc.whereGlobalFilter)
-                                                    fsqlGlobalFilter.AddRange(tsc.whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
-                                            }
+                                            fsqlSelect0._whereGlobalFilter.Clear();
+                                            if (tsc.whereGlobalFilter.Any()) fsqlSelect0._whereGlobalFilter.AddRange(tsc.whereGlobalFilter);
                                         }
                                     }
                                     else if (fsqlType != null)
@@ -2375,14 +2369,8 @@ namespace FreeSql.Internal
                         if (tableRule != null) midSelect._tableRules.Add(tableRule);
                         if (whereGlobalFilter != null)
                         {
-                            if (whereGlobalFilter.Any() == false)
-                                midSelect._whereGlobalFilter.Clear();
-                            else
-                            {
-                                var fsqlGlobalFilter = midSelect._whereGlobalFilter;
-                                if (fsqlGlobalFilter != whereGlobalFilter)
-                                    fsqlGlobalFilter.AddRange(whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
-                            }
+                            midSelect._whereGlobalFilter.Clear();
+                            if (whereGlobalFilter.Any()) midSelect._whereGlobalFilter.AddRange(whereGlobalFilter);
                         }
                         switch (commonExp._ado.DataType)
                         {
@@ -2443,14 +2431,8 @@ namespace FreeSql.Internal
                 if (tableRule != null) select._tableRules.Add(tableRule);
                 if (whereGlobalFilter != null)
                 {
-                    if (whereGlobalFilter.Any() == false)
-                        select._whereGlobalFilter.Clear();
-                    else
-                    {
-                        var fsqlGlobalFilter = select._whereGlobalFilter;
-                        if (fsqlGlobalFilter != whereGlobalFilter)
-                            fsqlGlobalFilter.AddRange(whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
-                    }
+                    select._whereGlobalFilter.Clear();
+                    if (whereGlobalFilter.Any()) select._whereGlobalFilter.AddRange(whereGlobalFilter);
                 }
             }
             while (true)
