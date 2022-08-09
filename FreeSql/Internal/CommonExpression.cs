@@ -878,7 +878,7 @@ namespace FreeSql.Internal
                     _common._orm.Aop.ParseExpressionHandler(this, args);
                     if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
                 }
-                ParseExpressionNoAsSelect(this, args, tsc._tableRule);
+                ParseExpressionNoAsSelect(this, args, tsc._tableRule, tsc.whereGlobalFilter);
                 if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
             }
             switch (exp.NodeType)
@@ -1239,11 +1239,16 @@ namespace FreeSql.Internal
                                                 }));
                                             }
                                         }
-                                        if (tsc.whereGlobalFilter?.Any() == true)
+                                        if (tsc.whereGlobalFilter != null)
                                         {
-                                            var fsqlGlobalFilter = fsqlSelect0._whereGlobalFilter;
-                                            if (fsqlGlobalFilter != tsc.whereGlobalFilter)
-                                                fsqlGlobalFilter.AddRange(tsc.whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
+                                            if (tsc.whereGlobalFilter.Any() == false)
+                                                fsqlSelect0._whereGlobalFilter.Clear();
+                                            else
+                                            {
+                                                var fsqlGlobalFilter = fsqlSelect0._whereGlobalFilter;
+                                                if (fsqlGlobalFilter != tsc.whereGlobalFilter)
+                                                    fsqlGlobalFilter.AddRange(tsc.whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
+                                            }
                                         }
                                     }
                                     else if (fsqlType != null)
@@ -1495,7 +1500,16 @@ namespace FreeSql.Internal
                                                             return $"({sql3.Replace(" \r\n", " \r\n    ")})";
                                                     }
                                                     asSelectBefores.Clear();
-                                                    return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);
+                                                    var tscwhereGlobalFilter = tsc.whereGlobalFilter;
+                                                    try
+                                                    {
+                                                        tsc.whereGlobalFilter = fsqlSelect0._whereGlobalFilter; //ManyToMany 中间表过滤器
+                                                        return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);
+                                                    }
+                                                    finally
+                                                    {
+                                                        tsc.whereGlobalFilter = tscwhereGlobalFilter;
+                                                    }
                                                 }
                                                 for (var mn = 0; mn < parm123Ref.Columns.Count; mn++)
                                                 {
@@ -2280,7 +2294,7 @@ namespace FreeSql.Internal
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
 
-        public static void ParseExpressionNoAsSelect(object sender, Aop.ParseExpressionEventArgs e, Func<Type, string, string> tableRule)
+        public static void ParseExpressionNoAsSelect(object sender, Aop.ParseExpressionEventArgs e, Func<Type, string, string> tableRule, List<GlobalFilter.Item> whereGlobalFilter)
         {
             if (e.Expression.NodeType != ExpressionType.Call &&
                 (e.Expression as MemberExpression)?.Member.Name != "Count") return;
@@ -2359,6 +2373,17 @@ namespace FreeSql.Internal
                         mtmReftbname = mtmReftbname.Substring(0, mtmReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                         var midSelect = commonExp._common._orm.Select<object>().As($"M{select._tables[0].Alias}_M{mtmReftbname}").AsType(memberTbref.RefMiddleEntityType) as Select1Provider<object>;
                         if (tableRule != null) midSelect._tableRules.Add(tableRule);
+                        if (whereGlobalFilter != null)
+                        {
+                            if (whereGlobalFilter.Any() == false)
+                                midSelect._whereGlobalFilter.Clear();
+                            else
+                            {
+                                var fsqlGlobalFilter = midSelect._whereGlobalFilter;
+                                if (fsqlGlobalFilter != whereGlobalFilter)
+                                    fsqlGlobalFilter.AddRange(whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
+                            }
+                        }
                         switch (commonExp._ado.DataType)
                         {
                             case DataType.Oracle:
@@ -2416,6 +2441,17 @@ namespace FreeSql.Internal
                     Parameter = a.Parameter
                 }));
                 if (tableRule != null) select._tableRules.Add(tableRule);
+                if (whereGlobalFilter != null)
+                {
+                    if (whereGlobalFilter.Any() == false)
+                        select._whereGlobalFilter.Clear();
+                    else
+                    {
+                        var fsqlGlobalFilter = select._whereGlobalFilter;
+                        if (fsqlGlobalFilter != whereGlobalFilter)
+                            fsqlGlobalFilter.AddRange(whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
+                    }
+                }
             }
             while (true)
             {
