@@ -669,8 +669,9 @@ namespace FreeSql.Internal
 
         public static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool, int minPoolSize)
         {
-            if (minPoolSize <= 0) minPoolSize = Math.Min(5, pool.Policy.PoolSize);
-            if (minPoolSize > pool.Policy.PoolSize) minPoolSize = pool.Policy.PoolSize;
+            var maxPoolSize = pool.Policy.PoolSize - 1;
+            if (minPoolSize <= 0) minPoolSize = Math.Min(5, maxPoolSize);
+            if (minPoolSize > maxPoolSize) minPoolSize = maxPoolSize;
             var initTestOk = true;
             var initStartTime = DateTime.Now;
             var initConns = new ConcurrentBag<Object<DbConnection>>();
