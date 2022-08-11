@@ -637,9 +637,7 @@ FROM (
         SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
         FROM [TwoTablePartitionBy_User] a ) a 
     WHERE (a.[rownum] = 1) ) a 
-INNER JOIN ( 
-    SELECT a.[UserId], a.[Remark] 
-    FROM [TwoTablePartitionBy_UserExt] a) b ON a.[Id] = b.[UserId] 
+INNER JOIN [TwoTablePartitionBy_UserExt] b ON a.[Id] = b.[UserId] 
 WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
             Assert.Equal(sql07, assertSql07);
             var list07 = fsql.Select<TwoTablePartitionBy_User>()

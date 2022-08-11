@@ -133,8 +133,12 @@ namespace FreeSql.Internal.CommonProvider
             (_diymemexpWithTempQuery as WithTempQueryParser)?.Append(select2, rettbs[1]);
             var select2sp = select2 as Select0Provider;
             string sql2 = null;
-            if (select2sp._diymemexpWithTempQuery == null) 
+            if (select2sp._diymemexpWithTempQuery == null)
+            {
+                if (select2sp._tableRule == null && select2sp.IsDefaultSqlContent == true)
+                    return ret;
                 sql2 = select2?.ToSql(a => a, FieldAliasOptions.AsProperty);
+            }
             else
             {
                 if (select2sp._tableRule != null && select2sp.IsDefaultSqlContent == true)
