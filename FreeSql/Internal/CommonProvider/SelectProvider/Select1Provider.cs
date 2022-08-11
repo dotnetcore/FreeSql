@@ -135,11 +135,8 @@ namespace FreeSql.Internal.CommonProvider
             string sql2 = null;
             if (select2sp._diymemexpWithTempQuery == null)
             {
-                if (select2sp._tableRule == null && select2sp.IsDefaultSqlContent == true)
-                {
-                    rettbs[1].Table = select2sp._tables[0].Table;
+                if (select2sp._tableRule == null && select2sp._tables[0].Table.Type == typeof(T2) && select2sp.IsDefaultSqlContent == true)
                     return ret;
-                }
                 sql2 = select2?.ToSql(a => a, FieldAliasOptions.AsProperty);
             }
             else
