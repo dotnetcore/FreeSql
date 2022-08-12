@@ -155,8 +155,11 @@ namespace FreeSql.Internal.CommonProvider
             public List<SelectTableInfo> _outsideTable = new List<SelectTableInfo>();
             public WithTempQueryParser(Select0Provider insideSelect, SelectGroupingProvider insideSelectGroup, Expression selector, SelectTableInfo outsideTable)
             {
-                _insideSelectList.Add(new InsideInfo(insideSelect, insideSelectGroup, selector));
-                _outsideTable.Add(outsideTable);
+                if (selector != null)
+                {
+                    _insideSelectList.Add(new InsideInfo(insideSelect, insideSelectGroup, selector));
+                    _outsideTable.Add(outsideTable);
+                }
             }
             public class InsideInfo
             {
@@ -223,7 +226,7 @@ namespace FreeSql.Internal.CommonProvider
                     ParseExpMapResult = read;
                     return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
                 }
-                for (var a = 0; a < members.Length; a++)
+                for (var a = members[0] == ParseExpMatchedTable.Parameter ? 1 : 0; a < members.Length; a++)
                 {
                     read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
                     if (read == null) return null;

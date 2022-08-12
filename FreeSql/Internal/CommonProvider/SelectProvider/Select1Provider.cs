@@ -141,6 +141,8 @@ namespace FreeSql.Internal.CommonProvider
             }
             else
             {
+                if (retsp._diymemexpWithTempQuery == null)
+                    retsp._diymemexpWithTempQuery = new WithTempQueryParser(null, null, null, null).Append(select2, rettbs[1]);
                 if (select2sp._tableRule != null && select2sp.IsDefaultSqlContent == true)
                 {
                     sql2 = select2sp._tableRule(select2sp._tables[0].Table.Type, null);

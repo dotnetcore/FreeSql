@@ -66,8 +66,10 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         if (tempQueryParser._outsideTable.Contains(curtable))
                         {
+                            var replaceMember = firstMember.Type == curtable.Parameter.Type ? firstMember : members[0];
+                            var replaceVistor = new CommonExpression.ReplaceVisitor();
                             for (var a = 0; a < members.Length; a++)
-                                members[a] = new CommonExpression.ReplaceVisitor().Modify(members[a], firstMember, curtable.Parameter);
+                                members[a] = replaceVistor.Modify(members[a], replaceMember, curtable.Parameter);
                             var ret = _select._diymemexpWithTempQuery.ParseExp(members);
                             ParseExpMapResult = _select._diymemexpWithTempQuery.ParseExpMapResult;
                             return ret;

@@ -914,6 +914,139 @@ GROUP BY a.[Nickname]";
             Assert.Equal(11, list12[2].sum2);
 
 
+            var sql122 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => a)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0)
+                    .GroupBy(b => b.UserId)
+                    .WithTempQuery(b => new
+                    {
+                        b.Value.UserId,
+                        sum1 = b.Sum(b.Value.UserId)
+                    }))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .ToSql((a, b) => new
+                {
+                    a.Nickname, b.sum1, b.UserId, a.Id
+                });
+            var assertSql122 = @"SELECT a.[Nickname] as1, b.[sum1] as2, b.[UserId] as3, a.[Id] as4 
+FROM ( 
+    SELECT a.[Id], a.[Nickname] 
+    FROM [TwoTablePartitionBy_User] a ) a 
+LEFT JOIN ( 
+    SELECT a.[UserId], sum(a.[UserId]) [sum1] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0) 
+    GROUP BY a.[UserId] ) b ON a.[Id] = b.[UserId] 
+WHERE (a.[Id] > 0 AND b.[UserId] > 0)";
+            Assert.Equal(sql122, assertSql122);
+            var list122 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => a)
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0)
+                    .GroupBy(b => b.UserId)
+                    .WithTempQuery(b => new
+                    {
+                        b.Value.UserId,
+                        sum1 = b.Sum(b.Value.UserId)
+                    }))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .ToList((a, b) => new
+                {
+                    a.Nickname, b.sum1, b.UserId, a.Id
+                });
+            Assert.Equal(list122.Count, 6);
+            Assert.Equal("name01", list122[0].Nickname);
+            Assert.Equal(1, list122[0].sum1);
+            Assert.Equal(1, list122[0].UserId);
+            Assert.Equal(1, list122[0].Id);
+            Assert.Equal("name01", list122[1].Nickname);
+            Assert.Equal(2, list122[1].sum1);
+            Assert.Equal(2, list122[1].UserId);
+            Assert.Equal(2, list122[1].Id);
+            Assert.Equal("name01", list122[2].Nickname);
+            Assert.Equal(3, list122[2].sum1);
+            Assert.Equal(3, list122[2].UserId);
+            Assert.Equal(3, list122[2].Id);
+            Assert.Equal("name02", list122[3].Nickname);
+            Assert.Equal(4, list122[3].sum1);
+            Assert.Equal(4, list122[3].UserId);
+            Assert.Equal(4, list122[3].Id);
+            Assert.Equal("name03", list122[4].Nickname);
+            Assert.Equal(5, list122[4].sum1);
+            Assert.Equal(5, list122[4].UserId);
+            Assert.Equal(5, list122[4].Id);
+            Assert.Equal("name03", list122[5].Nickname);
+            Assert.Equal(6, list122[5].sum1);
+            Assert.Equal(6, list122[5].UserId);
+            Assert.Equal(6, list122[5].Id);
+
+
+            var sql123 = fsql.Select<TwoTablePartitionBy_User>()
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0)
+                    .GroupBy(b => b.UserId)
+                    .WithTempQuery(b => new
+                    {
+                        b.Value.UserId,
+                        sum1 = b.Sum(b.Value.UserId)
+                    }))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .GroupBy((a, b) => new { a.Nickname })
+                .ToSql(g => new
+                {
+                    g.Key,
+                    sum1 = g.Sum(g.Value.Item1.Id),
+                    sum2 = g.Sum(g.Value.Item2.UserId),
+                    sum3 = g.Sum(g.Value.Item2.sum1)
+                });
+            var assertSql123 = @"SELECT a.[Nickname], sum(a.[Id]) as1, sum(b.[UserId]) as2, sum(b.[sum1]) as3 
+FROM [TwoTablePartitionBy_User] a 
+LEFT JOIN ( 
+    SELECT a.[UserId], sum(a.[UserId]) [sum1] 
+    FROM [TwoTablePartitionBy_UserExt] a 
+    WHERE (a.[UserId] > 0) 
+    GROUP BY a.[UserId] ) b ON a.[Id] = b.[UserId] 
+WHERE (a.[Id] > 0 AND b.[UserId] > 0) 
+GROUP BY a.[Nickname]";
+            Assert.Equal(sql123, assertSql123);
+            var list123 = fsql.Select<TwoTablePartitionBy_User>()
+                .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>()
+                    .Where(b => b.UserId > 0)
+                    .GroupBy(b => b.UserId)
+                    .WithTempQuery(b => new
+                    {
+                        b.Value.UserId,
+                        sum1 = b.Sum(b.Value.UserId)
+                    }))
+                .LeftJoin((a, b) => a.Id == b.UserId)
+                .Where((a, b) => a.Id > 0 && b.UserId > 0)
+                .GroupBy((a, b) => new { a.Nickname })
+                .ToList(g => new
+                {
+                    g.Key,
+                    sum1 = g.Sum(g.Value.Item1.Id),
+                    sum2 = g.Sum(g.Value.Item2.UserId),
+                    sum3 = g.Sum(g.Value.Item2.sum1)
+                });
+            Assert.Equal(list123.Count, 3);
+            Assert.Equal("name01", list123[0].Key.Nickname);
+            Assert.Equal(6, list123[0].sum1);
+            Assert.Equal(6, list123[0].sum2);
+            Assert.Equal(6, list123[0].sum3);
+            Assert.Equal("name02", list123[1].Key.Nickname);
+            Assert.Equal(4, list123[1].sum1);
+            Assert.Equal(4, list123[1].sum2);
+            Assert.Equal(4, list123[1].sum3);
+            Assert.Equal("name03", list123[2].Key.Nickname);
+            Assert.Equal(11, list123[2].sum1);
+            Assert.Equal(11, list123[2].sum2);
+            Assert.Equal(11, list123[2].sum3);
+
+
             var sql13 = fsql.Select<TwoTablePartitionBy_User>().AsTable((_, old) => old.Replace("TwoTablePartitionBy_", ""))
                 .FromQuery(fsql.Select<TwoTablePartitionBy_UserExt>().AsTable((_, old) => old.Replace("TwoTablePartitionBy_", ""))
                     .Where(b => b.UserId > 0))

@@ -2207,6 +2207,8 @@ namespace FreeSql.Internal
             {
                 if (node.Expression == _oldexp)
                     return Expression.Property(_newexp, node.Member.Name);
+                if (node == _oldexp)
+                    return _newexp;
                 return base.VisitMember(node);
             }
         }
