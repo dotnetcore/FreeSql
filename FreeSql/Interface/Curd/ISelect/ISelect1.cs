@@ -351,6 +351,7 @@ namespace FreeSql
         /// <param name="property"></param>
         /// <returns></returns>
         ISelect<T1> IncludeByPropertyName(string property);
+        ISelect<T1> IncludeByPropertyName(string property, Expression<Action<ISelect<object>>> then);
         /// <summary>
         /// 按属性名字符串进行 Include/IncludeMany 操作
         /// </summary>
@@ -358,6 +359,7 @@ namespace FreeSql
         /// <param name="property"></param>
         /// <returns></returns>
         ISelect<T1> IncludeByPropertyNameIf(bool condition, string property);
+        ISelect<T1> IncludeByPropertyNameIf(bool condition, string property, Expression<Action<ISelect<object>>> then);
 
         /// <summary>
         /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>

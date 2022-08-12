@@ -1562,6 +1562,14 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
+            var tags333 = g.sqlserver.Select<Tag>()
+                .IncludeByPropertyName("Tags",
+                    then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName("Parent")
+                .IncludeByPropertyName("Songs")
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
             var tags11 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1))
                 .Include(a => a.Parent)

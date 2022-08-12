@@ -1368,7 +1368,7 @@ FROM ""TestTypeParentInfo_01"" a", asTableSubSql);
                 .ToList();
             by1.IncludeByPropertyName(g.sqlite, "model2.childs", "model2111Idaaa=model2id");
 
-            by1.IncludeByPropertyNameAsync(g.sqlite, "model2.childs", "model2111Idaaa=model2id");
+            by1.IncludeByPropertyNameAsync(g.sqlite, "model2.childs", "model2111Idaaa=model2id").Wait();
             var t1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)
@@ -1678,6 +1678,12 @@ FROM ""TestTypeParentInfo_01"" a", asTableSubSql);
                 .IncludeMany(a => a.Songs)
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
+            var tags3List = g.sqlite.Select<Tag>()
+                .Include(a => a.Parent)
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+            tags3List.IncludeByPropertyName(g.sqlite, "Tags", then: then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"));
+            tags3List.IncludeByPropertyName(g.sqlite, "Songs");
 
             var tags11 = g.sqlite.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1))

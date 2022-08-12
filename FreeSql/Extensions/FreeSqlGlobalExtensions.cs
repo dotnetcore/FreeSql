@@ -20,6 +20,12 @@ using System.Threading.Tasks;
 
 public static partial class FreeSqlGlobalExtensions
 {
+#if net40
+#else
+    static readonly Lazy<PropertyInfo> _TaskReflectionResultPropertyLazy = new Lazy<PropertyInfo>(() => typeof(Task).GetProperty("Result"));
+    internal static object GetTaskReflectionResult(this Task task) => _TaskReflectionResultPropertyLazy.Value.GetValue(task, new object[0]);
+#endif
+
     #region Type 对象扩展方法
     static Lazy<Dictionary<Type, bool>> _dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
     {
@@ -342,26 +348,26 @@ public static partial class FreeSqlGlobalExtensions
     /// <param name="list"></param>
     /// <param name="orm"></param>
     /// <param name="property">选择一个集合或普通属性</param>
-    /// <param name="where">设置临时的子集合关系映射，格式：子类属性=T1属性</param>
+    /// <param name="where">设置临时的子集合关系映射，格式：子类属性=T1属性，多组以逗号分割</param>
     /// <param name="take">设置子集合只取条数</param>
     /// <param name="select">设置子集合只查询部分字段</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public static List<T1> IncludeByPropertyName<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    public static List<T1> IncludeByPropertyName<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null, Expression<Action<ISelect<object>>> then = null) where T1 : class
     {
 #if net40
-        return IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select);
+        return IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select, then);
 #else
-        var task = IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select);
+        var task = IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select, then);
         if (task.Exception != null) throw task.Exception.InnerException ?? task.Exception;
         return task.Result;
 #endif
     }
 #if net40
 #else
-    public static Task<List<T1>> IncludeByPropertyNameAsync<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    public static Task<List<T1>> IncludeByPropertyNameAsync<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null, Expression<Action<ISelect<object>>> then = null) where T1 : class
     {
-        return IncludeByPropertyNameSyncOrAsync<T1>(true, list, orm, property, where, take, select);
+        return IncludeByPropertyNameSyncOrAsync<T1>(true, list, orm, property, where, take, select, then);
     }
 #endif
     static
@@ -370,7 +376,7 @@ public static partial class FreeSqlGlobalExtensions
 #else
         async Task<List<T1>>
 #endif
-        IncludeByPropertyNameSyncOrAsync<T1>(bool isAsync, List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+        IncludeByPropertyNameSyncOrAsync<T1>(bool isAsync, List<T1> list, IFreeSql orm, string property, string where, int take, string select, Expression<Action<ISelect<object>>> then) where T1 : class
     {
         if (orm.CodeFirst.IsAutoSyncStructure)
         {
@@ -389,7 +395,7 @@ public static partial class FreeSqlGlobalExtensions
         {
             if (props.Length > 1)
                 IncludeByPropertyName(list, orm, string.Join(".", props.Take(props.Length - 1)));
-            var imsel = IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select);
+            var imsel = IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select, then);
 #if net40
             imsel.SetList(list);
 #else
@@ -438,7 +444,7 @@ public static partial class FreeSqlGlobalExtensions
         });
         return list;
     }
-    static Select1Provider<T1> IncludeManyByPropertyNameCommonGetSelect<T1>(IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    static Select1Provider<T1> IncludeManyByPropertyNameCommonGetSelect<T1>(IFreeSql orm, string property, string where, int take, string select, Expression<Action<ISelect<object>>> then) where T1 : class
     {
         if (orm.CodeFirst.IsAutoSyncStructure)
         {
@@ -506,12 +512,20 @@ public static partial class FreeSqlGlobalExtensions
             memberInitExp = Expression.Lambda(reffuncType, memberInitExp, refparamExp);
             exp = Expression.Call(refWhereMethod, exp, memberInitExp);
         }
+        Delegate newthen = null;
+        if (then != null)
+        {
+            var newthenParm = Expression.Parameter(typeof(ISelect<>).MakeGenericType(reftb.Type));
+            var newthenLambdaBody = new Select1Provider<object>.ReplaceIncludeByPropertyNameParameterVisitor().Modify(then, newthenParm);
+            var newthenLambda = Expression.Lambda(typeof(Action<>).MakeGenericType(newthenParm.Type), newthenLambdaBody, newthenParm);
+            newthen = newthenLambda.Compile();
+        }
 
         var funcType = typeof(Func<,>).MakeGenericType(sel._tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(reftb.Type));
         var navigateSelector = Expression.Lambda(funcType, exp, sel._tables[0].Parameter);
         var incMethod = sel.GetType().GetMethod("IncludeMany");
         if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
-        incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, null });
+        incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, newthen });
         return sel;
     }
     #endregion

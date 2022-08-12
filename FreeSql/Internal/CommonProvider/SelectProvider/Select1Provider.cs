@@ -471,8 +471,10 @@ namespace FreeSql.Internal.CommonProvider
 
         public int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class => base.InternalInsertInto<TTargetEntity>(tableName, select);
 
-        public ISelect<T1> IncludeByPropertyNameIf(bool condition, string property) => condition ? IncludeByPropertyName(property) : this;
-        public ISelect<T1> IncludeByPropertyName(string property)
+        public ISelect<T1> IncludeByPropertyNameIf(bool condition, string property) => condition ? IncludeByPropertyName(property, null) : this;
+        public ISelect<T1> IncludeByPropertyNameIf(bool condition, string property, Expression<Action<ISelect<object>>> then) => condition ? IncludeByPropertyName(property, then) : this;
+        public ISelect<T1> IncludeByPropertyName(string property) => IncludeByPropertyName(property, null);
+        public ISelect<T1> IncludeByPropertyName(string property, Expression<Action<ISelect<object>>> then)
         {
             var exp = ConvertStringPropertyToExpression(property, true);
             if (exp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
@@ -491,7 +493,15 @@ namespace FreeSql.Internal.CommonProvider
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
                     if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
-                    incMethod.MakeGenericMethod(parTbref.RefEntityType).Invoke(this, new object[] { navigateSelector, null });
+                    Delegate newthen = null;
+                    if (then != null)
+                    {
+                        var newthenParm = Expression.Parameter(typeof(ISelect<>).MakeGenericType(parTbref.RefEntityType));
+                        var newthenLambdaBody = new ReplaceIncludeByPropertyNameParameterVisitor().Modify(then, newthenParm);
+                        var newthenLambda = Expression.Lambda(typeof(Action<>).MakeGenericType(newthenParm.Type), newthenLambdaBody, newthenParm);
+                        newthen = newthenLambda.Compile();
+                    }
+                    incMethod.MakeGenericMethod(parTbref.RefEntityType).Invoke(this, new object[] { navigateSelector, newthen });
                     break;
                 case TableRefType.ManyToOne:
                 case TableRefType.OneToOne:
@@ -501,6 +511,35 @@ namespace FreeSql.Internal.CommonProvider
                     break;
             }
             return this;
+        }
+        public class ReplaceIncludeByPropertyNameParameterVisitor : ExpressionVisitor
+        {
+            private Expression _replaceExp;
+            private ParameterExpression oldParameter;
+            public Expression Modify(LambdaExpression lambda, Expression replaceExp)
+            {
+                this._replaceExp = replaceExp;
+                this.oldParameter = lambda.Parameters.FirstOrDefault();
+                return Visit(lambda.Body);
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression?.NodeType == ExpressionType.Parameter && node.Expression == oldParameter)
+                    return Expression.Property(_replaceExp, node.Member.Name);
+                return base.VisitMember(node);
+            }
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                if (node.Object?.Type == oldParameter.Type)
+                {
+                    var methodParameterTypes = node.Method.GetParameters().Select(a => a.ParameterType).ToArray();
+                    var method = _replaceExp.Type.GetMethod(node.Method.Name, methodParameterTypes);
+                    if (node.Object?.NodeType == ExpressionType.Parameter && node.Object == oldParameter)
+                        return Expression.Call(_replaceExp, method, node.Arguments);
+                    return Expression.Call(Visit(node.Object), method, node.Arguments);
+                }
+                return base.VisitMethodCall(node);
+            }
         }
 
         bool _isIncluded = false;

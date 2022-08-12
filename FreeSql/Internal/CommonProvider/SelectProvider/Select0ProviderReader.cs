@@ -1441,7 +1441,7 @@ namespace FreeSql.Internal.CommonProvider
 
                         if (c < ret.Count - 1) continue;
                         await diretTask;
-                        var diret = diretTask.GetType().GetProperty("Result").GetValue(diretTask, new object[0]);
+                        var diret = diretTask.GetTaskReflectionResult();
                         var otherList = diret as IEnumerable;
                         var retlistidx = 0;
                         foreach (var otherListItem in otherList)
