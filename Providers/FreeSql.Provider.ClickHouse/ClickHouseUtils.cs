@@ -19,6 +19,11 @@ namespace FreeSql.ClickHouse
 
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
+            if (value is string str)
+                value = str?.Replace("\t", "\\t")
+                    .Replace("\r\n", "\\r\\n")
+                    .Replace("\n", "\\n")
+                    .Replace("\r", "\\r");
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName };//QuoteParamterName(parameterName)
@@ -38,9 +43,7 @@ namespace FreeSql.ClickHouse
                         break;
                 }
                 if (value is bool)
-                {
                     ret.Value = (bool)value ? 1 : 0;
-                }
             }
             _params?.Add(ret);
             return ret;
@@ -49,6 +52,11 @@ namespace FreeSql.ClickHouse
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "?", (name, type, value) =>
             {
+                if (value is string str) 
+                    value = str?.Replace("\t", "\\t")
+                        .Replace("\r\n", "\\r\\n")
+                        .Replace("\n", "\\n")
+                        .Replace("\r", "\\r");
                 DbParameter ret = new ClickHouseDbParameter { ParameterName = $"?{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null)
