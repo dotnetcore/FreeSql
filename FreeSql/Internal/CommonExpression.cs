@@ -1767,13 +1767,18 @@ namespace FreeSql.Internal
                                 if (finds.Length != 1)
                                 {
                                     finds = tsc._tables.Where(a2 => (isa && a2.Parameter != null || isa && a2.Parameter == null) &&
-                                        a2.Table.Type == tbtmp.Type).ToArray();
+                                       tbtmp.Type.IsAssignableFrom(a2.Table.Type) && a2.Alias == alias).ToArray();
                                     if (finds.Length != 1)
                                     {
                                         finds = tsc._tables.Where(a2 => (isa && a2.Parameter != null || isa && a2.Parameter == null) &&
                                             a2.Table.Type == tbtmp.Type).ToArray();
                                         if (finds.Length != 1)
-                                            finds = tsc._tables.Where(a2 => a2.Table.Type == tbtmp.Type).ToArray();
+                                        {
+                                            finds = tsc._tables.Where(a2 => (isa && a2.Parameter != null || isa && a2.Parameter == null) &&
+                                                a2.Table.Type == tbtmp.Type).ToArray();
+                                            if (finds.Length != 1)
+                                                finds = tsc._tables.Where(a2 => a2.Table.Type == tbtmp.Type).ToArray();
+                                        }
                                     }
                                 }
                             }

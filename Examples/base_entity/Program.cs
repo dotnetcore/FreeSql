@@ -317,8 +317,20 @@ namespace base_entity
             public Guid Id { get; set; }
             public string[] Tags { get; init; } = Array.Empty<string>();
         }
+
+        class BaseModel<T>
+        {
+            public static int fsql;
+        }
+
         static void Main(string[] args)
         {
+            BaseModel<User1>.fsql = 1;
+            BaseModel<UserGroup>.fsql = 2;
+            Console.WriteLine(BaseModel<User1>.fsql);
+            Console.WriteLine(BaseModel<UserGroup>.fsql);
+
+
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)

@@ -7,6 +7,78 @@ namespace FreeSql.Tests.SqlServer
 {
     public class SqlServerSelectWithTempQueryTest
     {
+        #region issues #1215
+
+        [Fact]
+        public void VicDemo20220813()
+        {
+            var fsql = g.sqlserver;
+            var id = Guid.Parse("62f83a6d-eb53-0608-0097-d177142cadcb");
+            var sql1 = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi")
+                .Where(bi => bi.HeadId == id && bi.IsDeleted == false)
+                .Where(bi => fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("ti")
+                    .Where(ti => ti.RefHeadId == bi.HeadId && ti.RefItemId == bi.Id)
+                    .Sum(ti => ti.Quantity) <= bi.Quantity)
+                .ToSql();
+            Assert.Equal(@"SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+FROM [bie_1] bi 
+WHERE (bi.[HeadId] = '62f83a6d-eb53-0608-0097-d177142cadcb' AND bi.[IsDeleted] = 0) AND (isnull((SELECT sum(ti.[Quantity]) 
+    FROM [bie_2] ti 
+    WHERE (ti.[RefHeadId] = bi.[HeadId] AND ti.[RefItemId] = bi.[Id])), 0) <= bi.[Quantity])", sql1);
+
+            var sql2 = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi")
+                .Where(bi => bi.HeadId == id && bi.IsDeleted == false)
+                .Where(bi => bi.HeadId == id && bi.IsDeleted == false)
+                    .WithTempQuery(bi => new
+                    {
+                        bi.Id,
+                        BillItem = bi,
+                        bi.Quantity,
+                        RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("ti")
+                            .Where(ti => ti.RefHeadId == bi.HeadId && ti.RefItemId == bi.Id)
+                            .Sum(ti => ti.Quantity),
+                    })
+                    .Where(v => v.RefQuantity < v.Quantity)
+                .ToSql();
+            Assert.Equal(@"SELECT * 
+FROM ( 
+    SELECT bi.[Id], bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[Quantity], isnull((SELECT sum(ti.[Quantity]) 
+        FROM [bie_2] ti 
+        WHERE (ti.[RefHeadId] = bi.[HeadId] AND ti.[RefItemId] = bi.[Id])), 0) [RefQuantity] 
+    FROM [bie_1] bi 
+    WHERE (bi.[HeadId] = '62f83a6d-eb53-0608-0097-d177142cadcb' AND bi.[IsDeleted] = 0) AND (bi.[HeadId] = '62f83a6d-eb53-0608-0097-d177142cadcb' AND bi.[IsDeleted] = 0) ) a 
+WHERE (a.[RefQuantity] < a.[Quantity])", sql2);
+        }
+
+        abstract class SoftDelete
+        {
+            public bool IsDeleted { get; set; }
+        }
+        abstract class BaseHeadEntity : SoftDelete
+        {
+            public Guid Id { get; set; }
+            public string No { get; set; }
+            public DateTime Date { get; set; }
+        }
+        [Table(Name = "bhe_1")]
+        class BhEntity1 : BaseHeadEntity { }
+        [Table(Name = "bhe_2")]
+        class BhEntity2 : BaseHeadEntity { }
+        abstract class BaseItemEntity : SoftDelete
+        {
+            public Guid Id { get; set; }
+            public Guid HeadId { get; set; }
+            public int GoodsId { get; set; }
+            public decimal Quantity { get; set; }
+            public Guid? RefHeadId { get; set; }
+            public Guid? RefItemId { get; set; }
+        }
+        [Table(Name = "bie_1")]
+        class BiEntity1 : BaseItemEntity { }
+        [Table(Name = "bie_2")]
+        class BiEntity2 : BaseItemEntity { }
+        #endregion
+
         [Fact]
         public void SingleTablePartitionBy()
         {
