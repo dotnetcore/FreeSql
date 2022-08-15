@@ -207,7 +207,8 @@ And other friends who made important suggestions for this project, they include:
 [feijie999](https://github.com/feijie999), 
 constantine, 
 [JohnZhou2020](https://github.com/JohnZhou2020), 
-[mafeng8](https://github.com/mafeng8), etc.
+[mafeng8](https://github.com/mafeng8), 
+[VicBilibily](https://github.com/VicBilibily), etc.
 
 ## 💕 Donation
 

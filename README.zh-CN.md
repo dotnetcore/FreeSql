@@ -210,7 +210,8 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [feijie999](https://github.com/feijie999), 
 constantine, 
 [JohnZhou2020](https://github.com/JohnZhou2020), 
-[mafeng8](https://github.com/mafeng8) 等。
+[mafeng8](https://github.com/mafeng8), 
+[VicBilibily](https://github.com/VicBilibily) 等。
 
 
 ## 💕 Donation (捐赠)

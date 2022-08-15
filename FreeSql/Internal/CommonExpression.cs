@@ -1119,6 +1119,7 @@ namespace FreeSql.Internal
                                 Select0Provider fsqlSelect0 = null;
                                 List<SelectTableInfo> fsqltables = null;
                                 var fsqltable1SetAlias = false;
+                                var fsqltable1SetAliasGai = 0;
                                 Type fsqlType = null;
                                 Stack<Expression> asSelectBefores = new Stack<Expression>();
                                 var asSelectSql = "";
@@ -1279,16 +1280,16 @@ namespace FreeSql.Internal
 
                                                             if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                                             {
-                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
-                                                                    fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                                for (; fsqltable1SetAliasGai < fsqlTypeGenericArgs.Length; fsqltable1SetAliasGai++)
+                                                                    fsqltables[fsqltable1SetAliasGai].Alias = "ht" + (fsqltable1SetAliasGai + 1);
                                                             }
                                                             else
                                                             {
-                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
+                                                                for (; fsqltable1SetAliasGai < fsqlTypeGenericArgs.Length && fsqltable1SetAliasGai < argExpLambda.Parameters.Count; fsqltable1SetAliasGai++)
                                                                 {
-                                                                    var alias = argExpLambda.Parameters[gai].Name;
+                                                                    var alias = argExpLambda.Parameters[fsqltable1SetAliasGai].Name;
                                                                     if (fsqltables.Any(x => x.Type == SelectTableInfoType.Parent && x.Alias == alias)) alias = $"sub_{alias}";
-                                                                    fsqltables[gai].Alias = alias;
+                                                                    fsqltables[fsqltable1SetAliasGai].Alias = alias;
                                                                 }
                                                             }
                                                         }
@@ -1317,10 +1318,11 @@ namespace FreeSql.Internal
                                                 case nameof(ISelect<object>.WithTempQuery):
                                                     fsql = method.Invoke(fsql, args);
                                                     fsqlType = fsql.GetType();
-                                                    fsqlSelect0 = fsql as Select0Provider; 
+                                                    fsqlSelect0 = fsql as Select0Provider;
                                                     if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
                                                     fsqltables = fsqlSelect0._tables;
                                                     fsqltable1SetAlias = false;
+                                                    if (method.Name == nameof(ISelect<object>.WithTempQuery)) fsqltable1SetAliasGai = 0;
                                                     break;
                                                 default:
                                                     method.Invoke(fsql, args);
