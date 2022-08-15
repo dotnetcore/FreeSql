@@ -1083,6 +1083,13 @@ namespace FreeSql.Internal
                             case "Min": return $"min({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                         }
                     }
+                    if (callType.FullName.StartsWith("FreeSql.ISelectGrouping`"))
+                    {
+                        switch (exp3.Method.Name)
+                        {
+                            case "ToList": return "";
+                        }
+                    }
                     if (callType.FullName.StartsWith("FreeSql.ISelect`"))
                     { //子表查询
                         switch (exp3.Method.Name)
@@ -1310,7 +1317,22 @@ namespace FreeSql.Internal
                                                 if (_subSelectParentDiyMemExps.Value == null) _subSelectParentDiyMemExps.Value = new List<BaseDiyMemberExpression>();
                                                 _subSelectParentDiyMemExps.Value.Add(tsc.diymemexp);
                                             }
-                                            method.Invoke(fsql, args);
+                                            switch (method.Name)
+                                            {
+                                                case nameof(ISelect<object>.From):
+                                                case nameof(ISelect<object>.FromQuery):
+                                                case nameof(ISelect<object>.WithTempQuery):
+                                                    fsql = method.Invoke(fsql, args);
+                                                    fsqlType = fsql.GetType();
+                                                    fsqlSelect0 = fsql as Select0Provider; 
+                                                    if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
+                                                    fsqltables = fsqlSelect0._tables;
+                                                    fsqltable1SetAlias = false;
+                                                    break;
+                                                default:
+                                                    method.Invoke(fsql, args);
+                                                    break;
+                                            }
                                         }
                                         finally
                                         {
@@ -1693,15 +1715,19 @@ namespace FreeSql.Internal
                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     }
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
-                    if (tsc.diymemexp != null)
+                    var diymemexps = new[] { tsc.diymemexp, tsc.subSelect001?._diymemexpWithTempQuery };
+                    foreach (var diymemexp in diymemexps)
                     {
-                        var expStackFirst = expStack.First() as ParameterExpression;
-                        var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
-                        var diyexpMembers = expStack.Where((a, b) => b >= bidx).ToArray();
-                        if (diyexpMembers.Any() == false && tsc.diymemexp != null && tsc.diymemexp is Select0Provider.WithTempQueryParser tempQueryParser && tempQueryParser.GetOutsideSelectTable(expStackFirst) != null)
-                            diyexpMembers = expStack.ToArray();
-                        var diyexpResult = tsc.diymemexp.ParseExp(diyexpMembers);
-                        if (string.IsNullOrEmpty(diyexpResult) == false) return diyexpResult;
+                        if (diymemexp != null)
+                        {
+                            var expStackFirst = expStack.First() as ParameterExpression;
+                            var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
+                            var diyexpMembers = expStack.Where((a, b) => b >= bidx).ToArray();
+                            if (diyexpMembers.Any() == false && diymemexp != null && diymemexp is Select0Provider.WithTempQueryParser tempQueryParser && tempQueryParser.GetOutsideSelectTable(expStackFirst) != null)
+                                diyexpMembers = expStack.ToArray();
+                            var diyexpResult = diymemexp.ParseExp(diyexpMembers);
+                            if (string.IsNullOrEmpty(diyexpResult) == false) return diyexpResult;
+                        }
                     }
                     var psgpdymes = _subSelectParentDiyMemExps.Value; //解决：分组之后的子查询解析
                     if (psgpdymes?.Any() == true)

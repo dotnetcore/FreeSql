@@ -10,6 +10,78 @@ namespace FreeSql.Tests.SqlServer
         #region issues #1215
 
         [Fact]
+        public void VicDemo20220815()
+        {
+            var fsql = g.sqlserver;
+            var subquery1 = fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1)).Where(bh => bh.IsDeleted == false)
+                    .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi").Where(bi => bi.IsDeleted == false))
+                    .InnerJoin(v => v.t1.Id == v.t2.HeadId)
+                    .WithTempQuery(v => new
+                    {
+                        BillHead = v.t1,
+                        Quantity = v.t2.Quantity,
+                        RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("bi2")
+                            .Where(ti2 => ti2.RefHeadId == v.t2.HeadId && ti2.RefItemId == v.t2.Id)
+                            .Sum(ti2 => ti2.Quantity),
+                    })
+                    .Where(v => v.RefQuantity < v.Quantity)
+                    .GroupBy(v => v.BillHead.Id)
+                    .ToSql(v => v.Key);
+            var sql1 = fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1))
+                .Where($"a.Id IN ({subquery1})").OrderByDescending(vh => vh.Date)
+                .ToSql();
+            Assert.Equal(@"SELECT a.[IsDeleted], a.[Id], a.[No], a.[Date] 
+FROM [bhe_1] a 
+WHERE (a.Id IN (SELECT a.[Id] as1 
+FROM ( 
+    SELECT a.[IsDeleted], a.[Id], a.[No], a.[Date], SP10b.[Quantity], isnull((SELECT sum(ti2.[Quantity]) 
+        FROM [bie_2] ti2 
+        WHERE (ti2.[RefHeadId] = SP10b.[HeadId] AND ti2.[RefItemId] = SP10b.[Id])), 0) [RefQuantity] 
+    FROM [bhe_1] a 
+    INNER JOIN ( 
+        SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+        FROM [bie_1] bi 
+        WHERE (bi.[IsDeleted] = 0)) SP10b ON a.[Id] = SP10b.[HeadId] 
+    WHERE (a.[IsDeleted] = 0) ) a 
+WHERE (a.[RefQuantity] < a.[Quantity]) 
+GROUP BY a.[Id])) 
+ORDER BY a.[Date] DESC", sql1);
+
+            var sql2 = fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1))
+                .Where(vh => fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1)).Where(bh => bh.IsDeleted == false)
+                    .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi").Where(bi => bi.IsDeleted == false))
+                    .InnerJoin(v => v.t1.Id == v.t2.HeadId)
+                    .WithTempQuery(v => new
+                    {
+                        BillHead = v.t1,
+                        Quantity = v.t2.Quantity,
+                        RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("bi2")
+                            .Where(ti2 => ti2.RefHeadId == v.t2.HeadId && ti2.RefItemId == v.t2.Id)
+                            .Sum(ti2 => ti2.Quantity),
+                    })
+                    .Where(v => v.RefQuantity < v.Quantity)
+                    .Distinct()
+                    .ToList(v => v.BillHead.Id).Contains(vh.Id)
+                ).OrderByDescending(vh => vh.Date)
+                .ToSql();
+            Assert.Equal(@"SELECT a.[IsDeleted], a.[Id], a.[No], a.[Date] 
+FROM [bhe_1] a 
+WHERE (((a.[Id]) in (SELECT DISTINCT v.[Id] 
+    FROM ( 
+        SELECT ht1.[IsDeleted], ht1.[Id], ht1.[No], ht1.[Date], ht2.[Quantity], isnull((SELECT sum(ti2.[Quantity]) 
+            FROM [bie_2] ti2 
+            WHERE (ti2.[RefHeadId] = ht2.[HeadId] AND ti2.[RefItemId] = ht2.[Id])), 0) [RefQuantity] 
+        FROM [BaseHeadEntity] ht1 
+        INNER JOIN ( 
+            SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+            FROM [bie_1] bi 
+            WHERE (bi.[IsDeleted] = 0)) ht2 ON ht1.[Id] = ht2.[HeadId] 
+        WHERE (bh.[IsDeleted] = 0) ) v 
+    WHERE (v.[RefQuantity] < v.[Quantity])))) 
+ORDER BY a.[Date] DESC", sql2);
+        }
+
+        [Fact]
         public void VicDemo20220813()
         {
             var fsql = g.sqlserver;

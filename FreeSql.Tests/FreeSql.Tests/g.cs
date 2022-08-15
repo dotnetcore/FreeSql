@@ -9,6 +9,7 @@ public class g
 {
     static Lazy<IFreeSql> clickHouseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.ClickHouse, "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=192.168.0.121;Port=8125;Database=PersonnelLocation;Username=root;Password=+riQ8V9D")
+        .UseConnectionString(FreeSql.DataType.ClickHouse, "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=139.9.189.145;Port=1386;Database=default;Username=default;Password=Z2C2B4wR")
         //.UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(

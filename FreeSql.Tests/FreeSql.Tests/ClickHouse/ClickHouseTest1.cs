@@ -342,5 +342,13 @@ namespace FreeSql.Tests.ClickHouse
             item = fsql.Select<Entity>().Where(a => a.Id == data2[1].Id).First();
             Assert.Equal(item.Content, json);
         }
+
+        [Fact]
+        public void DbFirst()
+        {
+            var fsql = g.clickHouse;
+            var tbs = fsql.DbFirst.GetTablesByDatabase();
+            var tbs2 = fsql.DbFirst.GetTablesByDatabase("default");
+        }
     }
 }
