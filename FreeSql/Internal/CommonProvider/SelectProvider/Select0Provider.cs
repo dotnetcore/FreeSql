@@ -93,23 +93,18 @@ namespace FreeSql.Internal.CommonProvider
 
             if (lambParms == null)
             {
-                var fromTables = from._tables.Where(a => a.Type == SelectTableInfoType.Parent).ToList();
-                if (fromTables.Count > 0)
-                {
-                    to._tables = new List<SelectTableInfo>(to._tables);
-                    to._tables.AddRange(fromTables);
-                }
+                var fromParentTables = from._tables.Where(a => a.Type == SelectTableInfoType.Parent).ToList();
+                var fromTables = fromParentTables.Any() ? from._tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList() : from._tables;
+                if (to._tables.Count <= fromTables.Count)
+                    to._tables = new List<SelectTableInfo>(fromTables);
                 else
                 {
-                    if (to._tables.Count <= from._tables.Count)
-                        to._tables = new List<SelectTableInfo>(from._tables.ToArray());
-                    else
-                    {
-                        to._tables = new List<SelectTableInfo>(to._tables);
-                        for (var a = 0; a < from._tables.Count; a++)
-                            to._tables[a] = from._tables[a];
-                    }
+                    to._tables = new List<SelectTableInfo>(to._tables);
+                    for (var a = 0; a < fromTables.Count; a++)
+                        to._tables[a] = fromTables[a];
                 }
+                if (fromParentTables.Any())
+                    to._tables.AddRange(fromParentTables);
             }
             else
             {

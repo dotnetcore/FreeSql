@@ -1083,13 +1083,6 @@ namespace FreeSql.Internal
                             case "Min": return $"min({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                         }
                     }
-                    if (callType.FullName.StartsWith("FreeSql.ISelectGrouping`"))
-                    {
-                        switch (exp3.Method.Name)
-                        {
-                            case "ToList": return "";
-                        }
-                    }
                     if (callType.FullName.StartsWith("FreeSql.ISelect`"))
                     { //子表查询
                         switch (exp3.Method.Name)
@@ -2268,7 +2261,9 @@ namespace FreeSql.Internal
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
                 this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
-                parameters = this.tables.Select(a => a.Parameter ?? Expression.Parameter(a.Table.Type, a.Alias)).ToArray();
+                parameters = this.tables.Select(a => a.Parameter ?? 
+                    Expression.Parameter(a.Table.Type, 
+                        a.Alias.StartsWith("SP10") ? a.Alias.Replace("SP10", "ht") : a.Alias)).ToArray();
                 var exp = Visit(lambda.Body);
                 return Expression.Lambda(exp, parameters);
             }
@@ -2282,13 +2277,21 @@ namespace FreeSql.Internal
                     if (parent.Expression?.NodeType == ExpressionType.Parameter &&
                         parent.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
                         int.TryParse(parent.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
+                    {
+                        if (parameters[widx - 1].Type != parent.Type) //解决 BaseEntity + AsTable 时报错
+                            parameters[widx - 1] = Expression.Parameter(parent.Type, parameters[widx - 1].Name);
                         return Expression.Property(parameters[widx - 1], node.Member.Name);
+                    }
                 }
 
                 if (node.Expression?.NodeType == ExpressionType.Parameter &&
                     node.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
                     int.TryParse(node.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
+                {
+                    if (parameters[widx - 1].Type != node.Type) //解决 BaseEntity + AsTable 时报错
+                        parameters[widx - 1] = Expression.Parameter(node.Type, parameters[widx - 1].Name);
                     return parameters[widx - 1];
+                }
 
                 return base.VisitMember(node);
             }
