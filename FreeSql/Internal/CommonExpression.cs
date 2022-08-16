@@ -1908,7 +1908,7 @@ namespace FreeSql.Internal
                                         alias2 = $"{alias2}__{mp2.Member.Name}";
                                     find2 = getOrAddTable(tb2tmp, alias2, exp2IsParameter, parmExp2, mp2);
                                     alias2 = find2.Alias;
-                                    tb2 = tb2tmp;
+                                    tb2 = find2.Table; // tb2tmp; 此处修改解决 Select<BaseEntity>().AsType(Entity1).ToList(a => a)
                                 }
                                 if (exp2IsParameter && expStack.Any() == false)
                                 { //附加选择的参数所有列

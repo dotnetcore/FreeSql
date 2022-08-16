@@ -1240,7 +1240,20 @@ namespace FreeSql.Internal.CommonProvider
         public List<T1> ToList() => ToList(false);
         public virtual List<T1> ToList(bool includeNestedMembers)
         {
-            if (_diymemexpWithTempQuery != null) return this.ToListMapReaderPrivate<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null);
+            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tps = _tables.Select(a =>
+                    {
+                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
+                        a.Parameter = tp;
+                        return tp;
+                    }).ToArray();
+                    return this.InternalToList<T1>(tps[0]);
+                }
+                return this.ToListMapReaderPrivate<T1>(withTempQueryParser._insideSelectList[0].InsideAf, null);
+            }
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
             return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
@@ -1285,7 +1298,20 @@ namespace FreeSql.Internal.CommonProvider
         public Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default) => ToListAsync(false, cancellationToken);
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
-            if (_diymemexpWithTempQuery != null) return this.ToListMapReaderPrivateAsync<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null, cancellationToken);
+            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tps = _tables.Select(a =>
+                    {
+                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
+                        a.Parameter = tp;
+                        return tp;
+                    }).ToArray();
+                    return this.InternalToListAsync<T1>(tps[0], cancellationToken);
+                }
+                return this.ToListMapReaderPrivateAsync<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null, cancellationToken);
+            }
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);
             return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
         }

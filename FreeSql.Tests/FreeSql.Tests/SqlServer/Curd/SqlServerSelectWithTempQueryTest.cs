@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
 
@@ -117,7 +118,37 @@ RIGHT JOIN (
     WHERE (a.[RefQuantity] < a.[Quantity]) ) htb ON a.[Id] = htb.[Id] 
 ORDER BY a.[Date] DESC", sql3);
 
-            fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1))
+
+            fsql.Delete<BhEntity1>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<BiEntity1>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<BiEntity2>().Where("1=1").ExecuteAffrows();
+            var bhid1 = Guid.NewGuid();
+            var bhid2 = Guid.NewGuid();
+            var bhid3 = Guid.NewGuid();
+            fsql.Insert(new[] {
+                new BhEntity1 { Id = bhid1, Date = DateTime.Parse("2022-08-16"), IsDeleted = false, No = "20220816_001" },
+                new BhEntity1 { Id = bhid2, Date = DateTime.Parse("2022-08-17"), IsDeleted = false, No = "20220817_002" },
+                new BhEntity1 { Id = bhid3, Date = DateTime.Parse("2022-08-18"), IsDeleted = false, No = "20220818_003" }
+            }).ExecuteAffrows();
+
+            var biid1 = Guid.NewGuid();
+            var biid2 = Guid.NewGuid();
+            var biid3 = Guid.NewGuid();
+            var biid4 = Guid.NewGuid();
+            fsql.Insert(new[] {
+                new BiEntity1 { Id = biid1, HeadId = bhid1, GoodsId = 1, IsDeleted = false, Quantity = 1110, RefHeadId = bhid1, RefItemId = bhid1 },
+                new BiEntity1 { Id = biid2, HeadId = bhid1, GoodsId = 2, IsDeleted = false, Quantity = 1111, RefHeadId = bhid1, RefItemId = bhid1 },
+                new BiEntity1 { Id = biid3, HeadId = bhid2, GoodsId = 3, IsDeleted = false, Quantity = 1112, RefHeadId = bhid2, RefItemId = bhid2 },
+                new BiEntity1 { Id = biid4, HeadId = bhid3, GoodsId = 4, IsDeleted = false, Quantity = 1113, RefHeadId = bhid3, RefItemId = bhid3 },
+            }).ExecuteAffrows();
+
+            fsql.Insert(new[] {
+                new BiEntity2 { Id = Guid.NewGuid(), HeadId = bhid1, GoodsId = 11, IsDeleted = false, Quantity = 110, RefHeadId = bhid1, RefItemId = biid1 },
+                new BiEntity2 { Id = Guid.NewGuid(), HeadId = bhid1, GoodsId = 12, IsDeleted = false, Quantity = 111, RefHeadId = bhid1, RefItemId = biid1 },
+                new BiEntity2 { Id = Guid.NewGuid(), HeadId = bhid2, GoodsId = 13, IsDeleted = false, Quantity = 112, RefHeadId = bhid2, RefItemId = biid2 },
+                new BiEntity2 { Id = Guid.NewGuid(), HeadId = bhid3, GoodsId = 14, IsDeleted = false, Quantity = 113, RefHeadId = bhid3, RefItemId = biid3 },
+            }).ExecuteAffrows();
+            var list1 = fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1))
                 .FromQuery(
                     fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1)).Where(bh => bh.IsDeleted == false)
                         .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi").Where(bi => bi.IsDeleted == false))
@@ -136,7 +167,128 @@ ORDER BY a.[Date] DESC", sql3);
                 )
                 .RightJoin(v => v.t1.Id == v.t2.Id)
                 .OrderByDescending(v => v.t1.Date)
+                .ToList(v => v.t1);
+            Assert.Equal(3, list1.Count);
+            Assert.Equal(DateTime.Parse("2022-08-18"), list1[0].Date);
+            Assert.Equal(bhid3, list1[0].Id);
+            Assert.False(list1[0].IsDeleted);
+            Assert.Equal("20220818_003", list1[0].No);
+            Assert.Equal(DateTime.Parse("2022-08-17"), list1[1].Date);
+            Assert.Equal(bhid2, list1[1].Id);
+            Assert.False(list1[1].IsDeleted);
+            Assert.Equal("20220817_002", list1[1].No);
+            Assert.Equal(DateTime.Parse("2022-08-16"), list1[2].Date);
+            Assert.Equal(bhid1, list1[2].Id);
+            Assert.False(list1[2].IsDeleted);
+            Assert.Equal("20220816_001", list1[2].No);
+
+
+            fsql.Delete<BhEntity3>("1=1").ExecuteAffrows();
+            fsql.Delete<BiEntity1>("1=1").ExecuteAffrows();
+            fsql.Delete<BiEntity2>("1=1").ExecuteAffrows();
+            var bhSource = new List<BhEntity3>()
+            {
+                new() { Id=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f41"),No="BH001",Date=new DateTime(2022,08,16),UserField1="BH1UF001",UserField2="BH1UF002",UserField3="BH1UF003" },
+                new() { Id=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f42"),No="BH002",Date=new DateTime(2022,08,16),UserField1="BH2UF001",UserField2="BH2UF002",UserField3="BH2UF003" },
+                new() { Id=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f43"),No="BH003",Date=new DateTime(2022,08,16),UserField1="BH3UF001",UserField2="BH3UF002",UserField3="BH3UF003" },
+                new() { Id=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f44"),No="BH004",Date=new DateTime(2022,08,16),UserField1="BH4UF001",UserField2="BH4UF002",UserField3="BH4UF003" },
+                new() { Id=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f45"),No="BH005",Date=new DateTime(2022,08,16),UserField1="BH5UF001",UserField2="BH5UF002",UserField3="BH5UF003" },
+            };
+            var bi1Source = new List<BiEntity1>()
+            {
+                new() { Id=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d971"),HeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f41"),GoodsId=1,Quantity=100 },
+                new() { Id=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d972"),HeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f42"),GoodsId=2,Quantity=100 },
+                new() { Id=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d973"),HeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f43"),GoodsId=3,Quantity=100 },
+                new() { Id=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d974"),HeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f44"),GoodsId=4,Quantity=100 },
+                new() { Id=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d975"),HeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f45"),GoodsId=5,Quantity=100 },
+            };
+            var bi2Source = new List<BiEntity2>()
+            {
+                new() { Id=Guid.Parse("62d02b69-8838-2bf0-009d-adcb760ec361"),HeadId=Guid.Parse("62d04bb1-e53d-1ae8-00d9-82bf2d58f631"),GoodsId=1,Quantity=10,RefHeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f41"),RefItemId=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d971") },
+                new() { Id=Guid.Parse("62d02b69-8838-2bf0-009d-adcb760ec362"),HeadId=Guid.Parse("62d04bb1-e53d-1ae8-00d9-82bf2d58f632"),GoodsId=2,Quantity=10,RefHeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f42"),RefItemId=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d972") },
+                new() { Id=Guid.Parse("62d02b69-8838-2bf0-009d-adcb760ec363"),HeadId=Guid.Parse("62d04bb1-e53d-1ae8-00d9-82bf2d58f633"),GoodsId=3,Quantity=10,RefHeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f43"),RefItemId=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d973") },
+                new() { Id=Guid.Parse("62d02b69-8838-2bf0-009d-adcb760ec364"),HeadId=Guid.Parse("62d04bb1-e53d-1ae8-00d9-82bf2d58f634"),GoodsId=4,Quantity=10,RefHeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f44"),RefItemId=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d974") },
+                new() { Id=Guid.Parse("62d02b69-8838-2bf0-009d-adcb760ec365"),HeadId=Guid.Parse("62d04bb1-e53d-1ae8-00d9-82bf2d58f635"),GoodsId=5,Quantity=10,RefHeadId=Guid.Parse("62b978e5-d97e-6c58-009b-35137f900f45"),RefItemId=Guid.Parse("62c455b6-1b24-a468-00ef-87c86362d975") },
+            };
+            fsql.InsertOrUpdate<BhEntity3>().SetSource(bhSource).ExecuteAffrows();
+            fsql.InsertOrUpdate<BiEntity1>().SetSource(bi1Source).ExecuteAffrows();
+            fsql.InsertOrUpdate<BiEntity2>().SetSource(bi2Source).ExecuteAffrows();
+
+            var normal = fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity3))
+                .Where(vh => fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity3)).Where(bh => bh.IsDeleted == false)
+                    .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi").Where(bi => bi.IsDeleted == false))
+                    .InnerJoin(v => v.t1.Id == v.t2.HeadId)
+                    .WithTempQuery(v => new
+                    {
+                        BillHead = v.t1,
+                        Quantity = v.t2.Quantity,
+                        RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("bi2")
+                            .Where(ti2 => ti2.RefHeadId == v.t2.HeadId && ti2.RefItemId == v.t2.Id)
+                            .Sum(ti2 => ti2.Quantity),
+                    })
+                    .Where(v => v.RefQuantity < v.Quantity)
+                    .Distinct()
+                    .ToList(v => v.BillHead.Id).Contains(vh.Id)
+                ).OrderByDescending(vh => vh.Date)
                 .ToList();
+            Assert.Equal(bhSource[0], normal[0]);
+
+            var testCreate = () =>
+                fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity3))
+                    .FromQuery(
+                        fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity3)).Where(bh => bh.IsDeleted == false)
+                            .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi").Where(bi => bi.IsDeleted == false))
+                            .InnerJoin(v => v.t1.Id == v.t2.HeadId)
+                            .WithTempQuery(v => new
+                            {
+                                BillHead = v.t1,
+                                Quantity = v.t2.Quantity,
+                                RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity2)).As("bi2")
+                                    .Where(ti2 => ti2.RefHeadId == v.t2.HeadId && ti2.RefItemId == v.t2.Id)
+                                    .Sum(ti2 => ti2.Quantity),
+                            })
+                            .Where(v => v.RefQuantity < v.Quantity)
+                            .Distinct()
+                            .WithTempQuery(v => new { v.BillHead.Id })
+                    )
+                    .RightJoin(v => v.t1.Id == v.t2.Id)
+                    .OrderByDescending(v => v.t1.Date);
+
+            // 测试：只返回基类的字段，实体类的字段丢失
+            var lostFields = testCreate().ToList(v => v.t1);
+            Assert.Equal(5, lostFields.Count);
+            for (var xxx = 0; xxx < lostFields.Count; xxx++)
+            {
+                Assert.NotNull(lostFields[xxx] as BhEntity3);
+                Assert.Equal(bhSource[xxx].Date, lostFields[xxx].Date);
+                Assert.Equal(bhSource[xxx].Id, lostFields[xxx].Id);
+                Assert.Equal(bhSource[xxx].IsDeleted, lostFields[xxx].IsDeleted);
+                Assert.Equal(bhSource[xxx].No, lostFields[xxx].No);
+                Assert.Equal(bhSource[xxx].UserField1, (lostFields[xxx] as BhEntity3).UserField1);
+                Assert.Equal(bhSource[xxx].UserField2, (lostFields[xxx] as BhEntity3).UserField2);
+                Assert.Equal(bhSource[xxx].UserField3, (lostFields[xxx] as BhEntity3).UserField3);
+            }
+            Assert.Equal(bhSource[0], lostFields[0]);
+            // 测试：直接报类型转换错误
+            lostFields = testCreate().ToList(); 
+            Assert.Equal(5, lostFields.Count);
+            for (var xxx = 0; xxx < lostFields.Count; xxx++)
+            {
+                Assert.NotNull(lostFields[xxx] as BhEntity3);
+                Assert.Equal(bhSource[xxx].Date, lostFields[xxx].Date);
+                Assert.Equal(bhSource[xxx].Id, lostFields[xxx].Id);
+                Assert.Equal(bhSource[xxx].IsDeleted, lostFields[xxx].IsDeleted);
+                Assert.Equal(bhSource[xxx].No, lostFields[xxx].No);
+                Assert.Equal(bhSource[xxx].UserField1, (lostFields[xxx] as BhEntity3).UserField1);
+                Assert.Equal(bhSource[xxx].UserField2, (lostFields[xxx] as BhEntity3).UserField2);
+                Assert.Equal(bhSource[xxx].UserField3, (lostFields[xxx] as BhEntity3).UserField3);
+            }
+            var list3 = testCreate().ToList(a => a.t2);
+            Assert.Equal(5, list3.Count);
+            for (var xxx = 0; xxx < list3.Count; xxx++)
+            {
+                Assert.Equal(bhSource[xxx].Id, list3[xxx].Id);
+            }
         }
 
         [Fact]
@@ -194,6 +346,27 @@ WHERE (a.[RefQuantity] < a.[Quantity])", sql2);
         class BhEntity1 : BaseHeadEntity { }
         [Table(Name = "bhe_2")]
         class BhEntity2 : BaseHeadEntity { }
+        [Table(Name = "bhe_3")]
+        class BhEntity3 : BaseHeadEntity
+        {
+            [Column(Name = "f_usr_001")]
+            public string UserField1 { get; set; }
+            [Column(Name = "f_usr_002")]
+            public string UserField2 { get; set; }
+            [Column(Name = "f_usr_003")]
+            public string UserField3 { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (base.Equals(obj)) return true;
+                var as1 = obj as BhEntity3;
+                if (as1 is null) return false;
+                return base.Id == as1.Id &&
+                    this.UserField1 == as1.UserField1 &&
+                    this.UserField2 == as1.UserField2 &&
+                    this.UserField3 == as1.UserField3;
+            }
+        }
         abstract class BaseItemEntity : SoftDelete
         {
             public Guid Id { get; set; }
