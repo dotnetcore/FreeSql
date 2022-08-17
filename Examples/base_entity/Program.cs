@@ -379,6 +379,17 @@ namespace base_entity
             #endregion
 
 
+            Expression<Func<HzyTuple<User1, Group, Group, Group, Group, Group>, bool>> where = null;
+            where = where.Or(a => a.t6.Index > 0);
+            where = where.Or(a => a.t5.Index > 0);
+            where = where.Or(a => a.t4.Index > 0);
+            where = where.Or(a => a.t3.Index > 0);
+            where = where.Or(a => a.t2.Index > 0);
+            where = where.Or(a => a.t1.Nickname.Length > 0);
+
+            var sql11224333 = fsql.Select<User1, Group, Group, Group, Group, Group>().Where(where).ToSql();
+
+
             fsql.UseJsonMap();
 
             fsql.CodeFirst.ConfigEntity<TestClass>(cf =>
