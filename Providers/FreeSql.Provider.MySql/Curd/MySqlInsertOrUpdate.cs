@@ -17,25 +17,40 @@ namespace FreeSql.MySql.Curd
 
         public override string ToSql()
         {
+            var dbParams = new List<DbParameter>();
+            if (_sourceSql != null)
+            {
+                var data = new List<T1>();
+                data.Add((T1)_table.Type.CreateInstanceGetDefaultValue());
+                var sql = getInsertSql(data, false, false);
+                var sb = new StringBuilder();
+                sb.Append(sql.Substring(0, sql.IndexOf(") VALUES")));
+                sb.Append(") \r\n");
+                WriteSourceSelectUnionAll(null, sb, null);
+                if (_doNothing == false)
+                    sb.Append(sql.Substring(sql.IndexOf("\r\nON DUPLICATE KEY UPDATE\r\n") + 2));
+                else
+                    throw new Exception("Not implemented! fsql.InsertOrUpdate + SetSource(sql) + IfExistsDoNothing + MySql");
+                return sb.ToString();
+            }
             if (_source?.Any() != true) return null;
 
             var sqls = new string[2];
-            var dbParams = new List<DbParameter>();
             var ds = SplitSourceByIdentityValueIsNull(_source);
-            if (ds.Item1.Any()) sqls[0] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item1.Select(a => getInsertSql(a, false)));
-            if (ds.Item2.Any()) sqls[1] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item2.Select(a => getInsertSql(a, true)));
+            if (ds.Item1.Any()) sqls[0] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item1.Select(a => getInsertSql(a, false, true)));
+            if (ds.Item2.Any()) sqls[1] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item2.Select(a => getInsertSql(a, true, true)));
             _params = dbParams.ToArray();
             if (ds.Item2.Any() == false) return sqls[0];
             if (ds.Item1.Any() == false) return sqls[1];
             return string.Join("\r\n\r\n;\r\n\r\n", sqls);
 
-            string getInsertSql(List<T1> data, bool flagInsert)
+            string getInsertSql(List<T1> data, bool flagInsert, bool noneParameter)
             {
                 var insert = _orm.Insert<T1>()
                     .AsTable(_tableRule).AsType(_table.Type)
                     .WithConnection(_connection)
                     .WithTransaction(_transaction)
-                    .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
+                    .NoneParameter(noneParameter) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._source = data;
                 insert._table = _table;
                 insert._noneParameterFlag = flagInsert ? "cuc" : "cu";

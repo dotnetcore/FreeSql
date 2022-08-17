@@ -46,6 +46,8 @@ namespace FreeSql
         /// <returns></returns>
         IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null);
 
+        IInsertOrUpdate<T1> SetSource(string sql, Expression<Func<T1, object>> tempPrimarys = null);
+
         /// <summary>
         /// 当记录存在时，什么都不做<para></para>
         /// 换句话：只有记录不存在时才插入

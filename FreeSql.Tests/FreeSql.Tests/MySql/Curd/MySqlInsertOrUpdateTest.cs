@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +15,17 @@ namespace FreeSql.Tests.MySql
         public void InsertOrUpdate_OnePrimary()
         {
             fsql.Delete<tbiou02>().Where("1=1").ExecuteAffrows();
-            var iou = fsql.InsertOrUpdate<tbiou02>().SetSource(new tbiou02 { id = 1, name = "01" });
+            var iou = fsql.InsertOrUpdate<tbiou02>().SetSource(fsql.Select<tbiou022>().ToSql(a => new { id = a.id + 1, name = "xxx" }, FieldAliasOptions.AsProperty));
             var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO `tbiou02`(`id`, `name`) 
+SELECT (a.`id` + 1) `id`, xxx `name` 
+FROM `tbiou022` a
+ON DUPLICATE KEY UPDATE
+`name` = VALUES(`name`)", sql);
+            Assert.Equal(0, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou02>().SetSource(new tbiou02 { id = 1, name = "01" });
+            sql = iou.ToSql();
             Assert.Equal(@"INSERT INTO `tbiou02`(`id`, `name`) VALUES(1, '01')
 ON DUPLICATE KEY UPDATE
 `name` = VALUES(`name`)", sql);

@@ -36,6 +36,7 @@ namespace FreeSql.Internal.CommonProvider
     public abstract partial class InsertOrUpdateProvider<T1> : InsertOrUpdateProvider, IInsertOrUpdate<T1> where T1 : class
     {
         public List<T1> _source = new List<T1>();
+        public string _sourceSql = null;
 
         public InsertOrUpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -53,6 +54,7 @@ namespace FreeSql.Internal.CommonProvider
         protected void ClearData()
         {
             _source.Clear();
+            _sourceSql = null;
             _auditValueChangedDict.Clear();
         }
 
@@ -119,9 +121,23 @@ namespace FreeSql.Internal.CommonProvider
         public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
+            _sourceSql = null;
             UpdateProvider<T1>.GetDictionaryTableInfo(source, _orm, ref _table);
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
+
+            if (tempPrimarys != null)
+            {
+                var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
+                _tempPrimarys = cols.Keys.Select(a => _table.Columns.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
+            }
+            return this;
+        }
+        public virtual IInsertOrUpdate<T1> SetSource(string sql, Expression<Func<T1, object>> tempPrimarys = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql)) return this;
+            _source.Clear();
+            _sourceSql = sql;
 
             if (tempPrimarys != null)
             {
@@ -184,6 +200,12 @@ namespace FreeSql.Internal.CommonProvider
 
         public void WriteSourceSelectUnionAll(List<T1> source, StringBuilder sb, List<DbParameter> dbParams)
         {
+            if (_sourceSql != null)
+            {
+                sb.Append(_sourceSql).Append("\r\n");
+                return;
+            }
+
             var didx = 0;
             foreach (var d in source)
             {

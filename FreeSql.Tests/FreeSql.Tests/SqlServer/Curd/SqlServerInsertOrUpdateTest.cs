@@ -16,8 +16,19 @@ namespace FreeSql.Tests.SqlServer
         public void InsertOrUpdate_OnlyPrimary()
         {
             fsql.Delete<tbiou01>().Where("1=1").ExecuteAffrows();
-            var iou = fsql.InsertOrUpdate<tbiou01>().SetSource(new tbiou01 { id = 1 });
+
+            var iou = fsql.InsertOrUpdate<tbiou01>().SetSource(fsql.Select<tbiou022>().ToSql(a => new { id = a.id + 1 }, FieldAliasOptions.AsProperty));
             var sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO [tbiou01] t1 
+USING (SELECT (a.[id] + 1) [id] 
+FROM [tbiou022] a
+ ) t2 ON (t1.[id] = t2.[id]) 
+WHEN NOT MATCHED THEN 
+  insert ([id]) 
+  values (t2.[id]);", sql);
+
+            iou = fsql.InsertOrUpdate<tbiou01>().SetSource(new tbiou01 { id = 1 });
+            sql = iou.ToSql();
             Assert.Equal(@"MERGE INTO [tbiou01] t1 
 USING (SELECT 1 as [id] ) t2 ON (t1.[id] = t2.[id]) 
 WHEN NOT MATCHED THEN 

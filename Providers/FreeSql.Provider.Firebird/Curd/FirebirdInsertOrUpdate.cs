@@ -17,10 +17,11 @@ namespace FreeSql.Firebird.Curd
 
         public override string ToSql()
         {
+            var dbParams = new List<DbParameter>();
+            if (_sourceSql != null) return getMergeSql(null);
             if (_source?.Any() != true) return null;
 
             var sqls = new string[2];
-            var dbParams = new List<DbParameter>();
             var ds = SplitSourceByIdentityValueIsNull(_source);
             if (ds.Item1.Any()) sqls[0] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item1.Select(a => getMergeSql(a)));
             if (ds.Item2.Any()) sqls[1] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item2.Select(a => getInsertSql(a)));

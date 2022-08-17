@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace FreeSql.Sqlite.Curd
 {
@@ -12,6 +13,15 @@ namespace FreeSql.Sqlite.Curd
         public SqliteInsertOrUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
             : base(orm, commonUtils, commonExpression)
         {
+        }
+
+        public override IInsertOrUpdate<T1> SetSource(string sql, Expression<Func<T1, object>> tempPrimarys = null)
+        {
+            var list = _orm.Ado.CommandFluent(sql)
+                .WithConnection(_connection)
+                .WithTransaction(_transaction)
+                .Query<T1>();
+            return SetSource(list, tempPrimarys);
         }
 
         public override string ToSql()

@@ -494,7 +494,7 @@ namespace FreeSql.Internal
                     if (parent.Childs.Any() == false) throw new Exception(CoreStrings.Mapping_Exception_HasNo_SamePropertyName(newExp.Type.Name));
                     return true;
             }
-            parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
+            parent.DbField = ExpressionLambdaToSql(exp, getTSC()); //解决 new { a = id + 1 } 翻译后 ((id+1)) 问题
             field.Append(", ").Append(parent.DbField);
             LocalSetFieldAlias(ref index, false);
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
