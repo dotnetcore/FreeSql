@@ -1789,6 +1789,17 @@
             </param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsertOrUpdate`1.SetSource(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            添加或更新，设置SQL
+            </summary>
+            <param name="sql">查询SQL</param>
+            <param name="tempPrimarys">
+            根据临时主键插入或更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}<para></para>
+            注意：不处理自增，因某些数据库依赖主键或唯一键，所以指定临时主键仅对 SqlServer/PostgreSQL/Firebird/达梦/南大通用/金仓/神通 有效
+            </param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsertOrUpdate`1.IfExistsDoNothing">
             <summary>
             当记录存在时，什么都不做<para></para>

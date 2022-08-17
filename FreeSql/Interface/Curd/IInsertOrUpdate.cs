@@ -45,7 +45,15 @@ namespace FreeSql
         /// </param>
         /// <returns></returns>
         IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null);
-
+        /// <summary>
+        /// 添加或更新，设置SQL
+        /// </summary>
+        /// <param name="sql">查询SQL</param>
+        /// <param name="tempPrimarys">
+        /// 根据临时主键插入或更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}<para></para>
+        /// 注意：不处理自增，因某些数据库依赖主键或唯一键，所以指定临时主键仅对 SqlServer/PostgreSQL/Firebird/达梦/南大通用/金仓/神通 有效
+        /// </param>
+        /// <returns></returns>
         IInsertOrUpdate<T1> SetSource(string sql, Expression<Func<T1, object>> tempPrimarys = null);
 
         /// <summary>
