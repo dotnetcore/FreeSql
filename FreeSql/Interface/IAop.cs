@@ -347,6 +347,12 @@ namespace FreeSql.Aop
         /// 实体对象
         /// </summary>
         public object Object { get; }
+        /// <summary>
+        /// 中断实体对象审计<para></para>
+        /// false: 每个实体对象的属性都会审计（默认）<para></para>
+        /// true: 每个实体对象只审计一次
+        /// </summary>
+        public bool ObjectAuditBreak { get; set; } = false;
     }
     public enum AuditValueType { Update, Insert, InsertOrUpdate }
     #endregion

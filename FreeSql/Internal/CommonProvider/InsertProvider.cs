@@ -175,6 +175,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
+                    if (auditArgs.ObjectAuditBreak) break;
                 }
                 if (col.Attribute.IsPrimary)
                 {
