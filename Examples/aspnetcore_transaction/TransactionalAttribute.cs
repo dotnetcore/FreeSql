@@ -4,6 +4,7 @@ using Rougamo.Context;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,7 @@ namespace FreeSql
         IsolationLevel? m_IsolationLevel;
 
         static AsyncLocal<IServiceProvider> m_ServiceProvider = new AsyncLocal<IServiceProvider>();
-        public static void SetServiceProvider(IServiceProvider serviceProvider) => 
-            m_ServiceProvider.Value = serviceProvider;
+        public static void SetServiceProvider(IServiceProvider serviceProvider) => m_ServiceProvider.Value = serviceProvider;
 
         IUnitOfWork _uow;
         public override void OnEntry(MethodContext context)
@@ -29,14 +29,24 @@ namespace FreeSql
         }
         public override void OnExit(MethodContext context)
         {
-            try
+            if (typeof(Task).IsAssignableFrom(context.RealReturnType))
             {
-                if (context.Exception == null) _uow.Commit();
-                else _uow.Rollback();
+                ((Task)context.ReturnValue).ContinueWith(t => _OnExit());
+                return;
             }
-            finally
+            _OnExit();
+
+            void _OnExit()
             {
-                _uow.Dispose();
+                try
+                {
+                    if (context.Exception == null) _uow.Commit();
+                    else _uow.Rollback();
+                }
+                finally
+                {
+                    _uow.Dispose();
+                }
             }
         }
     }

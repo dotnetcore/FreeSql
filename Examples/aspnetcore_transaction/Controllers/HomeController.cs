@@ -70,9 +70,9 @@ namespace aspnetcore_transaction.Controllers
             _repoSong2.Insert(new Song());
         }
         [Transactional(Propagation = Propagation.Nested)] //sqlite 不能嵌套事务，会锁库的
-        async public Task Test11()
+        public Task Test11()
         {
-            await Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(t => 
+            return Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(t => 
                 _repoSong.InsertAsync(new Song()));
         }
 
