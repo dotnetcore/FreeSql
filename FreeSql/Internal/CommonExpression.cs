@@ -754,7 +754,16 @@ namespace FreeSql.Internal
                             return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractTimeSpan, rightExp), tsc);
                     }
                     if (oper == "OR")
-                        return $"({GetBoolString(ExpressionLambdaToSql(leftExp, tsc))} {oper} {GetBoolString(ExpressionLambdaToSql(rightExp, tsc))})";
+                    {
+                        var leftBool = ExpressionLambdaToSql(leftExp, tsc);
+                        if (SearchColumnByField(tsc._tables, tsc.currentTable, leftBool) != null) leftBool = $"{leftBool} = {formatSql(true, null, null, null)}";
+                        else leftBool = GetBoolString(leftBool);
+
+                        var rightBool = ExpressionLambdaToSql(rightExp, tsc);
+                        if (SearchColumnByField(tsc._tables, tsc.currentTable, rightBool) != null) rightBool = $"{rightBool} = {formatSql(true, null, null, null)}";
+                        else rightBool = GetBoolString(rightBool);
+                        return $"({leftBool} {oper} {rightBool})";
+                    }
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
                 case "=":
                 case "<>":

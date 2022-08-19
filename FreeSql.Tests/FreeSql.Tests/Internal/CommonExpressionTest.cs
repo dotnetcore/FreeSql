@@ -127,7 +127,11 @@ WHERE (a.""Bool"" = 0 AND a.""Id"" > 0 AND a.""Bool"" = 0)", sql);
             sql = fsql.Select<IIFTest01Model>().Where(a => a.Bool && a.Id > 0 && a.Bool).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Bool"", a.""BoolNullable"" 
 FROM ""IIFTest01Model"" a 
-WHERE (a.""Bool"" = 1 AND a.""Id"" > 0 AND a.""Bool"" = 1)", sql);
+WHERE (a.""Bool"" = 1 AND a.""Id"" > 0 AND a.""Bool"" = 1)", sql); 
+            sql = fsql.Select<IIFTest01Model>().Where(a => a.Bool && a.Id > 0 || a.Bool).ToSql();
+            Assert.Equal(@"SELECT a.""Id"", a.""Bool"", a.""BoolNullable"" 
+FROM ""IIFTest01Model"" a 
+WHERE ((a.""Bool"" = 1 AND a.""Id"" > 0 OR a.""Bool"" = 1))", sql);
 
             sql = fsql.Select<IIFTest01Model>().Where(a => a.BoolNullable == true && a.Id > 0 && a.BoolNullable == true).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Bool"", a.""BoolNullable"" 
