@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +22,7 @@ namespace aspnetcore_transaction
                 {
                     webBuilder.UseStartup<Startup>();
                 })
-                .UseServiceProviderFactory(new FreeSql.DynamicProxyServiceProviderFactory());
+                //.UseServiceProviderFactory(new FreeSql.DynamicProxyServiceProviderFactory())
+            ;
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -51,6 +51,12 @@ namespace aspnetcore_transaction
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Console.OutputEncoding = Encoding.GetEncoding("GB2312");
             Console.InputEncoding = Encoding.GetEncoding("GB2312");
+
+            app.Use(async (context, next) =>
+            {
+                TransactionalAttribute.SetServiceProvider(context.RequestServices);
+                await next();
+            });
 
             app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
             app.UseDeveloperExceptionPage();

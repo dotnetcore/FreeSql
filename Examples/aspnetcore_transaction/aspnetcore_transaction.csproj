@@ -11,6 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Rougamo.Fody" Version="1.1.1" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
 		<PackageReference Include="FreeSql.DynamicProxy" Version="1.5.0" />
 		<PackageReference Include="IdleBus" Version="1.5.2" />
