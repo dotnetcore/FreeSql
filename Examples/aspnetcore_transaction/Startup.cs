@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using aspnetcore_transaction.Controllers;
 using FreeSql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace aspnetcore_transaction
 {
@@ -22,7 +15,7 @@ namespace aspnetcore_transaction
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            Fsql = new FreeSql.FreeSqlBuilder()
+            Fsql = new FreeSqlBuilder()
                  .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\test_trans.db")
                  .UseAutoSyncStructure(true)
                  .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))

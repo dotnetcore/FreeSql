@@ -1,5 +1,4 @@
-﻿using FreeSql.Extensions.EntityUtil;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,7 +13,7 @@ namespace FreeSql
         where TEntity : class
     {
 
-        async virtual public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
@@ -32,20 +31,20 @@ namespace FreeSql
             _dbset.RemoveRange(entitys);
             return _db.SaveChangesAsync(cancellationToken);
         }
-        async public virtual Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        public virtual async Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             var list = await _dbset.RemoveCascadeByDatabaseAsync(predicate, cancellationToken);
             var affrows = await _db.SaveChangesAsync(cancellationToken);
             return list;
         }
 
-        async public virtual Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             await _dbset.AddAsync(entity, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
             return entity;
         }
-        async public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default)
+        public virtual async Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default)
         {
             await _dbset.AddRangeAsync(entitys, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
@@ -63,14 +62,14 @@ namespace FreeSql
             return _db.SaveChangesAsync(cancellationToken);
         }
 
-        async public virtual Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             await _dbset.AddOrUpdateAsync(entity, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
             return entity;
         }
 
-        async public Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default)
+        public virtual async Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default)
         {
             await _dbset.SaveManyAsync(entity, propertyName, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
@@ -81,7 +80,7 @@ namespace FreeSql
     {
         public virtual Task<int> DeleteAsync(TKey id, CancellationToken cancellationToken = default) => DeleteAsync(CheckTKeyAndReturnIdEntity(id), cancellationToken);
         public virtual Task<TEntity> FindAsync(TKey id, CancellationToken cancellationToken = default) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync(cancellationToken);
-        public Task<TEntity> GetAsync(TKey id, CancellationToken cancellationToken = default) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync(cancellationToken);
+        public virtual Task<TEntity> GetAsync(TKey id, CancellationToken cancellationToken = default) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync(cancellationToken);
     }
 }
 #endif

@@ -82,7 +82,7 @@ namespace FreeSql
         }
 #if net40
 #else
-        async public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await FlushCommandAsync(cancellationToken);
             return SaveChangesSuccess();

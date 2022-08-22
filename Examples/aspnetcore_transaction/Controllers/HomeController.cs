@@ -1,14 +1,10 @@
-﻿using FreeSql;
+﻿using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using FreeSql;
 using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace aspnetcore_transaction.Controllers
 {
@@ -25,7 +21,7 @@ namespace aspnetcore_transaction.Controllers
 
         [HttpGet("1")]
         //[Transactional]
-        async public Task<object> Get([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
+        public async Task<object> Get([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
             [FromServices] SongService serviceSong)
         {
             //repoSong.Insert(new Song());
@@ -39,7 +35,7 @@ namespace aspnetcore_transaction.Controllers
 
         [HttpGet("2")]
         //[Transactional]
-        async public Task<object> GetAsync([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
+        public async Task<object> GetAsync([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
            [FromServices] SongService serviceSong)
         {
             await serviceSong.Test2();
@@ -77,7 +73,7 @@ namespace aspnetcore_transaction.Controllers
         }
 
         [Transactional(Propagation = Propagation.Nested)] //sqlite 不能嵌套事务，会锁库的
-        async public Task Test2()
+        public async Task Test2()
         {
             await _repoSong.InsertAsync(new Song());
             await _repoDetail.InsertAsync(new Detail());
@@ -85,7 +81,7 @@ namespace aspnetcore_transaction.Controllers
         }
 
         [Transactional(Propagation = Propagation.Nested)] //sqlite 不能嵌套事务，会锁库的
-        async public Task<object> Test3()
+        public async Task<object> Test3()
         {
             await _repoSong.InsertAsync(new Song());
             await _repoDetail.InsertAsync(new Detail());
