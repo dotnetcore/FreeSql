@@ -103,7 +103,7 @@ namespace FreeSql
             _dbset.RemoveRange(entitys);
             return _db.SaveChanges();
         }
-        public List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
+        public virtual List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
         {
             var list = _dbset.RemoveCascadeByDatabase(predicate);
             var affrows = _db.SaveChanges();
@@ -151,14 +151,14 @@ namespace FreeSql
             return entity;
         }
 
-        public void SaveMany(TEntity entity, string propertyName)
+        public virtual void SaveMany(TEntity entity, string propertyName)
         {
             _dbset.SaveMany(entity, propertyName);
             _db.SaveChanges();
         }
 
-        public void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
-        public int EndEdit(List<TEntity> data = null)
+        public virtual void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
+        public virtual int EndEdit(List<TEntity> data = null)
         {
             _db.FlushCommand();
             if (UnitOfWork?.GetOrBeginTransaction(true) == null && _db.OrmOriginal.Ado.TransactionCurrentThread == null)
@@ -206,6 +206,6 @@ namespace FreeSql
 
         public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
         public virtual TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
-        public TEntity Get(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
+        public virtual TEntity Get(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FreeSql;
@@ -12,9 +11,9 @@ namespace dbcontext_01.Controllers
     public class ValuesController : ControllerBase
     {
 
-        IFreeSql _orm;
-        SongContext _songContext;
-        CurdAfterLog _curdLog;
+        private readonly IFreeSql _orm;
+        private readonly SongContext _songContext;
+        private readonly CurdAfterLog _curdLog;
         public ValuesController(SongContext songContext, IFreeSql orm1, CurdAfterLog curdLog)
         {
             _songContext = songContext;
@@ -25,10 +24,12 @@ namespace dbcontext_01.Controllers
 
         // GET api/values
         [HttpGet]
-        async public Task<string> Get()
+        public async Task<string> Get()
         {
-            _orm.SetDbContextOptions(opt => {
-                opt.OnEntityChange = changeReport => {
+            _orm.SetDbContextOptions(opt =>
+            {
+                opt.OnEntityChange = changeReport =>
+                {
                     Console.WriteLine(changeReport);
                 };
             });
@@ -136,7 +137,7 @@ namespace dbcontext_01.Controllers
 
                 using (var uow = _orm.CreateUnitOfWork())
                 {
-                    
+
                     var reposSong = uow.GetRepository<Song, int>();
                     reposSong.Where(a => a.Id > 10).ToList();
                     //查询结果，进入 states

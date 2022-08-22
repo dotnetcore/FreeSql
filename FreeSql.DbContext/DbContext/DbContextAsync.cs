@@ -13,14 +13,14 @@ namespace FreeSql
 {
     partial class DbContext
     {
-        async public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await FlushCommandAsync(cancellationToken);
             return SaveChangesSuccess();
         }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>> _dicFlushCommandDbSetBatchAsync = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>>();
-        async internal Task FlushCommandAsync(CancellationToken cancellationToken)
+        internal async Task FlushCommandAsync(CancellationToken cancellationToken)
         {
             if (isFlushCommanding) return;
             if (_prevCommands.Any() == false) return;
