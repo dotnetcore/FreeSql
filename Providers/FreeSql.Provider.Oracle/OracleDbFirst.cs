@@ -1,7 +1,11 @@
 ﻿using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
+#if oledb
+using System.Data.OleDb;
+#else
 using Oracle.ManagedDataAccess.Client;
+#endif
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,6 +29,98 @@ namespace FreeSql.Oracle
         }
 
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
+#if oledb
+        OleDbType GetSqlDbType(DbColumnInfo column)
+        {
+            var dbfull = column.DbTypeTextFull?.ToLower();
+            switch (dbfull)
+            {
+                case "number(1)": return OleDbType.Boolean;
+
+                case "number(4)": return OleDbType.TinyInt;
+                case "number(6)": return OleDbType.SmallInt;
+                case "number(11)": return OleDbType.Integer;
+                case "number(21)": return OleDbType.BigInt;
+
+                case "number(3)": return OleDbType.UnsignedTinyInt;
+                case "number(5)": return OleDbType.UnsignedSmallInt;
+                case "number(10)": return OleDbType.UnsignedInt;
+                case "number(20)": return OleDbType.UnsignedBigInt;
+
+                case "float(126)": return OleDbType.Double;
+                case "float(63)": return OleDbType.Single;
+                case "number(10,2)": return OleDbType.Decimal;
+
+                case "interval day(2) to second(6)": return OleDbType.DBTime;
+                case "timestamp(6)": return OleDbType.DBTime;
+                case "timestamp(6) with local time zone": return OleDbType.DBTimeStamp;
+
+                case "blob": return OleDbType.VarBinary;
+                case "nvarchar2(255)": return OleDbType.VarChar;
+
+                case "char(36 char)": return OleDbType.Char;
+            }
+            switch (column.DbTypeText?.ToLower())
+            {
+                case "number":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
+                    return OleDbType.Decimal;
+                case "float":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
+                    return OleDbType.Double;
+                case "interval day to second":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["interval day(2) to second(6)"]);
+                    return OleDbType.DBTime;
+                case "date":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["date"]);
+                    return OleDbType.DBTime;
+                case "timestamp":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
+                    return OleDbType.DBTime;
+                case "timestamp with local time zone":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6) with local time zone"]);
+                    return OleDbType.DBTimeStamp;
+                case "blob":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
+                    return OleDbType.VarBinary;
+                case "nvarchar2":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.VarChar;
+                case "varchar2":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.VarChar;
+                case "char":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.Char;
+                case "nchar":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.Char;
+                case "clob":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.VarChar;
+                case "nclob":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.VarChar;
+                case "raw":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
+                    return OleDbType.VarBinary;
+                case "long raw":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
+                    return OleDbType.VarBinary;
+                case "binary_float":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(63)"]);
+                    return OleDbType.Single;
+                case "binary_double":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
+                    return OleDbType.Double;
+                case "rowid":
+                default:
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OleDbType.VarChar;
+            }
+            throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
+        }
+#else
         OracleDbType GetSqlDbType(DbColumnInfo column)
         {
             var dbfull = column.DbTypeTextFull?.ToLower();
@@ -115,6 +211,7 @@ namespace FreeSql.Oracle
             }
             throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
+#endif
 
         static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
         static OracleDbFirst()

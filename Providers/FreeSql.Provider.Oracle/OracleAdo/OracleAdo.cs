@@ -1,11 +1,9 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using Oracle.ManagedDataAccess.Client;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
-using System.Text;
 using System.Threading;
 
 namespace FreeSql.Oracle
@@ -63,8 +61,13 @@ namespace FreeSql.Oracle
 
         public override DbCommand CreateCommand()
         {
-            var cmd = new OracleCommand();
+            var cmd =
+#if oledb
+                new System.Data.OleDb.OleDbCommand();
+#else
+                new Oracle.ManagedDataAccess.Client.OracleCommand();
             cmd.BindByName = true;
+#endif
             return cmd;
         }
 

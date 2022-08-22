@@ -1,6 +1,10 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+#if oledb
+using System.Data.OleDb;
+#else
 using Oracle.ManagedDataAccess.Client;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -194,7 +198,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0);
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
@@ -263,7 +267,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0);
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();

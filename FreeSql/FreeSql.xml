@@ -713,6 +713,11 @@
             天津南大通用数据技术股份有限公司成立于2004年,是国产数据库、大数据领域的知名企业，基于 Odbc 的实现
             </summary>
         </member>
+        <member name="F:FreeSql.DataType.OracleOledb">
+            <summary>
+            基于 OleDb 实现访问 Oracle 数据库，解决 US7ASCII 中文乱码问题 https://blog.csdn.net/guhun_shmily/article/details/83064225
+            </summary>
+        </member>
         <member name="M:FreeSql.AdoNetExtensions.GetIFreeSql(System.Data.IDbConnection)">
             <summary>
             获取 IDbConnection 对应的 IFreeSql 实例

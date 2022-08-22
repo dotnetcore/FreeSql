@@ -1,5 +1,9 @@
 ﻿using FreeSql;
+#if oledb
+using System.Data.OleDb;
+#else
 using Oracle.ManagedDataAccess.Client;
+#endif
 using System;
 
 public static partial class FreeSqlOracleGlobalExtensions
@@ -14,6 +18,8 @@ public static partial class FreeSqlOracleGlobalExtensions
     public static string FormatOracle(this string that, params object[] args) => _oracleAdo.Addslashes(that, args);
     static FreeSql.Oracle.OracleAdo _oracleAdo = new FreeSql.Oracle.OracleAdo();
 
+#if oledb
+#else
     #region ExecuteOracleBulkCopy
     /// <summary>
     /// Oracle CopyBulk 批量插入功能<para></para>
@@ -106,4 +112,5 @@ public static partial class FreeSqlOracleGlobalExtensions
         }
     }
     #endregion
+#endif
 }

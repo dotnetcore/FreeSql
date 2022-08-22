@@ -229,6 +229,7 @@ namespace FreeSql
                         break;
                     case DataType.Oracle:
                         type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
+                        if (type == null) type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.OracleOledb")?.MakeGenericType(typeof(TMark)); //基于 oledb 实现，解决 US7ASCII 中文乱码问题
                         if (type == null) throwNotFind("FreeSql.Provider.Oracle.dll", "FreeSql.Oracle.OracleProvider<>");
                         break;
                     case DataType.Sqlite:

@@ -1,11 +1,15 @@
-﻿using Oracle.ManagedDataAccess.Client;
+﻿#if oledb
+using System.Data.OleDb;
+using OracleException = System.Data.OleDb.OleDbException;
+using OracleConnection = System.Data.OleDb.OleDbConnection;
+#else
+using Oracle.ManagedDataAccess.Client;
+#endif
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -121,7 +125,10 @@ namespace FreeSql.Oracle
         public void OnDestroy(DbConnection obj)
         {
             try { if (obj.State != ConnectionState.Closed) obj.Close(); } catch { }
+#if oledb
+#else
             try { OracleConnection.ClearPool(obj as OracleConnection); } catch { }
+#endif
             obj.Dispose();
         }
 

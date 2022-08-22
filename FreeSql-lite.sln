@@ -77,6 +77,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SqliteCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "base_entity", "Examples\base_entity\base_entity.csproj", "{9D82A683-2950-4E8A-B078-A422ECA6AAA5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.OracleOledb", "Providers\FreeSql.Provider.OracleOledb\FreeSql.Provider.OracleOledb.csproj", "{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -411,6 +413,18 @@ Global
 		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x64.Build.0 = Release|Any CPU
 		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x86.ActiveCfg = Release|Any CPU
 		{9D82A683-2950-4E8A-B078-A422ECA6AAA5}.Release|x86.Build.0 = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|x64.Build.0 = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Debug|x86.Build.0 = Debug|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|x64.ActiveCfg = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|x64.Build.0 = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|x86.ActiveCfg = Release|Any CPU
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -439,10 +453,11 @@ Global
 		{BDE8EDC6-2646-45E0-A921-39CD1538A8C5} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{9D82A683-2950-4E8A-B078-A422ECA6AAA5} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
+		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
-		RESX_PrefixTranslations = True
 		RESX_NeutralResourcesLanguage = en-US
+		RESX_PrefixTranslations = True
+		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
 	EndGlobalSection
 EndGlobal
