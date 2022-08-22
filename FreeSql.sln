@@ -111,6 +111,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Sqli
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SqliteCore", "Providers\FreeSql.Provider.SqliteCore\FreeSql.Provider.SqliteCore.csproj", "{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.OracleOledb", "Providers\FreeSql.Provider.OracleOledb\FreeSql.Provider.OracleOledb.csproj", "{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.OracleOledb", "FreeSql.Tests\FreeSql.Tests.Provider.OracleOledb\FreeSql.Tests.Provider.OracleOledb.csproj", "{1DA3FF04-AA2C-4374-9368-68931D8D5B09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -649,6 +653,30 @@ Global
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x64.Build.0 = Release|Any CPU
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x86.ActiveCfg = Release|Any CPU
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883}.Release|x86.Build.0 = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|x64.Build.0 = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Debug|x86.Build.0 = Debug|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|x64.ActiveCfg = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|x64.Build.0 = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|x86.ActiveCfg = Release|Any CPU
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C}.Release|x86.Build.0 = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|x64.Build.0 = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Debug|x86.Build.0 = Debug|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x64.ActiveCfg = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x64.Build.0 = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x86.ActiveCfg = Release|Any CPU
+		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -685,10 +713,11 @@ Global
 		{86C56235-5D37-4422-807B-B31681C7D01C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{BDE8EDC6-2646-45E0-A921-39CD1538A8C5} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal

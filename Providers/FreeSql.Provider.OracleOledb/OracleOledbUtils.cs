@@ -26,6 +26,16 @@ namespace FreeSql.Oracle
                 else value = (bool)value == true ? 1 : 0;
                 dbtype = OleDbType.SmallInt;
             }
+            switch (dbtype)
+            {
+                case OleDbType.Char:
+                case OleDbType.VarChar:
+                case OleDbType.WChar:
+                case OleDbType.LongVarChar:
+                case OleDbType.LongVarWChar:
+                    if (value is Guid || value is Guid?) value = string.Concat(value);
+                    break;
+            }
             var ret = new OleDbParameter { ParameterName = QuoteParamterName(parameterName) };
             if (dbtype != null) ret.OleDbType = dbtype.Value;
             ret.Value = value;

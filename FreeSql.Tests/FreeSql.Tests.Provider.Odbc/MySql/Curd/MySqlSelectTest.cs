@@ -1172,7 +1172,7 @@ FROM ( SELECT max(a.`Id`) `TaskId`, max(a.`Type`) `TaskType`, a.`ProcessId`, a.`
     WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
     GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName` ) a 
 LEFT JOIN `WF_ProcessInstance` b ON b.`Id` = a.`ProcessId` 
-WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
+WHERE ((b.`IsFinished` = 1 OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
 
             var grouplist12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
                .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)

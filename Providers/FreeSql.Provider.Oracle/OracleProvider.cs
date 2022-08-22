@@ -2,7 +2,10 @@
 using FreeSql.Oracle.Curd;
 using System;
 using System.Data.Common;
+using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
 using System.Threading;
+using System.IO;
 
 namespace FreeSql.Oracle
 {
@@ -25,7 +28,31 @@ namespace FreeSql.Oracle
 
             this.DbFirst = new OracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+#if oledb
+            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(bool)] = typeof(DbDataReader).GetMethod("GetBoolean", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(int)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(long)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(decimal)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(DateTime)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValue[typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) });
+
+            this.Aop.CommandBefore += (_, e) =>
+            {
+                if (e.Command.Parameters.Count > 0)
+                    e.Command.CommandText = _regCommandText.Replace(e.Command.CommandText, "?");
+            };
+
+            this.Aop.AuditDataReader += (_, e) =>
+            {
+                
+            };
         }
+        readonly static Regex _regCommandText = new Regex(@"\:[_\w]+", RegexOptions.Compiled);
+#else
+        }
+#endif
 
         ~OracleProvider() => this.Dispose();
         int _disposeCounter;

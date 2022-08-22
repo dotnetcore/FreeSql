@@ -34,17 +34,17 @@ namespace FreeSql.Oracle
                 { typeof(int), CsToDb.New(OleDbType.Integer, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?), CsToDb.New(OleDbType.Integer, "number", "number(11) NULL", false, true, null) },
                 { typeof(long), CsToDb.New(OleDbType.BigInt, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?), CsToDb.New(OleDbType.BigInt, "number","number(21) NULL", false, true, null) },
 
-                { typeof(byte), CsToDb.New(OleDbType.UnsignedTinyInt, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?), CsToDb.New(OleDbType.UnsignedTinyInt, "number","number(3) NULL", true, true, null) },
-                { typeof(ushort), CsToDb.New(OleDbType.UnsignedSmallInt, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?), CsToDb.New(OleDbType.UnsignedSmallInt, "number", "number(5) NULL", true, true, null) },
-                { typeof(uint), CsToDb.New(OleDbType.UnsignedInt, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?), CsToDb.New(OleDbType.UnsignedInt, "number", "number(10) NULL", true, true, null) },
-                { typeof(ulong), CsToDb.New(OleDbType.UnsignedBigInt, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?), CsToDb.New(OleDbType.UnsignedBigInt, "number", "number(20) NULL", true, true, null) },
+                { typeof(byte), CsToDb.New(OleDbType.SmallInt, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?), CsToDb.New(OleDbType.SmallInt, "number","number(3) NULL", true, true, null) },
+                { typeof(ushort), CsToDb.New(OleDbType.Decimal, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?), CsToDb.New(OleDbType.Decimal, "number", "number(5) NULL", true, true, null) },
+                { typeof(uint), CsToDb.New(OleDbType.Decimal, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?), CsToDb.New(OleDbType.Decimal, "number", "number(10) NULL", true, true, null) },
+                { typeof(ulong), CsToDb.New(OleDbType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?), CsToDb.New(OleDbType.Decimal, "number", "number(20) NULL", true, true, null) },
 
                 { typeof(double), CsToDb.New(OleDbType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?), CsToDb.New(OleDbType.Double, "float", "float(126) NULL", false, true, null) },
                 { typeof(float), CsToDb.New(OleDbType.Single, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?), CsToDb.New(OleDbType.Single, "float","float(63) NULL", false, true, null) },
                 { typeof(decimal), CsToDb.New(OleDbType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?), CsToDb.New(OleDbType.Decimal, "number", "number(10,2) NULL", false, true, null) },
 
                 { typeof(TimeSpan), CsToDb.New(OleDbType.DBTime, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?), CsToDb.New(OleDbType.DBTime, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
-                { typeof(DateTime), CsToDb.New(OleDbType.DBTime, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?), CsToDb.New(OleDbType.DBTime, "timestamp", "timestamp(6) NULL", false, true, null) },
+                { typeof(DateTime), CsToDb.New(OleDbType.DBTimeStamp, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?), CsToDb.New(OleDbType.DBTimeStamp, "timestamp", "timestamp(6) NULL", false, true, null) },
                 { typeof(DateTimeOffset), CsToDb.New(OleDbType.DBTimeStamp, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?), CsToDb.New(OleDbType.DBTimeStamp, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
 
                 { typeof(byte[]), CsToDb.New(OleDbType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },

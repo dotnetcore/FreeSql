@@ -42,17 +42,17 @@ namespace FreeSql.Oracle
                 case "number(11)": return OleDbType.Integer;
                 case "number(21)": return OleDbType.BigInt;
 
-                case "number(3)": return OleDbType.UnsignedTinyInt;
-                case "number(5)": return OleDbType.UnsignedSmallInt;
-                case "number(10)": return OleDbType.UnsignedInt;
-                case "number(20)": return OleDbType.UnsignedBigInt;
+                case "number(3)": return OleDbType.TinyInt;
+                case "number(5)": return OleDbType.Decimal;
+                case "number(10)": return OleDbType.Decimal;
+                case "number(20)": return OleDbType.Decimal;
 
                 case "float(126)": return OleDbType.Double;
                 case "float(63)": return OleDbType.Single;
                 case "number(10,2)": return OleDbType.Decimal;
 
                 case "interval day(2) to second(6)": return OleDbType.DBTime;
-                case "timestamp(6)": return OleDbType.DBTime;
+                case "timestamp(6)": return OleDbType.DBTimeStamp;
                 case "timestamp(6) with local time zone": return OleDbType.DBTimeStamp;
 
                 case "blob": return OleDbType.VarBinary;
@@ -73,10 +73,10 @@ namespace FreeSql.Oracle
                     return OleDbType.DBTime;
                 case "date":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["date"]);
-                    return OleDbType.DBTime;
+                    return OleDbType.DBTimeStamp;
                 case "timestamp":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
-                    return OleDbType.DBTime;
+                    return OleDbType.DBTimeStamp;
                 case "timestamp with local time zone":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6) with local time zone"]);
                     return OleDbType.DBTimeStamp;

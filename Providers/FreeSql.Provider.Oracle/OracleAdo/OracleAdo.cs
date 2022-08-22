@@ -65,7 +65,7 @@ namespace FreeSql.Oracle
 #if oledb
                 new System.Data.OleDb.OleDbCommand();
 #else
-                new Oracle.ManagedDataAccess.Client.OracleCommand();
+                new global::Oracle.ManagedDataAccess.Client.OracleCommand();
             cmd.BindByName = true;
 #endif
             return cmd;
