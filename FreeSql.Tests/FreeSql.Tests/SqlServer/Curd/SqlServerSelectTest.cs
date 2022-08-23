@@ -1569,6 +1569,84 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
                 .IncludeByPropertyName("Songs")
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
+            var tags3339 = g.sqlserver.Select<Tag>()
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+            tags3339
+                .IncludeByPropertyName(g.sqlserver, "Tags",
+                    then: then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName(g.sqlserver, "Parent")
+                .IncludeByPropertyName(g.sqlserver, "Songs");
+
+            var tags33331 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .IncludeByPropertyName("Tags")
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            var tags333319 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            tags333319.IncludeByPropertyName(g.sqlserver, "Tags");
+
+            var tags3333 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .IncludeByPropertyName("Tags",
+                    then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName("Parent")
+                .IncludeByPropertyName("Songs")
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            var tags33339 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            tags33339
+                .IncludeByPropertyName(g.sqlserver, "Tags",
+                    then: then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName(g.sqlserver, "Parent")
+                .IncludeByPropertyName(g.sqlserver, "Songs");
+
+            var tags33333 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .IncludeByPropertyName("Parent.Tags",
+                    then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName("Songs")
+                .Where(a => (a as Tag).Id == tag1_1.Id || (a as Tag).Id == tag1_1.Id)
+                .ToList();
+            var tags333339 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .Where(a => (a as Tag).Id == tag1_1.Id || (a as Tag).Id == tag1_1.Id)
+                .ToList();
+            tags333339
+                .IncludeByPropertyName(g.sqlserver, "Parent.Tags",
+                    then: then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName(g.sqlserver, "Songs");
+
+            var tags333333 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .IncludeByPropertyName("Parent.Tags",
+                    then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName("Songs")
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            var tags3333339 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .Where(a => (a as Tag).Id == tag1.Id || (a as Tag).Id == tag2.Id)
+                .ToList();
+            tags3333339
+                .IncludeByPropertyName(g.sqlserver, "Parent.Tags",
+                    select: "Id, Name",
+                    then: then => then.IncludeByPropertyName("Parent").IncludeByPropertyName("Songs").IncludeByPropertyName("Tags"))
+                .IncludeByPropertyName(g.sqlserver, "Songs");
+            var tags33333391 = g.sqlserver.Select<object>()
+                .AsType(typeof(Tag))
+                .Where(a => (a as Tag).Id == tag1_1.Id || (a as Tag).Id == tag2_1.Id)
+                .ToList();
+            tags33333391
+                .IncludeByPropertyName(g.sqlserver, "Parent.Tags",
+                    select: "Id, Name")
+                .IncludeByPropertyName(g.sqlserver, "Songs");
 
             var tags11 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1))

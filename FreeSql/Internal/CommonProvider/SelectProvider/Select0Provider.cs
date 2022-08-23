@@ -498,6 +498,8 @@ namespace FreeSql.Internal.CommonProvider
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (_findExp == node) return _replaceExp;
+                if (node.Expression?.NodeType == ExpressionType.Parameter && node.Expression == _findExp)
+                    return Expression.Property(_replaceExp, node.Member.Name);
                 return base.VisitMember(node);
             }
         }

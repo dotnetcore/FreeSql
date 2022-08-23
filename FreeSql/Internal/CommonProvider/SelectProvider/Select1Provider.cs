@@ -491,7 +491,13 @@ namespace FreeSql.Internal.CommonProvider
                 case TableRefType.ManyToMany:
                 case TableRefType.OneToMany:
                 case TableRefType.PgArrayToMany:
-                    var funcType = typeof(Func<,>).MakeGenericType(_tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
+                    var funcType = typeof(Func<,>).MakeGenericType(typeof(T1), typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
+                    if (_tables[0].Table.Type != typeof(T1))
+                    {
+                        var expParm = Expression.Parameter(typeof(T1), _tables[0].Alias);
+                        exp = new ReplaceMemberExpressionVisitor().Replace(exp, _tables[0].Parameter, Expression.Convert(expParm, _tables[0].Table.Type));
+                        _tables[0].Parameter = expParm;
+                    }
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
                     if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
@@ -580,6 +586,15 @@ namespace FreeSql.Internal.CommonProvider
                         param = tmpExp as ParameterExpression;
                         isbreak = true;
                         break;
+                    case ExpressionType.Convert:
+                        var convertExp = tmpExp as UnaryExpression;
+                        if (convertExp?.Operand.NodeType == ExpressionType.Parameter)
+                        {
+                            param = convertExp.Operand as ParameterExpression;
+                            isbreak = true;
+                            break;
+                        }
+                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                     default:
                         throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                 }
@@ -769,6 +784,7 @@ namespace FreeSql.Internal.CommonProvider
                 var t1parm = Expression.Parameter(typeof(T1));
                 Expression membersExp = t1parm;
                 Expression membersExpNotNull = null;
+                if (typeof(T1) != _tables[0].Table.Type) membersExp = Expression.TypeAs(membersExp, _tables[0].Table.Type);
                 foreach (var mem in members)
                 {
                     membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
@@ -863,6 +879,7 @@ namespace FreeSql.Internal.CommonProvider
                     return getListValue1(item, propName);
                 };
 
+                if (list.Where(a => getListValue1(a, "") == null).Count() == list.Count) return; //Parent.Childs 当 parent 都是 NULL 就没有和要向下查询了
                 foreach (var item in list)
                     setListValue(item, null);
 

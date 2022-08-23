@@ -378,15 +378,16 @@ public static partial class FreeSqlGlobalExtensions
 #endif
         IncludeByPropertyNameSyncOrAsync<T1>(bool isAsync, List<T1> list, IFreeSql orm, string property, string where, int take, string select, Expression<Action<ISelect<object>>> then) where T1 : class
     {
+        if (list?.Any() != true) return list;
+        var entityType = typeof(T1) == typeof(object) ? list[0].GetType() : typeof(T1);
+        var t1tb = orm.CodeFirst.GetTableByEntity(entityType);
         if (orm.CodeFirst.IsAutoSyncStructure)
         {
-            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
-            if (tb == null || tb.Primarys.Any() == false)
-                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+            if (t1tb == null || t1tb.Primarys.Any() == false)
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(entityType); //._dicSyced.TryAdd(typeof(TReturn), true);
         }
         var props = property.Split('.');
-        var t1tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
-        var t1sel = orm.Select<T1>() as Select1Provider<T1>;
+        var t1sel = orm.Select<object>().AsType(entityType) as Select1Provider<object>;
         var t1expFul = t1sel.ConvertStringPropertyToExpression(property, true);
         var t1exp = props.Length == 1 ? t1expFul : t1sel.ConvertStringPropertyToExpression(props[0], true);
         if (t1expFul == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
@@ -395,7 +396,7 @@ public static partial class FreeSqlGlobalExtensions
         {
             if (props.Length > 1)
                 IncludeByPropertyName(list, orm, string.Join(".", props.Take(props.Length - 1)));
-            var imsel = IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select, then);
+            var imsel = IncludeManyByPropertyNameCommonGetSelect(orm, entityType, property, where, take, select, then);
 #if net40
             imsel.SetList(list);
 #else
@@ -409,10 +410,8 @@ public static partial class FreeSqlGlobalExtensions
         var reftb = orm.CodeFirst.GetTableByEntity(t1exp.Type);
         var refsel = orm.Select<object>().AsType(t1exp.Type) as Select1Provider<object>;
         if (props.Length > 1)
-        {
-            var refexp = refsel.ConvertStringPropertyToExpression(string.Join(".", props.Skip(1)), true);
-            refsel.Include(Expression.Lambda<Func<object, object>>(refexp, refsel._tables[0].Parameter));
-        }
+            refsel.IncludeByPropertyName(string.Join(".", props.Skip(1)));
+
         var listdic = list.Select(item =>
         {
             var refitem = t1exp.Type.CreateInstanceGetDefaultValue();
@@ -444,15 +443,15 @@ public static partial class FreeSqlGlobalExtensions
         });
         return list;
     }
-    static Select1Provider<T1> IncludeManyByPropertyNameCommonGetSelect<T1>(IFreeSql orm, string property, string where, int take, string select, Expression<Action<ISelect<object>>> then) where T1 : class
+    static Select1Provider<object> IncludeManyByPropertyNameCommonGetSelect(IFreeSql orm, Type entityType, string property, string where, int take, string select, Expression<Action<ISelect<object>>> then)
     {
         if (orm.CodeFirst.IsAutoSyncStructure)
         {
-            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            var tb = orm.CodeFirst.GetTableByEntity(entityType);
             if (tb == null || tb.Primarys.Any() == false)
-                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(entityType); //._dicSyced.TryAdd(typeof(TReturn), true);
         }
-        var sel = orm.Select<T1>() as Select1Provider<T1>;
+        var sel = orm.Select<object>().AsType(entityType) as Select1Provider<object>;
         var exp = sel.ConvertStringPropertyToExpression(property, true);
         if (exp == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
         var memExp = exp as MemberExpression;
@@ -521,7 +520,13 @@ public static partial class FreeSqlGlobalExtensions
             newthen = newthenLambda.Compile();
         }
 
-        var funcType = typeof(Func<,>).MakeGenericType(sel._tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(reftb.Type));
+        var funcType = typeof(Func<,>).MakeGenericType(typeof(object), typeof(IEnumerable<>).MakeGenericType(reftb.Type));
+        if (sel._tables[0].Table.Type != typeof(object))
+        {
+            var expParm = Expression.Parameter(typeof(object), sel._tables[0].Alias);
+            exp = new Select0Provider.ReplaceMemberExpressionVisitor().Replace(exp, sel._tables[0].Parameter, Expression.Convert(expParm, sel._tables[0].Table.Type));
+            sel._tables[0].Parameter = expParm;
+        }
         var navigateSelector = Expression.Lambda(funcType, exp, sel._tables[0].Parameter);
         var incMethod = sel.GetType().GetMethod("IncludeMany");
         if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
