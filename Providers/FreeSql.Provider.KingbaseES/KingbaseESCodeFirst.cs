@@ -36,7 +36,7 @@ namespace FreeSql.KingbaseES
                 { typeof(TimeSpan).FullName, CsToDb.New(KdbndpDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
-                { typeof(bool).FullName, CsToDb.New(KdbndpDbType.Bit, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(KdbndpDbType.Bit, "bool","bool", null, true, null) },
+                { typeof(bool).FullName, CsToDb.New(KdbndpDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(KdbndpDbType.Boolean, "bool","bool", null, true, null) },
                 { typeof(Byte[]).FullName, CsToDb.New(KdbndpDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
 
                 { typeof(Guid).FullName, CsToDb.New(KdbndpDbType.Uuid, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(KdbndpDbType.Uuid, "uuid", "uuid", false, true, null) },

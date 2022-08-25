@@ -55,7 +55,7 @@ namespace FreeSql.KingbaseES
                 case "timetz": ret = KdbndpDbType.Time; break;
                 case "interval": ret = KdbndpDbType.Time; break;
 
-                case "bool": ret = KdbndpDbType.Bit; break;
+                case "bool": ret = KdbndpDbType.Boolean; break;
                 case "blob": ret = KdbndpDbType.Bytea; break;
                 case "bytea": ret = KdbndpDbType.Bytea; break;
                 case "bit": ret = KdbndpDbType.Bit; break;
@@ -85,7 +85,7 @@ namespace FreeSql.KingbaseES
                 { (int)KdbndpDbType.Date, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
                 { (int)KdbndpDbType.Time, new DbToCs("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
 
-                { (int)KdbndpDbType.Bit, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
+                { (int)KdbndpDbType.Boolean, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
                 { (int)KdbndpDbType.Bytea, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
 
                 { (int)KdbndpDbType.Uuid, new DbToCs("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid", typeof(Guid), typeof(Guid?), "{0}", "GetString") },
