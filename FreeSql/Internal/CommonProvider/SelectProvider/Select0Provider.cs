@@ -541,6 +541,11 @@ namespace FreeSql.Internal.CommonProvider
             _connection = connection;
             return this as TSelect;
         }
+        public TSelect WithParameters(List<DbParameter> parameters)
+        {
+            if (parameters != null) _params = parameters;
+            return this as TSelect;
+        }
         public TSelect CommandTimeout(int timeout)
         {
             _commandTimeout = timeout;
@@ -802,7 +807,7 @@ namespace FreeSql.Internal.CommonProvider
             var unions = new List<Dictionary<Type, string>>();
             var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => null) });
 
-            if (trs.Count == 1 && _tables.Any(a => a.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.DbName)) == true))
+            if (trs.Count == 1 && _tables.Any(a => a.Table != null && a.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.DbName)) == true))
             {
                 string[] LocalGetTableNames(SelectTableInfo tb)
                 {
@@ -1196,6 +1201,11 @@ namespace FreeSql.Internal.CommonProvider
             if (_orm.CodeFirst.IsAutoSyncStructure)
                 (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+            ret._commandTimeout = _commandTimeout;
+            ret._connection = _connection;
+            ret._transaction = _transaction;
+            ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+            ret._cancel = _cancel;
             ret._params.AddRange(_params);
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
             var parser = new WithTempQueryParser(this, null, selector, ret._tables[0]);

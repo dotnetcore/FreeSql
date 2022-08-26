@@ -434,6 +434,77 @@ WHERE (a.[rownum] = 1)";
             Assert.Equal(list01[2].item.Nickname, "name03");
 
 
+            var sql0111 = fsql.Select<SingleTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .UnionAll(
+                    fsql.Select<SingleTablePartitionBy_User>()
+                    .WithTempQuery(a => new
+                    {
+                        item = a,
+                        rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderByDescending(a.Id).ToValue()
+                    })
+                    .Where(a => a.rownum == 2)
+                )
+                .Where(a => a.rownum == 1 || a.rownum == 2)
+                .ToSql();
+            var assertSql0111 = @"SELECT * 
+FROM ( SELECT * 
+    FROM ( 
+        SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
+        FROM [SingleTablePartitionBy_User] a ) a 
+    WHERE (a.[rownum] = 1) 
+    UNION ALL 
+    SELECT * 
+    FROM ( 
+        SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id] desc) [rownum] 
+        FROM [SingleTablePartitionBy_User] a ) a 
+    WHERE (a.[rownum] = 2) ) a 
+WHERE ((a.[rownum] = 1 OR a.[rownum] = 2))";
+            Assert.Equal(assertSql0111, sql0111);
+
+            var sel0111 = fsql.Select<SingleTablePartitionBy_User>()
+                .WithTempQuery(a => new
+                {
+                    item = a,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.Id).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .UnionAll(
+                    fsql.Select<SingleTablePartitionBy_User>()
+                    .WithTempQuery(a => new
+                    {
+                        item = a,
+                        rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderByDescending(a.Id).ToValue()
+                    })
+                    .Where(a => a.rownum == 2)
+                )
+                .Where(a => a.rownum == 1 || a.rownum == 2);
+            Assert.Equal(assertSql0111, sel0111.ToSql());
+
+            var list0111 = sel0111.ToList();
+            Assert.Equal(5, list0111.Count);
+            Assert.Equal(list0111[0].rownum, 1);
+            Assert.Equal(list0111[0].item.Id, 1);
+            Assert.Equal(list0111[0].item.Nickname, "name01");
+            Assert.Equal(list0111[1].rownum, 1);
+            Assert.Equal(list0111[1].item.Id, 4);
+            Assert.Equal(list0111[1].item.Nickname, "name02");
+            Assert.Equal(list0111[2].rownum, 1);
+            Assert.Equal(list0111[2].item.Id, 5);
+            Assert.Equal(list0111[2].item.Nickname, "name03");
+            Assert.Equal(list0111[3].rownum, 2);
+            Assert.Equal(list0111[3].item.Id, 2);
+            Assert.Equal(list0111[3].item.Nickname, "name01");
+            Assert.Equal(list0111[4].rownum, 2);
+            Assert.Equal(list0111[4].item.Id, 5);
+            Assert.Equal(list0111[4].item.Nickname, "name03");
+
+
             var sql011 = fsql.Select<SingleTablePartitionBy_User>()
                 .GroupBy(a => a.Nickname)
                 .WithTempQuery(g => new { min = g.Min(g.Value.Id) })

@@ -263,7 +263,7 @@ namespace FreeSql.Tests
 
             var ddlsql = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(testInsertNullable), "tb123123");
             Assert.Equal(@"CREATE TABLE IF NOT EXISTS ""main"".""tb123123"" (  
-  ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT, 
+  ""Id"" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
   ""str1"" NVARCHAR(255) NOT NULL, 
   ""int1"" INTEGER NOT NULL, 
   ""int2"" INTEGER , 

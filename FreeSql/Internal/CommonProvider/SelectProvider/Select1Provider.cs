@@ -172,6 +172,22 @@ namespace FreeSql.Internal.CommonProvider
             if (retsp._tableRules.Count == 0) ret.WithSql(null, $" \r\n{sql2}");
             return ret;
         }
+        public ISelect<T1> UnionAll(ISelect<T1> select2)
+        {
+            var sql1 = this.ToSql();
+            var sql2 = select2.ToSql();
+            var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
+            ret.WithSql($"{sql1} \r\nUNION ALL \r\n{sql2}");
+            ret._commandTimeout = _commandTimeout;
+            ret._connection = _connection;
+            ret._transaction = _transaction;
+            ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+            ret._cancel = _cancel;
+            ret._diymemexpWithTempQuery = _diymemexpWithTempQuery;
+            ret._tables[0] = _tables[0];
+            ret._params = _params;
+            return ret;
+        }
 
         public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns)
         {

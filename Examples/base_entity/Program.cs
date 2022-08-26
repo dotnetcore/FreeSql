@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Odbc;
 using System.Data.SqlClient;
 using System.Data.SQLite;
@@ -387,6 +388,45 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var dbpars = new List<DbParameter>();
+
+            var a1id1 = Guid.NewGuid();
+            var a1id2 = Guid.NewGuid();
+            //fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+            var sql1a0 = fsql.Select<User1>()
+                .WithParameters(dbpars)
+                .Where(a => a.Id == a1id1)
+
+                .UnionAll(
+                    fsql.Select<User1>()
+                        .WithParameters(dbpars)
+                        .Where(a => a.Id == a1id2)
+                )
+                .Where(a => a.Id == a1id1 || a.Id == a1id2)
+                .ToSql();
+            var sql1a1 = fsql.Select<User1>()
+                .Where(a => a.Id == a1id1)
+                .UnionAll(
+                    fsql.Select<User1>()
+                    .Where(a => a.Id == a1id2)
+                )
+                .Where(a => a.Id == a1id1 || a.Id == a1id2)
+                .ToSql();
+            var sql1a2 = fsql.Select<User1, UserGroup>()
+                .InnerJoin((a,b)=> a.GroupId == b.Id)
+                .Where((a, b) => a.Id == a1id1)
+                .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
+
+                .UnionAll(
+                    fsql.Select<User1, UserGroup>()
+                        .InnerJoin((a, b) => a.GroupId == b.Id)
+                        .Where((a, b) => a.Id == a1id2)
+                        .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
+                )
+
+                .Where(a => a.user.Id == a1id1 || a.user.Id == a1id2)
+                .ToSql();
 
 
             var ddlsql01 = fsql.CodeFirst.GetComparisonDDLStatements<StringNulable>();

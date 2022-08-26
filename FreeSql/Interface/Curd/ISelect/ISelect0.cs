@@ -56,6 +56,12 @@ namespace FreeSql
         /// <returns></returns>
         TSelect WithConnection(DbConnection connection);
         /// <summary>
+        /// 使用自定义参数化，UnionALL 或者 ToSql 可能有需要
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        TSelect WithParameters(List<DbParameter> parameters);
+        /// <summary>
         /// 命令超时设置(秒)
         /// </summary>
         /// <param name="timeout"></param>
