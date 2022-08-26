@@ -322,6 +322,16 @@ namespace base_entity
         {
             public static int fsql;
         }
+        class StringNulable
+        {
+            [Column(IsPrimary = true)]
+            public string id { get; set; }
+            [Column(StringLength = -1, IsNullable = true)]
+            public string code1 { get; set; }
+            [Column(StringLength = -1, IsNullable = false)]
+            public string code2 { get; set; }
+        }
+
 
         static void Main(string[] args)
         {
@@ -378,6 +388,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            var ddlsql01 = fsql.CodeFirst.GetComparisonDDLStatements<StringNulable>();
 
             Expression<Func<HzyTuple<User1, Group, Group, Group, Group, Group>, bool>> where = null;
             where = where.Or(a => a.t6.Index > 0);
