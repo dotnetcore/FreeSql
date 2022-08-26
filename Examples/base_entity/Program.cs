@@ -401,6 +401,10 @@ namespace base_entity
                 .UnionAll(
                     fsql.Select<User1>()
                         .WithParameters(dbpars)
+                        .Where(a => a.Id == a1id2),
+
+                    fsql.Select<User1>()
+                        .WithParameters(dbpars)
                         .Where(a => a.Id == a1id2)
                 )
                 .Where(a => a.Id == a1id1 || a.Id == a1id2)

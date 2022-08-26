@@ -172,12 +172,15 @@ namespace FreeSql.Internal.CommonProvider
             if (retsp._tableRules.Count == 0) ret.WithSql(null, $" \r\n{sql2}");
             return ret;
         }
-        public ISelect<T1> UnionAll(ISelect<T1> select2)
+        public ISelect<T1> UnionAll(params ISelect<T1>[] querys)
         {
             var sql1 = this.ToSql();
-            var sql2 = select2.ToSql();
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
-            ret.WithSql($"{sql1} \r\nUNION ALL \r\n{sql2}");
+            var sb = new StringBuilder().Append(this.ToSql());
+            foreach (var select2 in querys)
+                sb.Append(" \r\nUNION ALL \r\n").Append(select2.ToSql());
+            ret.WithSql(sb.ToString());
+            sb.Clear();
             ret._commandTimeout = _commandTimeout;
             ret._connection = _connection;
             ret._transaction = _transaction;
