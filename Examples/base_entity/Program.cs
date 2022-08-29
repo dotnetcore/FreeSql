@@ -332,6 +332,19 @@ namespace base_entity
             [Column(StringLength = -1, IsNullable = false)]
             public string code2 { get; set; }
         }
+        public class CCC
+        {
+            public int bb { get; set; }
+            public int aa { get; set; }
+        }
+        public class BBB
+        {
+            public int bb { get; set; }
+        }
+        public class AAA
+        {
+            public int aa { get; set; }
+        }
 
 
         static void Main(string[] args)
@@ -388,6 +401,9 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var sqlskdfj = fsql.Select<object>().AsType(typeof(BBB)).ToSql(a => new CCC());
+
 
             var dbpars = new List<DbParameter>();
 

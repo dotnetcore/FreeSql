@@ -356,7 +356,9 @@ namespace FreeSql.Internal
                                 };
                                 parent.Childs.Add(child);
                                 if (dtTb.Parameter != null)
-                                    ReadAnonymousField(_tables, _tableRule, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
+                                    ReadAnonymousField(_tables, _tableRule, field, child, ref index, Expression.Property(
+                                        dtTb.Parameter.Type == dtTb.Table.Type ? (Expression)dtTb.Parameter : Expression.TypeAs(dtTb.Parameter, dtTb.Table.Type),
+                                        dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
                                 else
                                 {
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -475,7 +477,9 @@ namespace FreeSql.Internal
                                 };
                                 parent.Childs.Add(child);
                                 if (dtTb.Parameter != null)
-                                    ReadAnonymousField(_tables, _tableRule, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
+                                    ReadAnonymousField(_tables, _tableRule, field, child, ref index, Expression.Property(
+                                        dtTb.Parameter.Type == dtTb.Table.Type ? (Expression)dtTb.Parameter : Expression.TypeAs(dtTb.Parameter, dtTb.Table.Type), 
+                                        dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
                                 else
                                 {
                                     child.DbField = _common.RereadColumn(trydtocol, $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}");
