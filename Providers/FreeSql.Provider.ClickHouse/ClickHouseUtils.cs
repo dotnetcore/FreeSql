@@ -23,7 +23,8 @@ namespace FreeSql.ClickHouse
                 value = str?.Replace("\t", "\\t")
                     .Replace("\r\n", "\\r\\n")
                     .Replace("\n", "\\n")
-                    .Replace("\r", "\\r");
+                    .Replace("\r", "\\r")
+                    .Replace("/", "\\/");
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName };//QuoteParamterName(parameterName)
@@ -56,7 +57,8 @@ namespace FreeSql.ClickHouse
                     value = str?.Replace("\t", "\\t")
                         .Replace("\r\n", "\\r\\n")
                         .Replace("\n", "\\n")
-                        .Replace("\r", "\\r");
+                        .Replace("\r", "\\r")
+                        .Replace("/", "\\/");
                 DbParameter ret = new ClickHouseDbParameter { ParameterName = $"?{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null)
