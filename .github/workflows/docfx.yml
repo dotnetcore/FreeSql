@@ -20,9 +20,9 @@ jobs:
       - name: Remove FreeSql.Tests 
         run:  dotnet sln FreeSql.sln remove (ls -r FreeSql.Tests/**/*.csproj)
       - name: Install dependencies
-        run:  dotnet restore
+        run:  dotnet restore .\FreeSql.sln
       - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore .\FreeSql.sln
       - name: Setup DocFX
         uses: crazy-max/ghaction-chocolatey@v1
         with:
