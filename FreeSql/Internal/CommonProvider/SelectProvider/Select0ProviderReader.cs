@@ -446,10 +446,16 @@ namespace FreeSql.Internal.CommonProvider
                             if (tbiindex > 0 && colidx == 0) field.Append("\r\n");
                         }
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-                        field.Append(_commonUtils.RereadColumn(col, $"{tbi.Alias}.{quoteName}"));
+                        var columnSql = $"{tbi.Alias}.{quoteName}";
+                        var rereadSql = _commonUtils.RereadColumn(col, columnSql);
+                        field.Append(rereadSql);
                         ++index;
                         if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
-                        else dicfield.Add(quoteName, true);
+                        else
+                        {
+                            dicfield.Add(quoteName, true);
+                            if (rereadSql != columnSql) field.Append(_commonUtils.FieldAsAlias(quoteName));
+                        }
                         ++colidx;
                     }
                     tbiindex++;
@@ -603,11 +609,16 @@ namespace FreeSql.Internal.CommonProvider
                     { //普通字段
                         if (index > 0) field.Append(", ");
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-                        if (isRereadSql) field.Append(_commonUtils.RereadColumn(col, $"{tb.Alias}.{quoteName}"));
-                        else field.Append($"{tb.Alias}.{quoteName}");
+                        var columnSql = $"{tb.Alias}.{quoteName}";
+                        var rereadSql = isRereadSql ? _commonUtils.RereadColumn(col, columnSql) : columnSql;
+                        field.Append(rereadSql);
                         ++index;
                         if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
-                        else dicfield.Add(quoteName, true);
+                        else
+                        {
+                            dicfield.Add(quoteName, true);
+                            if (rereadSql != columnSql) field.Append(_commonUtils.FieldAsAlias(quoteName));
+                        }
                     }
                     else
                     {
@@ -627,12 +638,17 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (index > 0) field.Append(", ");
                             var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
-                            if (isRereadSql) field.Append(_commonUtils.RereadColumn(col2, $"{tb2.Alias}.{quoteName}"));
-                            else field.Append($"{tb2.Alias}.{quoteName}");
+                            var columnSql = $"{tb2.Alias}.{quoteName}";
+                            var rereadSql = isRereadSql ? _commonUtils.RereadColumn(col2, columnSql) : columnSql;
+                            field.Append(rereadSql);
                             ++index;
                             ++otherindex;
                             if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
-                            else dicfield.Add(quoteName, true);
+                            else
+                            {
+                                dicfield.Add(quoteName, true);
+                                if (rereadSql != columnSql) field.Append(_commonUtils.FieldAsAlias(quoteName));
+                            }
                         }
                     }
                     //只读到二级属性
