@@ -57,11 +57,16 @@ namespace FreeSql
         public Type EntityType => _repository.EntityType;
         public IDataFilter<TEntity> DataFilter => _repository.DataFilter;
 
-        public void Attach(TEntity entity) => AttachAggregateRoot(entity);
+        public void Attach(TEntity entity)
+        {
+            var state = CreateEntityState(entity);
+            if (_states.ContainsKey(state.Key)) _states[state.Key] = state;
+            else _states.Add(state.Key, state);
+        }
         public void Attach(IEnumerable<TEntity> entity)
         {
             foreach (var item in entity)
-                AttachAggregateRoot(item);
+                Attach(item);
         }
         public IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data) => _repository.AttachOnlyPrimary(data);
         public Dictionary<string, object[]> CompareState(TEntity newdata) => _repository.CompareState(newdata);
@@ -130,23 +135,44 @@ namespace FreeSql
             if (string.IsNullOrEmpty(key)) return null;
             return _states.ContainsKey(key);
         }
-        void AttachAggregateRoot(TEntity entity)
-        {
-            var state = CreateEntityState(entity);
-            if (_states.ContainsKey(state.Key)) _states[state.Key] = state;
-            else _states.Add(state.Key, state);
-        }
         #endregion
 
         #region Selectoriginal
         public virtual ISelect<TEntity> Select => SelectAggregateRoot;
-        ISelect<TEntity> SelectAggregateRoot
+        protected ISelect<TEntity> SelectAggregateRoot
         {
             get
             {
                 var query = _repository.Select.TrackToList(SelectAggregateRootTracking);
                 SelectAggregateRootNavigateReader(query, EntityType, "", new Stack<Type>());
                 return query;
+            }
+        }
+        protected void SelectAggregateRootTracking(object list)
+        {
+            if (list == null) return;
+            var ls = list as IEnumerable<TEntity>;
+            if (ls == null)
+            {
+                var ie = list as IEnumerable;
+                if (ie == null) return;
+                var isfirst = true;
+                foreach (var item in ie)
+                {
+                    if (item == null) continue;
+                    if (isfirst)
+                    {
+                        isfirst = false;
+                        var itemType = item.GetType();
+                        if (itemType == typeof(object)) return;
+                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
+                        if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
+                        if (itemType.GetConstructor(Type.EmptyTypes) == null) return;
+                    }
+                    if (item is TEntity item2) Attach(item2);
+                    else return;
+                }
+                return;
             }
         }
         void SelectAggregateRootNavigateReader<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
@@ -181,32 +207,6 @@ namespace FreeSql
                 }
             }
             ignores.Pop();
-        }
-        void SelectAggregateRootTracking(object list)
-        {
-            if (list == null) return;
-            var ls = list as IEnumerable<TEntity>;
-            if (ls == null)
-            {
-                var ie = list as IEnumerable;
-                if (ie == null) return;
-                var isfirst = true;
-                foreach (var item in ie)
-                {
-                    if (item == null) continue;
-                    if (isfirst)
-                    {
-                        isfirst = false;
-                        var itemType = item.GetType();
-                        if (itemType == typeof(object)) return;
-                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
-                        if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
-                        if (itemType.GetConstructor(Type.EmptyTypes) == null) return;
-                    }
-                    AttachAggregateRoot(item as TEntity);
-                }
-                return;
-            }
         }
         #endregion
 

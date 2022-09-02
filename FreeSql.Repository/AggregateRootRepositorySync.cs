@@ -71,10 +71,15 @@ namespace FreeSql
             }
             List<T1> LocalInsertAggregateRoot<T1>(IBaseRepository<T1> repository, IEnumerable<T1> entitys) where T1 : class
             {
+                var table = repository.Orm.CodeFirst.GetTableByEntity(repository.EntityType);
+                if (table.Primarys.Any(col => col.Attribute.IsIdentity))
+                {
+                    foreach (var entity in entitys) 
+                        repository.Orm.ClearEntityPrimaryValueWithIdentity(repository.EntityType, entity);
+                }
                 var ret = repository.Insert(entitys);
                 foreach (var entity in entitys) LocalCanAggregateRoot(repository.EntityType, entity, true);
 
-                var table = repository.Orm.CodeFirst.GetTableByEntity(repository.EntityType);
                 foreach (var prop in table.Properties.Values)
                 {
                     var tbref = table.GetTableRef(prop.Name, false);
@@ -166,7 +171,7 @@ namespace FreeSql
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
                 AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
-                AttachAggregateRoot(entity);
+                Attach(entity);
             }
             return insertLog.Count + updateLog.Count + deleteLog.Count;
         }
@@ -193,7 +198,7 @@ namespace FreeSql
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
             AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, insertLog, updateLog, deleteLog);
-            AttachAggregateRoot(entity);
+            Attach(entity);
         }
 
         protected List<TEntity> _dataEditing;
