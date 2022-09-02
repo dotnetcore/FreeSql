@@ -12,70 +12,93 @@ using System.Reflection;
 
 static class AggregateRootUtils
 {
-    public static void CompareEntityValue(IFreeSql fsql, Type entityType, object entityBefore, object entityAfter, string navigatePropertyName,
+    public static void CompareEntityValue(IFreeSql fsql, Type rootEntityType, object rootEntityBefore, object rootEntityAfter, string rootNavigatePropertyName,
         List<NativeTuple<Type, object>> insertLog,
         List<NativeTuple<Type, object, object, List<string>>> updateLog,
         List<NativeTuple<Type, object>> deleteLog)
     {
-        if (entityType == null) entityType = entityBefore?.GetType() ?? entityAfter?.GetType();
-        var table = fsql.CodeFirst.GetTableByEntity(entityType);
-        if (entityBefore == null && entityAfter == null) return;
-        if (entityBefore == null && entityAfter != null)
+        Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
+        LocalCompareEntityValue(rootEntityType, rootEntityBefore, rootEntityAfter, rootNavigatePropertyName);
+        ignores.Clear();
+
+        void LocalCompareEntityValue(Type entityType, object entityBefore, object entityAfter, string navigatePropertyName)
         {
-            insertLog.Add(NativeTuple.Create(entityType, entityAfter));
-            return;
-        }
-        if (entityBefore != null && entityAfter == null)
-        {
-            deleteLog.Add(NativeTuple.Create(entityType, entityBefore));
-            NavigateReader(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
+            if (entityType == null) entityType = entityBefore?.GetType() ?? entityAfter?.GetType();
+
+            if (entityBefore != null)
             {
-                deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
-            });
-            return;
-        }
-        var changes = new List<string>();
-        foreach (var col in table.ColumnsByCs.Values)
-        {
-            if (table.ColumnsByCsIgnore.ContainsKey(col.CsName)) continue;
-            if (table.ColumnsByCs.ContainsKey(col.CsName))
+                var stateKey = $":before:// {fsql.GetEntityKeyString(entityType, entityBefore, false)}";
+                if (ignores.TryGetValue(entityType, out var stateKeys) == false) ignores.Add(entityType, stateKeys = new Dictionary<string, bool>());
+                if (stateKeys.ContainsKey(stateKey)) return;
+                stateKeys.Add(stateKey, true);
+            }
+            if (entityAfter != null)
             {
-                if (col.Attribute.IsVersion) continue;
-                var propvalBefore = table.GetPropertyValue(entityBefore, col.CsName);
-                var propvalAfter = table.GetPropertyValue(entityBefore, col.CsName);
-                if (propvalBefore != propvalAfter) changes.Add(col.CsName);
-                continue;
+                var stateKey = $":after:// {fsql.GetEntityKeyString(entityType, entityAfter, false)}";
+                if (ignores.TryGetValue(entityType, out var stateKeys) == false) ignores.Add(entityType, stateKeys = new Dictionary<string, bool>());
+                if (stateKeys.ContainsKey(stateKey)) return;
+                stateKeys.Add(stateKey, true);
+            }
+
+            var table = fsql.CodeFirst.GetTableByEntity(entityType);
+            if (table == null) return;
+            if (entityBefore == null && entityAfter == null) return;
+            if (entityBefore == null && entityAfter != null)
+            {
+                insertLog.Add(NativeTuple.Create(entityType, entityAfter));
+                return;
+            }
+            if (entityBefore != null && entityAfter == null)
+            {
+                deleteLog.Add(NativeTuple.Create(entityType, entityBefore));
+                NavigateReader(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
+                {
+                    deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
+                });
+                return;
+            }
+            var changes = new List<string>();
+            foreach (var col in table.ColumnsByCs.Values)
+            {
+                if (table.ColumnsByCsIgnore.ContainsKey(col.CsName)) continue;
+                if (table.ColumnsByCs.ContainsKey(col.CsName))
+                {
+                    if (col.Attribute.IsVersion) continue;
+                    var propvalBefore = table.GetPropertyValue(entityBefore, col.CsName);
+                    var propvalAfter = table.GetPropertyValue(entityAfter, col.CsName);
+                    if (object.Equals(propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
+                    continue;
+                }
+            }
+            if (changes.Any())
+                updateLog.Add(NativeTuple.Create(entityType, entityBefore, entityAfter, changes));
+
+            foreach (var prop in table.Properties.Values)
+            {
+                var tbref = table.GetTableRef(prop.Name, false);
+                if (tbref == null) continue;
+                if (navigatePropertyName != null && prop.Name != navigatePropertyName) continue;
+                var propvalBefore = table.GetPropertyValue(entityBefore, prop.Name);
+                var propvalAfter = table.GetPropertyValue(entityAfter, prop.Name);
+                switch (tbref.RefType)
+                {
+                    case TableRefType.OneToOne:
+                        LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null);
+                        break;
+                    case TableRefType.OneToMany:
+                        LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
+                        break;
+                    case TableRefType.ManyToMany:
+                        var middleValuesBefore = GetManyToManyObjects(fsql, table, tbref, entityBefore, prop);
+                        var middleValuesAfter = GetManyToManyObjects(fsql, table, tbref, entityAfter, prop);
+                        LocalCompareEntityValueCollection(tbref, middleValuesBefore as IEnumerable, middleValuesAfter as IEnumerable);
+                        break;
+                    case TableRefType.PgArrayToMany:
+                    case TableRefType.ManyToOne: //不属于聚合根
+                        break;
+                }
             }
         }
-        if (changes.Any())
-            updateLog.Add(NativeTuple.Create(entityType, entityBefore, entityAfter, changes));
-
-        foreach (var prop in table.Properties.Values)
-        {
-            var tbref = table.GetTableRef(prop.Name, false);
-            if (tbref == null) continue;
-            if (navigatePropertyName != null && prop.Name != navigatePropertyName) continue;
-            var propvalBefore = table.GetPropertyValue(entityBefore, prop.Name);
-            var propvalAfter = table.GetPropertyValue(entityBefore, prop.Name);
-            switch (tbref.RefType)
-            {
-                case TableRefType.OneToOne:
-                    CompareEntityValue(fsql, tbref.RefEntityType, propvalBefore, propvalAfter, null, insertLog, updateLog, deleteLog);
-                    break;
-                case TableRefType.OneToMany:
-                    LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
-                    break;
-                case TableRefType.ManyToMany:
-                    var middleValuesBefore = GetManyToManyObjects(fsql, table, tbref, entityBefore, prop);
-                    var middleValuesAfter = GetManyToManyObjects(fsql, table, tbref, entityAfter, prop);
-                    LocalCompareEntityValueCollection(tbref, middleValuesBefore as IEnumerable, middleValuesAfter as IEnumerable);
-                    break;
-                case TableRefType.PgArrayToMany:
-                case TableRefType.ManyToOne: //不属于聚合根
-                    break;
-            }
-        }
-
         void LocalCompareEntityValueCollection(TableRef tbref, IEnumerable collectionBefore, IEnumerable collectionAfter)
         {
             var elementType = tbref.RefType == TableRefType.ManyToMany ? tbref.RefMiddleEntityType : tbref.RefEntityType;
@@ -133,7 +156,7 @@ static class AggregateRootUtils
                 }
             }
             foreach (var key in dictBefore.Keys)
-                CompareEntityValue(fsql, elementType, dictBefore[key], dictAfter[key], null, insertLog, updateLog, deleteLog);
+                LocalCompareEntityValue(elementType, dictBefore[key], dictAfter[key], null);
         }
     }
 

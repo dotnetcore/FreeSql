@@ -36,7 +36,9 @@ namespace FreeSql
             var repos = new Dictionary<Type, object>();
             try
             {
-                return InsertAggregateRootStatic(_repository, GetChildRepository, entitys);
+                var ret = InsertAggregateRootStatic(_repository, GetChildRepository, entitys);
+                Attach(ret);
+                return ret;
             }
             finally
             {

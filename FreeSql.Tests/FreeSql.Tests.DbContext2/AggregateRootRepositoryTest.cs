@@ -78,6 +78,9 @@ namespace FreeSql.Tests.DbContext2
                 Assert.NotNull(users[1].Ext);
                 Assert.Equal(3, users[1].Ext.UserId);
                 Assert.Equal("admin03_remark", users[1].Ext.Remark);
+
+                user.Ext.Remark = "admin01_remark changed01";
+                repo.Update(user);
             }
         }
         class User
