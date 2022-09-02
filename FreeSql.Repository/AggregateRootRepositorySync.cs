@@ -176,13 +176,12 @@ namespace FreeSql
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object>> deleteLog = new List<NativeTuple<Type, object>>();
+            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
             foreach(var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
                 AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
-                Attach(entity);
             }
             var affrows = 0;
 
@@ -193,11 +192,9 @@ namespace FreeSql
                 InsertAggregateRootStatic(GetChildRepository(il.Key), GetChildRepository, il.Value, out var affrowsOut);
                 affrows += affrowsOut;
             }
-            DisposeChildRepositorys();
 
-            var deleteLogDict = deleteLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => deleteLog.Where(b => b.Item1 == a.Key).Select(b => b.Item2).ToArray());
-            foreach (var dl in deleteLogDict)
-                affrows += Orm.Delete<object>().AsType(dl.Key).WhereDynamic(dl.Value).ExecuteAffrows();
+            for (var a = 0; a < deleteLog.Count - 1; a++)
+                affrows += Orm.Delete<object>().AsType(deleteLog[a].Item1).WhereDynamic(deleteLog[a].Item2).ExecuteAffrows();
 
             var updateLogDict = updateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => updateLog.Where(b => b.Item1 == a.Key).Select(b => 
                 NativeTuple.Create(b.Item2, b.Item3, string.Join(",", b.Item4.OrderBy(c => c)), b.Item4)).ToArray());
@@ -212,13 +209,17 @@ namespace FreeSql
                         .ExecuteAffrows();
                 }
             }
+            DisposeChildRepositorys();
+            foreach (var entity in entitys)
+                Attach(entity);
+
             return affrows;
         }
         protected virtual int DeleteAggregateRoot(IEnumerable<TEntity> entitys, List<object> deletedOutput = null)
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object>> deleteLog = new List<NativeTuple<Type, object>>();
+            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
             foreach (var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
@@ -233,7 +234,7 @@ namespace FreeSql
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object>> deleteLog = new List<NativeTuple<Type, object>>();
+            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
             AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, insertLog, updateLog, deleteLog);
@@ -268,7 +269,7 @@ namespace FreeSql
             if (data == null) return 0;
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object>> deleteLog = new List<NativeTuple<Type, object>>();
+            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
             try
             {
                 var addList = new List<TEntity>();

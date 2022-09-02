@@ -15,7 +15,7 @@ static class AggregateRootUtils
     public static void CompareEntityValue(IFreeSql fsql, Type rootEntityType, object rootEntityBefore, object rootEntityAfter, string rootNavigatePropertyName,
         List<NativeTuple<Type, object>> insertLog,
         List<NativeTuple<Type, object, object, List<string>>> updateLog,
-        List<NativeTuple<Type, object>> deleteLog)
+        List<NativeTuple<Type, object[]>> deleteLog)
     {
         Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
         LocalCompareEntityValue(rootEntityType, rootEntityBefore, rootEntityAfter, rootNavigatePropertyName);
@@ -27,14 +27,14 @@ static class AggregateRootUtils
 
             if (entityBefore != null)
             {
-                var stateKey = $":before:// {fsql.GetEntityKeyString(entityType, entityBefore, false)}";
+                var stateKey = $":before://{fsql.GetEntityKeyString(entityType, entityBefore, false)}";
                 if (ignores.TryGetValue(entityType, out var stateKeys) == false) ignores.Add(entityType, stateKeys = new Dictionary<string, bool>());
                 if (stateKeys.ContainsKey(stateKey)) return;
                 stateKeys.Add(stateKey, true);
             }
             if (entityAfter != null)
             {
-                var stateKey = $":after:// {fsql.GetEntityKeyString(entityType, entityAfter, false)}";
+                var stateKey = $":after://{fsql.GetEntityKeyString(entityType, entityAfter, false)}";
                 if (ignores.TryGetValue(entityType, out var stateKeys) == false) ignores.Add(entityType, stateKeys = new Dictionary<string, bool>());
                 if (stateKeys.ContainsKey(stateKey)) return;
                 stateKeys.Add(stateKey, true);
@@ -50,10 +50,11 @@ static class AggregateRootUtils
             }
             if (entityBefore != null && entityAfter == null)
             {
-                deleteLog.Add(NativeTuple.Create(entityType, entityBefore));
+                deleteLog.Add(NativeTuple.Create(entityType, new[] { entityBefore }));
                 NavigateReader(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
                 {
-                    deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
+                    var dellist = stackvs.First() as object[] ?? new[] { stackvs.First() };
+                    deleteLog.Add(NativeTuple.Create(ct, dellist));
                 });
                 return;
             }
@@ -83,9 +84,13 @@ static class AggregateRootUtils
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToOne:
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityBefore, propvalBefore);
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityAfter, propvalAfter);
                         LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null);
                         break;
                     case TableRefType.OneToMany:
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityBefore, propvalBefore);
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityAfter, propvalAfter);
                         LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
                         break;
                     case TableRefType.ManyToMany:
@@ -113,10 +118,11 @@ static class AggregateRootUtils
             {
                 foreach (var item in collectionBefore as IEnumerable)
                 {
-                    deleteLog.Add(NativeTuple.Create(elementType, item));
+                    deleteLog.Add(NativeTuple.Create(elementType, new[] { item }));
                     NavigateReader(fsql, elementType, item, (path, tr, ct, stackvs) =>
                     {
-                        deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
+                        var dellist = stackvs.First() as object[] ?? new [] { stackvs.First() };
+                        deleteLog.Add(NativeTuple.Create(ct, dellist));
                     });
                 }
                 return;
@@ -139,10 +145,11 @@ static class AggregateRootUtils
                 if (dictAfter.ContainsKey(key) == false)
                 {
                     var value = dictBefore[key];
-                    deleteLog.Add(NativeTuple.Create(elementType, value));
+                    deleteLog.Add(NativeTuple.Create(elementType, new[] { value }));
                     NavigateReader(fsql, elementType, value, (path, tr, ct, stackvs) =>
                     {
-                        deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
+                        var dellist = stackvs.First() as object[] ?? new[] { stackvs.First() };
+                        deleteLog.Add(NativeTuple.Create(ct, dellist));
                     });
                     dictBefore.Remove(key);
                 }
@@ -186,39 +193,39 @@ static class AggregateRootUtils
             {
                 var tbref = table.GetTableRef(prop.Name, false);
                 if (tbref == null) continue;
-                var idx = 0;
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToOne:
                         var propval = table.GetPropertyValue(entity, prop.Name);
                         statckPath.Push(prop.Name);
                         stackValues.Add(propval);
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entity, propval);
                         callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
                         LocalNavigateReader(tbref.RefEntityType, propval);
                         stackValues.RemoveAt(stackValues.Count - 1);
                         statckPath.Pop();
                         break;
                     case TableRefType.OneToMany:
-                        foreach (var val in table.GetPropertyValue(entity, prop.Name) as IEnumerable)
-                        {
-                            statckPath.Push($"{prop.Name[idx++]}");
-                            stackValues.Add(val);
-                            callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
+                        var propvalOtm = table.GetPropertyValue(entity, prop.Name);
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entity, propvalOtm);
+                        var propvalOtmList = new List<object>();
+                        foreach (var val in propvalOtm as IEnumerable)
+                            propvalOtmList.Add(val);
+                        statckPath.Push($"{prop.Name}[]");
+                        stackValues.Add(propvalOtmList.ToArray());
+                        callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
+                        foreach (var val in propvalOtm as IEnumerable)
                             LocalNavigateReader(tbref.RefEntityType, val);
-                            stackValues.RemoveAt(stackValues.Count - 1);
-                            statckPath.Pop();
-                        }
+                        stackValues.RemoveAt(stackValues.Count - 1);
+                        statckPath.Pop();
                         break;
                     case TableRefType.ManyToMany:
-                        var middleValues = GetManyToManyObjects(fsql, table, tbref, entity, prop);
-                        foreach (var midval in middleValues)
-                        {
-                            statckPath.Push($"{prop.Name[idx++]}");
-                            stackValues.Add(midval);
-                            callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefMiddleEntityType, stackValues);
-                            stackValues.RemoveAt(stackValues.Count - 1);
-                            statckPath.Pop();
-                        }
+                        var middleValues = GetManyToManyObjects(fsql, table, tbref, entity, prop).ToArray();
+                        statckPath.Push($"{prop.Name}[]");
+                        stackValues.Add(middleValues);
+                        callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
+                        stackValues.RemoveAt(stackValues.Count - 1);
+                        statckPath.Pop();
                         break;
                     case TableRefType.PgArrayToMany:
                     case TableRefType.ManyToOne: //不属于聚合根
@@ -266,14 +273,16 @@ static class AggregateRootUtils
                 {
                     case TableRefType.OneToOne:
                         var propvalTo = tbref.RefEntityType.CreateInstanceGetDefaultValue();
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityFrom, propvalFrom);
                         LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo);
                         EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
                         break;
                     case TableRefType.OneToMany:
-                        LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom, prop, true);
+                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityFrom, propvalFrom);
+                        LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, true);
                         break;
                     case TableRefType.ManyToMany:
-                        LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom, prop, false);
+                        LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, false);
                         break;
                     case TableRefType.PgArrayToMany:
                     case TableRefType.ManyToOne: //不属于聚合根
@@ -281,12 +290,11 @@ static class AggregateRootUtils
                 }
             }
         }
-        void LocalMapEntityValueCollection(Type entityType, object entityFrom, object entityTo, TableRef tbref, object propvalFrom, PropertyInfo prop, bool cascade)
+        void LocalMapEntityValueCollection(Type entityType, object entityFrom, object entityTo, TableRef tbref, IEnumerable propvalFrom, PropertyInfo prop, bool cascade)
         {
-            var propvalFromEach = propvalFrom as IEnumerable;
             var propvalTo = typeof(List<>).MakeGenericType(tbref.RefEntityType).CreateInstanceGetDefaultValue();
             var propvalToIList = propvalTo as IList;
-            foreach (var fromItem in propvalFromEach)
+            foreach (var fromItem in propvalFrom)
             {
                 var toItem = tbref.RefEntityType.CreateInstanceGetDefaultValue();
                 if (cascade) LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem);
