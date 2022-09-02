@@ -37,13 +37,12 @@ namespace FreeSql
         public IUnitOfWork UnitOfWork { get => _repository.UnitOfWork; set => _repository.UnitOfWork = value; }
         public DbContextOptions DbContextOptions
         {
-            get => _repository.DbContextOptions; set
+            get => _repository.DbContextOptions;
+            set
             {
-                if (value != null)
-                {
-                    _repository.DbContextOptions = value;
-                    _repository.DbContextOptions.EnableCascadeSave = false;
-                }
+                if (value == null) throw new ArgumentNullException(nameof(DbContextOptions));
+                _repository.DbContextOptions = value;
+                _repository.DbContextOptions.EnableCascadeSave = false;
             }
         }
         public void AsType(Type entityType) => _repository.AsType(entityType); 

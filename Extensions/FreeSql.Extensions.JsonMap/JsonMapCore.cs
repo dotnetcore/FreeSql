@@ -39,7 +39,11 @@ public static class FreeSqlJsonMapCoreExtensions
         {
             FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
             {
-                if (_dicTypes.ContainsKey(type)) return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type));
+                if (_dicTypes.ContainsKey(type)) return Expression.IfThenElse(
+                    Expression.TypeIs(valueExp, type),
+                    Expression.Return(returnTarget, valueExp),
+                    Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type))
+                );
                 return null;
             });
         }

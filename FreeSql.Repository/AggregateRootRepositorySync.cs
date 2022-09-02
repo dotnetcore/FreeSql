@@ -36,7 +36,7 @@ namespace FreeSql
             var repos = new Dictionary<Type, object>();
             try
             {
-                var ret = InsertAggregateRootStatic(_repository, GetChildRepository, entitys);
+                var ret = InsertAggregateRootStatic(_repository, GetChildRepository, entitys, out var affrows);
                 Attach(ret);
                 return ret;
             }
@@ -46,10 +46,18 @@ namespace FreeSql
                 _repository.FlushState();
             }
         }
-        protected static List<TEntity> InsertAggregateRootStatic(IBaseRepository<TEntity> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<TEntity> rootEntitys) {
+        protected static List<T1> InsertAggregateRootStatic<T1>(IBaseRepository<T1> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<T1> rootEntitys, out int affrows) where T1 : class {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
             Dictionary<Type, IBaseRepository<object>> repos = new Dictionary<Type, IBaseRepository<object>>();
-            return LocalInsertAggregateRoot(rootRepository, rootEntitys);
+            var localAffrows = 0;
+            try
+            {
+                return LocalInsertAggregateRoot(rootRepository, rootEntitys);
+            }
+            finally
+            {
+                affrows = localAffrows;
+            }
 
             bool LocalCanAggregateRoot(Type entityType, object entity, bool isadd)
             {
@@ -71,7 +79,7 @@ namespace FreeSql
                 }
                 return false;
             }
-            List<T1> LocalInsertAggregateRoot<T1>(IBaseRepository<T1> repository, IEnumerable<T1> entitys) where T1 : class
+            List<T2> LocalInsertAggregateRoot<T2>(IBaseRepository<T2> repository, IEnumerable<T2> entitys) where T2 : class
             {
                 var table = repository.Orm.CodeFirst.GetTableByEntity(repository.EntityType);
                 if (table.Primarys.Any(col => col.Attribute.IsIdentity))
@@ -80,6 +88,7 @@ namespace FreeSql
                         repository.Orm.ClearEntityPrimaryValueWithIdentity(repository.EntityType, entity);
                 }
                 var ret = repository.Insert(entitys);
+                localAffrows += ret.Count;
                 foreach (var entity in entitys) LocalCanAggregateRoot(repository.EntityType, entity, true);
 
                 foreach (var prop in table.Properties.Values)
@@ -175,7 +184,35 @@ namespace FreeSql
                 AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
                 Attach(entity);
             }
-            return insertLog.Count + updateLog.Count + deleteLog.Count;
+            var affrows = 0;
+
+            DisposeChildRepositorys();
+            var insertLogDict = insertLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => insertLog.Where(b => b.Item1 == a.Key).Select(b => b.Item2).ToArray());
+            foreach (var il in insertLogDict)
+            {
+                InsertAggregateRootStatic(GetChildRepository(il.Key), GetChildRepository, il.Value, out var affrowsOut);
+                affrows += affrowsOut;
+            }
+            DisposeChildRepositorys();
+
+            var deleteLogDict = deleteLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => deleteLog.Where(b => b.Item1 == a.Key).Select(b => b.Item2).ToArray());
+            foreach (var dl in deleteLogDict)
+                affrows += Orm.Delete<object>().AsType(dl.Key).WhereDynamic(dl.Value).ExecuteAffrows();
+
+            var updateLogDict = updateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => updateLog.Where(b => b.Item1 == a.Key).Select(b => 
+                NativeTuple.Create(b.Item2, b.Item3, string.Join(",", b.Item4.OrderBy(c => c)), b.Item4)).ToArray());
+            var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => a.Value.ToDictionary(b => b.Item3, b => a.Value.Where(c => c.Item3 == b.Item3).ToArray()));
+            foreach (var dl in updateLogDict2)
+            {
+                foreach (var dl2 in dl.Value)
+                {
+                    affrows += Orm.Update<object>().AsType(dl.Key)
+                        .SetSource(dl2.Value.Select(a => a.Item2).ToArray())
+                        .UpdateColumns(dl2.Value.First().Item4.ToArray())
+                        .ExecuteAffrows();
+                }
+            }
+            return affrows;
         }
         protected virtual int DeleteAggregateRoot(IEnumerable<TEntity> entitys, List<object> deletedOutput = null)
         {
