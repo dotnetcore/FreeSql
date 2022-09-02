@@ -52,7 +52,6 @@ namespace FreeSql
             _repository.AsTable(rule);
             _asTableRule = rule;
         }
-        TableInfo _table;
         public Type EntityType => _repository.EntityType;
         public IDataFilter<TEntity> DataFilter => _repository.DataFilter;
 

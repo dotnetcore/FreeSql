@@ -116,29 +116,29 @@ static class AggregateRootUtils
             }
             if (collectionBefore != null && collectionAfter == null)
             {
-                foreach (var item in collectionBefore as IEnumerable)
-                {
-                    deleteLog.Add(NativeTuple.Create(elementType, new[] { item }));
-                    NavigateReader(fsql, elementType, item, (path, tr, ct, stackvs) =>
-                    {
-                        var dellist = stackvs.First() as object[] ?? new [] { stackvs.First() };
-                        deleteLog.Add(NativeTuple.Create(ct, dellist));
-                    });
-                }
+                //foreach (var item in collectionBefore as IEnumerable)
+                //{
+                //    deleteLog.Add(NativeTuple.Create(elementType, new[] { item }));
+                //    NavigateReader(fsql, elementType, item, (path, tr, ct, stackvs) =>
+                //    {
+                //        var dellist = stackvs.First() as object[] ?? new [] { stackvs.First() };
+                //        deleteLog.Add(NativeTuple.Create(ct, dellist));
+                //    });
+                //}
                 return;
             }
             Dictionary<string, object> dictBefore = new Dictionary<string, object>();
             Dictionary<string, object> dictAfter = new Dictionary<string, object>();
             foreach (var item in collectionBefore as IEnumerable)
             {
-                var beforeKey = fsql.GetEntityKeyString(elementType, item, false);
-                dictBefore.Add(beforeKey, item);
+                var key = fsql.GetEntityKeyString(elementType, item, false);
+                if (key != null) dictBefore.Add(key, item);
             }
             foreach (var item in collectionAfter as IEnumerable)
             {
-                var afterKey = fsql.GetEntityKeyString(elementType, item, false);
-                if (afterKey != null) insertLog.Add(NativeTuple.Create(elementType, item));
-                else dictBefore.Add(afterKey, item);
+                var key = fsql.GetEntityKeyString(elementType, item, false);
+                if (key != null) insertLog.Add(NativeTuple.Create(elementType, item));
+                else dictAfter.Add(key, item);
             }
             foreach (var key in dictBefore.Keys.ToArray())
             {

@@ -156,7 +156,8 @@ namespace FreeSql
         {
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
+            var table = Orm.CodeFirst.GetTableByEntity(EntityType);
+            if (table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
 
             var flagExists = ExistsInStates(entity);
             if (flagExists == false)
@@ -169,8 +170,12 @@ namespace FreeSql
                 var affrows = UpdateAggregateRoot(new[] { entity });
                 if (affrows > 0) return entity;
             }
-            Orm.ClearEntityPrimaryValueWithIdentity(EntityType, entity);
-            return InsertAggregateRoot(new[] { entity }).FirstOrDefault();
+            if (table.Primarys.Where(a => a.Attribute.IsIdentity).Count() == table.Primarys.Length)
+            {
+                Orm.ClearEntityPrimaryValueWithIdentity(EntityType, entity);
+                return InsertAggregateRoot(new[] { entity }).FirstOrDefault();
+            }
+            throw new Exception(DbContextStrings.CannotAdd_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, entity)));
         }
         protected virtual int UpdateAggregateRoot(IEnumerable<TEntity> entitys)
         {
