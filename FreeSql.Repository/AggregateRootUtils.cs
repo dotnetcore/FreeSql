@@ -12,7 +12,7 @@ using System.Reflection;
 
 static class AggregateRootUtils
 {
-    public static void CompareEntityValueCascade(IFreeSql fsql, Type entityType, object entityBefore, object entityAfter, string navigatePropertyName,
+    public static void CompareEntityValue(IFreeSql fsql, Type entityType, object entityBefore, object entityAfter, string navigatePropertyName,
         List<NativeTuple<Type, object>> insertLog,
         List<NativeTuple<Type, object, object, List<string>>> updateLog,
         List<NativeTuple<Type, object>> deleteLog)
@@ -28,7 +28,7 @@ static class AggregateRootUtils
         if (entityBefore != null && entityAfter == null)
         {
             deleteLog.Add(NativeTuple.Create(entityType, entityBefore));
-            EachNavigateCascade(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
+            NavigateReader(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
             {
                 deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
             });
@@ -60,7 +60,7 @@ static class AggregateRootUtils
             switch (tbref.RefType)
             {
                 case TableRefType.OneToOne:
-                    CompareEntityValueCascade(fsql, tbref.RefEntityType, propvalBefore, propvalAfter, null, insertLog, updateLog, deleteLog);
+                    CompareEntityValue(fsql, tbref.RefEntityType, propvalBefore, propvalAfter, null, insertLog, updateLog, deleteLog);
                     break;
                 case TableRefType.OneToMany:
                     LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
@@ -91,7 +91,7 @@ static class AggregateRootUtils
                 foreach (var item in collectionBefore as IEnumerable)
                 {
                     deleteLog.Add(NativeTuple.Create(elementType, item));
-                    EachNavigateCascade(fsql, elementType, item, (path, tr, ct, stackvs) =>
+                    NavigateReader(fsql, elementType, item, (path, tr, ct, stackvs) =>
                     {
                         deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
                     });
@@ -117,7 +117,7 @@ static class AggregateRootUtils
                 {
                     var value = dictBefore[key];
                     deleteLog.Add(NativeTuple.Create(elementType, value));
-                    EachNavigateCascade(fsql, elementType, value, (path, tr, ct, stackvs) =>
+                    NavigateReader(fsql, elementType, value, (path, tr, ct, stackvs) =>
                     {
                         deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
                     });
@@ -133,20 +133,21 @@ static class AggregateRootUtils
                 }
             }
             foreach (var key in dictBefore.Keys)
-                CompareEntityValueCascade(fsql, elementType, dictBefore[key], dictAfter[key], null, insertLog, updateLog, deleteLog);
+                CompareEntityValue(fsql, elementType, dictBefore[key], dictAfter[key], null, insertLog, updateLog, deleteLog);
         }
     }
-    public static void EachNavigateCascade(IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
+
+    public static void NavigateReader(IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
     {
         Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
         var statckPath = new Stack<string>();
         var stackValues = new List<object>();
         statckPath.Push("_");
         stackValues.Add(rootEntity);
-        LocalEachNavigate(rootType, rootEntity);
+        LocalNavigateReader(rootType, rootEntity);
         ignores.Clear();
 
-        void LocalEachNavigate(Type entityType, object entity)
+        void LocalNavigateReader(Type entityType, object entity)
         {
             if (entity == null) return;
             if (entityType == null) entityType = entity.GetType();
@@ -170,7 +171,7 @@ static class AggregateRootUtils
                         statckPath.Push(prop.Name);
                         stackValues.Add(propval);
                         callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
-                        LocalEachNavigate(tbref.RefEntityType, propval);
+                        LocalNavigateReader(tbref.RefEntityType, propval);
                         stackValues.RemoveAt(stackValues.Count - 1);
                         statckPath.Pop();
                         break;
@@ -180,7 +181,7 @@ static class AggregateRootUtils
                             statckPath.Push($"{prop.Name[idx++]}");
                             stackValues.Add(val);
                             callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
-                            LocalEachNavigate(tbref.RefEntityType, val);
+                            LocalNavigateReader(tbref.RefEntityType, val);
                             stackValues.RemoveAt(stackValues.Count - 1);
                             statckPath.Pop();
                         }
@@ -204,8 +205,7 @@ static class AggregateRootUtils
         }
     }
 
-    static ConcurrentDictionary<Type, Action<IFreeSql, object, object>> _dicMapEntityValueCascade = new ConcurrentDictionary<Type, Action<IFreeSql, object, object>>();
-    public static void MapEntityValueCascade(this IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
+    public static void MapEntityValue(IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
     {
         Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
         LocalMapEntityValue(rootEntityType, rootEntityFrom, rootEntityTo);

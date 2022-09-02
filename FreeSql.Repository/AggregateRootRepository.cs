@@ -57,11 +57,11 @@ namespace FreeSql
         public Type EntityType => _repository.EntityType;
         public IDataFilter<TEntity> DataFilter => _repository.DataFilter;
 
-        public void Attach(TEntity entity) => AttachCascade(entity);
+        public void Attach(TEntity entity) => AttachAggregateRoot(entity);
         public void Attach(IEnumerable<TEntity> entity)
         {
             foreach (var item in entity)
-                AttachCascade(item);
+                AttachAggregateRoot(item);
         }
         public IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data) => _repository.AttachOnlyPrimary(data);
         public Dictionary<string, object[]> CompareState(TEntity newdata) => _repository.CompareState(newdata);
@@ -120,7 +120,7 @@ namespace FreeSql
             if (data == null) throw new ArgumentNullException(nameof(data));
             var key = Orm.GetEntityKeyString(EntityType, data, false);
             var state = new EntityState((TEntity)EntityType.CreateInstanceGetDefaultValue(), key);
-            AggregateRootUtils.MapEntityValueCascade(Orm, EntityType, data, state.Value);
+            AggregateRootUtils.MapEntityValue(Orm, EntityType, data, state.Value);
             return state;
         }
         bool? ExistsInStates(object data)
@@ -130,7 +130,7 @@ namespace FreeSql
             if (string.IsNullOrEmpty(key)) return null;
             return _states.ContainsKey(key);
         }
-        void AttachCascade(TEntity entity)
+        void AttachAggregateRoot(TEntity entity)
         {
             var state = CreateEntityState(entity);
             if (_states.ContainsKey(state.Key)) _states[state.Key] = state;
@@ -138,17 +138,18 @@ namespace FreeSql
         }
         #endregion
 
-        #region Select
-        public virtual ISelect<TEntity> Select
+        #region Selectoriginal
+        public virtual ISelect<TEntity> Select => SelectAggregateRoot;
+        ISelect<TEntity> SelectAggregateRoot
         {
             get
             {
-                var query = _repository.Select.TrackToList(SelectTrackingAggregateRootNavigate);
-                SelectFetchAggregateRootNavigate(query, EntityType, "", new Stack<Type>());
+                var query = _repository.Select.TrackToList(SelectAggregateRootTracking);
+                SelectAggregateRootNavigateReader(query, EntityType, "", new Stack<Type>());
                 return query;
             }
         }
-        void SelectFetchAggregateRootNavigate<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
+        void SelectAggregateRootNavigateReader<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
         {
             if (ignores.Any(a => a == entityType)) return;
             ignores.Push(entityType);
@@ -164,12 +165,12 @@ namespace FreeSql
                     case TableRefType.OneToOne:
                         if (ignores.Any(a => a == tbref.RefEntityType)) break;
                         currentQuery.IncludeByPropertyName(navigateExpression);
-                        SelectFetchAggregateRootNavigate(currentQuery, tbref.RefEntityType, navigateExpression, ignores);
+                        SelectAggregateRootNavigateReader(currentQuery, tbref.RefEntityType, navigateExpression, ignores);
                         break;
                     case TableRefType.OneToMany:
                         var ignoresCopy = new Stack<Type>(ignores.ToArray());
                         currentQuery.IncludeByPropertyName(navigateExpression, then =>
-                            SelectFetchAggregateRootNavigate(then, tbref.RefEntityType, "", ignoresCopy));
+                            SelectAggregateRootNavigateReader(then, tbref.RefEntityType, "", ignoresCopy));
                         break;
                     case TableRefType.ManyToMany:
                         currentQuery.IncludeByPropertyName(navigateExpression);
@@ -181,7 +182,7 @@ namespace FreeSql
             }
             ignores.Pop();
         }
-        void SelectTrackingAggregateRootNavigate(object list)
+        void SelectAggregateRootTracking(object list)
         {
             if (list == null) return;
             var ls = list as IEnumerable<TEntity>;
@@ -202,7 +203,7 @@ namespace FreeSql
                         if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
                         if (itemType.GetConstructor(Type.EmptyTypes) == null) return;
                     }
-                    AttachCascade(item as TEntity);
+                    AttachAggregateRoot(item as TEntity);
                 }
                 return;
             }

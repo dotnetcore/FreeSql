@@ -15,28 +15,28 @@ namespace FreeSql
 {
     partial class AggregateRootRepository<TEntity>
     {
-        public TEntity Insert(TEntity entity) => InsertCascade(new[] { entity }).FirstOrDefault();
-        public List<TEntity> Insert(IEnumerable<TEntity> entitys) => InsertCascade(entitys);
-        public TEntity InsertOrUpdate(TEntity entity) => InsertOrUpdateCascade(entity);
-        public int Update(TEntity entity) => UpdateCascade(new[] { entity });
-        public int Update(IEnumerable<TEntity> entitys) => UpdateCascade(entitys);
-        public int Delete(TEntity entity) => DeleteCascade(new[] { entity });
-        public int Delete(IEnumerable<TEntity> entitys) => DeleteCascade(entitys);
-        public int Delete(Expression<Func<TEntity, bool>> predicate) => DeleteCascade(Where(predicate).ToList());
+        public TEntity Insert(TEntity entity) => InsertAggregateRoot(new[] { entity }).FirstOrDefault();
+        public List<TEntity> Insert(IEnumerable<TEntity> entitys) => InsertAggregateRoot(entitys);
+        public TEntity InsertOrUpdate(TEntity entity) => InsertOrUpdateAggregateRoot(entity);
+        public int Update(TEntity entity) => UpdateAggregateRoot(new[] { entity });
+        public int Update(IEnumerable<TEntity> entitys) => UpdateAggregateRoot(entitys);
+        public int Delete(TEntity entity) => DeleteAggregateRoot(new[] { entity });
+        public int Delete(IEnumerable<TEntity> entitys) => DeleteAggregateRoot(entitys);
+        public int Delete(Expression<Func<TEntity, bool>> predicate) => DeleteAggregateRoot(SelectAggregateRoot.Where(predicate).ToList());
         public List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
         {
             var deletedOutput = new List<object>();
-            DeleteCascade(Where(predicate).ToList(), deletedOutput);
+            DeleteAggregateRoot(SelectAggregateRoot.Where(predicate).ToList(), deletedOutput);
             return deletedOutput;
         }
-        public void SaveMany(TEntity entity, string propertyName) => SaveManyCascade(entity, propertyName);
+        public void SaveMany(TEntity entity, string propertyName) => SaveManyAggregateRoot(entity, propertyName);
 
-        protected virtual List<TEntity> InsertCascade(IEnumerable<TEntity> entitys)
+        protected virtual List<TEntity> InsertAggregateRoot(IEnumerable<TEntity> entitys)
         {
             var repos = new Dictionary<Type, object>();
             try
             {
-                return InsertCascadeStatic(_repository, GetChildRepository, entitys);
+                return InsertAggregateRootStatic(_repository, GetChildRepository, entitys);
             }
             finally
             {
@@ -44,12 +44,12 @@ namespace FreeSql
                 _repository.FlushState();
             }
         }
-        protected static List<TEntity> InsertCascadeStatic(IBaseRepository<TEntity> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<TEntity> rootEntitys) {
+        protected static List<TEntity> InsertAggregateRootStatic(IBaseRepository<TEntity> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<TEntity> rootEntitys) {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
             Dictionary<Type, IBaseRepository<object>> repos = new Dictionary<Type, IBaseRepository<object>>();
-            return LocalInsertCascade(rootRepository, rootEntitys);
+            return LocalInsertAggregateRoot(rootRepository, rootEntitys);
 
-            bool LocalCanCascade(Type entityType, object entity, bool isadd)
+            bool LocalCanAggregateRoot(Type entityType, object entity, bool isadd)
             {
                 var stateKey = rootRepository.Orm.GetEntityKeyString(entityType, entity, false);
                 if (stateKey == null) return true;
@@ -69,10 +69,10 @@ namespace FreeSql
                 }
                 return false;
             }
-            List<T1> LocalInsertCascade<T1>(IBaseRepository<T1> repository, IEnumerable<T1> entitys) where T1 : class
+            List<T1> LocalInsertAggregateRoot<T1>(IBaseRepository<T1> repository, IEnumerable<T1> entitys) where T1 : class
             {
                 var ret = repository.Insert(entitys);
-                foreach (var entity in entitys) LocalCanCascade(repository.EntityType, entity, true);
+                foreach (var entity in entitys) LocalCanAggregateRoot(repository.EntityType, entity, true);
 
                 var table = repository.Orm.CodeFirst.GetTableByEntity(repository.EntityType);
                 foreach (var prop in table.Properties.Values)
@@ -85,14 +85,14 @@ namespace FreeSql
                             var otoList = ret.Select(entity =>
                             {
                                 var otoItem = table.GetPropertyValue(entity, prop.Name);
-                                if (LocalCanCascade(tbref.RefEntityType, otoItem, false) == false) return null;
+                                if (LocalCanAggregateRoot(tbref.RefEntityType, otoItem, false) == false) return null;
                                 AggregateRootUtils.SetNavigateRelationshipValue(repository.Orm, tbref, table.Type, entity, otoItem);
                                 return otoItem;
                             }).Where(entity => entity != null).ToArray();
                             if (otoList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefEntityType);
-                                LocalInsertCascade(repo, otoList);
+                                LocalInsertAggregateRoot(repo, otoList);
                             }
                             break;
                         case TableRefType.OneToMany:
@@ -103,7 +103,7 @@ namespace FreeSql
                                 var otmItems = new List<object>();
                                 foreach (var otmItem in otmEach)
                                 {
-                                    if (LocalCanCascade(tbref.RefEntityType, otmItem, false) == false) continue;
+                                    if (LocalCanAggregateRoot(tbref.RefEntityType, otmItem, false) == false) continue;
                                     otmItems.Add(otmItem);
                                 }
                                 AggregateRootUtils.SetNavigateRelationshipValue(repository.Orm, tbref, table.Type, entity, otmItems);
@@ -112,7 +112,7 @@ namespace FreeSql
                             if (otmList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefEntityType);
-                                LocalInsertCascade(repo, otmList);
+                                LocalInsertAggregateRoot(repo, otmList);
                             }
                             break;
                         case TableRefType.ManyToMany:
@@ -125,7 +125,7 @@ namespace FreeSql
                             if (mtmMidList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefMiddleEntityType);
-                                LocalInsertCascade(repo, mtmMidList);
+                                LocalInsertAggregateRoot(repo, mtmMidList);
                             }
                             break;
                         case TableRefType.PgArrayToMany:
@@ -136,7 +136,7 @@ namespace FreeSql
             }
         }
         
-        protected virtual TEntity InsertOrUpdateCascade(TEntity entity)
+        protected virtual TEntity InsertOrUpdateAggregateRoot(TEntity entity)
         {
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -150,13 +150,13 @@ namespace FreeSql
             }
             if (flagExists == true)
             {
-                var affrows = UpdateCascade(new[] { entity });
+                var affrows = UpdateAggregateRoot(new[] { entity });
                 if (affrows > 0) return entity;
             }
             Orm.ClearEntityPrimaryValueWithIdentity(EntityType, entity);
-            return InsertCascade(new[] { entity }).FirstOrDefault();
+            return InsertAggregateRoot(new[] { entity }).FirstOrDefault();
         }
-        protected virtual int UpdateCascade(IEnumerable<TEntity> entitys)
+        protected virtual int UpdateAggregateRoot(IEnumerable<TEntity> entitys)
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
@@ -165,12 +165,12 @@ namespace FreeSql
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
-                AggregateRootUtils.CompareEntityValueCascade(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
-                AttachCascade(entity);
+                AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
+                AttachAggregateRoot(entity);
             }
             return insertLog.Count + updateLog.Count + deleteLog.Count;
         }
-        protected virtual int DeleteCascade(IEnumerable<TEntity> entitys, List<object> deletedOutput = null)
+        protected virtual int DeleteAggregateRoot(IEnumerable<TEntity> entitys, List<object> deletedOutput = null)
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
@@ -178,22 +178,22 @@ namespace FreeSql
             foreach (var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
-                AggregateRootUtils.CompareEntityValueCascade(Orm, EntityType, entity, null, null, insertLog, updateLog, deleteLog);
+                AggregateRootUtils.CompareEntityValue(Orm, EntityType, entity, null, null, insertLog, updateLog, deleteLog);
                 _states.Remove(stateKey);
             }
             if (deletedOutput != null) deletedOutput.AddRange(deleteLog.Select(a => a.Item2));
             return deleteLog.Count;
         }
 
-        protected virtual void SaveManyCascade(TEntity entity, string propertyName)
+        protected virtual void SaveManyAggregateRoot(TEntity entity, string propertyName)
         {
             List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
             List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
             List<NativeTuple<Type, object>> deleteLog = new List<NativeTuple<Type, object>>();
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
-            AggregateRootUtils.CompareEntityValueCascade(Orm, EntityType, state.Value, entity, propertyName, insertLog, updateLog, deleteLog);
-            AttachCascade(entity);
+            AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, insertLog, updateLog, deleteLog);
+            AttachAggregateRoot(entity);
         }
 
         protected List<TEntity> _dataEditing;
@@ -212,7 +212,7 @@ namespace FreeSql
 
                 _statesEditing.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
                 {
-                    AggregateRootUtils.MapEntityValueCascade(Orm, EntityType, item, ov.Value);
+                    AggregateRootUtils.MapEntityValue(Orm, EntityType, item, ov.Value);
                     ov.Time = DateTime.Now;
                     return ov;
                 });
@@ -238,11 +238,11 @@ namespace FreeSql
                         continue;
                     }
                     _states[key] = state;
-                    AggregateRootUtils.CompareEntityValueCascade(Orm, EntityType, state.Value, item, null, insertLog, updateLog, deleteLog);
+                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, item, null, insertLog, updateLog, deleteLog);
                 }
                 foreach (var item in _statesEditing.Values.OrderBy(a => a.Time))
                 {
-                    AggregateRootUtils.CompareEntityValueCascade(Orm, EntityType, item, null, null, insertLog, updateLog, deleteLog);
+                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, item, null, null, insertLog, updateLog, deleteLog);
                 }
             }
             finally
