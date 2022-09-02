@@ -1,4 +1,4 @@
-﻿using FreeSql.Aop;
+﻿using FreeSql;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
@@ -8,20 +8,32 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 static class AggregateRootUtils
 {
-
-    public static void CompareEntityValueCascade(IFreeSql fsql, Type entityType, object entityBefore, object entityAfter, 
-        List<NativeTuple<Type, object>> insertLog, 
+    public static void CompareEntityValueCascade(IFreeSql fsql, Type entityType, object entityBefore, object entityAfter, string navigatePropertyName,
+        List<NativeTuple<Type, object>> insertLog,
         List<NativeTuple<Type, object, object, List<string>>> updateLog,
         List<NativeTuple<Type, object>> deleteLog)
     {
         if (entityType == null) entityType = entityBefore?.GetType() ?? entityAfter?.GetType();
         var table = fsql.CodeFirst.GetTableByEntity(entityType);
+        if (entityBefore == null && entityAfter == null) return;
+        if (entityBefore == null && entityAfter != null)
+        {
+            insertLog.Add(NativeTuple.Create(entityType, entityAfter));
+            return;
+        }
+        if (entityBefore != null && entityAfter == null)
+        {
+            deleteLog.Add(NativeTuple.Create(entityType, entityBefore));
+            EachNavigateCascade(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
+            {
+                deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
+            });
+            return;
+        }
         var changes = new List<string>();
         foreach (var col in table.ColumnsByCs.Values)
         {
@@ -42,27 +54,13 @@ static class AggregateRootUtils
         {
             var tbref = table.GetTableRef(prop.Name, false);
             if (tbref == null) continue;
+            if (navigatePropertyName != null && prop.Name != navigatePropertyName) continue;
             var propvalBefore = table.GetPropertyValue(entityBefore, prop.Name);
             var propvalAfter = table.GetPropertyValue(entityBefore, prop.Name);
             switch (tbref.RefType)
             {
                 case TableRefType.OneToOne:
-                    if (propvalBefore == null && propvalAfter == null) return;
-                    if (propvalBefore == null && propvalAfter != null)
-                    {
-                        insertLog.Add(NativeTuple.Create(tbref.RefEntityType, propvalAfter));
-                        return;
-                    }
-                    if (propvalBefore != null && propvalAfter == null)
-                    {
-                        deleteLog.Add(NativeTuple.Create(tbref.RefEntityType, propvalBefore));
-                        EachNavigateCascade(fsql, tbref.RefEntityType, propvalBefore, (path, tr, ct, stackvs) =>
-                        {
-                            deleteLog.Add(NativeTuple.Create(ct, stackvs.First()));
-                        });
-                        return;
-                    }
-                    CompareEntityValueCascade(fsql, tbref.RefEntityType, propvalBefore, propvalAfter, insertLog, updateLog, deleteLog);
+                    CompareEntityValueCascade(fsql, tbref.RefEntityType, propvalBefore, propvalAfter, null, insertLog, updateLog, deleteLog);
                     break;
                 case TableRefType.OneToMany:
                     LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
@@ -84,7 +82,7 @@ static class AggregateRootUtils
             if (collectionBefore == null && collectionAfter == null) return;
             if (collectionBefore == null && collectionAfter != null)
             {
-                foreach(var item in collectionAfter)
+                foreach (var item in collectionAfter)
                     insertLog.Add(NativeTuple.Create(elementType, item));
                 return;
             }
@@ -135,7 +133,7 @@ static class AggregateRootUtils
                 }
             }
             foreach (var key in dictBefore.Keys)
-                CompareEntityValueCascade(fsql, elementType, dictBefore[key], dictAfter[key], insertLog, updateLog, deleteLog);
+                CompareEntityValueCascade(fsql, elementType, dictBefore[key], dictAfter[key], null, insertLog, updateLog, deleteLog);
         }
     }
     public static void EachNavigateCascade(IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
