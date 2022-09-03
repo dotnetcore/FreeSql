@@ -137,7 +137,9 @@ namespace FreeSql
         public virtual ISelect<TEntity> Select => SelectAggregateRoot;
         /// <summary>
         /// 创建查询对象（纯净）<para></para>
-        /// 聚合根内关系较复杂时，AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order)) 可以获得边界以内自动包含 Include/IncludeMany 代码字符串
+        /// _<para></para>
+        /// 聚合根内关系较复杂时，获取 Include/IncludeMany 字符串代码，方便二次开发<para></para>
+        /// string code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order))
         /// </summary>
         protected ISelect<TEntity> SelectDiy => _repository.Select;
         /// <summary>
