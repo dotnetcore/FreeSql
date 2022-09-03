@@ -140,8 +140,12 @@ namespace FreeSql
                 foreach (var item in collectionAfter as IEnumerable)
                 {
                     var key = fsql.GetEntityKeyString(elementType, item, false);
-                    if (key != null) tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
-                    else dictAfter.Add(key, item);
+                    if (key != null)
+                    {
+                        if (dictAfter.ContainsKey(key) == false) 
+                            dictAfter.Add(key, item);
+                    }
+                    else tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
                 }
                 foreach (var key in dictBefore.Keys.ToArray())
                 {
@@ -230,7 +234,7 @@ namespace FreeSql
                             if (middleValues == null) continue;
                             statckPath.Push($"{prop.Name}[]");
                             stackValues.Add(middleValues);
-                            callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
+                            callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefMiddleEntityType, stackValues);
                             stackValues.RemoveAt(stackValues.Count - 1);
                             statckPath.Pop();
                             break;
