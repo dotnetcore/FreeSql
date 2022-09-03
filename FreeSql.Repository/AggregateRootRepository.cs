@@ -137,7 +137,7 @@ namespace FreeSql
         public virtual ISelect<TEntity> Select => SelectAggregateRoot;
         /// <summary>
         /// 创建查询对象（纯净）<para></para>
-        /// 当聚合根内关系复杂时，使用 this.SelectAggregateRootStaticCode 可以生成边界以内的 Include/IncludeMany 代码块
+        /// 聚合根内关系较复杂时，AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order)) 可以获得边界以内自动包含 Include/IncludeMany 代码字符串
         /// </summary>
         protected ISelect<TEntity> SelectDiy => _repository.Select;
         /// <summary>
@@ -153,13 +153,6 @@ namespace FreeSql
                 return query;
             }
         }
-        /// <summary>
-        /// 按默认边界规则，返回 c# 静态代码<para></para>
-        /// 1、聚合根内关系复杂手工编写 Include/IncludeMany 会很蛋疼<para></para>
-        /// 2、返回的内容用，可用于配合重写仓储 override Select 属性<para></para>
-        /// 返回内容：fsql.Select&lt;T&gt;().Include(...).IncludeMany(...) 
-        /// </summary>
-        protected string SelectAggregateRootStaticCode => $"//fsql.Select<{EntityType.Name}>()\r\nthis.SelectDiy{AggregateRootUtils.GetAutoIncludeQueryStaicCode(Orm, EntityType)}";
         /// <summary>
         /// ISelect.TrackToList 委托，数据返回后自动 Attach
         /// </summary>
