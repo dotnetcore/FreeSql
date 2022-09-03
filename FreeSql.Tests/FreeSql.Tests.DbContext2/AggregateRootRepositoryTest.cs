@@ -10,11 +10,23 @@ namespace FreeSql.Tests.DbContext2
 {
     public class AggregateRootRepositoryTest
     {
+        class UserRepository : AggregateRootRepository<User>
+        {
+            public UserRepository(IFreeSql fsql, UnitOfWorkManager uowManager) : base(uowManager?.Orm ?? fsql)
+            {
+                var code = SelectAggregateRootStaticCode;
+            }
+
+            public override ISelect<User> Select => base.SelectDiy;
+        }
+
         [Fact]
         public void Test1v1()
         {
             using (var fsql = g.CreateMemory())
             {
+                new UserRepository(fsql, null);
+
                 var repo = fsql.GetAggregateRootRepository<User>();
                 var user = new User
                 {

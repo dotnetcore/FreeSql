@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,7 +104,7 @@ namespace FreeSql
             _childRepositorys.Clear();
         }
 
-        #region State
+        #region 状态管理
         protected Dictionary<string, EntityState> _states = new Dictionary<string, EntityState>();
         protected class EntityState
         {
@@ -135,8 +136,21 @@ namespace FreeSql
         }
         #endregion
 
-        #region Selectoriginal
+        #region 查询数据
+        /// <summary>
+        /// 默认：创建查询对象（递归包含 Include/IncludeMany 边界之内的导航属性）<para></para>
+        /// 重写：使用
+        /// </summary>
         public virtual ISelect<TEntity> Select => SelectAggregateRoot;
+        /// <summary>
+        /// 创建查询对象（纯净）<para></para>
+        /// 当聚合根内关系复杂时，使用 this.SelectAggregateRootStaticCode 可以生成边界以内的 Include/IncludeMany 代码块
+        /// </summary>
+        protected ISelect<TEntity> SelectDiy => _repository.Select;
+        /// <summary>
+        /// 创建查询对象（递归包含 Include/IncludeMany 边界之内的导航属性）
+        /// </summary>
+        /// <returns></returns>
         protected ISelect<TEntity> SelectAggregateRoot
         {
             get
@@ -146,6 +160,17 @@ namespace FreeSql
                 return query;
             }
         }
+        /// <summary>
+        /// 按默认边界规则，返回 c# 静态代码<para></para>
+        /// 1、聚合根内关系复杂手工编写 Include/IncludeMany 会很蛋疼<para></para>
+        /// 2、返回的内容用，可用于配合重写仓储 override Select 属性<para></para>
+        /// 返回内容：fsql.Select&lt;T&gt;().Include(...).IncludeMany(...) 
+        /// </summary>
+        protected string SelectAggregateRootStaticCode => $"//fsql.Select<{EntityType.Name}>()\r\nthis.SelectDiy{SelectAggregateRootNavigateReader(1, EntityType, "", new Stack<Type>())}";
+        /// <summary>
+        /// ISelect.TrackToList 委托，数据返回后自动 Attach
+        /// </summary>
+        /// <param name="list"></param>
         protected void SelectAggregateRootTracking(object list)
         {
             if (list == null) return;
@@ -178,11 +203,12 @@ namespace FreeSql
             if (ignores.Any(a => a == entityType)) return;
             ignores.Push(entityType);
             var table = Orm.CodeFirst.GetTableByEntity(entityType);
+            if (table == null) return;
+            if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
             foreach (var prop in table.Properties.Values)
             {
                 var tbref = table.GetTableRef(prop.Name, false);
                 if (tbref == null) continue;
-                if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
                 var navigateExpression = $"{navigatePath}{prop.Name}";
                 switch (tbref.RefType)
                 {
@@ -205,6 +231,49 @@ namespace FreeSql
                 }
             }
             ignores.Pop();
+        }
+        string SelectAggregateRootNavigateReader(int depth, Type entityType, string navigatePath, Stack<Type> ignores)
+        {
+            var code = new StringBuilder();
+            if (ignores.Any(a => a == entityType)) return null;
+            ignores.Push(entityType);
+            var table = Orm.CodeFirst.GetTableByEntity(entityType);
+            if (table == null) return null;
+            if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
+            foreach (var prop in table.Properties.Values)
+            {
+                var tbref = table.GetTableRef(prop.Name, false);
+                if (tbref == null) continue;
+                var navigateExpression = $"{navigatePath}{prop.Name}";
+                var depthTab = "".PadLeft(depth * 4);
+                var lambdaAlias = (char)((byte)'a' + (depth - 1));
+                var lambdaStr = $"{lambdaAlias} => {lambdaAlias}.";
+                switch (tbref.RefType)
+                {
+                    case TableRefType.OneToOne:
+                        if (ignores.Any(a => a == tbref.RefEntityType)) break;
+                        code.Append("\r\n").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        code.Append(SelectAggregateRootNavigateReader(depth, tbref.RefEntityType, navigateExpression, ignores));
+                        break;
+                    case TableRefType.OneToMany:
+                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression);
+                        var thencode = SelectAggregateRootNavigateReader(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
+                        if (thencode.Length > 0) code.Append(", then => then").Append(thencode);
+                        code.Append(")");
+                        break;
+                    case TableRefType.ManyToMany:
+                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                    case TableRefType.PgArrayToMany:
+                        code.Append("\r\n//").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                    case TableRefType.ManyToOne: //不属于聚合根
+                        code.Append("\r\n//").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                }
+            }
+            ignores.Pop();
+            return code.ToString();
         }
         #endregion
 
