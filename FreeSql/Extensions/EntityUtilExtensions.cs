@@ -214,12 +214,12 @@ namespace FreeSql.Extensions.EntityUtil
                     var var1Parm = Expression.Variable(entityType);
                     var var2Ret = Expression.Variable(typeof(object));
                     var exps = new List<Expression>(new Expression[] {
-                    Expression.Assign(var1Parm, Expression.TypeAs(parm1, entityType)),
-                    Expression.Assign(
-                        var2Ret,
-                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
-                    )
-                });
+                        Expression.Assign(var1Parm, Expression.TypeAs(parm1, entityType)),
+                        Expression.Assign(
+                            var2Ret,
+                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
+                        )
+                    });
                     exps.AddRange(new Expression[] {
                     Expression.Return(returnTarget, var2Ret),
                     Expression.Label(returnTarget, Expression.Default(typeof(object)))
@@ -242,12 +242,12 @@ namespace FreeSql.Extensions.EntityUtil
                     var var1Parm = Expression.Variable(table.Type);
                     var var2Ret = Expression.Variable(typeof(object));
                     var exps = new List<Expression>(new Expression[] {
-                    Expression.Assign(var1Parm, Expression.TypeAs(parm1, table.Type)),
-                    Expression.Assign(
-                        var2Ret,
-                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
-                    )
-                });
+                        Expression.Assign(var1Parm, Expression.TypeAs(parm1, table.Type)),
+                        Expression.Assign(
+                            var2Ret,
+                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
+                        )
+                    });
                     exps.AddRange(new Expression[] {
                     Expression.Return(returnTarget, var2Ret),
                     Expression.Label(returnTarget, Expression.Default(typeof(object)))

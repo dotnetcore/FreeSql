@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;
@@ -8,7 +9,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 static class AggregateRootUtils
 {
@@ -85,13 +88,13 @@ static class AggregateRootUtils
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToOne:
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityBefore, propvalBefore);
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityAfter, propvalAfter);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityBefore, propvalBefore);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityAfter, propvalAfter);
                         LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null);
                         break;
                     case TableRefType.OneToMany:
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityBefore, propvalBefore);
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityAfter, propvalAfter);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityBefore, propvalBefore);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityAfter, propvalAfter);
                         LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
                         break;
                     case TableRefType.ManyToMany:
@@ -201,7 +204,7 @@ static class AggregateRootUtils
                         var propval = table.GetPropertyValue(entity, prop.Name);
                         statckPath.Push(prop.Name);
                         stackValues.Add(propval);
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entity, propval);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entity, propval);
                         callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
                         LocalNavigateReader(tbref.RefEntityType, propval);
                         stackValues.RemoveAt(stackValues.Count - 1);
@@ -209,7 +212,7 @@ static class AggregateRootUtils
                         break;
                     case TableRefType.OneToMany:
                         var propvalOtm = table.GetPropertyValue(entity, prop.Name);
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entity, propvalOtm);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entity, propvalOtm);
                         var propvalOtmList = new List<object>();
                         foreach (var val in propvalOtm as IEnumerable)
                             propvalOtmList.Add(val);
@@ -275,12 +278,12 @@ static class AggregateRootUtils
                 {
                     case TableRefType.OneToOne:
                         var propvalTo = tbref.RefEntityType.CreateInstanceGetDefaultValue();
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityFrom, propvalFrom);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
                         LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo);
                         EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
                         break;
                     case TableRefType.OneToMany:
-                        SetNavigateRelationshipValue(fsql, tbref, tbref.RefEntityType, entityFrom, propvalFrom);
+                        SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
                         LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, true);
                         break;
                     case TableRefType.ManyToMany:
@@ -312,6 +315,127 @@ static class AggregateRootUtils
                 var propvalTypeOc = Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(tbref.RefEntityType), new object[] { propvalTo });
                 EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTypeOc);
             }
+        }
+    }
+
+    static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>> _dicGetAutoIncludeQuery = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>();
+    public static ISelect<TEntity> GetAutoIncludeQuery<TEntity>(ISelect<TEntity> select)
+    {
+        var select0p = select as Select0Provider;
+        var table0Type = select0p._tables[0].Table.Type;
+        var func = _dicGetAutoIncludeQuery.GetOrAdd(typeof(TEntity), t => new ConcurrentDictionary<Type, Action<ISelect0>>()).GetOrAdd(table0Type, t =>
+         {
+             var parmExp1 = Expression.Parameter(typeof(ISelect0));
+             var parmNavigateParameterExp = Expression.Parameter(typeof(TEntity), "a");
+             var parmQueryExp = Expression.Convert(parmExp1, typeof(ISelect<>).MakeGenericType(typeof(TEntity)));
+             var exp = LocalGetAutoIncludeQuery(parmQueryExp, 1, t, parmNavigateParameterExp, parmNavigateParameterExp, new Stack<Type>());
+             return Expression.Lambda<Action<ISelect0>>(exp, parmExp1).Compile();
+         });
+        func(select);
+        return select;
+        Expression LocalGetAutoIncludeQuery(Expression queryExp, int depth, Type entityType, ParameterExpression navigateParameterExp, Expression navigatePathExp, Stack<Type> ignores)
+        {
+            if (ignores.Any(a => a == entityType)) return queryExp;
+            ignores.Push(entityType);
+            var table = select0p._orm.CodeFirst.GetTableByEntity(entityType);
+            if (table == null) return queryExp;
+            foreach (var tr in table.GetAllTableRef())
+            {
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                Expression navigateExp = Expression.MakeMemberAccess(navigatePathExp, prop);
+                //var lambdaAlias = (char)((byte)'a' + (depth - 1));
+                switch (tbref.RefType)
+                {
+                    case TableRefType.OneToOne:
+                        if (ignores.Any(a => a == tbref.RefEntityType)) break;
+                        LocalInclude(tbref, navigateExp);
+                        queryExp = LocalGetAutoIncludeQuery(queryExp, depth, tbref.RefEntityType, navigateParameterExp, navigateExp, ignores);
+                        break;
+                    case TableRefType.OneToMany:
+                        LocalIncludeMany(tbref, navigateExp, true);
+                        break;
+                    case TableRefType.ManyToMany:
+                        LocalIncludeMany(tbref, navigateExp, false);
+                        break;
+                    case TableRefType.PgArrayToMany:
+                        break;
+                    case TableRefType.ManyToOne: //不属于聚合根
+                        break;
+                }
+            }
+            ignores.Pop();
+            return queryExp;
+            void LocalInclude(TableRef tbref, Expression exp)
+            {
+                var incMethod = queryExp.Type.GetMethod("Include");
+                if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany.Replace("IncludeMany", "Include"));
+                queryExp = Expression.Call(queryExp, incMethod.MakeGenericMethod(tbref.RefEntityType),
+                    Expression.Lambda(typeof(Func<,>).MakeGenericType(entityType, tbref.RefEntityType), exp, navigateParameterExp));
+            }
+            void LocalIncludeMany(TableRef tbref, Expression exp, bool isthen)
+            {
+                var funcType = typeof(Func<,>).MakeGenericType(entityType, typeof(IEnumerable<>).MakeGenericType(tbref.RefEntityType));
+                var navigateSelector = Expression.Lambda(funcType, exp, navigateParameterExp);
+                var incMethod = queryExp.Type.GetMethod("IncludeMany");
+                if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
+                LambdaExpression navigateThen = null;
+                var navigateThenType = typeof(Action<>).MakeGenericType(typeof(ISelect<>).MakeGenericType(tbref.RefEntityType));
+                var thenParameter = Expression.Parameter(typeof(ISelect<>).MakeGenericType(tbref.RefEntityType), "then");
+                Expression paramQueryExp = thenParameter;
+                var paramNavigateParameterExp = Expression.Parameter(tbref.RefEntityType, string.Concat((char)((byte)'a' + (depth - 1))));
+                if (isthen) paramQueryExp = LocalGetAutoIncludeQuery(paramQueryExp, depth + 1, tbref.RefEntityType, paramNavigateParameterExp, paramNavigateParameterExp, ignores);
+                navigateThen = Expression.Lambda(navigateThenType, paramQueryExp, thenParameter);
+                queryExp = Expression.Call(queryExp, incMethod.MakeGenericMethod(tbref.RefEntityType), navigateSelector, navigateThen);
+            }
+        }
+    }
+    public static string GetAutoIncludeQueryStaicCode(IFreeSql fsql, Type rootEntityType)
+    {
+        return LocalGetAutoIncludeQueryStaicCode(1, rootEntityType, "", new Stack<Type>());
+        string LocalGetAutoIncludeQueryStaicCode(int depth, Type entityType, string navigatePath, Stack<Type> ignores)
+        {
+            var code = new StringBuilder();
+            if (ignores.Any(a => a == entityType)) return null;
+            ignores.Push(entityType);
+            var table = fsql.CodeFirst.GetTableByEntity(entityType);
+            if (table == null) return null;
+            if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
+            foreach (var tr in table.GetAllTableRef())
+            {
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                var navigateExpression = $"{navigatePath}{tr.Key}";
+                var depthTab = "".PadLeft(depth * 4);
+                var lambdaAlias = (char)((byte)'a' + (depth - 1));
+                var lambdaStr = $"{lambdaAlias} => {lambdaAlias}.";
+                switch (tbref.RefType)
+                {
+                    case TableRefType.OneToOne:
+                        if (ignores.Any(a => a == tbref.RefEntityType)) break;
+                        code.Append("\r\n").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        code.Append(LocalGetAutoIncludeQueryStaicCode(depth, tbref.RefEntityType, navigateExpression, ignores));
+                        break;
+                    case TableRefType.OneToMany:
+                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression);
+                        var thencode = LocalGetAutoIncludeQueryStaicCode(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
+                        if (thencode.Length > 0) code.Append(", then => then").Append(thencode);
+                        code.Append(")");
+                        break;
+                    case TableRefType.ManyToMany:
+                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                    case TableRefType.PgArrayToMany:
+                        code.Append("\r\n//").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                    case TableRefType.ManyToOne: //不属于聚合根
+                        code.Append("\r\n//").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        break;
+                }
+            }
+            ignores.Pop();
+            return code.ToString();
         }
     }
 

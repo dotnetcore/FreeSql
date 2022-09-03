@@ -1,16 +1,9 @@
 ﻿using FreeSql.Extensions.EntityUtil;
-using FreeSql.Internal;
-using FreeSql.Internal.Model;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FreeSql
 {
@@ -156,7 +149,7 @@ namespace FreeSql
             get
             {
                 var query = _repository.Select.TrackToList(SelectAggregateRootTracking);
-                SelectAggregateRootNavigateReader(query, EntityType, "", new Stack<Type>());
+                query = AggregateRootUtils.GetAutoIncludeQuery(query);
                 return query;
             }
         }
@@ -166,7 +159,7 @@ namespace FreeSql
         /// 2、返回的内容用，可用于配合重写仓储 override Select 属性<para></para>
         /// 返回内容：fsql.Select&lt;T&gt;().Include(...).IncludeMany(...) 
         /// </summary>
-        protected string SelectAggregateRootStaticCode => $"//fsql.Select<{EntityType.Name}>()\r\nthis.SelectDiy{SelectAggregateRootNavigateReader(1, EntityType, "", new Stack<Type>())}";
+        protected string SelectAggregateRootStaticCode => $"//fsql.Select<{EntityType.Name}>()\r\nthis.SelectDiy{AggregateRootUtils.GetAutoIncludeQueryStaicCode(Orm, EntityType)}";
         /// <summary>
         /// ISelect.TrackToList 委托，数据返回后自动 Attach
         /// </summary>
@@ -198,83 +191,40 @@ namespace FreeSql
                 return;
             }
         }
-        void SelectAggregateRootNavigateReader<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
-        {
-            if (ignores.Any(a => a == entityType)) return;
-            ignores.Push(entityType);
-            var table = Orm.CodeFirst.GetTableByEntity(entityType);
-            if (table == null) return;
-            if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
-            foreach (var tr in table.GetAllTableRef())
-            {
-                var tbref = tr.Value;
-                if (tbref.Exception != null) continue;
-                var navigateExpression = $"{navigatePath}{tr.Key}";
-                switch (tbref.RefType)
-                {
-                    case TableRefType.OneToOne:
-                        if (ignores.Any(a => a == tbref.RefEntityType)) break;
-                        currentQuery.IncludeByPropertyName(navigateExpression);
-                        SelectAggregateRootNavigateReader(currentQuery, tbref.RefEntityType, navigateExpression, ignores);
-                        break;
-                    case TableRefType.OneToMany:
-                        var ignoresCopy = new Stack<Type>(ignores.ToArray());
-                        currentQuery.IncludeByPropertyName(navigateExpression, then =>
-                            SelectAggregateRootNavigateReader(then, tbref.RefEntityType, "", ignoresCopy));
-                        break;
-                    case TableRefType.ManyToMany:
-                        currentQuery.IncludeByPropertyName(navigateExpression);
-                        break;
-                    case TableRefType.PgArrayToMany:
-                    case TableRefType.ManyToOne: //不属于聚合根
-                        break;
-                }
-            }
-            ignores.Pop();
-        }
-        string SelectAggregateRootNavigateReader(int depth, Type entityType, string navigatePath, Stack<Type> ignores)
-        {
-            var code = new StringBuilder();
-            if (ignores.Any(a => a == entityType)) return null;
-            ignores.Push(entityType);
-            var table = Orm.CodeFirst.GetTableByEntity(entityType);
-            if (table == null) return null;
-            if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
-            foreach (var tr in table.GetAllTableRef())
-            {
-                var tbref = tr.Value;
-                if (tbref.Exception != null) continue;
-                var navigateExpression = $"{navigatePath}{tr.Key}";
-                var depthTab = "".PadLeft(depth * 4);
-                var lambdaAlias = (char)((byte)'a' + (depth - 1));
-                var lambdaStr = $"{lambdaAlias} => {lambdaAlias}.";
-                switch (tbref.RefType)
-                {
-                    case TableRefType.OneToOne:
-                        if (ignores.Any(a => a == tbref.RefEntityType)) break;
-                        code.Append("\r\n").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
-                        code.Append(SelectAggregateRootNavigateReader(depth, tbref.RefEntityType, navigateExpression, ignores));
-                        break;
-                    case TableRefType.OneToMany:
-                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression);
-                        var thencode = SelectAggregateRootNavigateReader(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
-                        if (thencode.Length > 0) code.Append(", then => then").Append(thencode);
-                        code.Append(")");
-                        break;
-                    case TableRefType.ManyToMany:
-                        code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
-                        break;
-                    case TableRefType.PgArrayToMany:
-                        code.Append("\r\n//").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
-                        break;
-                    case TableRefType.ManyToOne: //不属于聚合根
-                        code.Append("\r\n//").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
-                        break;
-                }
-            }
-            ignores.Pop();
-            return code.ToString();
-        }
+        //void SelectAggregateRootNavigateReader<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
+        //{
+        //    if (ignores.Any(a => a == entityType)) return;
+        //    ignores.Push(entityType);
+        //    var table = Orm.CodeFirst.GetTableByEntity(entityType);
+        //    if (table == null) return;
+        //    if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
+        //    foreach (var tr in table.GetAllTableRef())
+        //    {
+        //        var tbref = tr.Value;
+        //        if (tbref.Exception != null) continue;
+        //        var navigateExpression = $"{navigatePath}{tr.Key}";
+        //        switch (tbref.RefType)
+        //        {
+        //            case TableRefType.OneToOne:
+        //                if (ignores.Any(a => a == tbref.RefEntityType)) break;
+        //                currentQuery.IncludeByPropertyName(navigateExpression);
+        //                SelectAggregateRootNavigateReader(currentQuery, tbref.RefEntityType, navigateExpression, ignores);
+        //                break;
+        //            case TableRefType.OneToMany:
+        //                var ignoresCopy = new Stack<Type>(ignores.ToArray());
+        //                currentQuery.IncludeByPropertyName(navigateExpression, then =>
+        //                    SelectAggregateRootNavigateReader(then, tbref.RefEntityType, "", ignoresCopy)); //variable 'then' of type 'FreeSql.ISelect`1[System.Object]' referenced from scope '', but it is not defined
+        //                break;
+        //            case TableRefType.ManyToMany:
+        //                currentQuery.IncludeByPropertyName(navigateExpression);
+        //                break;
+        //            case TableRefType.PgArrayToMany:
+        //            case TableRefType.ManyToOne: //不属于聚合根
+        //                break;
+        //        }
+        //    }
+        //    ignores.Pop();
+        //}
         #endregion
 
     }

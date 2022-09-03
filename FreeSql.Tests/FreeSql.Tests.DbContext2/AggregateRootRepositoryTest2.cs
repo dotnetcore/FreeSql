@@ -28,6 +28,15 @@ namespace FreeSql.Tests.DbContext2
             {
                 new OrderRepository(fsql, null);
 
+                fsql.Insert(new[]
+                {
+                    new Tag { Name = "tag1" },
+                    new Tag { Name = "tag2" },
+                    new Tag { Name = "tag3" },
+                    new Tag { Name = "tag4" },
+                    new Tag { Name = "tag5" }
+                }).ExecuteAffrows();
+
                 var repo = fsql.GetAggregateRootRepository<Order>();
                 var order = new Order
                 {
@@ -35,13 +44,37 @@ namespace FreeSql.Tests.DbContext2
                     Extdata = new OrderExt { Field3 = "field3" },
                     Details = new List<OrderDetail>
                     {
-                        [0] = new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
-                        [0] = new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
-                        [0] = new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
+                        new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
+                        new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
+                        new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
                     },
                     Tags = fsql.Select<Tag>().Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList()
                 };
                 repo.Insert(order); //级联插入
+
+                var order2 = repo.Select.Where(a => a.Id == a.Id).First();
+                Assert.NotNull(order2);
+                Assert.Equal(order.Id, order2.Id);
+                Assert.Equal(order.Field2, order2.Field2);
+                Assert.NotNull(order2.Extdata);
+                Assert.Equal(order.Extdata.Field3, order2.Extdata.Field3);
+                Assert.NotNull(order2.Details);
+                Assert.Equal(order.Details.Count, order2.Details.Count);
+                Assert.Equal(3, order2.Details.Count);
+                for (var a = 0; a < 3; a++)
+                {
+                    Assert.Equal(order.Details[a].Id, order2.Details[a].Id);
+                    Assert.Equal(order.Details[a].OrderId, order2.Details[a].OrderId);
+                    Assert.Equal(order.Details[a].Field4, order2.Details[a].Field4);
+                    Assert.NotNull(order2.Details[a].Extdata);
+                    Assert.Equal(order.Details[a].Extdata.Field5, order2.Details[a].Extdata.Field5);
+                }
+                Assert.NotNull(order2.Tags);
+                Assert.Equal(3, order2.Tags.Count);
+                Assert.Equal("tag1", order2.Tags[0].Name);
+                Assert.Equal("tag2", order2.Tags[1].Name);
+                Assert.Equal("tag3", order2.Tags[2].Name);
+
             }
         }
         class Order
@@ -103,7 +136,7 @@ namespace FreeSql.Tests.DbContext2
             public int Id { get; set; }
             public string Name { get; set; }
 
-            [Navigate(ManyToMany = typeof(Order))]
+            [Navigate(ManyToMany = typeof(OrderTag))]
             public List<Order> Orders { get; set; }
         }
     }
