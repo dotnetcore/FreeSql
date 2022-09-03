@@ -74,10 +74,11 @@ static class AggregateRootUtils
             if (changes.Any())
                 updateLog.Add(NativeTuple.Create(entityType, entityBefore, entityAfter, changes));
 
-            foreach (var prop in table.Properties.Values)
+            foreach (var tr in table.GetAllTableRef())
             {
-                var tbref = table.GetTableRef(prop.Name, false);
-                if (tbref == null) continue;
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
                 if (navigatePropertyName != null && prop.Name != navigatePropertyName) continue;
                 var propvalBefore = table.GetPropertyValue(entityBefore, prop.Name);
                 var propvalAfter = table.GetPropertyValue(entityAfter, prop.Name);
@@ -189,10 +190,11 @@ static class AggregateRootUtils
             if (stateKeys.ContainsKey(stateKey)) return;
             stateKeys.Add(stateKey, true);
 
-            foreach (var prop in table.Properties.Values)
+            foreach (var tr in table.GetAllTableRef())
             {
-                var tbref = table.GetTableRef(prop.Name, false);
-                if (tbref == null) continue;
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToOne:

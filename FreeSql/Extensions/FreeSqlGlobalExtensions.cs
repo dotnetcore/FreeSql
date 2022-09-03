@@ -547,10 +547,8 @@ public static partial class FreeSqlGlobalExtensions
     {
         var select = that as Select1Provider<T1>;
         var tb = select._tables[0].Table;
-        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
-            .Where(a => a != null &&
-                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
-                a.RefEntityType == tb.Type).ToArray();
+        var navs = tb.GetAllTableRef().Where(a => a.Value.Exception == null).Select(a => a.Value)
+            .Where(a => a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany && a.RefEntityType == tb.Type).ToArray();
 
         var list = select.ToList();
         if (navs.Length != 1) return list;
@@ -570,10 +568,8 @@ public static partial class FreeSqlGlobalExtensions
     {
         var select = that as Select1Provider<T1>;
         var tb = select._tables[0].Table;
-        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
-            .Where(a => a != null &&
-                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
-                a.RefEntityType == tb.Type).ToArray();
+        var navs = tb.GetAllTableRef().Where(a => a.Value.Exception == null).Select(a => a.Value)
+            .Where(a => a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany && a.RefEntityType == tb.Type).ToArray();
 
         var list = await select.ToListAsync(false, cancellationToken);
         if (navs.Length != 1) return list;
@@ -614,10 +610,8 @@ public static partial class FreeSqlGlobalExtensions
         var select = that as Select1Provider<T1>;
         select._is_AsTreeCte = true;
         var tb = select._tables[0].Table;
-        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
-            .Where(a => a != null &&
-                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
-                a.RefEntityType == tb.Type).ToArray();
+        var navs = tb.GetAllTableRef().Where(a => a.Value.Exception == null).Select(a => a.Value)
+            .Where(a => a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany && a.RefEntityType == tb.Type).ToArray();
 
         if (navs.Length != 1) throw new ArgumentException(CoreStrings.Entity_NotParentChild_Relationship(tb.Type.FullName));
         var tbref = navs[0];

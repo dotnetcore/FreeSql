@@ -198,10 +198,11 @@ namespace FreeSql.Internal
                         }
                         if (_tables?.Count > 1)
                         { //如果下级导航属性被 Include 过，则将他们也查询出来
-                            foreach (var memProp in tb.Properties.Values)
+                            foreach (var tr in tb.GetAllTableRef())
                             {
-                                var memtbref = tb.GetTableRef(memProp.Name, false);
-                                if (memtbref == null) continue;
+                                var memtbref = tr.Value;
+                                if (memtbref.Exception != null) continue;
+                                if (tb.Properties.TryGetValue(tr.Key, out var memProp) == false) continue;
                                 switch (memtbref.RefType)
                                 {
                                     case TableRefType.ManyToMany:

@@ -715,8 +715,8 @@ namespace FreeSql
 
             List<NativeTuple<TableRef, PropertyInfo>> LocalGetNavigates(TableInfo tb)
             {
-                return tb.Properties.Where(a => tb.ColumnsByCs.ContainsKey(a.Key) == false)
-                    .Select(a => new NativeTuple<TableRef, PropertyInfo>(tb.GetTableRef(a.Key, false), a.Value))
+                return tb.GetAllTableRef().Where(a => tb.ColumnsByCs.ContainsKey(a.Key) == false && a.Value.Exception == null)
+                    .Select(a => new NativeTuple<TableRef, PropertyInfo>(a.Value, tb.Properties[a.Key]))
                     .Where(a => a.Item1 != null && new[] { TableRefType.OneToOne, TableRefType.OneToMany, TableRefType.ManyToMany }.Contains(a.Item1.RefType))
                     .ToList();
             }

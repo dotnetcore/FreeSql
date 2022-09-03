@@ -940,16 +940,16 @@ namespace FreeSql.Internal.CommonProvider
                         }
                     }
                     var parentNavs = new List<string>();
-                    foreach (var navProp in tbref2.Properties)
+                    foreach (var tr2 in tbref2.GetAllTableRef())
                     {
-                        if (tbref2.ColumnsByCs.ContainsKey(navProp.Key)) continue;
-                        if (tbref2.ColumnsByCsIgnore.ContainsKey(navProp.Key)) continue;
-                        var tr2ref = tbref2.GetTableRef(navProp.Key, false);
-                        if (tr2ref == null) continue;
+                        var tr2ref = tr2.Value;
+                        if (tr2ref.Exception != null) continue;
+                        if (tbref2.ColumnsByCs.ContainsKey(tr2.Key)) continue;
+                        if (tbref2.ColumnsByCsIgnore.ContainsKey(tr2.Key)) continue;
                         if (tr2ref.RefType != TableRefType.ManyToOne) continue;
                         if (tr2ref.RefEntityType != tb.Type) continue;
                         if (string.Join(",", tr2ref.Columns.Select(a => a.CsName).OrderBy(a => a)) != string.Join(",", tbref.RefColumns.Select(a => a.CsName).OrderBy(a => a))) continue; //- 修复 IncludeMany 只填充子属性中双向关系的 ManyToOne 对象值；防止把 ManyToOne 多个相同类型的导航属性值都填充了
-                        parentNavs.Add(navProp.Key);
+                        parentNavs.Add(tr2.Key);
                     }
                     foreach (var nav in subList)
                     {
@@ -1366,16 +1366,16 @@ namespace FreeSql.Internal.CommonProvider
                                 var dicSubList = subList.ToDictionary(a => EntityUtilExtensions.GetEntityValueWithPropertyName(_orm, tbref.RefEntityType, a, tbref.RefColumns[0].CsName)?.ToString(), a => a);
 
                                 var parentNavs = new List<string>();
-                                foreach (var navProp in tbref2.Properties)
+                                foreach (var tr2 in tbref2.GetAllTableRef())
                                 {
-                                    if (tbref2.ColumnsByCs.ContainsKey(navProp.Key)) continue;
-                                    if (tbref2.ColumnsByCsIgnore.ContainsKey(navProp.Key)) continue;
-                                    var tr2ref = tbref2.GetTableRef(navProp.Key, false);
-                                    if (tr2ref == null) continue;
+                                    var tr2ref = tr2.Value;
+                                    if (tr2ref.Exception != null) continue;
+                                    if (tbref2.ColumnsByCs.ContainsKey(tr2.Key)) continue;
+                                    if (tbref2.ColumnsByCsIgnore.ContainsKey(tr2.Key)) continue;
                                     if (tr2ref.RefType != TableRefType.ManyToOne) continue;
                                     if (tr2ref.RefEntityType != tb.Type) continue;
                                     if (string.Join(",", tr2ref.Columns.Select(a => a.CsName).OrderBy(a => a)) != string.Join(",", tbref.RefColumns.Select(a => a.CsName).OrderBy(a => a))) continue; //- 修复 IncludeMany 只填充子属性中双向关系的 ManyToOne 对象值；防止把 ManyToOne 多个相同类型的导航属性值都填充了
-                                    parentNavs.Add(navProp.Key);
+                                    parentNavs.Add(tr2.Key);
                                 }
                                 for (var y = 0; y < list.Count; y++)
                                 {

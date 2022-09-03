@@ -205,11 +205,11 @@ namespace FreeSql
             var table = Orm.CodeFirst.GetTableByEntity(entityType);
             if (table == null) return;
             if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
-            foreach (var prop in table.Properties.Values)
+            foreach (var tr in table.GetAllTableRef())
             {
-                var tbref = table.GetTableRef(prop.Name, false);
-                if (tbref == null) continue;
-                var navigateExpression = $"{navigatePath}{prop.Name}";
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                var navigateExpression = $"{navigatePath}{tr.Key}";
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToOne:
@@ -240,11 +240,11 @@ namespace FreeSql
             var table = Orm.CodeFirst.GetTableByEntity(entityType);
             if (table == null) return null;
             if (!string.IsNullOrWhiteSpace(navigatePath)) navigatePath = $"{navigatePath}.";
-            foreach (var prop in table.Properties.Values)
+            foreach (var tr in table.GetAllTableRef())
             {
-                var tbref = table.GetTableRef(prop.Name, false);
-                if (tbref == null) continue;
-                var navigateExpression = $"{navigatePath}{prop.Name}";
+                var tbref = tr.Value;
+                if (tbref.Exception != null) continue;
+                var navigateExpression = $"{navigatePath}{tr.Key}";
                 var depthTab = "".PadLeft(depth * 4);
                 var lambdaAlias = (char)((byte)'a' + (depth - 1));
                 var lambdaStr = $"{lambdaAlias} => {lambdaAlias}.";

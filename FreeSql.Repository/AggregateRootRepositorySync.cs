@@ -91,10 +91,11 @@ namespace FreeSql
                 localAffrows += ret.Count;
                 foreach (var entity in entitys) LocalCanAggregateRoot(repository.EntityType, entity, true);
 
-                foreach (var prop in table.Properties.Values)
+                foreach (var tr in table.GetAllTableRef())
                 {
-                    var tbref = table.GetTableRef(prop.Name, false);
-                    if (tbref == null) continue;
+                    var tbref = tr.Value;
+                    if (tbref.Exception != null) continue;
+                    if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
                     switch (tbref.RefType)
                     {
                         case TableRefType.OneToOne:
