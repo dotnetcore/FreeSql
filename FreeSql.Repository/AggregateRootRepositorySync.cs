@@ -91,7 +91,7 @@ namespace FreeSql
                 localAffrows += ret.Count;
                 foreach (var entity in entitys) LocalCanAggregateRoot(repository.EntityType, entity, true);
 
-                foreach (var tr in table.GetAllTableRef())
+                foreach (var tr in table.GetAllTableRef().OrderBy(a => a.Value.RefType).ThenBy(a => a.Key))
                 {
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
@@ -180,36 +180,35 @@ namespace FreeSql
         }
         protected virtual int UpdateAggregateRoot(IEnumerable<TEntity> entitys)
         {
-            List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
-            List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
+            var tracking = new AggregateRootTrackingChangeInfo();
             foreach(var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
-                AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, insertLog, updateLog, deleteLog);
+                AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, tracking);
             }
             var affrows = 0;
-
             DisposeChildRepositorys();
-            var insertLogDict = insertLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => insertLog.Where(b => b.Item1 == a.Key).Select(b => b.Item2).ToArray());
+            var insertLogDict = tracking.InsertLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.InsertLog.Where(b => b.Item1 == a.Key).Select(b => b.Item2).ToArray());
             foreach (var il in insertLogDict)
             {
-                InsertAggregateRootStatic(GetChildRepository(il.Key), GetChildRepository, il.Value, out var affrowsOut);
+                var repo = GetChildRepository(il.Key);
+                InsertAggregateRootStatic(repo, GetChildRepository, il.Value, out var affrowsOut);
                 affrows += affrowsOut;
             }
 
-            for (var a = 0; a < deleteLog.Count - 1; a++)
-                affrows += Orm.Delete<object>().AsType(deleteLog[a].Item1).WhereDynamic(deleteLog[a].Item2).ExecuteAffrows();
+            for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
+                affrows += Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
+                    .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
 
-            var updateLogDict = updateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => updateLog.Where(b => b.Item1 == a.Key).Select(b => 
+            var updateLogDict = tracking.UpdateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.UpdateLog.Where(b => b.Item1 == a.Key).Select(b => 
                 NativeTuple.Create(b.Item2, b.Item3, string.Join(",", b.Item4.OrderBy(c => c)), b.Item4)).ToArray());
             var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => a.Value.ToDictionary(b => b.Item3, b => a.Value.Where(c => c.Item3 == b.Item3).ToArray()));
             foreach (var dl in updateLogDict2)
             {
                 foreach (var dl2 in dl.Value)
                 {
-                    affrows += Orm.Update<object>().AsType(dl.Key)
+                    affrows += Orm.Update<object>().AsType(dl.Key).AsTable(_asTableRule)
                         .SetSource(dl2.Value.Select(a => a.Item2).ToArray())
                         .UpdateColumns(dl2.Value.First().Item4.ToArray())
                         .ExecuteAffrows();
@@ -223,27 +222,29 @@ namespace FreeSql
         }
         protected virtual int DeleteAggregateRoot(IEnumerable<TEntity> entitys, List<object> deletedOutput = null)
         {
-            List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
-            List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
+            var tracking = new AggregateRootTrackingChangeInfo();
             foreach (var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
-                AggregateRootUtils.CompareEntityValue(Orm, EntityType, entity, null, null, insertLog, updateLog, deleteLog);
+                AggregateRootUtils.CompareEntityValue(Orm, EntityType, entity, null, null, tracking);
                 _states.Remove(stateKey);
             }
-            if (deletedOutput != null) deletedOutput.AddRange(deleteLog.Select(a => a.Item2));
-            return deleteLog.Count;
+            var affrows = 0;
+            for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
+            {
+                affrows += Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
+                    .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
+                if (deletedOutput != null) deletedOutput.AddRange(tracking.DeleteLog[a].Item2);
+            }
+            return affrows;
         }
 
         protected virtual void SaveManyAggregateRoot(TEntity entity, string propertyName)
         {
-            List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
-            List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
+            var tracking = new AggregateRootTrackingChangeInfo();
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
-            AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, insertLog, updateLog, deleteLog);
+            AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, tracking);
             Attach(entity);
         }
 
@@ -273,9 +274,7 @@ namespace FreeSql
         {
             if (data == null) data = _dataEditing;
             if (data == null) return 0;
-            List<NativeTuple<Type, object>> insertLog = new List<NativeTuple<Type, object>>();
-            List<NativeTuple<Type, object, object, List<string>>> updateLog = new List<NativeTuple<Type, object, object, List<string>>>();
-            List<NativeTuple<Type, object[]>> deleteLog = new List<NativeTuple<Type, object[]>>();
+            var tracking = new AggregateRootTrackingChangeInfo();
             try
             {
                 var addList = new List<TEntity>();
@@ -285,23 +284,23 @@ namespace FreeSql
                     var key = Orm.GetEntityKeyString(EntityType, item, false);
                     if (_statesEditing.TryRemove(key, out var state) == false)
                     {
-                        insertLog.Add(NativeTuple.Create(EntityType, (object)item));
+                        tracking.InsertLog.Add(NativeTuple.Create(EntityType, (object)item));
                         continue;
                     }
                     _states[key] = state;
-                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, item, null, insertLog, updateLog, deleteLog);
+                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, item, null, tracking);
                 }
                 foreach (var item in _statesEditing.Values.OrderBy(a => a.Time))
-                {
-                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, item, null, null, insertLog, updateLog, deleteLog);
-                }
+                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, item, null, null, tracking);
+
+
             }
             finally
             {
                 _dataEditing = null;
                 _statesEditing.Clear();
             }
-            return insertLog.Count + updateLog.Count + deleteLog.Count;
+            return tracking.InsertLog.Count + tracking.UpdateLog.Count + tracking.DeleteLog.Count;
         }
 
     }

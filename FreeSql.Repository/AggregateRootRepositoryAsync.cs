@@ -17,18 +17,22 @@ namespace FreeSql
 {
     partial class AggregateRootRepository<TEntity>
     {
-        public Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default) => _repository.InsertAsync(entity, cancellationToken);
-        public Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => _repository.InsertAsync(entitys, cancellationToken);
-        public Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default) => _repository.InsertOrUpdateAsync(entity, cancellationToken);
-        public Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default) => _repository.SaveManyAsync(entity, propertyName, cancellationToken);
+        //以下临时调用同步方法
+        public Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default) => Task.FromResult(Insert(entity));
+        public Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => Task.FromResult(Insert(entitys));
+        public Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default) => Task.FromResult(InsertOrUpdate(entity));
+        async public Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default)
+        {
+            SaveMany(entity, propertyName);
+        }
 
-        public Task<int> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default) => _repository.UpdateAsync(entity, cancellationToken);
-        public Task<int> UpdateAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => _repository.UpdateAsync(entitys, cancellationToken);
+        public Task<int> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default) => Task.FromResult(Update(entity));
+        public Task<int> UpdateAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => Task.FromResult(Update(entitys));
 
-        public Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default) => _repository.DeleteAsync(entity, cancellationToken);
-        public Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => _repository.DeleteAsync(entitys, cancellationToken);
-        public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) => _repository.DeleteAsync(predicate, cancellationToken);
-        public Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) => _repository.DeleteCascadeByDatabaseAsync(predicate, cancellationToken);
+        public Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default) => Task.FromResult(Delete(entity));
+        public Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default) => Task.FromResult(Delete(entitys));
+        public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) => Task.FromResult(Delete(predicate));
+        public Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) => Task.FromResult(DeleteCascadeByDatabase(predicate));
 
     }
 }

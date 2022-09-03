@@ -15,7 +15,6 @@ namespace FreeSql.Tests.DbContext2
         {
             public OrderRepository(IFreeSql fsql, UnitOfWorkManager uowManager) : base(uowManager?.Orm ?? fsql)
             {
-                var code = SelectAggregateRootStaticCode;
             }
 
             public override ISelect<Order> Select => base.SelectDiy;
@@ -27,6 +26,14 @@ namespace FreeSql.Tests.DbContext2
             using (var fsql = g.CreateMemory())
             {
                 new OrderRepository(fsql, null);
+
+                var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order));
+                Assert.Equal(@"//fsql.Select<Order>()
+SelectDiy
+    .IncludeMany(a => a.Details, then => then
+        .Include(b => b.Extdata))
+    .IncludeMany(a => a.Tags)
+    .Include(a => a.Extdata)", code);
 
                 fsql.Insert(new[]
                 {
