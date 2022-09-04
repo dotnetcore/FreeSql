@@ -174,6 +174,60 @@ namespace FreeSql
             }
         }
 
+        static ConcurrentDictionary<Type, bool> _dicCompareEntityPropertyValue = new ConcurrentDictionary<Type, bool>
+        {
+            [typeof(string)] = true,
+            [typeof(DateTime)] = true,
+            [typeof(DateTime?)] = true,
+            [typeof(DateTimeOffset)] = true,
+            [typeof(DateTimeOffset?)] = true,
+            [typeof(TimeSpan)] = true,
+            [typeof(TimeSpan?)] = true,
+        };
+        public static bool CompareEntityPropertyValue(Type type, object propvalBefore, object propvalAfter)
+        {
+            if (propvalBefore == null && propvalAfter == null) return true;
+            if (type.IsNumberType() ||
+                _dicCompareEntityPropertyValue.ContainsKey(type) ||
+                type.IsEnum ||
+                type.NullableTypeOrThis().IsEnum ||
+                type.FullName.StartsWith("System.") ||
+                type.IsValueType) return object.Equals(propvalBefore, propvalAfter);
+            if (propvalBefore == null && propvalAfter != null) return false;
+            if (propvalBefore != null && propvalAfter == null) return false;
+            if (type.IsArrayOrList())
+            {
+                var enumableBefore = propvalBefore as IEnumerable;
+                var enumableAfter = propvalAfter as IEnumerable;
+                var itorBefore = enumableBefore.GetEnumerator();
+                var itorAfter = enumableAfter.GetEnumerator();
+                while(true)
+                {
+                    var moveNextBefore = itorBefore.MoveNext();
+                    var moveNextAfter = itorAfter.MoveNext();
+                    if (moveNextBefore != moveNextAfter) return false;
+                    if (moveNextBefore == false) return true;
+                    var currentBefore = itorBefore.Current;
+                    var currentAfter = itorAfter.Current;
+                    if (currentBefore == null && enumableAfter == null) continue;
+                    if (currentBefore == null && currentAfter != null) return false;
+                    if (currentBefore != null && currentAfter == null) return false;
+                    if (CompareEntityPropertyValue(currentBefore.GetType(), currentBefore, currentAfter) == false) return false;
+                }
+            }
+            if (type.IsClass || type.IsInterface)
+            {
+                foreach (var prop in type.GetProperties())
+                {
+                    var valBefore = prop.GetValue(propvalBefore, new object[0]);
+                    var valAfter = prop.GetValue(propvalAfter, new object[0]);
+                    if (CompareEntityPropertyValue(prop.PropertyType, valBefore, valAfter) == false) return false;
+                }
+                return true;
+            }
+            return object.Equals(propvalBefore, propvalAfter);
+        }
+
         public static void NavigateReader(IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
         {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
