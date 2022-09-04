@@ -69,7 +69,8 @@ namespace FreeSql
                         if (col.Attribute.IsVersion) continue;
                         var propvalBefore = table.GetPropertyValue(entityBefore, col.CsName);
                         var propvalAfter = table.GetPropertyValue(entityAfter, col.CsName);
-                        if (object.Equals(propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
+                        //if (object.Equals(propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
+                        if (CompareEntityPropertyValue(col.CsType, propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
                         continue;
                     }
                 }
@@ -190,40 +191,70 @@ namespace FreeSql
             if (type.IsNumberType() ||
                 _dicCompareEntityPropertyValue.ContainsKey(type) ||
                 type.IsEnum ||
-                type.NullableTypeOrThis().IsEnum ||
-                type.FullName.StartsWith("System.") ||
-                type.IsValueType) return object.Equals(propvalBefore, propvalAfter);
+                type.IsValueType ||
+                type.NullableTypeOrThis().IsEnum) return object.Equals(propvalBefore, propvalAfter);
             if (propvalBefore == null && propvalAfter != null) return false;
             if (propvalBefore != null && propvalAfter == null) return false;
-            if (type.IsArrayOrList())
-            {
-                var enumableBefore = propvalBefore as IEnumerable;
-                var enumableAfter = propvalAfter as IEnumerable;
-                var itorBefore = enumableBefore.GetEnumerator();
-                var itorAfter = enumableAfter.GetEnumerator();
-                while(true)
+
+            if (FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(type)) {
+                if (type.FullName.StartsWith("Newtonsoft.")) 
+                    return object.Equals(propvalBefore.ToString(), propvalAfter.ToString());
+
+                if (typeof(IDictionary).IsAssignableFrom(type))
                 {
-                    var moveNextBefore = itorBefore.MoveNext();
-                    var moveNextAfter = itorAfter.MoveNext();
-                    if (moveNextBefore != moveNextAfter) return false;
-                    if (moveNextBefore == false) return true;
-                    var currentBefore = itorBefore.Current;
-                    var currentAfter = itorAfter.Current;
-                    if (currentBefore == null && enumableAfter == null) continue;
-                    if (currentBefore == null && currentAfter != null) return false;
-                    if (currentBefore != null && currentAfter == null) return false;
-                    if (CompareEntityPropertyValue(currentBefore.GetType(), currentBefore, currentAfter) == false) return false;
+                    var dictBefore = (propvalBefore as IDictionary);
+                    var dictAfter = (propvalAfter as IDictionary);
+                    if (dictBefore.Count != dictAfter.Count) return false;
+                    foreach (var key in dictBefore.Keys)
+                    {
+                        if (dictAfter.Contains(key) == false) return false;
+                        var valBefore = dictBefore[key];
+                        var valAfter = dictAfter[key];
+                        if (valBefore == null && valAfter == null) continue;
+                        if (valBefore == null && valAfter != null) return false;
+                        if (valBefore != null && valAfter == null) return false;
+                        if (CompareEntityPropertyValue(valBefore.GetType(), valBefore, valAfter) == false) return false;
+                    }
+                    return true;
                 }
-            }
-            if (type.IsClass || type.IsInterface)
-            {
-                foreach (var prop in type.GetProperties())
+
+                if (type.IsArrayOrList())
                 {
-                    var valBefore = prop.GetValue(propvalBefore, new object[0]);
-                    var valAfter = prop.GetValue(propvalAfter, new object[0]);
-                    if (CompareEntityPropertyValue(prop.PropertyType, valBefore, valAfter) == false) return false;
+                    var enumableBefore = propvalBefore as IEnumerable;
+                    var enumableAfter = propvalAfter as IEnumerable;
+                    var itorBefore = enumableBefore.GetEnumerator();
+                    var itorAfter = enumableAfter.GetEnumerator();
+                    while (true)
+                    {
+                        var moveNextBefore = itorBefore.MoveNext();
+                        var moveNextAfter = itorAfter.MoveNext();
+                        if (moveNextBefore != moveNextAfter) return false;
+                        if (moveNextBefore == false) break;
+                        var currentBefore = itorBefore.Current;
+                        var currentAfter = itorAfter.Current;
+                        if (currentBefore == null && enumableAfter == null) continue;
+                        if (currentBefore == null && currentAfter != null) return false;
+                        if (currentBefore != null && currentAfter == null) return false;
+                        if (CompareEntityPropertyValue(currentBefore.GetType(), currentBefore, currentAfter) == false) return false;
+                    }
+                    return true;
                 }
-                return true;
+
+                if (type.FullName.StartsWith("System.") ||
+                    type.FullName.StartsWith("Npgsql.") ||
+                    type.FullName.StartsWith("NetTopologySuite.")) 
+                    return object.Equals(propvalBefore, propvalAfter);
+
+                if (type.IsClass)
+                {
+                    foreach (var prop in type.GetProperties())
+                    {
+                        var valBefore = prop.GetValue(propvalBefore, new object[0]);
+                        var valAfter = prop.GetValue(propvalAfter, new object[0]);
+                        if (CompareEntityPropertyValue(prop.PropertyType, valBefore, valAfter) == false) return false;
+                    }
+                    return true;
+                }
             }
             return object.Equals(propvalBefore, propvalAfter);
         }
