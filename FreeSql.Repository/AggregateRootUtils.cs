@@ -1,4 +1,5 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
@@ -15,15 +16,23 @@ using System.Text;
 
 namespace FreeSql
 {
-    public static class AggregateRootUtils
+    public class AggregateRootUtils
     {
-        public static void CompareEntityValue(IFreeSql fsql, Type rootEntityType, object rootEntityBefore, object rootEntityAfter, string rootNavigatePropertyName, AggregateRootTrackingChangeInfo tracking)
+        public static AggregateRootBoundaryAttribute GetPropertyBoundaryAttribute(PropertyInfo prop, string boundaryName)
+        {
+            if (string.IsNullOrWhiteSpace(boundaryName)) return null;
+            var attrs = prop.GetCustomAttributes(typeof(AggregateRootBoundaryAttribute), false);
+            if (attrs == null || attrs.Any() == false) return null;
+            return attrs.Select(a => a as AggregateRootBoundaryAttribute).Where(a => a.Name == boundaryName).FirstOrDefault();
+        }
+
+        public static void CompareEntityValue(string boundaryName, IFreeSql fsql, Type rootEntityType, object rootEntityBefore, object rootEntityAfter, string rootNavigatePropertyName, AggregateRootTrackingChangeInfo tracking)
         {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
-            LocalCompareEntityValue(rootEntityType, rootEntityBefore, rootEntityAfter, rootNavigatePropertyName);
+            LocalCompareEntityValue(rootEntityType, rootEntityBefore, rootEntityAfter, rootNavigatePropertyName, true);
             ignores.Clear();
 
-            void LocalCompareEntityValue(Type entityType, object entityBefore, object entityAfter, string navigatePropertyName)
+            void LocalCompareEntityValue(Type entityType, object entityBefore, object entityAfter, string navigatePropertyName, bool cascade)
             {
                 if (entityType == null) entityType = entityBefore?.GetType() ?? entityAfter?.GetType();
 
@@ -53,7 +62,7 @@ namespace FreeSql
                 if (entityBefore != null && entityAfter == null)
                 {
                     tracking.DeleteLog.Add(NativeTuple.Create(entityType, new[] { entityBefore }));
-                    NavigateReader(fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
+                    NavigateReader(boundaryName, fsql, entityType, entityBefore, (path, tr, ct, stackvs) =>
                     {
                         var dellist = stackvs.Last() as object[] ?? new[] { stackvs.Last() };
                         tracking.DeleteLog.Add(NativeTuple.Create(ct, dellist));
@@ -74,14 +83,16 @@ namespace FreeSql
                         continue;
                     }
                 }
-                if (changes.Any())
-                    tracking.UpdateLog.Add(NativeTuple.Create(entityType, entityBefore, entityAfter, changes));
+                if (changes.Any()) tracking.UpdateLog.Add(NativeTuple.Create(entityType, entityBefore, entityAfter, changes));
+                if (cascade == false) return;
 
                 foreach (var tr in table.GetAllTableRef().OrderBy(a => a.Value.RefType).ThenBy(a => a.Key))
                 {
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
                     if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                    var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     if (navigatePropertyName != null && prop.Name != navigatePropertyName) continue;
                     var propvalBefore = table.GetPropertyValue(entityBefore, prop.Name);
                     var propvalAfter = table.GetPropertyValue(entityAfter, prop.Name);
@@ -90,27 +101,35 @@ namespace FreeSql
                         case TableRefType.OneToOne:
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityBefore, propvalBefore);
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityAfter, propvalAfter);
-                            LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null);
+                            LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null, boundaryAttr?.BreakThen != true);
                             break;
                         case TableRefType.OneToMany:
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityBefore, propvalBefore);
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityAfter, propvalAfter);
-                            LocalCompareEntityValueCollection(tbref, propvalBefore as IEnumerable, propvalAfter as IEnumerable);
+                            LocalCompareEntityValueCollection(tbref.RefEntityType, propvalBefore as IEnumerable, propvalAfter as IEnumerable, boundaryAttr?.BreakThen != true);
                             break;
                         case TableRefType.ManyToMany:
                             var middleValuesBefore = GetManyToManyObjects(fsql, table, tbref, entityBefore, prop);
                             var middleValuesAfter = GetManyToManyObjects(fsql, table, tbref, entityAfter, prop);
-                            LocalCompareEntityValueCollection(tbref, middleValuesBefore as IEnumerable, middleValuesAfter as IEnumerable);
+                            LocalCompareEntityValueCollection(tbref.RefMiddleEntityType, middleValuesBefore as IEnumerable, middleValuesAfter as IEnumerable, false);
+                            if (boundaryAttr?.BreakThen == false)
+                                LocalCompareEntityValueCollection(tbref.RefEntityType, propvalBefore as IEnumerable, propvalAfter as IEnumerable, boundaryAttr?.BreakThen == false);
                             break;
                         case TableRefType.PgArrayToMany:
-                        case TableRefType.ManyToOne: //不属于聚合根
+                            break;
+                        case TableRefType.ManyToOne:
+                            if (boundaryAttr?.BreakThen == false)
+                            {
+                                SetNavigateRelationshipValue(fsql, tbref, table.Type, entityBefore, propvalBefore);
+                                SetNavigateRelationshipValue(fsql, tbref, table.Type, entityAfter, propvalAfter);
+                                LocalCompareEntityValue(tbref.RefEntityType, propvalBefore, propvalAfter, null, boundaryAttr?.BreakThen == false);
+                            }
                             break;
                     }
                 }
             }
-            void LocalCompareEntityValueCollection(TableRef tbref, IEnumerable collectionBefore, IEnumerable collectionAfter)
+            void LocalCompareEntityValueCollection(Type elementType, IEnumerable collectionBefore, IEnumerable collectionAfter, bool cascade)
             {
-                var elementType = tbref.RefType == TableRefType.ManyToMany ? tbref.RefMiddleEntityType : tbref.RefEntityType;
                 if (collectionBefore == null && collectionAfter == null) return;
                 if (collectionBefore == null && collectionAfter != null)
                 {
@@ -154,7 +173,7 @@ namespace FreeSql
                     {
                         var value = dictBefore[key];
                         tracking.DeleteLog.Add(NativeTuple.Create(elementType, new[] { value }));
-                        NavigateReader(fsql, elementType, value, (path, tr, ct, stackvs) =>
+                        NavigateReader(boundaryName, fsql, elementType, value, (path, tr, ct, stackvs) =>
                         {
                             var dellist = stackvs.Last() as object[] ?? new[] { stackvs.Last() };
                             tracking.DeleteLog.Add(NativeTuple.Create(ct, dellist));
@@ -171,7 +190,7 @@ namespace FreeSql
                     }
                 }
                 foreach (var key in dictBefore.Keys)
-                    LocalCompareEntityValue(elementType, dictBefore[key], dictAfter[key], null);
+                    LocalCompareEntityValue(elementType, dictBefore[key], dictAfter[key], null, cascade);
             }
         }
 
@@ -259,7 +278,7 @@ namespace FreeSql
             return object.Equals(propvalBefore, propvalAfter);
         }
 
-        public static void NavigateReader(IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
+        public static void NavigateReader(string boundaryName, IFreeSql fsql, Type rootType, object rootEntity, Action<string, TableRef, Type, List<object>> callback)
         {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
             var statckPath = new Stack<string>();
@@ -286,6 +305,8 @@ namespace FreeSql
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
                     if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                    var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     switch (tbref.RefType)
                     {
                         case TableRefType.OneToOne:
@@ -295,49 +316,70 @@ namespace FreeSql
                             stackValues.Add(propval);
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entity, propval);
                             callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
-                            LocalNavigateReader(tbref.RefEntityType, propval);
+                            if (boundaryAttr?.BreakThen != true)
+                                LocalNavigateReader(tbref.RefEntityType, propval);
                             stackValues.RemoveAt(stackValues.Count - 1);
                             statckPath.Pop();
                             break;
                         case TableRefType.OneToMany:
-                            var propvalOtm = table.GetPropertyValue(entity, prop.Name);
+                            var propvalOtm = table.GetPropertyValue(entity, prop.Name) as IEnumerable;
                             if (propvalOtm == null) continue;
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entity, propvalOtm);
                             var propvalOtmList = new List<object>();
-                            foreach (var val in propvalOtm as IEnumerable)
+                            foreach (var val in propvalOtm)
                                 propvalOtmList.Add(val);
                             statckPath.Push($"{prop.Name}[]");
                             stackValues.Add(propvalOtmList.ToArray());
                             callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
-                            foreach (var val in propvalOtm as IEnumerable)
-                                LocalNavigateReader(tbref.RefEntityType, val);
+                            if (boundaryAttr?.BreakThen != true)
+                                foreach (var val in propvalOtm)
+                                    LocalNavigateReader(tbref.RefEntityType, val);
                             stackValues.RemoveAt(stackValues.Count - 1);
                             statckPath.Pop();
                             break;
                         case TableRefType.ManyToMany:
+                            var propvalMtm = table.GetPropertyValue(entity, prop.Name) as IEnumerable;
+                            if (propvalMtm == null) continue;
                             var middleValues = GetManyToManyObjects(fsql, table, tbref, entity, prop).ToArray();
                             if (middleValues == null) continue;
                             statckPath.Push($"{prop.Name}[]");
                             stackValues.Add(middleValues);
                             callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefMiddleEntityType, stackValues);
+                            if (boundaryAttr?.BreakThen == false)
+                                foreach (var val in propvalMtm)
+                                    LocalNavigateReader(tbref.RefEntityType, val);
                             stackValues.RemoveAt(stackValues.Count - 1);
                             statckPath.Pop();
                             break;
                         case TableRefType.PgArrayToMany:
-                        case TableRefType.ManyToOne: //不属于聚合根
+                            break;
+                        case TableRefType.ManyToOne:
+                            if (boundaryAttr?.Break == false)
+                            {
+                                var propvalMto = table.GetPropertyValue(entity, prop.Name);
+                                if (propvalMto == null) continue;
+                                statckPath.Push(prop.Name);
+                                stackValues.Add(propvalMto);
+                                SetNavigateRelationshipValue(fsql, tbref, table.Type, entity, propvalMto);
+                                callback?.Invoke(string.Join(".", statckPath), tbref, tbref.RefEntityType, stackValues);
+                                if (boundaryAttr?.BreakThen == false)
+                                    LocalNavigateReader(tbref.RefEntityType, propvalMto);
+                                stackValues.RemoveAt(stackValues.Count - 1);
+                                statckPath.Pop();
+                            }
                             break;
                     }
                 }
             }
         }
 
-        public static void MapEntityValue(IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
+        public static void MapEntityValue(string boundaryName, IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
         {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
-            LocalMapEntityValue(rootEntityType, rootEntityFrom, rootEntityTo);
+            LocalMapEntityValue(rootEntityType, rootEntityFrom, rootEntityTo, true);
             ignores.Clear();
 
-            void LocalMapEntityValue(Type entityType, object entityFrom, object entityTo)
+            void LocalMapEntityValue(Type entityType, object entityFrom, object entityTo, bool cascade)
             {
                 if (entityFrom == null || entityTo == null) return;
                 if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
@@ -357,8 +399,11 @@ namespace FreeSql
                         table.SetPropertyValue(entityTo, prop.Name, table.GetPropertyValue(entityFrom, prop.Name));
                         continue;
                     }
+                    if (cascade == false) continue;
                     var tbref = table.GetTableRef(prop.Name, false);
                     if (tbref == null) continue;
+                    var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     var propvalFrom = EntityUtilExtensions.GetEntityValueWithPropertyName(fsql, entityType, entityFrom, prop.Name);
                     if (propvalFrom == null)
                     {
@@ -370,18 +415,26 @@ namespace FreeSql
                         case TableRefType.OneToOne:
                             var propvalTo = tbref.RefEntityType.CreateInstanceGetDefaultValue();
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
-                            LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo);
+                            LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo, boundaryAttr?.BreakThen != true);
                             EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
                             break;
                         case TableRefType.OneToMany:
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
-                            LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, true);
+                            LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, boundaryAttr?.BreakThen != true);
                             break;
                         case TableRefType.ManyToMany:
-                            LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, false);
+                            LocalMapEntityValueCollection(entityType, entityFrom, entityTo, tbref, propvalFrom as IEnumerable, prop, boundaryAttr?.BreakThen == false);
                             break;
                         case TableRefType.PgArrayToMany:
-                        case TableRefType.ManyToOne: //不属于聚合根
+                            break;
+                        case TableRefType.ManyToOne:
+                            if (boundaryAttr?.Break == false)
+                            {
+                                var propvalTo2 = tbref.RefEntityType.CreateInstanceGetDefaultValue();
+                                SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
+                                LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo2, boundaryAttr?.BreakThen == false);
+                                EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo2);
+                            }
                             break;
                     }
                 }
@@ -393,8 +446,7 @@ namespace FreeSql
                 foreach (var fromItem in propvalFrom)
                 {
                     var toItem = tbref.RefEntityType.CreateInstanceGetDefaultValue();
-                    if (cascade) LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem);
-                    else EntityUtilExtensions.MapEntityValue(fsql, tbref.RefEntityType, fromItem, toItem);
+                    LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem, cascade);
                     propvalToIList.Add(toItem);
                 }
                 var propvalType = prop.PropertyType.GetGenericTypeDefinition();
@@ -409,12 +461,14 @@ namespace FreeSql
             }
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>> _dicGetAutoIncludeQuery = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>();
-        public static ISelect<TEntity> GetAutoIncludeQuery<TEntity>(ISelect<TEntity> select)
+        static ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>> _dicGetAutoIncludeQuery = new ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>>();
+        public static ISelect<TEntity> GetAutoIncludeQuery<TEntity>(string boundaryName, ISelect<TEntity> select)
         {
             var select0p = select as Select0Provider;
             var table0Type = select0p._tables[0].Table.Type;
-            var func = _dicGetAutoIncludeQuery.GetOrAdd(typeof(TEntity), t => new ConcurrentDictionary<Type, Action<ISelect0>>()).GetOrAdd(table0Type, t =>
+            var func = _dicGetAutoIncludeQuery.GetOrAdd(boundaryName ?? "", bn => new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>())
+                .GetOrAdd(typeof(TEntity), t => new ConcurrentDictionary<Type, Action<ISelect0>>())
+                .GetOrAdd(table0Type, t =>
              {
                  var parmExp1 = Expression.Parameter(typeof(ISelect0));
                  var parmNavigateParameterExp = Expression.Parameter(typeof(TEntity), "a");
@@ -435,6 +489,8 @@ namespace FreeSql
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
                     if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                    var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     Expression navigateExp = Expression.MakeMemberAccess(navigatePathExp, prop);
                     //var lambdaAlias = (char)((byte)'a' + (depth - 1));
                     switch (tbref.RefType)
@@ -442,17 +498,24 @@ namespace FreeSql
                         case TableRefType.OneToOne:
                             if (ignores.Any(a => a == tbref.RefEntityType)) break;
                             LocalInclude(tbref, navigateExp);
-                            queryExp = LocalGetAutoIncludeQuery(queryExp, depth, tbref.RefEntityType, navigateParameterExp, navigateExp, ignores);
+                            if (boundaryAttr?.BreakThen != true)
+                                queryExp = LocalGetAutoIncludeQuery(queryExp, depth, tbref.RefEntityType, navigateParameterExp, navigateExp, ignores);
                             break;
                         case TableRefType.OneToMany:
-                            LocalIncludeMany(tbref, navigateExp, true);
+                            LocalIncludeMany(tbref, navigateExp, boundaryAttr?.BreakThen != true);
                             break;
                         case TableRefType.ManyToMany:
-                            LocalIncludeMany(tbref, navigateExp, false);
+                            LocalIncludeMany(tbref, navigateExp, boundaryAttr?.BreakThen == false);
                             break;
                         case TableRefType.PgArrayToMany:
                             break;
-                        case TableRefType.ManyToOne: //不属于聚合根
+                        case TableRefType.ManyToOne:
+                            if (boundaryAttr?.Break == false)
+                            {
+                                LocalInclude(tbref, navigateExp);
+                                if (boundaryAttr?.BreakThen == false)
+                                    queryExp = LocalGetAutoIncludeQuery(queryExp, depth, tbref.RefEntityType, navigateParameterExp, navigateExp, ignores);
+                            }
                             break;
                     }
                 }
@@ -482,7 +545,8 @@ namespace FreeSql
                 }
             }
         }
-        public static string GetAutoIncludeQueryStaicCode(IFreeSql fsql, Type rootEntityType)
+
+        public static string GetAutoIncludeQueryStaicCode(string boundaryName, IFreeSql fsql, Type rootEntityType)
         {
             return $"//fsql.Select<{rootEntityType.Name}>()\r\nSelectDiy{LocalGetAutoIncludeQueryStaicCode(1, rootEntityType, "", new Stack<Type>())}";
             string LocalGetAutoIncludeQueryStaicCode(int depth, Type entityType, string navigatePath, Stack<Type> ignores)
@@ -497,6 +561,9 @@ namespace FreeSql
                 {
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
+                    if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                    var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     var navigateExpression = $"{navigatePath}{tr.Key}";
                     var depthTab = "".PadLeft(depth * 4);
                     var lambdaAlias = (char)((byte)'a' + (depth - 1));
@@ -506,22 +573,33 @@ namespace FreeSql
                         case TableRefType.OneToOne:
                             if (ignores.Any(a => a == tbref.RefEntityType)) break;
                             code.Append("\r\n").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
-                            code.Append(LocalGetAutoIncludeQueryStaicCode(depth, tbref.RefEntityType, navigateExpression, ignores));
+                            if (boundaryAttr?.BreakThen != true)
+                                code.Append(LocalGetAutoIncludeQueryStaicCode(depth, tbref.RefEntityType, navigateExpression, ignores));
                             break;
                         case TableRefType.OneToMany:
                             code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression);
-                            var thencode = LocalGetAutoIncludeQueryStaicCode(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
-                            if (thencode.Length > 0) code.Append(", then => then").Append(thencode);
+                            if (boundaryAttr?.BreakThen != true)
+                            {
+                                var thencode = LocalGetAutoIncludeQueryStaicCode(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
+                                if (thencode.Length > 0) code.Append(", then => then").Append(thencode);
+                            }
                             code.Append(")");
                             break;
                         case TableRefType.ManyToMany:
-                            code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                            code.Append("\r\n").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression);
+                            if (boundaryAttr?.BreakThen == false)
+                            {
+                                var thencode2 = LocalGetAutoIncludeQueryStaicCode(depth + 1, tbref.RefEntityType, "", new Stack<Type>(ignores.ToArray()));
+                                if (thencode2.Length > 0) code.Append(", then => then").Append(thencode2);
+                            }
+                            code.Append(")");
                             break;
                         case TableRefType.PgArrayToMany:
-                            code.Append("\r\n//").Append(depthTab).Append(".IncludeMany(").Append(lambdaStr).Append(navigateExpression).Append(")");
                             break;
-                        case TableRefType.ManyToOne: //不属于聚合根
-                            code.Append("\r\n//").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                        case TableRefType.ManyToOne:
+                            code.Append("\r\n").Append(boundaryAttr != null ? "" : "//").Append(depthTab).Append(".Include(").Append(lambdaStr).Append(navigateExpression).Append(")");
+                            if (boundaryAttr?.BreakThen == false)
+                                code.Append(LocalGetAutoIncludeQueryStaicCode(depth, tbref.RefEntityType, navigateExpression, ignores));
                             break;
                     }
                 }
@@ -557,6 +635,7 @@ namespace FreeSql
             }
             return middles;
         }
+
         public static void SetNavigateRelationshipValue(IFreeSql orm, TableRef tbref, Type leftType, object leftItem, object rightItem)
         {
             if (rightItem == null) return;

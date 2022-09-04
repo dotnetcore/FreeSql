@@ -1,4 +1,5 @@
 ﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,12 @@ using System.Linq.Expressions;
 
 namespace FreeSql
 {
-    public partial class AggregateRootRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
+    public interface IAggregateRootRepository<TEntity>: IBaseRepository<TEntity> where TEntity : class
+    {
+        IBaseRepository<TEntity> ChangeBoundary(string name);
+    }
+
+    public partial class AggregateRootRepository<TEntity> : IAggregateRootRepository<TEntity> where TEntity : class
     {
         readonly IBaseRepository<TEntity> _repository;
         public AggregateRootRepository(IFreeSql fsql)
@@ -23,8 +29,19 @@ namespace FreeSql
         public void Dispose()
         {
             DisposeChildRepositorys();
+            _repository.FlushState();
             _repository.Dispose();
             FlushState();
+        }
+
+        string _boundaryName = "";
+        public IBaseRepository<TEntity> ChangeBoundary(string name)
+        {
+            DisposeChildRepositorys();
+            _repository.FlushState();
+            FlushState();
+            _boundaryName = name;
+            return this;
         }
 
         public IFreeSql Orm => _repository.Orm;
@@ -61,9 +78,26 @@ namespace FreeSql
                 Attach(item);
         }
         public IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data) => _repository.AttachOnlyPrimary(data);
-        public Dictionary<string, object[]> CompareState(TEntity newdata) => _repository.CompareState(newdata);
+        public Dictionary<string, object[]> CompareState(TEntity newdata)
+        {
+            if (newdata == null) return null;
+            var _table = Orm.CodeFirst.GetTableByEntity(EntityType);
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.Incomparable_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, newdata)));
+            var key = Orm.GetEntityKeyString(EntityType, newdata, false);
+            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.Incomparable_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, newdata)));
+            if (_states.TryGetValue(key, out var oldState) == false || oldState == null) throw new Exception($"不可对比，数据未被跟踪：{Orm.GetEntityString(EntityType, newdata)}");
+            AggregateRootTrackingChangeInfo tracking = new AggregateRootTrackingChangeInfo();
+            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, oldState, newdata, null, tracking);
+            return new Dictionary<string, object[]>
+            {
+                ["Insert"] = tracking.InsertLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray(),
+                ["Delete"] = tracking.DeleteLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray(),
+                ["Update"] = tracking.UpdateLog.Select(a => new object[] { a.Item1, a.Item2, a.Item3, a.Item4 }).ToArray(),
+            };
+        }
         public void FlushState()
         {
+            DisposeChildRepositorys();
             _repository.FlushState();
             _states.Clear();
         }
@@ -117,7 +151,7 @@ namespace FreeSql
             if (data == null) throw new ArgumentNullException(nameof(data));
             var key = Orm.GetEntityKeyString(EntityType, data, false);
             var state = new EntityState((TEntity)EntityType.CreateInstanceGetDefaultValue(), key);
-            AggregateRootUtils.MapEntityValue(Orm, EntityType, data, state.Value);
+            AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, data, state.Value);
             return state;
         }
         bool? ExistsInStates(object data)
@@ -139,9 +173,9 @@ namespace FreeSql
         /// 创建查询对象（纯净）<para></para>
         /// _<para></para>
         /// 聚合根内关系较复杂时，获取 Include/IncludeMany 字符串代码，方便二次开发<para></para>
-        /// string code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order))
+        /// string code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(null, fsql, typeof(Order))
         /// </summary>
-        protected ISelect<TEntity> SelectDiy => _repository.Select;
+        protected ISelect<TEntity> SelectDiy => _repository.Select.TrackToList(SelectAggregateRootTracking);
         /// <summary>
         /// 创建查询对象（递归包含 Include/IncludeMany 边界之内的导航属性）
         /// </summary>
@@ -151,7 +185,7 @@ namespace FreeSql
             get
             {
                 var query = _repository.Select.TrackToList(SelectAggregateRootTracking);
-                query = AggregateRootUtils.GetAutoIncludeQuery(query);
+                query = AggregateRootUtils.GetAutoIncludeQuery(_boundaryName, query);
                 return query;
             }
         }
@@ -214,7 +248,8 @@ namespace FreeSql
         //                currentQuery.IncludeByPropertyName(navigateExpression);
         //                break;
         //            case TableRefType.PgArrayToMany:
-        //            case TableRefType.ManyToOne: //不属于聚合根
+        //                break;
+        //            case TableRefType.ManyToOne:
         //                break;
         //        }
         //    }

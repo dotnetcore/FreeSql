@@ -33,7 +33,7 @@ namespace FreeSql
 
                 _statesEditing.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
                 {
-                    AggregateRootUtils.MapEntityValue(Orm, EntityType, item, ov.Value);
+                    AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, item, ov.Value);
                     ov.Time = DateTime.Now;
                     return ov;
                 });
@@ -57,10 +57,10 @@ namespace FreeSql
                         continue;
                     }
                     _states[key] = state;
-                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, item, null, tracking);
+                    AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, item, null, tracking);
                 }
                 foreach (var item in _statesEditing.Values.OrderBy(a => a.Time))
-                    AggregateRootUtils.CompareEntityValue(Orm, EntityType, item, null, null, tracking);
+                    AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, item, null, null, tracking);
 
                 return SaveTrackingChange(tracking);
             }
@@ -79,7 +79,7 @@ namespace FreeSql
             var repos = new Dictionary<Type, object>();
             try
             {
-                var ret = InsertWithinBoundaryStatic(_repository, GetChildRepository, entitys, out var affrows);
+                var ret = InsertWithinBoundaryStatic(_boundaryName, _repository, GetChildRepository, entitys, out var affrows);
                 Attach(ret);
                 return ret;
             }
@@ -89,13 +89,13 @@ namespace FreeSql
                 _repository.FlushState();
             }
         }
-        static List<T1> InsertWithinBoundaryStatic<T1>(IBaseRepository<T1> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<T1> rootEntitys, out int affrows) where T1 : class {
+        static List<T1> InsertWithinBoundaryStatic<T1>(string boundaryName, IBaseRepository<T1> rootRepository, Func<Type, IBaseRepository<object>> getChildRepository, IEnumerable<T1> rootEntitys, out int affrows) where T1 : class {
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
             Dictionary<Type, IBaseRepository<object>> repos = new Dictionary<Type, IBaseRepository<object>>();
             var localAffrows = 0;
             try
             {
-                return LocalInsert(rootRepository, rootEntitys);
+                return LocalInsert(rootRepository, rootEntitys, true);
             }
             finally
             {
@@ -122,7 +122,7 @@ namespace FreeSql
                 }
                 return false;
             }
-            List<T2> LocalInsert<T2>(IBaseRepository<T2> repository, IEnumerable<T2> entitys) where T2 : class
+            List<T2> LocalInsert<T2>(IBaseRepository<T2> repository, IEnumerable<T2> entitys, bool cascade) where T2 : class
             {
                 var table = repository.Orm.CodeFirst.GetTableByEntity(repository.EntityType);
                 if (table.Primarys.Any(col => col.Attribute.IsIdentity))
@@ -130,15 +130,76 @@ namespace FreeSql
                     foreach (var entity in entitys) 
                         repository.Orm.ClearEntityPrimaryValueWithIdentity(repository.EntityType, entity);
                 }
+
+                if (cascade)
+                {
+                    foreach (var tr in table.GetAllTableRef().OrderBy(a => a.Value.RefType).ThenBy(a => a.Key))
+                    {
+                        var tbref = tr.Value;
+                        if (tbref.Exception != null) continue;
+                        if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                        var boundaryAttr = AggregateRootUtils.GetPropertyBoundaryAttribute(prop, boundaryName);
+                        if (boundaryAttr?.Break == true) continue;
+                        switch (tbref.RefType)
+                        {
+                            case TableRefType.ManyToMany:
+                                if (boundaryAttr?.Break == false)
+                                {
+                                    var mtmList = entitys.Select(entity =>
+                                    {
+                                        var mtmEach = table.GetPropertyValue(entity, prop.Name) as IEnumerable;
+                                        if (mtmEach == null) return null;
+                                        var mtmItems = new List<object>();
+                                        foreach (var mtmItem in mtmEach)
+                                        {
+                                            if (LocalCanInsert(tbref.RefEntityType, mtmItem, false) == false) continue;
+                                            mtmItems.Add(mtmItem);
+                                        }
+                                        return mtmItems;
+                                    }).Where(entity => entity != null).SelectMany(entity => entity).ToArray();
+                                    if (mtmList.Any())
+                                    {
+                                        var repo = getChildRepository(tbref.RefEntityType);
+                                        LocalInsert(repo, mtmList, boundaryAttr?.BreakThen == false);
+                                    }
+                                }
+                                break;
+                            case TableRefType.PgArrayToMany:
+                                break;
+                            case TableRefType.ManyToOne:
+                                if (boundaryAttr?.Break == false)
+                                {
+                                    var mtoList = entitys.Select(entity =>
+                                    {
+                                        var mtoItem = table.GetPropertyValue(entity, prop.Name);
+                                        if (LocalCanInsert(tbref.RefEntityType, mtoItem, false) == false) return null;
+                                        return NativeTuple.Create(entity, mtoItem);
+                                    }).Where(entity => entity != null).ToArray();
+                                    if (mtoList.Any())
+                                    {
+                                        var repo = getChildRepository(tbref.RefEntityType);
+                                        LocalInsert(repo, mtoList.Select(a => a.Item2), boundaryAttr?.BreakThen != true);
+                                        foreach (var mtoItem in mtoList)
+                                            AggregateRootUtils.SetNavigateRelationshipValue(repository.Orm, tbref, table.Type, mtoItem.Item1, mtoItem.Item2);
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+
                 var ret = repository.Insert(entitys);
                 localAffrows += ret.Count;
                 foreach (var entity in entitys) LocalCanInsert(repository.EntityType, entity, true);
+                if (cascade == false) return ret;
 
                 foreach (var tr in table.GetAllTableRef().OrderBy(a => a.Value.RefType).ThenBy(a => a.Key))
                 {
                     var tbref = tr.Value;
                     if (tbref.Exception != null) continue;
                     if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
+                    var boundaryAttr = AggregateRootUtils.GetPropertyBoundaryAttribute(prop, boundaryName);
+                    if (boundaryAttr?.Break == true) continue;
                     switch (tbref.RefType)
                     {
                         case TableRefType.OneToOne:
@@ -152,7 +213,7 @@ namespace FreeSql
                             if (otoList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefEntityType);
-                                LocalInsert(repo, otoList);
+                                LocalInsert(repo, otoList, boundaryAttr?.BreakThen != true);
                             }
                             break;
                         case TableRefType.OneToMany:
@@ -172,7 +233,7 @@ namespace FreeSql
                             if (otmList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefEntityType);
-                                LocalInsert(repo, otmList);
+                                LocalInsert(repo, otmList, boundaryAttr?.BreakThen != true);
                             }
                             break;
                         case TableRefType.ManyToMany:
@@ -185,10 +246,11 @@ namespace FreeSql
                             if (mtmMidList.Any())
                             {
                                 var repo = getChildRepository(tbref.RefMiddleEntityType);
-                                LocalInsert(repo, mtmMidList);
+                                LocalInsert(repo, mtmMidList, false);
                             }
                             break;
                         case TableRefType.PgArrayToMany:
+                        case TableRefType.ManyToOne: //在插入前处理
                             break;
                     }
                 }
@@ -231,7 +293,7 @@ namespace FreeSql
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
-                AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, null, tracking);
+                AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, null, tracking);
             }
             foreach (var entity in entitys)
                 Attach(entity);
@@ -254,7 +316,7 @@ namespace FreeSql
             foreach (var entity in entitys)
             {
                 var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
-                AggregateRootUtils.CompareEntityValue(Orm, EntityType, entity, null, null, tracking);
+                AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, entity, null, null, tracking);
                 _states.Remove(stateKey);
             }
             var affrows = 0;
@@ -279,7 +341,7 @@ namespace FreeSql
             var tracking = new AggregateRootTrackingChangeInfo();
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
-            AggregateRootUtils.CompareEntityValue(Orm, EntityType, state.Value, entity, propertyName, tracking);
+            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
             Attach(entity); //应该只存储 propertyName 内容
             SaveTrackingChange(tracking);
         }
@@ -293,7 +355,7 @@ namespace FreeSql
             foreach (var il in insertLogDict)
             {
                 var repo = GetChildRepository(il.Key);
-                InsertWithinBoundaryStatic(repo, GetChildRepository, il.Value, out var affrowsOut);
+                InsertWithinBoundaryStatic(_boundaryName, repo, GetChildRepository, il.Value, out var affrowsOut);
                 affrows += affrowsOut;
             }
 

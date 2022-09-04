@@ -26,7 +26,7 @@ namespace FreeSql.Tests.DbContext2
             {
                 new UserRepository(fsql, null);
 
-                var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(User));
+                var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(null, fsql, typeof(User));
                 Assert.Equal(@"//fsql.Select<User>()
 SelectDiy
     .Include(a => a.Ext)", code);
@@ -147,7 +147,6 @@ SelectDiy
             public int Id { get; set; }
             public string UserName { get; set; }
             public string Password { get; set; }
-            [Navigate(nameof(Id))]
             public UserExt Ext { get; set; }
         }
         class UserExt
@@ -155,7 +154,6 @@ SelectDiy
             [Column(IsPrimary = true)]
             public int UserId { get; set; }
             public string Remark { get; set; }
-            [Navigate(nameof(UserId))]
             public User Org { get; set; }
         }
     }

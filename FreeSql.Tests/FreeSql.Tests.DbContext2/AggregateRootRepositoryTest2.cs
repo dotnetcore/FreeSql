@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -27,7 +28,16 @@ namespace FreeSql.Tests.DbContext2
             {
                 new OrderRepository(fsql, null);
 
-                var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(fsql, typeof(Order));
+
+                fsql.Aop.CommandAfter += (_, e) =>
+                {
+                    if (e.Exception is DbUpdateVersionException)
+                    {
+                        throw new Exception(e.Exception.Message, e.Exception);
+                    }
+                };
+
+                var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(null, fsql, typeof(Order));
                 Assert.Equal(@"//fsql.Select<Order>()
 SelectDiy
     .Include(a => a.Extdata)
@@ -165,7 +175,6 @@ SelectDiy
             public int Id { get; set; }
             public string Field2 { get; set; }
 
-            [Navigate(nameof(Id))]
             public OrderExt Extdata { get; set; }
             [Navigate(nameof(OrderDetail.OrderId))]
             public List<OrderDetail> Details { get; set; }
@@ -178,7 +187,6 @@ SelectDiy
             public int OrderId { get; set; }
             public string Field3 { get; set; }
 
-            [Navigate(nameof(OrderId))]
             public Order Order { get; set; }
         }
         class OrderDetail
@@ -188,7 +196,7 @@ SelectDiy
             public int OrderId { get; set; }
             public string Field4 { get; set; }
 
-            [Navigate(nameof(Id))]
+            [AggregateRootBoundary("name1", Break = true)]
             public OrderDetailExt Extdata { get; set; }
         }
         class OrderDetailExt
@@ -197,7 +205,6 @@ SelectDiy
             public int OrderDetailId { get; set; }
             public string Field5 { get; set; }
 
-            [Navigate(nameof(OrderDetailId))]
             public OrderDetail OrderDetail { get; set; }
         }
         class OrderTag
