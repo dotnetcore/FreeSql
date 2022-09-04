@@ -211,6 +211,13 @@ namespace FreeSql
                 affrows += await Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
                     .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrowsAsync(cancellationToken);
                 if (deletedOutput != null) deletedOutput.AddRange(tracking.DeleteLog[a].Item2);
+                UnitOfWork?.EntityChangeReport?.Report.AddRange(tracking.DeleteLog[a].Item2.Select(x =>
+                    new DbContext.EntityChangeReport.ChangeInfo
+                    {
+                        Type = DbContext.EntityChangeType.Delete,
+                        EntityType = tracking.DeleteLog[a].Item1,
+                        Object = x
+                    }));
             }
             return affrows;
         }
@@ -239,20 +246,42 @@ namespace FreeSql
             }
 
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
+            {
                 affrows += await Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
                     .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrowsAsync(cancellationToken);
+                UnitOfWork?.EntityChangeReport?.Report.AddRange(tracking.DeleteLog[a].Item2.Select(x =>
+                    new DbContext.EntityChangeReport.ChangeInfo
+                    {
+                        Type = DbContext.EntityChangeType.Delete,
+                        EntityType = tracking.DeleteLog[a].Item1,
+                        Object = x
+                    }));
+            }
 
-            var updateLogDict = tracking.UpdateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.UpdateLog.Where(b => b.Item1 == a.Key).Select(b =>
-                NativeTuple.Create(b.Item2, b.Item3, string.Join(",", b.Item4.OrderBy(c => c)), b.Item4)).ToArray());
-            var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => a.Value.ToDictionary(b => b.Item3, b => a.Value.Where(c => c.Item3 == b.Item3).ToArray()));
+            var updateLogDict = tracking.UpdateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.UpdateLog.Where(b => b.Item1 == a.Key).Select(b => new
+            {
+                BeforeObject = b.Item2,
+                AfterObject = b.Item3,
+                UpdateColumns = b.Item4,
+                UpdateColumnsString = string.Join(",", b.Item4.OrderBy(c => c))
+            }).ToArray());
+            var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => a.Value.ToDictionary(b => b.UpdateColumnsString, b => a.Value.Where(c => c.UpdateColumnsString == b.UpdateColumnsString).ToArray()));
             foreach (var dl in updateLogDict2)
             {
                 foreach (var dl2 in dl.Value)
                 {
                     affrows += await Orm.Update<object>().AsType(dl.Key).AsTable(_asTableRule)
-                        .SetSource(dl2.Value.Select(a => a.Item2).ToArray())
-                        .UpdateColumns(dl2.Value.First().Item4.ToArray())
+                        .SetSource(dl2.Value.Select(a => a.AfterObject).ToArray())
+                        .UpdateColumns(dl2.Value.First().UpdateColumns.ToArray())
                         .ExecuteAffrowsAsync(cancellationToken);
+                    UnitOfWork?.EntityChangeReport?.Report.AddRange(dl2.Value.Select(x =>
+                        new DbContext.EntityChangeReport.ChangeInfo
+                        {
+                            Type = DbContext.EntityChangeType.Update,
+                            EntityType = dl.Key,
+                            Object = x.AfterObject,
+                            BeforeObject = x.BeforeObject
+                        }));
                 }
             }
             DisposeChildRepositorys();
