@@ -38,12 +38,25 @@ namespace FreeSql.Tests.DbContext2
                 };
 
                 var code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(null, fsql, typeof(Order));
+                var code1 = AggregateRootUtils.GetAutoIncludeQueryStaicCode("code1", fsql, typeof(Order));
+                var code2 = AggregateRootUtils.GetAutoIncludeQueryStaicCode("code2", fsql, typeof(Order));
                 Assert.Equal(@"//fsql.Select<Order>()
 SelectDiy
     .Include(a => a.Extdata)
     .IncludeMany(a => a.Details, then => then
         .Include(b => b.Extdata))
     .IncludeMany(a => a.Tags)", code);
+                Assert.Equal(@"//fsql.Select<Order>()
+SelectDiy
+    .Include(a => a.Extdata)
+    .IncludeMany(a => a.Details, then => then
+        .Include(b => b.Extdata))
+    .IncludeMany(a => a.Tags, then => then
+        .IncludeMany(b => b.Orders))", code1);
+                Assert.Equal(@"//fsql.Select<Order>()
+SelectDiy
+    .IncludeMany(a => a.Details)
+    .IncludeMany(a => a.Tags)", code2);
 
                 fsql.Insert(new[]
                 {
@@ -175,10 +188,11 @@ SelectDiy
             public int Id { get; set; }
             public string Field2 { get; set; }
 
+            [AggregateRootBoundary("code2", Break = true)]
             public OrderExt Extdata { get; set; }
-            [Navigate(nameof(OrderDetail.OrderId))]
+            [Navigate(nameof(OrderDetail.OrderId)), AggregateRootBoundary("code2", BreakThen = true)]
             public List<OrderDetail> Details { get; set; }
-            [Navigate(ManyToMany = typeof(OrderTag))]
+            [Navigate(ManyToMany = typeof(OrderTag)), AggregateRootBoundary("code1", Break = false, BreakThen = false)]
             public List<Tag> Tags { get; set; }
         }
         class OrderExt

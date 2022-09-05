@@ -130,64 +130,6 @@ namespace FreeSql
                     foreach (var entity in entitys) 
                         repository.Orm.ClearEntityPrimaryValueWithIdentity(repository.EntityType, entity);
                 }
-
-                if (cascade)
-                {
-                    foreach (var tr in table.GetAllTableRef().OrderBy(a => a.Value.RefType).ThenBy(a => a.Key))
-                    {
-                        var tbref = tr.Value;
-                        if (tbref.Exception != null) continue;
-                        if (table.Properties.TryGetValue(tr.Key, out var prop) == false) continue;
-                        var boundaryAttr = AggregateRootUtils.GetPropertyBoundaryAttribute(prop, boundaryName);
-                        if (boundaryAttr?.Break == true) continue;
-                        switch (tbref.RefType)
-                        {
-                            case TableRefType.ManyToMany:
-                                if (boundaryAttr?.Break == false)
-                                {
-                                    var mtmList = entitys.Select(entity =>
-                                    {
-                                        var mtmEach = table.GetPropertyValue(entity, prop.Name) as IEnumerable;
-                                        if (mtmEach == null) return null;
-                                        var mtmItems = new List<object>();
-                                        foreach (var mtmItem in mtmEach)
-                                        {
-                                            if (LocalCanInsert(tbref.RefEntityType, mtmItem, false) == false) continue;
-                                            mtmItems.Add(mtmItem);
-                                        }
-                                        return mtmItems;
-                                    }).Where(entity => entity != null).SelectMany(entity => entity).ToArray();
-                                    if (mtmList.Any())
-                                    {
-                                        var repo = getChildRepository(tbref.RefEntityType);
-                                        LocalInsert(repo, mtmList, boundaryAttr?.BreakThen == false);
-                                    }
-                                }
-                                break;
-                            case TableRefType.PgArrayToMany:
-                                break;
-                            case TableRefType.ManyToOne:
-                                if (boundaryAttr?.Break == false)
-                                {
-                                    var mtoList = entitys.Select(entity =>
-                                    {
-                                        var mtoItem = table.GetPropertyValue(entity, prop.Name);
-                                        if (LocalCanInsert(tbref.RefEntityType, mtoItem, false) == false) return null;
-                                        return NativeTuple.Create(entity, mtoItem);
-                                    }).Where(entity => entity != null).ToArray();
-                                    if (mtoList.Any())
-                                    {
-                                        var repo = getChildRepository(tbref.RefEntityType);
-                                        LocalInsert(repo, mtoList.Select(a => a.Item2), boundaryAttr?.BreakThen != true);
-                                        foreach (var mtoItem in mtoList)
-                                            AggregateRootUtils.SetNavigateRelationshipValue(repository.Orm, tbref, table.Type, mtoItem.Item1, mtoItem.Item2);
-                                    }
-                                }
-                                break;
-                        }
-                    }
-                }
-
                 var ret = repository.Insert(entitys);
                 localAffrows += ret.Count;
                 foreach (var entity in entitys) LocalCanInsert(repository.EntityType, entity, true);
@@ -250,7 +192,7 @@ namespace FreeSql
                             }
                             break;
                         case TableRefType.PgArrayToMany:
-                        case TableRefType.ManyToOne: //在插入前处理
+                        case TableRefType.ManyToOne: //ManyToOne、ManyToMany外部表、PgArrayToMany 不属于聚合根成员，可以查询，不能增删改
                             break;
                     }
                 }

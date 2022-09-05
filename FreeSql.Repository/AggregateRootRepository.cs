@@ -40,7 +40,7 @@ namespace FreeSql
             DisposeChildRepositorys();
             _repository.FlushState();
             FlushState();
-            _boundaryName = name;
+            _boundaryName = string.Concat(name).Trim();
             return this;
         }
 
