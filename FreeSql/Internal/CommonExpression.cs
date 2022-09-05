@@ -1327,7 +1327,7 @@ namespace FreeSql.Internal
                                                 //if (args[a] == null) ExpressionLambdaToSql(call3Exp.Arguments[a], fsqltables, null, null, SelectTableInfoType.From, true);
                                             }
                                         }
-                                        var isSubSelectPdme = tsc._tables == null && tsc.diymemexp != null;
+                                        var isSubSelectPdme = tsc._tables == null && tsc.diymemexp != null || tsc.diymemexp is Select0Provider.WithTempQueryParser;
                                         try
                                         {
                                             if (isSubSelectPdme)
@@ -1735,6 +1735,8 @@ namespace FreeSql.Internal
                     }
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
                     var diymemexps = new[] { tsc.diymemexp, tsc.subSelect001?._diymemexpWithTempQuery };
+                    if (_subSelectParentDiyMemExps.Value?.Any() == true) 
+                        diymemexps = diymemexps.Concat(_subSelectParentDiyMemExps.Value).ToArray();
                     foreach (var diymemexp in diymemexps)
                     {
                         if (diymemexp != null)
