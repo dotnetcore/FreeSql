@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net60;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 扩展包，实现 linq queryable 和 linq to sql 语法进行开发.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<Description>FreeSql 扩展包，聚合根（实现室）.</Description>
+		<PackageProjectUrl>https://github.com/dotnetcore/FreeSql/wiki/%E8%81%9A%E5%90%88%E6%A0%B9%EF%BC%88%E5%AE%9E%E9%AA%8C%E5%AE%A4%EF%BC%89</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/dotnetcore/FreeSql/wiki/%E8%81%9A%E5%90%88%E6%A0%B9%EF%BC%88%E5%AE%9E%E9%AA%8C%E5%AE%A4%EF%BC%89</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.2.667</Version>
+		<Version>1.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,16 +26,12 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-		<DocumentationFile>FreeSql.Extensions.Linq.xml</DocumentationFile>
+		<DocumentationFile>FreeSql.Extensions.AggregateRoot.xml</DocumentationFile>
 		<WarningLevel>3</WarningLevel>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-		<DefineConstants>net40</DefineConstants>
-	</PropertyGroup>
-
 	<ItemGroup>
-		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<ProjectReference Include="..\..\FreeSql\FreeSql.DbContext.csproj" />
 	</ItemGroup>
 
 </Project>
