@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.DbContext2", "FreeSql.Tests\FreeSql.Tests.DbContext2\FreeSql.Tests.DbContext2.csproj", "{5B0AFA8E-D367-4D30-85C0-107DACB0FF49}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.AggregateRoot", "Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj", "{B8F84E4F-46F2-4048-B79B-49F0B8A95335}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{5B0AFA8E-D367-4D30-85C0-107DACB0FF49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B0AFA8E-D367-4D30-85C0-107DACB0FF49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B0AFA8E-D367-4D30-85C0-107DACB0FF49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F84E4F-46F2-4048-B79B-49F0B8A95335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F84E4F-46F2-4048-B79B-49F0B8A95335}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F84E4F-46F2-4048-B79B-49F0B8A95335}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F84E4F-46F2-4048-B79B-49F0B8A95335}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -31,7 +31,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\FreeSql\FreeSql.DbContext.csproj" />
+		<ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 	</ItemGroup>
+	
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
 
 </Project>
