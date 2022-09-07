@@ -41,6 +41,7 @@ namespace FreeSql.Internal
         }
 
         internal const int ReadAnonymousFieldAsCsName = -53129;
+        internal const int ReadAnonymousFieldAsCsNameGroupBy = -10000;
         internal string GetFieldAsCsName(string csname)
         {
             csname = _common.QuoteSqlName(csname);
@@ -48,19 +49,19 @@ namespace FreeSql.Internal
             if (_common.CodeFirst.IsSyncStructureToUpper) csname = csname.ToUpper();
             return csname;
         }
+        internal bool EndsWithDbNestedField(string dbField, string dbNestedField)
+        {
+            switch (_ado.DataType)
+            {
+                case DataType.SqlServer:
+                case DataType.OdbcSqlServer:
+                    return dbField.EndsWith(dbNestedField, StringComparison.CurrentCultureIgnoreCase);
+            }
+            return dbField.EndsWith(dbNestedField);
+        }
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select,
             BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<string> findIncludeMany, List<Expression> findSubSelectMany, bool isAllDtoMap)
         {
-            bool LocalEndsWithField(string dbField, string dbNestedField)
-            {
-                switch (_ado.DataType)
-                {
-                    case DataType.SqlServer:
-                    case DataType.OdbcSqlServer:
-                        return dbField.EndsWith(dbNestedField, StringComparison.CurrentCultureIgnoreCase);
-                }
-                return dbField.EndsWith(dbNestedField);
-            }
             void LocalSetFieldAlias(ref int localIndex, bool isdiymemexp)
             {
                 if (localIndex >= 0)
@@ -73,7 +74,7 @@ namespace FreeSql.Internal
                 else if (string.IsNullOrEmpty(parent.CsName) == false)
                 {
                     parent.DbNestedField = GetFieldAsCsName(parent.CsName);
-                    if (localIndex == ReadAnonymousFieldAsCsName && LocalEndsWithField(parent.DbField, parent.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
+                    if (localIndex == ReadAnonymousFieldAsCsName && EndsWithDbNestedField(parent.DbField, parent.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
                         field.Append(_common.FieldAsAlias(parent.DbNestedField));
                 }
             }
@@ -264,7 +265,7 @@ namespace FreeSql.Internal
                                 else if (string.IsNullOrEmpty(parent.CsName) == false)
                                 {
                                     dbNestedField = GetFieldAsCsName(parent.CsName);
-                                    if (index == ReadAnonymousFieldAsCsName && LocalEndsWithField(diymemexp._field, dbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
+                                    if (index == ReadAnonymousFieldAsCsName && EndsWithDbNestedField(diymemexp._field, dbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
                                         field.Append(_common.FieldAsAlias(dbNestedField));
                                 }
                             }

@@ -815,7 +815,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
-            var index = -10000; //临时规则，不返回 as1
+            var index = CommonExpression.ReadAnonymousFieldAsCsNameGroupBy; //临时规则，不返回 as1
 
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, columns, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             var sql = field.ToString();

@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider
         public CommonExpression _comonExp;
         public List<SelectTableInfo> _tables;
         public int _groupByLimit, _groupBySkip;
+        public bool _addFieldAlias;
 
         public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
@@ -50,6 +51,8 @@ namespace FreeSql.Internal.CommonProvider
                         if (read == null) return null;
                     }
                     ParseExpMapResult = read;
+                    if (!_addFieldAlias) return read.DbField;
+                    if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false) return $"{read.DbField}{_comonExp._common.FieldAsAlias(read.DbNestedField)}";
                     return read.DbField;
                 case "Value":
                     var curtables = _tables;
@@ -240,7 +243,9 @@ namespace FreeSql.Internal.CommonProvider
             ret._whereGlobalFilter = new List<GlobalFilter.Item>(_select._whereGlobalFilter.ToArray());
             ret._cancel = _select._cancel;
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+            _addFieldAlias = true;
             var parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
+            _addFieldAlias = false;
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
