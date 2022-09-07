@@ -243,7 +243,7 @@ namespace FreeSql.Internal.CommonProvider
             ret._whereGlobalFilter = new List<GlobalFilter.Item>(_select._whereGlobalFilter.ToArray());
             ret._cancel = _select._cancel;
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
-            _addFieldAlias = true;
+            _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bu
             var parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
             _addFieldAlias = false;
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
