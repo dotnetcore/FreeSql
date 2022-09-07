@@ -243,9 +243,24 @@ namespace FreeSql.Internal.CommonProvider
             ret._whereGlobalFilter = new List<GlobalFilter.Item>(_select._whereGlobalFilter.ToArray());
             ret._cancel = _select._cancel;
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+            Select0Provider.WithTempQueryParser parser = null;
             _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bug
-            var parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
-            _addFieldAlias = false;
+            var old_field = _field;
+            var fieldsb = new StringBuilder();
+            foreach (var child in _map.GetAllChilds()) 
+                fieldsb.Append(", ").Append(child.DbField).Append(_comonExp.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(child.DbNestedField));
+            _field = fieldsb.ToString();
+            fieldsb.Clear();
+            try
+            {
+                parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
+            }
+            finally
+            {
+                fieldsb.Clear();
+                _field = old_field;
+                _addFieldAlias = false;
+            }
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
