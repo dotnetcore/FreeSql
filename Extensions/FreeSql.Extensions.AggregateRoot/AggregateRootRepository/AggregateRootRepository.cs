@@ -196,28 +196,28 @@ namespace FreeSql
         protected void SelectAggregateRootTracking(object list)
         {
             if (list == null) return;
-            var ls = list as IEnumerable<TEntity>;
-            if (ls == null)
+            if (list is IEnumerable<TEntity> entities)
             {
-                var ie = list as IEnumerable;
-                if (ie == null) return;
-                var isfirst = true;
-                foreach (var item in ie)
-                {
-                    if (item == null) continue;
-                    if (isfirst)
-                    {
-                        isfirst = false;
-                        var itemType = item.GetType();
-                        if (itemType == typeof(object)) return;
-                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
-                        if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
-                        if (itemType.GetConstructor(Type.EmptyTypes) == null) return;
-                    }
-                    if (item is TEntity item2) Attach(item2);
-                    else return;
-                }
+                Attach(entities);
                 return;
+            }
+            var ie = list as IEnumerable;
+            if (ie == null) return;
+            var isfirst = true;
+            foreach (var item in ie)
+            {
+                if (item == null) continue;
+                if (isfirst)
+                {
+                    isfirst = false;
+                    var itemType = item.GetType();
+                    if (itemType == typeof(object)) return;
+                    if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
+                    if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
+                    if (itemType.GetConstructor(Type.EmptyTypes) == null) return;
+                }
+                if (item is TEntity item2) Attach(item2);
+                else return;
             }
         }
         //void SelectAggregateRootNavigateReader<T1>(ISelect<T1> currentQuery, Type entityType, string navigatePath, Stack<Type> ignores)
