@@ -67,6 +67,8 @@ namespace FreeSql
         /// <summary>
         /// 天津南大通用数据技术股份有限公司成立于2004年,是国产数据库、大数据领域的知名企业，基于 Odbc 的实现
         /// </summary>
-        GBase
+        GBase,
+
+        CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL
     }
 }

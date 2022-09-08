@@ -309,6 +309,26 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.GBase.dll", "FreeSql.GBase.GBaseProvider<>");
                         break;
 
+                    case DataType.CustomOracle:
+                        type = Type.GetType("FreeSql.Custom.Oracle.CustomOracleProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.Oracle.CustomOracleProvider<>");
+                        break;
+
+                    case DataType.CustomSqlServer:
+                        type = Type.GetType("FreeSql.Custom.SqlServer.CustomSqlServerProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.SqlServer.CustomSqlServerProvider<>");
+                        break;
+
+                    case DataType.CustomMySql:
+                        type = Type.GetType("FreeSql.Custom.MySql.CustomMySqlProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.MySql.CustomMySqlProvider<>");
+                        break;
+
+                    case DataType.CustomPostgreSQL:
+                        type = Type.GetType("FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider<>");
+                        break;
+
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }

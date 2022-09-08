@@ -1,8 +1,39 @@
-FreeSql.Provider.Custom 实现自定义适配器，访问所有数据库。
+# 国产数据库
 
-# 通用实现
+| 数据库名称 | 提供者 | 系列风格 |
+| --- | --- | --- |
+| 达梦 | FreeSql.Provider.Dameng | Oracle |
+| 神州通用 | FreeSql.Provider.ShenTong | PostgreSQL |
+| 人大金仓 | FreeSql.Provider.KingbaseES | PostgreSQL |
+| 南大通用 | FreeSql.Provider.GBase | Informix |
+| 翰高 | FreeSql.Provider.Custom、FreeSql.Provider.Odbc | PostgreSQL |
 
-通用实现为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
+由于太多，在此不一一列举，它们大多数有共同特点：语法兼容 MySql、Oracle、SqlServer、PostgreSQL 四种常用数据库，FreeSql.Provider.Custom 提供了这四种数据库适配，并且支持 CodeFirst/DbFirst 以及完整的 FreeSql 功能。
+
+FreeSql.Provider.Custom 不依赖具体 ado.net/odbc/oledb dll 驱动，使用者在外部自行引用 dll 驱动。
+
+访问 MySql 数据库为例：
+
+```csharp
+var fsql = new FreeSqlBuilder()
+    .UseConnectionFactory(DataType.CustomMySql, () => 
+        new MySqlConnection("Data Source=..."))
+    .UseNoneParameter(true)
+    .UseMonitorCommand(Console.WriteLine(cmd.CommandText))
+    .Build();
+fsql.SetDbProviderFactory(MySqlConnectorFactory.Instance);
+```
+
+若某国产数据库兼容 MySql SQL，先引用对方提供的 DLL，然后：
+
+- 将上面 new MySqlConnection 替换成 new XxxConnection
+- 将上面 MySqlConnectorFactory.Instance 替换成对应的 DbProviderFactory
+
+提示：对方 DLL 一般都会提供这两个现实类
+
+# 自定义适配
+
+为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
 
 - 不支持 CodeFirst 自动迁移
 - 不支持 DbFirst 接口方法的实现
@@ -20,8 +51,8 @@ class Mssql2000Adapter : FreeSql.Custom.CustomAdapter
     //可以重写更多的设置
 }
 
-static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-    .UseConnectionString(FreeSql.DataType.Custom, () => new SqlConnection(@"Data Source=..."))
+static IFreeSql fsql = new FreeSqlBuilder()
+    .UseConnectionString(DataType.Custom, () => new SqlConnection(@"Data Source=..."))
     .Build(); //be sure to define as singleton mode
 
 fsql.SetCustomAdapter(new Mssql2000Adapter());

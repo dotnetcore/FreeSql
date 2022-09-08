@@ -115,6 +115,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.OracleOled
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.OracleOledb", "FreeSql.Tests\FreeSql.Tests.Provider.OracleOledb\FreeSql.Tests.Provider.OracleOledb.csproj", "{1DA3FF04-AA2C-4374-9368-68931D8D5B09}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Custom", "FreeSql.Tests\FreeSql.Tests.Provider.Custom\FreeSql.Tests.Provider.Custom.csproj", "{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -677,6 +679,18 @@ Global
 		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x64.Build.0 = Release|Any CPU
 		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x86.ActiveCfg = Release|Any CPU
 		{1DA3FF04-AA2C-4374-9368-68931D8D5B09}.Release|x86.Build.0 = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|x64.Build.0 = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Debug|x86.Build.0 = Debug|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x64.ActiveCfg = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x64.Build.0 = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x86.ActiveCfg = Release|Any CPU
+		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -716,8 +730,8 @@ Global
 		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
-		RESX_PrefixTranslations = True
 		RESX_NeutralResourcesLanguage = en-US
+		RESX_PrefixTranslations = True
+		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
 	EndGlobalSection
 EndGlobal
