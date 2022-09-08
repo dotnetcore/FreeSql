@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -254,9 +254,6 @@ limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a
         {
             var sql = update.Where(a => a.Id == 1).SetRaw("clicks = clicks + ?", new { incrClick = 1 }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE `tb_topic` SET clicks = clicks + ? WHERE (`Id` = 1)", sql);
-
-            sql = g.mysql.Update<TestEnumUpdateTb>().NoneParameter().Where(a => a.id == 0).SetRaw("`type` = {0}".FormatOdbcMySql(TestEnumUpdateTbType.sum211)).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0)", sql);
         }
         [Fact]
         public void SetDto()
