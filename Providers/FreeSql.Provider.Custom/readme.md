@@ -35,7 +35,7 @@ fsql.SetDbProviderFactory(MySqlConnectorFactory.Instance);
 
 # 自定义适配
 
-为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
+除了上面，还提供了自己适配更多的数据库，比如连接 mssql 2000、db2 等，自定义适配将牺牲一些功能：
 
 - 不支持 CodeFirst 自动迁移
 - 不支持 DbFirst 接口方法的实现
