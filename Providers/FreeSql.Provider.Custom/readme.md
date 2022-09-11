@@ -8,7 +8,9 @@
 | 南大通用 | FreeSql.Provider.GBase | Informix |
 | 翰高 | FreeSql.Provider.Custom、FreeSql.Provider.Odbc | PostgreSQL |
 
-由于太多，在此不一一列举，它们大多数有共同特点：语法兼容 MySql、Oracle、SqlServer、PostgreSQL 四种常用数据库，FreeSql.Provider.Custom 提供了这四种数据库适配，并且支持 CodeFirst/DbFirst 以及完整的 FreeSql 功能。
+由于太多，在此不一一列举，它们大多数语法兼容 MySql、Oracle、SqlServer、PostgreSQL 四种常用数据库之一。
+
+FreeSql.Provider.Custom 提供了这四种数据库适配，并且支持 CodeFirst/DbFirst 以及完整的 FreeSql 功能。
 
 FreeSql.Provider.Custom 不依赖具体 ado.net/odbc/oledb dll 驱动，使用者在外部自行引用 dll 驱动。
 
@@ -33,7 +35,7 @@ fsql.SetDbProviderFactory(MySqlConnectorFactory.Instance);
 
 # 自定义适配
 
-为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
+除了上面，还提供了自定义适配更多的数据库，比如 mssql2000、db2，自定义适配将牺牲一些功能：
 
 - 不支持 CodeFirst 自动迁移
 - 不支持 DbFirst 接口方法的实现
