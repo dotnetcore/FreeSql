@@ -402,7 +402,7 @@ namespace FreeSql
                 if (cuig.Length == _table.Columns.Count)
                     return ups.Length == data.Count ? -998 : -997;
 
-                var update = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig);
+                var update = this.OrmUpdate(data.Select(a => a.Value)).IgnoreColumns(cuig);
                 var affrows = await update.ExecuteAffrowsAsync(cancellationToken);
                 _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo
                 {

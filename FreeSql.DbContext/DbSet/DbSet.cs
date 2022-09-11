@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql
 {
@@ -62,15 +63,26 @@ namespace FreeSql
             if (_db.Options.NoneParameter != null) insert.NoneParameter(_db.Options.NoneParameter.Value);
             return insert;
         }
-        protected virtual IInsert<TEntity> OrmInsert(TEntity data) => OrmInsert().AppendData(data);
-        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => OrmInsert().AppendData(data);
+        protected virtual IInsert<TEntity> OrmInsert(TEntity data)
+        {
+            var insert = OrmInsert();
+            if (data != null) (insert as InsertProvider<TEntity>)._source.Add(data); //防止 Aop.AuditValue 触发两次
+            return insert;
+        }
+        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data)
+        {
+            var insert = OrmInsert();
+            if (data != null) (insert as InsertProvider<TEntity>)._source.AddRange(data.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+            return insert;
+        }
 
         protected virtual IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
         {
             var update = _db.OrmOriginal.Update<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
             if (_db.Options.NoneParameter != null) update.NoneParameter(_db.Options.NoneParameter.Value);
             if (_db.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
-            return update.SetSource(entitys);
+            if (entitys != null) (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+            return update;
         }
         protected virtual IDelete<TEntity> OrmDelete(object dywhere)
         {
