@@ -147,7 +147,7 @@ namespace FreeSql.ClickHouse
                 tbname = new[] { database, tbname[0] };
             }
             if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
-            var sql = $" SELECT 1 FROM information_schema.TABLES WHERE {(ignoreCase ? "lower(table_schema)" : "table_schema")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
+            var sql = $" SELECT 1 FROM information_schema.tables WHERE {(ignoreCase ? "lower(table_schema)" : "table_schema")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
 
