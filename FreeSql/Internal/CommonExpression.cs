@@ -1724,6 +1724,7 @@ namespace FreeSql.Internal
                             }
                             while (expStack.Any())
                             {
+                                if (firstValue == null) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(exp));
                                 var expStackItem = expStack.Pop() as MemberExpression;
                                 if (expStackItem.Member.MemberType == MemberTypes.Property)
                                     firstValue = ((PropertyInfo)expStackItem.Member).GetValue(firstValue, null);
@@ -2077,6 +2078,7 @@ namespace FreeSql.Internal
                     }
                     while (expStack.Any())
                     {
+                        if (firstValue == null) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(exp));
                         var expStackItem = expStack.Pop() as MemberExpression;
                         if (expStackItem.Member.MemberType == MemberTypes.Property)
                             firstValue = ((PropertyInfo)expStackItem.Member).GetValue(firstValue, null);
