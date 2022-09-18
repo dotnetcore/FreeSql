@@ -835,7 +835,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);
             return this as TSelect;
         }
-        protected TSelect InternalOrderBy(Expression column)
+        public TSelect InternalOrderBy(Expression column)
         {
             if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
             switch (column?.NodeType)
@@ -848,7 +848,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, _diymemexpWithTempQuery));
         }
-        protected TSelect InternalOrderByDescending(Expression column)
+        public TSelect InternalOrderByDescending(Expression column)
         {
             if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
             switch (column?.NodeType)
