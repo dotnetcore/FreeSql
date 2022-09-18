@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using aspnetcore_transaction.Controllers;
 using FreeSql;
@@ -35,7 +36,11 @@ namespace aspnetcore_transaction
 
             services.AddSingleton<IFreeSql>(Fsql);
             services.AddScoped<UnitOfWorkManager>();
-            services.AddFreeRepository(null, typeof(Startup).Assembly);
+
+            //批量注入
+            foreach (var repo in typeof(Startup).Assembly.GetTypes()
+                .Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
+                services.AddScoped(repo);
             services.AddScoped<SongService>();
         }
 

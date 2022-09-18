@@ -9,5 +9,10 @@
             自增
             </summary>
         </member>
+        <member name="P:aspnetcore_transaction.Domain.Song.Id">
+            <summary>
+            自增
+            </summary>
+        </member>
     </members>
 </doc>
