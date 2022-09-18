@@ -123,7 +123,16 @@ namespace FreeSql.Internal
                     case MappingPriorityType.Aop:
                         if (_orm.Aop.ConfigEntityHandler != null)
                         {
-                            var aope = new Aop.ConfigEntityEventArgs(type);
+                            var aope = new Aop.ConfigEntityEventArgs(type)
+                            {
+                                ModifyResult = new TableAttribute
+                                {
+                                    Name = attr.Name,
+                                    OldName = attr.OldName,
+                                    _DisableSyncStructure = attr._DisableSyncStructure,
+                                    AsTable = attr.AsTable
+                                }
+                            };
                             _orm.Aop.ConfigEntityHandler(_orm, aope);
                             var tryattr = aope.ModifyResult;
                             if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
@@ -171,7 +180,31 @@ namespace FreeSql.Internal
                     case MappingPriorityType.Aop:
                         if (_orm.Aop.ConfigEntityPropertyHandler != null)
                         {
-                            var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
+                            var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto)
+                            {
+                                ModifyResult = new ColumnAttribute
+                                {
+                                    Name = attr.Name,
+                                    OldName = attr.OldName,
+                                    DbType = attr.DbType,
+                                    _IsPrimary = attr._IsPrimary,
+                                    _IsIdentity = attr._IsIdentity,
+                                    _IsNullable = attr._IsNullable,
+                                    _IsIgnore = attr._IsIgnore,
+                                    _IsVersion = attr._IsVersion,
+                                    MapType = attr.MapType,
+                                    _Position = attr._Position,
+                                    _CanInsert = attr._CanInsert,
+                                    _CanUpdate = attr._CanUpdate,
+                                    ServerTime = attr.ServerTime,
+                                    _StringLength = attr._StringLength,
+                                    InsertValueSql = attr.InsertValueSql,
+                                    _Precision = attr._Precision,
+                                    _Scale = attr._Scale,
+                                    RewriteSql = attr.RewriteSql,
+                                    RereadSql = attr.RereadSql
+                                }
+                            };
                             _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
                             var tryattr = aope.ModifyResult;
                             if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;

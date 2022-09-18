@@ -134,7 +134,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 实体配置
         /// </summary>
-        public TableAttribute ModifyResult { get; }
+        public TableAttribute ModifyResult { get; internal set; }
         /// <summary>
         /// 索引配置
         /// </summary>
@@ -160,7 +160,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 实体的属性配置
         /// </summary>
-        public ColumnAttribute ModifyResult { get; }
+        public ColumnAttribute ModifyResult { get; internal set; }
     }
     #endregion
 
