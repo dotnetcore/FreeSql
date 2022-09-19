@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
+using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json;
@@ -341,8 +342,12 @@ namespace base_entity
         {
             public int bb { get; set; }
         }
+        [Table(Name = "AAA_attr")]
+        [Index("xxx1", nameof(aa))]
+        [Index("xxx2", nameof(aa))]
         public class AAA
         {
+            [Column(Name = "aa_attr")]
             public int aa { get; set; }
         }
 
@@ -359,6 +364,8 @@ namespace base_entity
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
+                .UseNameConvert(NameConvertType.ToLower)
+                .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
@@ -401,6 +408,26 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.ConfigEntity += (_, e) =>
+            {
+                Console.WriteLine("Aop.ConfigEntity: " + e.ModifyResult.Name);
+                e.ModifyIndexResult.Add(new IndexAttribute("xxx2", "aa", true));
+            };
+            fsql.Aop.ConfigEntityProperty += (_, e) =>
+            {
+                Console.WriteLine("Aop.ConfigEntityProperty: " + e.ModifyResult.Name);
+            };
+            fsql.CodeFirst.ConfigEntity<AAA>(t =>
+            {
+                t.Name("AAA_fluentapi");
+                t.Property(a => a.aa).Name("AA_fluentapi");
+            });
+            fsql.Select<AAA>();
+
+            fsql.Select<AAA>();
+
+
 
             var sqlskdfj = fsql.Select<object>().AsType(typeof(BBB)).ToSql(a => new CCC());
 
