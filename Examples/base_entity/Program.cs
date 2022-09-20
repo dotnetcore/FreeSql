@@ -351,6 +351,21 @@ namespace base_entity
             public int aa { get; set; }
         }
 
+        public class JoinConditionAttribute : Attribute
+        {
+            public string Condition { get; set; }
+            public JoinConditionAttribute(string condition) => Condition = condition;
+        }
+        public class JoinTest01
+        {
+            public int id { get; set; }
+            public string code { get; set; }
+            public string parentcode { get; set; }
+            public string name { get; set; }
+
+            [JoinCondition("a.parentcode = b.code")]
+            public JoinTest01 Parent { get; set; }
+        }
 
         static void Main(string[] args)
         {
@@ -408,6 +423,52 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.ParseExpression += (_, e) =>
+            {
+                if (e.Expression is MemberExpression memExp == false) return;
+                ParameterExpression parmExp = null;
+                var exps = new List<MemberExpression>();
+                exps.Add(memExp);
+                while (memExp.Expression != null)
+                {
+                    if (memExp.Expression is MemberExpression parentExp)
+                    {
+                        exps.Add(parentExp);
+                        memExp = parentExp;
+                        if (fsql.CodeFirst.GetTableByEntity(memExp.Type) == null) return;
+                        continue;
+                    }
+                    if (memExp.Expression is ParameterExpression parmExp2)
+                    {
+                        parmExp = parmExp2;
+                        break;
+                    }
+                    return;
+                }
+                if (parmExp == null) return;
+                var oldTables = e.Tables.ToArray();
+                var result = e.FreeParse(e.Expression);
+                for (var a = oldTables.Length; a < e.Tables.Count; a++)
+                {
+                    if (string.IsNullOrEmpty(e.Tables[a].NavigateCondition) == false) continue;
+                    var parentTableAlias = e.Tables[a].Alias?.Split(new[] { "__" }, StringSplitOptions.None);
+                    if (parentTableAlias == null || parentTableAlias.Length <= 1) continue;
+                    var parentTable = e.Tables.Where(c => c.Alias == string.Join("__", parentTableAlias.Take(parentTableAlias.Length - 1))).FirstOrDefault();
+                    if (parentTable == null || parentTable.Table.Properties.TryGetValue(parentTableAlias.Last(), out var navProp) == false) continue;
+                    var joinAttr = navProp.GetCustomAttribute<JoinConditionAttribute>();
+                    if (joinAttr == null) continue;
+                    e.Tables[a].NavigateCondition = joinAttr.Condition
+                        .Replace("a.", e.Tables[a].Alias + ".")
+                        .Replace("b.", parentTable.Alias + ".");
+                }
+                e.Result = result;
+            };
+            var joinsql1 = fsql.Select<JoinTest01>()
+                .Include(a => a.Parent.Parent)
+                .Where(a => a.Parent.Parent.code == "001")
+                .ToSql();
+
 
             fsql.Aop.ConfigEntity += (_, e) =>
             {
