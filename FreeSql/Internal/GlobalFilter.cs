@@ -85,5 +85,6 @@ namespace FreeSql.Internal
         public void Remove(string name) => _filters.TryRemove(name ?? throw new ArgumentNullException(nameof(name)), out var _);
 
         public List<Item> GetFilters() => _filters.Values.Where(a => a.Condition?.Invoke() != false).OrderBy(a => a.Id).ToList();
+        public List<Item> GetAllFilters() => _filters.Values.OrderBy(a => a.Id).ToList();
     }
 }

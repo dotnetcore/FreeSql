@@ -446,6 +446,7 @@ namespace base_entity
             sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
 
             dic["xxx"] = null;
+            dic["yyy"] = 111;
             var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
             var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
             var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();

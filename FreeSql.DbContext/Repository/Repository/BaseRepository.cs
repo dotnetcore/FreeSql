@@ -30,7 +30,7 @@ namespace FreeSql
             DataFilter.Apply("", filter);
             AsTable(asTable);
 
-            fsql.GlobalFilter.GetFilters().ForEach(gf =>
+            fsql.GlobalFilter.GetAllFilters().ForEach(gf =>
             {
                 (DataFilter as DataFilter<TEntity>)._filtersByOrm.TryAdd(gf.Name, new DataFilter<TEntity>.FilterItemByOrm
                 {
