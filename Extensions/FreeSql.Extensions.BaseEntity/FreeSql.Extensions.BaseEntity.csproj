@@ -19,7 +19,7 @@
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
 		<LangVersion>latest</LangVersion>
-		<Version>3.2.670-preview22020920</Version>
+		<Version>3.2.670-preview22020921</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
