@@ -461,8 +461,10 @@ namespace FreeSql.Internal.CommonProvider
                 var tempDict = new Dictionary<string, object>();
                 foreach (var item in dicType)
                     foreach (string key in item.Keys)
-                        if (!tempDict.ContainsKey(key) && !(item[key] is null))
-                            tempDict[key] = item[key];
+                    {
+                        if (!tempDict.ContainsKey(key)) tempDict[key] = item[key];
+                        else if (!(item[key] is null)) tempDict[key] = item[key];
+                    }
                 UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(tempDict, orm, ref table);
                 return;
             }

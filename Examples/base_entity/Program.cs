@@ -362,10 +362,13 @@ namespace base_entity
             public string code { get; set; }
             public string parentcode { get; set; }
             public string name { get; set; }
+            [Column(MapType = typeof(string))]
+            public string JoinTest01Enum { get; set; }
 
             [JoinCondition("a.parentcode = b.code")]
             public JoinTest01 Parent { get; set; }
         }
+        public enum JoinTest01Enum { f1, f2, f3 }
 
         static void Main(string[] args)
         {
@@ -424,6 +427,45 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "123,1234,123444"
+            });
+
+            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
+            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
+
+            dic["xxx"] = null;
+            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+
+            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
+            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist[1]["title"] = "newtitle";
+            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist.Clear();
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 1
+            });
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2
+            });
+            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+
             fsql.Aop.ParseExpression += (_, e) =>
             {
                 if (e.Expression is MemberExpression memExp == false) return;
@@ -447,6 +489,7 @@ namespace base_entity
                     return;
                 }
                 if (parmExp == null) return;
+                if (e.Tables == null) return;
                 var oldTables = e.Tables.ToArray();
                 var result = e.FreeParse(e.Expression);
                 for (var a = oldTables.Length; a < e.Tables.Count; a++)
@@ -467,6 +510,8 @@ namespace base_entity
             var joinsql1 = fsql.Select<JoinTest01>()
                 .Include(a => a.Parent.Parent)
                 .Where(a => a.Parent.Parent.code == "001")
+                .Where(a => a.JoinTest01Enum == JoinTest01Enum.f3.ToString())
+                .Where(a => object.Equals(a.JoinTest01Enum, JoinTest01Enum.f3))
                 .ToSql();
 
 
@@ -768,42 +813,6 @@ namespace base_entity
                 fsql.Select<Order>().ToList();
             }
 
-
-            Dictionary<string, object> dic = new Dictionary<string, object>();
-            dic.Add("id", 1);
-            dic.Add("name", "xxxx");
-            var diclist = new List<Dictionary<string, object>>();
-            diclist.Add(dic);
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 2,
-                ["name"] = "123,1234,123444"
-            });
-
-            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
-            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
-            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
-            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
-
-            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
-            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
-            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
-            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
-
-            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
-            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
-            diclist[1]["title"] = "newtitle";
-            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
-            diclist.Clear();
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 1
-            });
-            diclist.Add(new Dictionary<string, object>
-            {
-                ["id"] = 2
-            });
-            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
 
             var sql1 = fsql.Select<User1, UserGroup>()
                 .RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId")
