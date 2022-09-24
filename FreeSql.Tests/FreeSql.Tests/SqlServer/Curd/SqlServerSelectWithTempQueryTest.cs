@@ -1711,6 +1711,97 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name02' OR a.[Nickname] = N'name03
             Assert.Equal("name03", list16[1].user.Nickname);
             Assert.Equal(0, list16[1].subquery1);
             Assert.Equal(0, list16[1].subquery2);
+
+
+            var sql17 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new { UserId = a.Id, a.Nickname })
+                .From<TwoTablePartitionBy_UserExt>()
+                .InnerJoin((a, b) => a.UserId == b.UserId)
+                .WithTempQuery((a, b) => new
+                {
+                    User = a,
+                    UserExt = b,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.UserId).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToSql();
+            var assertSql17 = @"SELECT * 
+FROM ( 
+    SELECT a.[UserId], a.[Nickname], b.[UserId] [UserId2], b.[Remark], row_number() over( partition by a.[Nickname] order by a.[UserId]) [rownum] 
+    FROM ( 
+        SELECT a.[Id] [UserId], a.[Nickname] 
+        FROM [TwoTablePartitionBy_User] a ) a 
+    INNER JOIN [TwoTablePartitionBy_UserExt] b ON a.[UserId] = b.[UserId] ) a 
+WHERE (a.[rownum] = 1)";
+            Assert.Equal(sql17, assertSql17);
+            var list17 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new { UserId = a.Id, a.Nickname })
+                .From<TwoTablePartitionBy_UserExt>()
+                .InnerJoin((a, b) => a.UserId == b.UserId)
+                .WithTempQuery((a, b) => new
+                {
+                    User = a,
+                    UserExt = b,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.UserId).ToValue()
+                })
+                .Where(a => a.rownum == 1)
+                .ToList();
+
+
+            var sql18 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new { UserId = a.Id, a.Nickname })
+                .From<TwoTablePartitionBy_UserExt>()
+                .InnerJoin((a, b) => a.UserId == b.UserId)
+                .WithTempQuery((a, b) => new
+                {
+                    User = a,
+                    UserExt = b,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.UserId).ToValue()
+                })
+                .Where(a => a.rownum == 1 && a.UserExt.UserId > 0 && a.User.UserId > 0)
+                .WithTempQuery(a => new
+                {
+                    Item = a,
+                    a.User,
+                    a.UserExt,
+                    a.rownum
+                })
+                .Where(a => a.rownum == 1 && a.UserExt.UserId > 0 && a.User.UserId > 0)
+                .Where(a => a.Item.UserExt.UserId > 0 && a.Item.User.UserId > 0)
+                .ToSql();
+            var assertSql18 = @"SELECT * 
+FROM ( 
+    SELECT a.[UserId], a.[Nickname], a.[UserId2], a.[Remark], a.[rownum], a.[UserId] [UserId3], a.[Nickname] [Nickname2], a.[UserId2] [UserId22], a.[Remark] [Remark2], a.[rownum] [rownum2] 
+    FROM ( 
+        SELECT a.[UserId], a.[Nickname], b.[UserId] [UserId2], b.[Remark], row_number() over( partition by a.[Nickname] order by a.[UserId]) [rownum] 
+        FROM ( 
+            SELECT a.[Id] [UserId], a.[Nickname] 
+            FROM [TwoTablePartitionBy_User] a ) a 
+        INNER JOIN [TwoTablePartitionBy_UserExt] b ON a.[UserId] = b.[UserId] ) a 
+    WHERE (a.[rownum] = 1 AND a.[UserId2] > 0 AND a.[UserId] > 0) ) a 
+WHERE (a.[rownum2] = 1 AND a.[UserId22] > 0 AND a.[UserId3] > 0) AND (a.[UserId2] > 0 AND a.[UserId] > 0)";
+            Assert.Equal(sql18, assertSql18);
+            var list18 = fsql.Select<TwoTablePartitionBy_User>()
+                .WithTempQuery(a => new { UserId = a.Id, a.Nickname })
+                .From<TwoTablePartitionBy_UserExt>()
+                .InnerJoin((a, b) => a.UserId == b.UserId)
+                .WithTempQuery((a, b) => new
+                {
+                    User = a,
+                    UserExt = b,
+                    rownum = SqlExt.RowNumber().Over().PartitionBy(a.Nickname).OrderBy(a.UserId).ToValue()
+                })
+                .Where(a => a.rownum == 1 && a.UserExt.UserId > 0 && a.User.UserId > 0)
+                .WithTempQuery(a => new
+                {
+                    Item = a,
+                    a.User,
+                    a.UserExt,
+                    a.rownum
+                })
+                .Where(a => a.rownum == 1 && a.UserExt.UserId > 0 && a.User.UserId > 0)
+                .Where(a => a.Item.UserExt.UserId > 0 && a.Item.User.UserId > 0)
+                .ToList();
         }
         class TwoTablePartitionBy_User
         {

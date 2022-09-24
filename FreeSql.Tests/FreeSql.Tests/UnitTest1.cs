@@ -601,12 +601,12 @@ namespace FreeSql.Tests
               .UseMonitorCommand(a => Trace.WriteLine(a.CommandText))
               .Build();
 
-            var data = fsql.Select<Post>().ToList(r => new
-            {
-                Id = r.Id,
-                Name = r.AuthorId.ToString(),
-                AuthorName = r.Author.Name,
-            });
+            //var data = fsql.Select<Post>().ToList(r => new
+            //{
+            //    Id = r.Id,
+            //    Name = r.AuthorId.ToString(),
+            //    AuthorName = r.Author.Name,
+            //});
 
             //g.mysql.Aop.AuditValue += (s, e) =>
             //{

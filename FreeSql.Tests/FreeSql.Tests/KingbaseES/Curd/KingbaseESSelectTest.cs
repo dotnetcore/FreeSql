@@ -17,7 +17,7 @@ namespace FreeSql.Tests.KingbaseES
             [Column(IsIdentity = true, IsPrimary = true)]
             public int Id { get; set; }
             public int Clicks { get; set; }
-            public int TypeGuid { get; set; }
+            public int TypeGuid223 { get; set; }
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
@@ -168,10 +168,10 @@ namespace FreeSql.Tests.KingbaseES
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });
             var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
 
-            var testDto11 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
-            var testDto22 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto());
-            var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
-            var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
+            var testDto11 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+            var testDto22 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto());
+            var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto { });
+            var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto() { });
 
             var testDto211 = select.Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
             var testDto212 = select.Limit(10).ToList(a => new TestDto2());
@@ -179,11 +179,11 @@ namespace FreeSql.Tests.KingbaseES
             var testDto214 = select.Limit(10).ToList(a => new TestDto2() { });
             var testDto215 = select.Limit(10).ToList<TestDto2>();
 
-            var testDto2211 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
-            var testDto2222 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2());
-            var testDto2233 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2 { });
-            var testDto2244 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2() { });
-            var testDto2255 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList<TestDto2>();
+            var testDto2211 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
+            var testDto2222 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto2());
+            var testDto2233 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto2 { });
+            var testDto2244 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList(a => new TestDto2() { });
+            var testDto2255 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).Limit(10).ToList<TestDto2>();
 
             g.kingbaseES.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
             var testGuidId5 = g.kingbaseES.Select<TestGuidIdToList>().ToList();
@@ -276,7 +276,7 @@ namespace FreeSql.Tests.KingbaseES
             var sql2222Tolist = sql2222.ToList();
 
             var collectionSelect = select.Where(a =>
-                a.Type.Guid == a.TypeGuid &&
+                a.Type.Guid == a.TypeGuid223 &&
                 a.Type.Parent.Id == a.Type.ParentId &&
                 a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(b => b.ParentId == a.Type.Parent.Id)
             );
@@ -310,14 +310,14 @@ namespace FreeSql.Tests.KingbaseES
         public void From()
         {
             var query2 = select.From<TestTypeInfo>((s, b) => s
-                 .LeftJoin(a => a.TypeGuid == b.Guid)
+                 .LeftJoin(a => a.TypeGuid223 == b.Guid)
                 );
             var sql2 = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\"", sql2);
             query2.ToList();
 
             var query3 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
-                 .LeftJoin(a => a.TypeGuid == b.Guid)
+                 .LeftJoin(a => a.TypeGuid223 == b.Guid)
                  .LeftJoin(a => b.ParentId == c.Id)
                 );
             var sql3 = query3.ToSql().Replace("\r\n", "");
@@ -328,47 +328,47 @@ namespace FreeSql.Tests.KingbaseES
         public void LeftJoin()
         {
             //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid);
+            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
+            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //���û�е�������
-            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid);
+            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx");
+            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223 && b.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\" AND b.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223 && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //�������
             query = select
-                .LeftJoin(a => a.Type.Guid == a.TypeGuid)
+                .LeftJoin(a => a.Type.Guid == a.TypeGuid223)
                 .LeftJoin(a => a.Type.Parent.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\"", sql);
             query.ToList();
 
             query = select
-                .LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
+                .LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223)
                 .LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" LEFT JOIN \"TESTTYPEPARENTINFO\" c ON c.\"ID\" = a__Type.\"PARENTID\"", sql);
@@ -376,7 +376,7 @@ namespace FreeSql.Tests.KingbaseES
 
             //���û�е�������b��c������ϵ
             var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
-                 .LeftJoin(a => a.TypeGuid == b.Guid)
+                 .LeftJoin(a => a.TypeGuid223 == b.Guid)
                  .LeftJoin(a => b.ParentId == c.Id));
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\" LEFT JOIN \"TESTTYPEPARENTINFO\" c ON b.\"PARENTID\" = c.\"ID\"", sql);
@@ -392,47 +392,49 @@ namespace FreeSql.Tests.KingbaseES
         public void InnerJoin()
         {
             //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid);
+            var tb = g.kingbaseES.CodeFirst.GetTableByEntity(typeof(Topic));
+
+            var query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid223);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
+            query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //���û�е�������
-            query = select.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid);
+            query = select.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx");
+            query = select.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223 && b.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\" AND b.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.InnerJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.InnerJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223 && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //�������
             query = select
-                .InnerJoin(a => a.Type.Guid == a.TypeGuid)
+                .InnerJoin(a => a.Type.Guid == a.TypeGuid223)
                 .InnerJoin(a => a.Type.Parent.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" INNER JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\"", sql);
             query.ToList();
 
             query = select
-                .InnerJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
+                .InnerJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223)
                 .InnerJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" INNER JOIN \"TESTTYPEPARENTINFO\" c ON c.\"ID\" = a__Type.\"PARENTID\"", sql);
@@ -440,7 +442,7 @@ namespace FreeSql.Tests.KingbaseES
 
             //���û�е�������b��c������ϵ
             var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
-                 .InnerJoin(a => a.TypeGuid == b.Guid)
+                 .InnerJoin(a => a.TypeGuid223 == b.Guid)
                  .InnerJoin(a => b.ParentId == c.Id));
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a INNER JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\" INNER JOIN \"TESTTYPEPARENTINFO\" c ON b.\"PARENTID\" = c.\"ID\"", sql);
@@ -456,47 +458,47 @@ namespace FreeSql.Tests.KingbaseES
         public void RightJoin()
         {
             //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.RightJoin(a => a.Type.Guid == a.TypeGuid);
+            var query = select.RightJoin(a => a.Type.Guid == a.TypeGuid223);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.RightJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
+            query = select.RightJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.RightJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.RightJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //���û�е�������
-            query = select.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid);
+            query = select.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
 
-            query = select.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx");
+            query = select.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223 && b.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" b ON b.\"GUID\" = a.\"TYPEGUID\" AND b.\"NAME\" = 'xxx'", sql);
             query.ToList();
 
-            query = select.RightJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
+            query = select.RightJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223 && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
             query.ToList();
 
             //�������
             query = select
-                .RightJoin(a => a.Type.Guid == a.TypeGuid)
+                .RightJoin(a => a.Type.Guid == a.TypeGuid223)
                 .RightJoin(a => a.Type.Parent.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" RIGHT JOIN \"TESTTYPEPARENTINFO\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\"", sql);
             query.ToList();
 
             query = select
-                .RightJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
+                .RightJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223)
                 .RightJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" RIGHT JOIN \"TESTTYPEPARENTINFO\" c ON c.\"ID\" = a__Type.\"PARENTID\"", sql);
@@ -504,7 +506,7 @@ namespace FreeSql.Tests.KingbaseES
 
             //���û�е�������b��c������ϵ
             var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
-                 .RightJoin(a => a.TypeGuid == b.Guid)
+                 .RightJoin(a => a.TypeGuid223 == b.Guid)
                  .RightJoin(a => b.ParentId == c.Id));
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\" RIGHT JOIN \"TESTTYPEPARENTINFO\" c ON b.\"PARENTID\" = c.\"ID\"", sql);
@@ -546,7 +548,7 @@ namespace FreeSql.Tests.KingbaseES
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" WHERE (a__Type.\"NAME\" = 'typeTitle')", sql);
             query.ToList();
 
-            query = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
+            query = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" WHERE (a__Type.\"NAME\" = 'typeTitle' AND a__Type.\"GUID\" = a.\"TYPEGUID\")", sql);
             query.ToList();
@@ -557,12 +559,12 @@ namespace FreeSql.Tests.KingbaseES
             query.ToList();
 
             //���û�е������ԣ��򵥶������
-            query = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "typeTitle");
+            query = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223 && b.Name == "typeTitle");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a, \"TESTTYPEINFO\" b WHERE (b.\"GUID\" = a.\"TYPEGUID\" AND b.\"NAME\" = 'typeTitle')", sql);
             query.ToList();
 
-            query = select.Where<TestTypeInfo>((a, b) => b.Name == "typeTitle" && b.Guid == a.TypeGuid);
+            query = select.Where<TestTypeInfo>((a, b) => b.Name == "typeTitle" && b.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a, \"TESTTYPEINFO\" b WHERE (b.\"NAME\" = 'typeTitle' AND b.\"GUID\" = a.\"TYPEGUID\")", sql);
             query.ToList();
@@ -604,7 +606,7 @@ namespace FreeSql.Tests.KingbaseES
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" WHERE (a__Type.\"NAME\" = 'typeTitle')", sql);
             query.ToList();
 
-            query = select.WhereIf(true, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
+            query = select.WhereIf(true, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" WHERE (a__Type.\"NAME\" = 'typeTitle' AND a__Type.\"GUID\" = a.\"TYPEGUID\")", sql);
             query.ToList();
@@ -645,7 +647,7 @@ namespace FreeSql.Tests.KingbaseES
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a", sql);
             query.ToList();
 
-            query = select.WhereIf(false, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
+            query = select.WhereIf(false, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid223);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a", sql);
             query.ToList();
@@ -706,7 +708,7 @@ namespace FreeSql.Tests.KingbaseES
             g.kingbaseES.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
 
             var fkfjfj = select.GroupBy(a => a.Title)
-                .ToList(a => a.Sum(a.Value.TypeGuid));
+                .ToList(a => a.Sum(a.Value.TypeGuid223));
 
             var aggsql1 = select
                 .GroupBy(a => a.Title)
@@ -714,7 +716,7 @@ namespace FreeSql.Tests.KingbaseES
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
             var aggtolist1 = select
                 .GroupBy(a => a.Title)
@@ -722,7 +724,7 @@ namespace FreeSql.Tests.KingbaseES
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
             var aggtolist11 = select
                 .GroupBy(a => a.Title)
@@ -730,7 +732,7 @@ namespace FreeSql.Tests.KingbaseES
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
 
             var aggsql2 = select
@@ -741,7 +743,7 @@ namespace FreeSql.Tests.KingbaseES
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
             var aggtolist2 = select
                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
@@ -750,7 +752,7 @@ namespace FreeSql.Tests.KingbaseES
                     b.Key.Title,
                     b.Key.yyyy,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
             var aggtolist22 = select
                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
@@ -760,7 +762,7 @@ namespace FreeSql.Tests.KingbaseES
                     b.Key.yyyy,
                     b.Key,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid)
+                    sum2 = b.Sum(b.Value.TypeGuid223)
                 });
 
             var aggsql3 = select
@@ -769,7 +771,7 @@ namespace FreeSql.Tests.KingbaseES
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum2 = b.Sum(b.Value.TypeGuid),
+                    sum2 = b.Sum(b.Value.TypeGuid223),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });
         }
@@ -927,47 +929,47 @@ WHERE ((((a.""ID"")::text) in (SELECT b.""TITLE""
             };
 
             //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).AsTable(tableRule);
+            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223).AsTable(tableRule);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
 
-            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").AsTable(tableRule);
+            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx").AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx'", sql);
 
-            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
+            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid223 && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTIN_AT\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
 
             //���û�е�������
-            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid).AsTable(tableRule);
+            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" b ON b.\"GUID\" = a.\"TYPEGUID\"", sql);
 
-            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx").AsTable(tableRule);
+            query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid223 && b.Name == "xxx").AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" b ON b.\"GUID\" = a.\"TYPEGUID\" AND b.\"NAME\" = 'xxx'", sql);
 
-            query = select.LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
+            query = select.LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223 && a__Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" AND a__Type.\"NAME\" = 'xxx' LEFT JOIN \"TESTTYPEPARENTIN_AT\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\" WHERE (a__Type__Parent.\"ID\" = 10)", sql);
 
             //�������
             query = select
-                .LeftJoin(a => a.Type.Guid == a.TypeGuid)
+                .LeftJoin(a => a.Type.Guid == a.TypeGuid223)
                 .LeftJoin(a => a.Type.Parent.Id == a.Type.ParentId).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" LEFT JOIN \"TESTTYPEPARENTIN_AT\" a__Type__Parent ON a__Type__Parent.\"ID\" = a__Type.\"PARENTID\"", sql);
 
             query = select
-                .LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
+                .LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid223)
                 .LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\" LEFT JOIN \"TESTTYPEPARENTIN_AT\" c ON c.\"ID\" = a__Type.\"PARENTID\"", sql);
 
             //���û�е�������b��c������ϵ
             var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
-                 .LeftJoin(a => a.TypeGuid == b.Guid)
+                 .LeftJoin(a => a.TypeGuid223 == b.Guid)
                  .LeftJoin(a => b.ParentId == c.Id)).AsTable(tableRule);
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO_T2\" b ON a.\"TYPEGUID\" = b.\"GUID\" LEFT JOIN \"TESTTYPEPARENTIN_AT\" c ON b.\"PARENTID\" = c.\"ID\"", sql);

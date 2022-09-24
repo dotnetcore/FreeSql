@@ -247,6 +247,7 @@ namespace FreeSql.Internal.CommonProvider
             _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bug
             var old_field = _field;
             var fieldsb = new StringBuilder();
+            if (_map.Childs.Any() == false) fieldsb.Append(", ").Append(_map.DbField).Append(_comonExp.EndsWithDbNestedField(_map.DbField, _map.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(_map.DbNestedField));
             foreach (var child in _map.GetAllChilds()) 
                 fieldsb.Append(", ").Append(child.DbField).Append(_comonExp.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(child.DbNestedField));
             _field = fieldsb.ToString();

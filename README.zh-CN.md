@@ -44,9 +44,7 @@ QQ群：4336577(已满)、8578575(已满)、52508226(在线)
 
 - [zhontai.net Admin 后台管理系统](https://github.com/zhontai/Admin.Core)
 - [A simple and practical CMS implemented by .NET Core](https://github.com/luoyunchong/lin-cms-dotnetcore)
-- [iusaas.com SaaS 企业应用管理系统](https://github.com/alonsoalon/TenantSite.Server)
 - [EasyCms 企业建站，事业单位使用的CMS管理系统](https://github.com/jasonyush/EasyCMS)
-- [内容管理系统](https://github.com/hejiyong/fscms)
 
 <p align="center">
   <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions13.png"/>

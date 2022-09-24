@@ -2459,9 +2459,9 @@ namespace FreeSql.Internal
                     }
                     break;
                 }
-                if (startLength > 0)
+                if (startLength >= 0)
                 {
-                    var pvalue = sql.Substring(startIdx, startLength).Replace("''", "'");
+                    var pvalue = startLength == 0 ? "" : sql.Substring(startIdx, startLength).Replace("''", "'");
                     var pname = parms.Where(a => a.Value == pvalue).Select(a => a.Key).FirstOrDefault();
                     if (string.IsNullOrEmpty(pname))
                     {

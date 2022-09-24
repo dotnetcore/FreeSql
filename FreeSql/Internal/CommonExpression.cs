@@ -51,6 +51,7 @@ namespace FreeSql.Internal
         }
         internal bool EndsWithDbNestedField(string dbField, string dbNestedField)
         {
+            if (string.IsNullOrWhiteSpace(dbNestedField)) return true;
             switch (_ado.DataType)
             {
                 case DataType.SqlServer:
@@ -161,9 +162,8 @@ namespace FreeSql.Internal
                                 foreach (var child in parent.GetAllChilds())
                                 {
                                     if (withTempQueryParser != null)
-                                        field.Append(", ").Append(withTempQueryParser.ParseExpMatchedTable.Alias).Append(".").Append(child.DbNestedField);
-                                    else
-                                        field.Append(", ").Append(child.DbField);
+                                        child.DbField = $"{withTempQueryParser.ParseExpMatchedTable.Alias}.{child.DbNestedField}";
+                                    field.Append(", ").Append(child.DbField);
                                     if (index >= 0)
                                     {
                                         child.DbNestedField = $"as{++index}";

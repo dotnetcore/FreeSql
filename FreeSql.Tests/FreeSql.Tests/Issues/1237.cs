@@ -36,7 +36,7 @@ ORDER BY b.""Name"", b.""ID""", people1);
                 .ToSql();
             Assert.Equal(@"SELECT * 
 FROM ( 
-    SELECT replace(replace(a.""Name"", ' ', ''), '　', ''), a.""CSNY"" 
+    SELECT replace(replace(a.""Name"", ' ', ''), '　', '') ""xm_new"", a.""CSNY"" ""csny"" 
     FROM ""people_issues_1237"" a 
     GROUP BY replace(replace(a.""Name"", ' ', ''), '　', ''), a.""CSNY"" 
     HAVING (count(1) > 1) ) a 
