@@ -687,7 +687,7 @@ namespace FreeSql.Internal
             else
             {
                 var find = _tables.Where((a, c) => c > 0 &&
-                    (a.Type == tbtype || a.Type == SelectTableInfoType.From) &&
+                    (a.Type == tbtype || a.Type == SelectTableInfoType.From || a.Type == SelectTableInfoType.LeftJoin) &&
                     string.IsNullOrEmpty(a.On) &&
                     dicRegexAlias.GetOrAdd(a.Alias, alias => new Regex($@"\b{alias}\.", RegexOptions.Compiled)).IsMatch(sql)).LastOrDefault();
                 if (find != null)
