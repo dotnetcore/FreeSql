@@ -128,7 +128,7 @@ namespace FreeSql.Internal
                             {
                                 ModifyResult = new TableAttribute
                                 {
-                                    Name = attr.Name,
+                                    Name = attr.Name ?? type.Name,
                                     OldName = attr.OldName,
                                     _DisableSyncStructure = attr._DisableSyncStructure,
                                     AsTable = attr.AsTable
@@ -136,7 +136,7 @@ namespace FreeSql.Internal
                             };
                             _orm.Aop.ConfigEntityHandler(_orm, aope); 
                             var tryattr = aope.ModifyResult;
-                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != type.Name) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
                             if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
                             if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
@@ -194,7 +194,7 @@ namespace FreeSql.Internal
                             {
                                 ModifyResult = new ColumnAttribute
                                 {
-                                    Name = attr.Name,
+                                    Name = attr.Name ?? proto.Name,
                                     OldName = attr.OldName,
                                     DbType = attr.DbType,
                                     _IsPrimary = attr._IsPrimary,
@@ -217,7 +217,7 @@ namespace FreeSql.Internal
                             };
                             _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
                             var tryattr = aope.ModifyResult;
-                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != proto.Name) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
                             if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
                             if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;
