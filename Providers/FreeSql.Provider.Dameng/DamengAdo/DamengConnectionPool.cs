@@ -84,7 +84,7 @@ namespace FreeSql.Dameng
 
                 pattern = @"(Max\s*)?pool\s*size\s*=\s*(\d+)";
                 m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
+                if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = Math.Max(100, minPoolSize);
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
