@@ -1,4 +1,4 @@
-﻿#if netcoreapp
+﻿#if netcoreapp || NET6_0
 using FreeSql;
 using System;
 using System.Linq;
