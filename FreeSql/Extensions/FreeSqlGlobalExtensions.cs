@@ -1228,5 +1228,41 @@ SELECT ");
 
     #endregion
 
-
+    #region Ado.QuerySingle(() => new { DateTime.Now })
+    public static T1 QuerySingle<T1>(this IAdo ado, Expression<Func<T1>> selector)
+    {
+        var nt = SelectNoTable((ado as AdoProvider)?._util._orm, selector);
+        return nt.Item1.ToListMrPrivate<T1>(nt.Item3, nt.Item2, null).FirstOrDefault();
+    }
+#if net40
+#else
+    async public static Task<T1> QuerySingleAsync<T1>(this IAdo ado, Expression<Func<T1>> selector, CancellationToken cancellationToken = default)
+    {
+        var nt = SelectNoTable((ado as AdoProvider)?._util._orm, selector);
+        var result = await nt.Item1.ToListMrPrivateAsync<T1>(nt.Item3, nt.Item2, null, cancellationToken);
+        return result.FirstOrDefault();
+    }
+#endif
+    static NativeTuple<Select1Provider<object>, ReadAnonymousTypeAfInfo, string> SelectNoTable(IFreeSql fsql, Expression selector)
+    {
+        var query = fsql.Select<object>() as Select1Provider<object>;
+        var af = query.GetExpressionField(selector);
+        var sql = "";
+        switch (fsql.Ado.DataType)
+        {
+            case DataType.Oracle:
+            case DataType.OdbcOracle:
+            case DataType.GBase:
+                sql = $" SELECT {af.field} FROM dual";
+                break;
+            case DataType.Firebird:
+                sql = $" SELECT FIRST 1 {af.field} FROM rdb$database";
+                break;
+            default:
+                sql = $" SELECT {af.field}";
+                break;
+        }
+        return NativeTuple.Create(query, af, sql);
+    }
+    #endregion
 }
