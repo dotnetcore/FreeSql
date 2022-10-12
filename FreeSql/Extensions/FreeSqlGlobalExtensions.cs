@@ -22,8 +22,12 @@ public static partial class FreeSqlGlobalExtensions
 {
 #if net40
 #else
-    static readonly Lazy<PropertyInfo> _TaskReflectionResultPropertyLazy = new Lazy<PropertyInfo>(() => typeof(Task).GetProperty("Result"));
-    internal static object GetTaskReflectionResult(this Task task) => _TaskReflectionResultPropertyLazy.Value.GetValue(task, new object[0]);
+    internal static object GetTaskReflectionResult(this Task task)
+    {
+        var propResult = task?.GetType().GetProperty("Result");
+        if (propResult != null) return propResult.GetValue(task, new object[0]);
+        return null;
+    }
 #endif
 
     #region Type 对象扩展方法
