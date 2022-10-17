@@ -81,6 +81,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.OracleOled
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aspnetcore_transaction", "Examples\aspnetcore_transaction\aspnetcore_transaction.csproj", "{28163C3B-B2E6-432D-AAC3-F5F19374BE31}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.AggregateRoot", "Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj", "{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -439,6 +441,18 @@ Global
 		{28163C3B-B2E6-432D-AAC3-F5F19374BE31}.Release|x64.Build.0 = Release|Any CPU
 		{28163C3B-B2E6-432D-AAC3-F5F19374BE31}.Release|x86.ActiveCfg = Release|Any CPU
 		{28163C3B-B2E6-432D-AAC3-F5F19374BE31}.Release|x86.Build.0 = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|x64.Build.0 = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Debug|x86.Build.0 = Debug|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|x64.ActiveCfg = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|x64.Build.0 = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|x86.ActiveCfg = Release|Any CPU
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -469,10 +483,11 @@ Global
 		{9D82A683-2950-4E8A-B078-A422ECA6AAA5} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 		{19D2E22A-B000-46B6-AFC8-60BF01A51C9A} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{28163C3B-B2E6-432D-AAC3-F5F19374BE31} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
+		{5C78C4CE-3CDC-49C3-AF34-556567B95F2A} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
-		RESX_PrefixTranslations = True
 		RESX_NeutralResourcesLanguage = en-US
+		RESX_PrefixTranslations = True
+		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
 	EndGlobalSection
 EndGlobal

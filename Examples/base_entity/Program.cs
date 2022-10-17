@@ -364,6 +364,8 @@ namespace base_entity
             public string name { get; set; }
             [Column(MapType = typeof(string))]
             public string JoinTest01Enum { get; set; }
+            [Column(MapType = typeof(int))]
+            public JoinTest01Enum JoinTest01Enum2 { get; set; }
 
             [JoinCondition("a.parentcode = b.code")]
             public JoinTest01 Parent { get; set; }
@@ -394,7 +396,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
 
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
@@ -427,6 +429,52 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var result1x = fsql.Ado.QuerySingle(() => new
+            {
+                DateTime.Now,
+                DateTime.UtcNow,
+                Math.PI
+            });
+
+            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
+            usergroupRepository.Delete(a => true);
+            usergroupRepository.Insert(new[]{
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group1",
+                    UpdateTime = DateTime.Now,
+                    Sort = 1,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
+                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
+                    }
+                },
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group2",
+                    UpdateTime = DateTime.Now,
+                    Sort = 2,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
+                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
+                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                    }
+                },
+            });
+            var userRepository = fsql.GetAggregateRootRepository<User1>();
+
+            var testsublist1 = fsql.Select<UserGroup>()
+                .First(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
 
 
             Dictionary<string, object> dic = new Dictionary<string, object>();
@@ -506,13 +554,13 @@ namespace base_entity
                         .Replace("a.", e.Tables[a].Alias + ".")
                         .Replace("b.", parentTable.Alias + ".");
                 }
-                e.Result = result;
             };
             var joinsql1 = fsql.Select<JoinTest01>()
                 .Include(a => a.Parent.Parent)
                 .Where(a => a.Parent.Parent.code == "001")
                 .Where(a => a.JoinTest01Enum == JoinTest01Enum.f3.ToString())
                 .Where(a => object.Equals(a.JoinTest01Enum, JoinTest01Enum.f3))
+                .Where(a => new[] { JoinTest01Enum.f2, JoinTest01Enum.f3 }.Contains(a.JoinTest01Enum2))
                 .ToSql();
 
 

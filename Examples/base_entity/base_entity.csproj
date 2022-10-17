@@ -17,6 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.BaseEntity\FreeSql.Extensions.BaseEntity.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.JsonMap\FreeSql.Extensions.JsonMap.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />

@@ -102,9 +102,17 @@ namespace FreeSql.KingbaseES
         public string GetCsTypeValue(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csTypeValue : null;
         public string GetDataReaderMethod(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.dataReaderMethod : null;
 
+        string getpg_()
+        {
+            var codefirstProvider = _orm.CodeFirst as KingbaseESCodeFirst;
+            codefirstProvider.InitIsSysV8R3();
+            return codefirstProvider._isSysV8R3 == true ? "sys_" : "pg_";
+        }
+
         public List<string> GetDatabases()
         {
-            var sql = @" select datname from sys_database where datname not in ('TEMPLATE1', 'TEMPLATE0', 'TEMPLATE2')";
+            var pg_ = getpg_();
+            var sql = $@" select datname from {pg_}database where datname not in ('TEMPLATE1', 'TEMPLATE0', 'TEMPLATE2')";
             var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
@@ -112,10 +120,11 @@ namespace FreeSql.KingbaseES
         public bool ExistsTable(string name, bool ignoreCase)
         {
             if (string.IsNullOrEmpty(name)) return false;
+            var pg_ = getpg_();
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
             if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
-            var sql = $" select 1 from sys_tables a inner join sys_namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}";
+            var sql = $" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
 
@@ -124,6 +133,7 @@ namespace FreeSql.KingbaseES
 
         public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
+            var pg_ = getpg_();
             var olddatabase = "";
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
@@ -155,12 +165,12 @@ a.schemaname,
 a.tablename ,
 d.description,
 'TABLE'
-from sys_tables a
-inner join sys_namespace b on b.nspname = a.schemaname
-inner join sys_class c on c.relnamespace = b.oid and c.relname = a.tablename
-left join sys_description d on d.objoid = c.oid and objsubid = 0
-where a.schemaname not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ')
-and b.nspname || '.' || a.tablename not in ('PUBLIC.SPATIAL_REF_SYS')
+from {pg_}tables a
+inner join {pg_}namespace b on b.nspname = a.schemaname
+inner join {pg_}class c on c.relnamespace = b.oid and c.relname = a.tablename
+left join {pg_}description d on d.objoid = c.oid and objsubid = 0
+where upper(a.schemaname) not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ')
+and upper(b.nspname || '.' || a.tablename) not in ('PUBLIC.SPATIAL_REF_SYS')
 
 union all
 
@@ -170,11 +180,11 @@ b.nspname,
 a.relname,
 d.description,
 'VIEW'
-from sys_class a
-inner join sys_namespace b on b.oid = a.relnamespace
-left join sys_description d on d.objoid = a.oid and objsubid = 0
-where b.nspname not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('m','v') 
-and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')
+from {pg_}class a
+inner join {pg_}namespace b on b.oid = a.relnamespace
+left join {pg_}description d on d.objoid = a.oid and objsubid = 0
+where upper(b.nspname) not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('m','v') 
+and upper(b.nspname || '.' || a.relname) not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')
 {(tbname == null ? "" : $") ft_dbf where {(ignoreCase ? "lower(schemaname)" : "schemaname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(tablename)" : "tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}")}";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
@@ -240,20 +250,20 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then 0 else 1 end as is_nullable,
 --e.adsrc as is_identity, pg12以下
-(select sys_get_expr(adbin, adrelid) from sys_attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity,
+(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity,
 d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
 ns2.nspname,
 a.attnum
-from sys_class c
-inner join sys_attribute a on a.attnum > 0 and a.attrelid = c.oid
-inner join sys_type t on t.oid = a.atttypid
-left join sys_type t2 on t2.oid = t.typelem
-left join sys_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
-left join sys_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
-inner join sys_namespace ns on ns.oid = c.relnamespace
-inner join sys_namespace ns2 on ns2.oid = t.typnamespace
+from {pg_}class c
+inner join {pg_}attribute a on a.attnum > 0 and a.attrelid = c.oid
+inner join {pg_}type t on t.oid = a.atttypid
+left join {pg_}type t2 on t2.oid = t.typelem
+left join {pg_}description d on d.objoid = a.attrelid and d.objsubid = a.attnum
+left join {pg_}attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
+inner join {pg_}namespace ns on ns.oid = c.relnamespace
+inner join {pg_}namespace ns2 on ns2.oid = t.typnamespace
 where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")}";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
@@ -321,14 +331,14 @@ b.relname as index_id,
 case when a.indisunique then 1 else 0 end IsUnique,
 case when a.indisprimary then 1 else 0 end IsPrimary,
 case when a.indisclustered then 0 else 1 end IsClustered,
-case when sys_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
+case when {pg_}index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
 a.indkey::text,
 c.attnum
-from sys_index a
-inner join sys_class b on b.oid = a.indexrelid
-inner join sys_attribute c on c.attnum > 0 and c.attrelid = b.oid
-inner join sys_namespace ns on ns.oid = b.relnamespace
-inner join sys_class d on d.oid = a.indrelid
+from {pg_}index a
+inner join {pg_}class b on b.oid = a.indexrelid
+inner join {pg_}attribute c on c.attnum > 0 and c.attrelid = b.oid
+inner join {pg_}namespace ns on ns.oid = b.relnamespace
+inner join {pg_}class d on d.oid = a.indrelid
 where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -395,18 +405,18 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")
                     sql = $@"
 select
 ns.nspname || '.' || b.relname as table_id, 
-array(select attname from sys_attribute where attrelid = a.conrelid and attnum = any(a.conkey)) as column_name,
+array(select attname from {pg_}attribute where attrelid = a.conrelid and attnum = any(a.conkey)) as column_name,
 a.conname as FKId,
 ns2.nspname || '.' || c.relname as ref_table_id, 
 1 as IsForeignKey,
-array(select attname from sys_attribute where attrelid = a.confrelid and attnum = any(a.confkey)) as ref_column,
+array(select attname from {pg_}attribute where attrelid = a.confrelid and attnum = any(a.confkey)) as ref_column,
 null ref_sln,
 null ref_table
-from  sys_constraint a
-inner join sys_class b on b.oid = a.conrelid
-inner join sys_class c on c.oid = a.confrelid
-inner join sys_namespace ns on ns.oid = b.relnamespace
-inner join sys_namespace ns2 on ns2.oid = c.relnamespace
+from  {pg_}constraint a
+inner join {pg_}class b on b.oid = a.conrelid
+inner join {pg_}class c on c.oid = a.confrelid
+inner join {pg_}namespace ns on ns.oid = b.relnamespace
+inner join {pg_}namespace ns2 on ns2.oid = c.relnamespace
 where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")}
 ";
                     ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -499,15 +509,16 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")
         }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
+            var pg_ = getpg_();
             if (database == null || database.Length == 0) return new List<DbEnumInfo>();
-            var drs = _orm.Ado.Query<GetEnumsByDatabaseQueryInfo>(CommandType.Text, _commonUtils.FormatSql(@"
+            var drs = _orm.Ado.Query<GetEnumsByDatabaseQueryInfo>(CommandType.Text, _commonUtils.FormatSql($@"
 select
 ns.nspname || '.' || a.typname AS name,
 b.enumlabel AS label
-from sys_type a
-inner join sys_enum b on b.enumtypid = a.oid
-inner join sys_namespace ns on ns.oid = a.typnamespace
-where a.typtype = 'e' and ns.nspname in (SELECT schema_name FROM information_schema.schemata where catalog_name in {0})", database));
+from {pg_}type a
+inner join {pg_}enum b on b.enumtypid = a.oid
+inner join {pg_}namespace ns on ns.oid = a.typnamespace
+where a.typtype = 'e' and ns.nspname in (SELECT schema_name FROM information_schema.schemata where catalog_name in {{0}})", database));
             var ret = new Dictionary<string, Dictionary<string, string>>();
             foreach (var dr in drs)
             {
