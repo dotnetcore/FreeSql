@@ -74,8 +74,39 @@ namespace FreeSql.Odbc.KingbaseES
             return null;
         }
 
+        public bool? _isSysV8R3 = null;
+        object _isSysV8R3Lock = new object();
+        public void InitIsSysV8R3()
+        {
+            if (_isSysV8R3 == null)
+                lock (_isSysV8R3Lock)
+                    if (_isSysV8R3 == null)
+                    {
+                        try
+                        {
+                            _orm.Ado.ExecuteNonQuery(" select 1");
+                        }
+                        catch
+                        {
+                            return;
+                        }
+                        try
+                        {
+                            _orm.Ado.ExecuteNonQuery(" select 1 from sys_tables limit 1");
+                            _isSysV8R3 = true;
+                        }
+                        catch //42P01: 关系 "sys_tables" 不存在
+                        {
+                            _isSysV8R3 = false;
+                        }
+                    }
+        }
+
         protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
+            InitIsSysV8R3();
+            var pg_ = _isSysV8R3 == true ? "sys_" : "pg_";
+            var public_ = _isSysV8R3 == true ? "PUBLIC" : "public";
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
 
@@ -86,14 +117,14 @@ namespace FreeSql.Odbc.KingbaseES
                 if (tb == null) throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.entityType.FullName));
                 if (tb.Columns.Any() == false) throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.entityType.FullName));
                 var tbname = _commonUtils.SplitTableName(tb.DbName);
-                if (tbname?.Length == 1) tbname = new[] { "PUBLIC", tbname[0] };
+                if (tbname?.Length == 1) tbname = new[] { public_, tbname[0] };
 
                 var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
-                if (tboldname?.Length == 1) tboldname = new[] { "PUBLIC", tboldname[0] };
+                if (tboldname?.Length == 1) tboldname = new[] { public_, tboldname[0] };
                 if (string.IsNullOrEmpty(obj.tableName) == false)
                 {
                     var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
-                    if (tbtmpname?.Length == 1) tbtmpname = new[] { "PUBLIC", tbtmpname[0] };
+                    if (tbtmpname?.Length == 1) tbtmpname = new[] { public_, tbtmpname[0] };
                     if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
                     {
                         tbname = tbtmpname;
@@ -102,16 +133,16 @@ namespace FreeSql.Odbc.KingbaseES
                 }
                 //codefirst 不支持表名、模式名、数据库名中带 .
 
-                if (string.Compare(tbname[0], "PUBLIC", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys_namespace where nspname={0}", tbname[0])) == null) //创建模式
+                if (string.Compare(tbname[0], public_, true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql($" select 1 from {pg_}namespace where nspname={{0}}", tbname[0])) == null) //创建模式
                     sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format(" select 1 from sys_tables a inner join sys_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tbname)) == null)
+                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{{0}}.{{1}}'", tbname)) == null)
                 { //表不存在
                     if (tboldname != null)
                     {
-                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format(" select 1 from sys_tables a inner join sys_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tboldname)) == null)
+                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{{0}}.{{1}}'", tboldname)) == null)
                             //旧表不存在
                             tboldname = null;
                     }
@@ -171,7 +202,7 @@ namespace FreeSql.Odbc.KingbaseES
                     tboldname = null; //如果新表已经存在，不走改表名逻辑
 
                 //对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-                var sql = _commonUtils.FormatSql(@"
+                var sql = _commonUtils.FormatSql($@"
 select
 a.attname,
 t.typname,
@@ -179,18 +210,18 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem > 0 and t.typinput::varchar = 'ARRAY_IN' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
 --e.adsrc,
-(select sys_get_expr(adbin, adrelid) from sys_attrdef where adrelid = e.adrelid limit 1) is_identity,
+(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid limit 1) is_identity,
 a.attndims,
 d.description as comment
-from sys_class c
-inner join sys_attribute a on a.attnum > 0 and a.attrelid = c.oid
-inner join sys_type t on t.oid = a.atttypid
-left join sys_type t2 on t2.oid = t.typelem
-left join sys_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
-left join sys_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
-inner join sys_namespace ns on ns.oid = c.relnamespace
-inner join sys_namespace ns2 on ns2.oid = t.typnamespace
-where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
+from {pg_}class c
+inner join {pg_}attribute a on a.attnum > 0 and a.attrelid = c.oid
+inner join {pg_}type t on t.oid = a.atttypid
+left join {pg_}type t2 on t2.oid = t.typelem
+left join {pg_}description d on d.objoid = a.attrelid and d.objsubid = a.attnum
+left join {pg_}attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
+inner join {pg_}namespace ns on ns.oid = c.relnamespace
+inner join {pg_}namespace ns2 on ns2.oid = t.typnamespace
+where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a =>
                 {
@@ -269,18 +300,18 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NativeTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                     }
-                    var dsuksql = _commonUtils.FormatSql(@"
+                    var dsuksql = _commonUtils.FormatSql($@"
 select
 c.attname,
 b.relname,
-case when sys_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
+case when {pg_}index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
 case when indisunique = 't' then 1 else 0 end IsUnique
-from sys_index a
-inner join sys_class b on b.oid = a.indexrelid
-inner join sys_attribute c on c.attnum > 0 and c.attrelid = b.oid
-inner join sys_namespace ns on ns.oid = b.relnamespace
-inner join sys_class d on d.oid = a.indrelid
-where ns.nspname in ({0}) and d.relname in ({1}) and a.indisprimary = 'f'", tboldname ?? tbname);
+from {pg_}index a
+inner join {pg_}class b on b.oid = a.indexrelid
+inner join {pg_}attribute c on c.attnum > 0 and c.attrelid = b.oid
+inner join {pg_}namespace ns on ns.oid = b.relnamespace
+inner join {pg_}class d on d.oid = a.indrelid
+where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", tboldname ?? tbname);
                     var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                     foreach (var uk in tb.Indexes)
                     {
@@ -305,23 +336,23 @@ where ns.nspname in ({0}) and d.relname in ({1}) and a.indisprimary = 'f'", tbol
                 }
                 if (istmpatler == false)
                 {
-                    var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select
+                    var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql($@" select
 d.description
-from sys_class a
-inner join sys_namespace b on b.oid = a.relnamespace
-left join sys_description d on d.objoid = a.oid and objsubid = 0
-where b.nspname not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('r') and b.nspname = {0} and a.relname = {1}
-and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')", tbname[0], tbname[1])));
+from {pg_}class a
+inner join {pg_}namespace b on b.oid = a.relnamespace
+left join {pg_}description d on d.objoid = a.oid and objsubid = 0
+where upper(b.nspname) not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('r') and b.nspname = {{0}} and a.relname = {{1}}
+and upper(b.nspname || '.' || a.relname) not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')", tbname[0], tbname[1])));
                     if (dbcomment != (tb.Comment ?? ""))
                         sbalter.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
 
                     sb.Append(sbalter);
                     continue;
                 }
-                var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select sys_constraint.conname as pk_name from sys_constraint
-inner join sys_class on sys_constraint.conrelid = sys_class.oid
-inner join sys_namespace on sys_namespace.oid = sys_class.relnamespace
-where sys_namespace.nspname={0} and sys_class.relname={1} and sys_constraint.contype='p'
+                var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql($@" select {pg_}constraint.conname as pk_name from {pg_}constraint
+inner join {pg_}class on {pg_}constraint.conrelid = {pg_}class.oid
+inner join {pg_}namespace on {pg_}namespace.oid = {pg_}class.relnamespace
+where {pg_}namespace.nspname={{0}} and {pg_}class.relname={{1}} and {pg_}constraint.contype='p'
 ", tbname))?.ToString();
                 if (string.IsNullOrEmpty(oldpk) == false)
                     sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(oldpk).Append(";\r\n");

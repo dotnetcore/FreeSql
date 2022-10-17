@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 人大金仓数据库 V008R003 Ado.Net (Kdbndp)</Description>
+		<Description>FreeSql 数据库实现，基于 人大金仓数据库 V008R003/V008R006 Ado.Net (Kdbndp)</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -15,7 +15,7 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<Version>3.2.681</Version>
+		<Version>3.2.682</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
