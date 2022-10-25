@@ -422,12 +422,18 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText + "\r\n"))
+                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText + "\r\n"))
                 .UseLazyLoading(true)
                 //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.UseMessagePackMap();
+
+            fsql.Delete<MessagePackMapInfo>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new MessagePackMapInfo { id = Guid.NewGuid(), Info = new MessagePackMap01 { name = "0023 中国国家1", address = "001address" } }).ExecuteAffrows();
+            var rem1 = fsql.Select<MessagePackMapInfo>().ToList();
 
             var result1x = fsql.Ado.QuerySingle(() => new
             {

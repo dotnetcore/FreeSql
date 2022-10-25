@@ -2014,6 +2014,7 @@ namespace FreeSql.Internal
 
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToBytesIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
         {
             var returnTarget = Expression.Label(typeof(object));
@@ -2025,6 +2026,9 @@ namespace FreeSql.Internal
                     switch (type.FullName)
                     {
                         case "System.Byte[]":
+                            Expression callToBytesExp = Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)));
+                            foreach (var toBytesFunc in GetDataReaderValueBlockExpressionObjectToBytesIfThenElse)
+                                callToBytesExp = toBytesFunc(returnTarget, valueExp, callToBytesExp, type);
                             return Expression.IfThenElse(
                                 Expression.TypeEqual(valueExp, type),
                                 Expression.Return(returnTarget, valueExp),
@@ -2034,7 +2038,7 @@ namespace FreeSql.Internal
                                     Expression.IfThenElse(
                                         Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
                                         Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
-                                        Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
+                                        callToBytesExp
                                     )
                                 )
                             );

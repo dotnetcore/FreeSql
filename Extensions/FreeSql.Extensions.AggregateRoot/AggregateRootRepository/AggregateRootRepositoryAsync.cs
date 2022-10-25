@@ -42,6 +42,7 @@ namespace FreeSql
             var localAffrows = 0;
             try
             {
+                rootRepository.DbContextOptions.EnableCascadeSave = false;
                 return await LocalInsertAsync(rootRepository, rootEntitys, true);
             }
             finally

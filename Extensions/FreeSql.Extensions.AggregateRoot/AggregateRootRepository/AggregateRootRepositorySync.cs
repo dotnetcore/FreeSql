@@ -95,6 +95,7 @@ namespace FreeSql
             var localAffrows = 0;
             try
             {
+                rootRepository.DbContextOptions.EnableCascadeSave = false;
                 return LocalInsert(rootRepository, rootEntitys, true);
             }
             finally
