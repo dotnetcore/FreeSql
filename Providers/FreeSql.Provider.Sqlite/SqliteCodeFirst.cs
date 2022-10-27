@@ -33,7 +33,7 @@ namespace FreeSql.Sqlite
                 { typeof(float).FullName, CsToDb.New(DbType.Single, "float","float NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(DbType.Single, "float","float", false, true, null) },
                 { typeof(decimal).FullName, CsToDb.New(DbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(DbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(TimeSpan).FullName, CsToDb.New(DbType.Time, "bigint","bigint NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(DbType.Time, "bigint", "bigint",false, true, null) },
+                { typeof(TimeSpan).FullName, CsToDb.New(DbType.Time, "decimal","decimal(18,3) NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(DbType.Time, "decimal", "decimal(18,3)",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(DbType.DateTime, "datetime", "datetime NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(DbType.DateTime, "datetime", "datetime", false, true, null) },
 
                 { typeof(byte[]).FullName, CsToDb.New(DbType.Binary, "blob", "blob", false, null, new byte[0]) },

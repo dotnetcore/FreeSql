@@ -33,8 +33,8 @@ namespace FreeSql.Sqlite
                     break;
                 case DbType.Time:
                     if (value == null) value = null;
-                    else value = ((TimeSpan)value).Ticks / 10000;
-                    dbtype = DbType.Int64;
+                    else value = ((TimeSpan)value).TotalSeconds;
+                    dbtype = DbType.Decimal;
                     break;
             }
 #if MicrosoftData
@@ -65,8 +65,8 @@ namespace FreeSql.Sqlite
                             break;
                         case DbType.Time:
                             if (value == null) value = null;
-                            else value = ((TimeSpan)value).Ticks / 10000;
-                            dbtype = DbType.Int64;
+                            else value = ((TimeSpan)value).TotalSeconds;
+                            dbtype = DbType.Decimal;
                             break;
                     }
                 }

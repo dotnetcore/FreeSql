@@ -335,7 +335,7 @@ namespace FreeSql.Tests.Sqlite
                 ShortNullable = short.MinValue,
                 String = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 Char = 'X',
-                TimeSpan = TimeSpan.FromSeconds(999),
+                TimeSpan = TimeSpan.FromMilliseconds(999500),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
                 UInt = uint.MaxValue,
                 UIntNullable = uint.MinValue,
