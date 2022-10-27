@@ -181,9 +181,10 @@ namespace FreeSql
                     UnitOfWork.Dispose();
                     UnitOfWork = olduow;
                 }
-                return affrows;
+                return affrows + _db.SaveChanges();
             }
-            return _dbset.EndEdit(data);
+            var affrows2 = _dbset.EndEdit(data);
+            return affrows2 + _db.SaveChanges();
         }
     }
 
