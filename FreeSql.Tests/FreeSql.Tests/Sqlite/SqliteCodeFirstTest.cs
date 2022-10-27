@@ -347,6 +347,7 @@ namespace FreeSql.Tests.Sqlite
             };
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            var newitem2TimeSpan = select.Where(a => a.Id == item2.Id).First(a => a.TimeSpan);
             Assert.Equal(item2.String, newitem2.String);
             Assert.Equal(item2.Char, newitem2.Char);
 
