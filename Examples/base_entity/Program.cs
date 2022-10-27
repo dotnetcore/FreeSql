@@ -486,12 +486,14 @@ namespace base_entity
             Dictionary<string, object> dic = new Dictionary<string, object>();
             dic.Add("id", 1);
             dic.Add("name", "xxxx");
+            dic.Add("rowVersion", 100);
             var diclist = new List<Dictionary<string, object>>();
             diclist.Add(dic);
             diclist.Add(new Dictionary<string, object>
             {
                 ["id"] = 2,
-                ["name"] = "123,1234,123444"
+                ["name"] = "123,1234,123444",
+                ["rowVersion"] = 1
             });
 
             var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
@@ -505,6 +507,11 @@ namespace base_entity
             var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
             var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
             var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+
+            var sqlupd111 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").IsVersion("rowVersion").NoneParameter(false).ToSql();
+            var sqlupd221 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").IsVersion("rowVersion").NoneParameter(false).ToSql();
+            //fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").IsVersion("rowVersion").NoneParameter(false).ExecuteAffrows();
+            //fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").IsVersion("rowVersion").NoneParameter(false).ExecuteAffrows();
 
             var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
             var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();

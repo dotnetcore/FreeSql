@@ -1077,6 +1077,18 @@ SELECT ");
             }
             table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
         }
+        public UpdateDictImpl IsVersion(string version)
+        {
+            if (_updateProvider._table.ColumnsByCs.TryGetValue(version, out var col) == false)
+                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(version).Replace(nameof(GetPrimarys), ""));
+            //if (col.Attribute.MapType.IsNullableType() ||
+            //    col.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(col.Attribute.MapType))
+            //    throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(col.CsName));
+            col.Attribute.IsVersion = true;
+            _updateProvider._table.VersionColumn = col;
+            _updateProvider._versionColumn = col;
+            return this;
+        }
 
         public UpdateDictImpl AsTable(string tableName)
         {

@@ -138,7 +138,24 @@ namespace FreeSql.Internal.CommonProvider
                     throw new DbUpdateVersionException(CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(_source.Count, affrows), _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
                 {
-                    if (_versionColumn.Attribute.MapType == typeof(byte[])) 
+                    if (d is Dictionary<string, object> dict)
+                    {
+                        if (dict.ContainsKey(_versionColumn.CsName))
+                        {
+                            var val = dict[_versionColumn.CsName];
+                            if (val == null) continue;
+                            var valType = val.GetType();
+
+                            if (valType == typeof(byte[]))
+                                dict[_versionColumn.CsName] = _updateVersionValue;
+                            else if (valType == typeof(string))
+                                dict[_versionColumn.CsName] = _updateVersionValue;
+                            else if (int.TryParse(string.Concat(val), out var tryintver))
+                                dict[_versionColumn.CsName] = tryintver + 1;
+                        }
+                        continue;
+                    }
+                    if (_versionColumn.Attribute.MapType == typeof(byte[]))
                         _orm.SetEntityValueWithPropertyName(_table.Type, d, _versionColumn.CsName, _updateVersionValue);
                     else if (_versionColumn.Attribute.MapType == typeof(string))
                         _orm.SetEntityValueWithPropertyName(_table.Type, d, _versionColumn.CsName, _updateVersionValue);
