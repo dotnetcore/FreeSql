@@ -238,10 +238,10 @@ namespace FreeSql
                 if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以更新数据 {Orm.GetEntityString(EntityType, entity)}");
                 AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, null, tracking);
             }
+            var affrows = SaveTrackingChange(tracking);
             foreach (var entity in entitys)
                 Attach(entity);
-
-            return SaveTrackingChange(tracking);
+            return affrows;
         }
 
         public virtual int Delete(TEntity entity) => DeleteWithinBoundary(new[] { entity }, null);
@@ -285,8 +285,8 @@ namespace FreeSql
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
             AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
-            Attach(entity); //应该只存储 propertyName 内容
             SaveTrackingChange(tracking);
+            Attach(entity); //应该只存储 propertyName 内容
         }
 
 
