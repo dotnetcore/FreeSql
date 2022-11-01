@@ -218,7 +218,7 @@ namespace FreeSql
             if (flagExists == true)
             {
                 var affrows = Update(entity);
-                if (affrows > 0) return entity;
+                return entity;
             }
             if (table.Primarys.Where(a => a.Attribute.IsIdentity).Count() == table.Primarys.Length)
             {
