@@ -79,6 +79,36 @@
             软删除
             </summary>
         </member>
+        <member name="P:base_entity.抖店实时销售金额表.ID">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.店铺名称">
+            <summary>
+            店铺名称
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.日期">
+            <summary>
+            日期
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.品牌名称">
+            <summary>
+            品牌名称
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.成交金额">
+            <summary>
+            成交金额
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.更新时间">
+            <summary>
+            更新时间
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

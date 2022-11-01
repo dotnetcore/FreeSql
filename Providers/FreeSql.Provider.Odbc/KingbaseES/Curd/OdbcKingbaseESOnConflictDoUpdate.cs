@@ -132,9 +132,16 @@ namespace FreeSql.Odbc.KingbaseES
                         }
                         else if (_pgsqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
                         {
-                            var caseWhen = _pgsqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
-                            sb.Append(caseWhen);
-                            if (caseWhen.EndsWith(" END")) _pgsqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                            if (string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                            {
+                                sb.Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(col.DbUpdateValue);
+                            }
+                            else
+                            {
+                                var caseWhen = _pgsqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
+                                sb.Append(caseWhen);
+                                if (caseWhen.EndsWith(" END")) _pgsqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                            }
                         }
                         else
                         {

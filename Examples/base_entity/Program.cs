@@ -429,6 +429,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            var sqlt0a1 = fsql.InsertOrUpdate<抖店实时销售金额表>()
+                .SetSource(new 抖店实时销售金额表
+                {
+                    ID = 1,
+                    品牌名称 = "NIKE",
+                })
+                .ToSql();
+
             fsql.UseMessagePackMap();
 
             fsql.Delete<MessagePackMapInfo>().Where("1=1").ExecuteAffrows();
@@ -1605,4 +1614,42 @@ namespace base_entity
         }
     }
 
+    public class 抖店实时销售金额表
+    {
+        /// <summary>
+        /// ID
+        /// </summary>
+        [Column(Name = "ID", IsPrimary = true)]
+        public int ID { get; set; }
+
+        /// <summary>
+        /// 店铺名称
+        /// </summary>
+        [Column(Name = "店铺名称")]
+        public string 店铺名称 { get; set; }
+
+        /// <summary>
+        /// 日期
+        /// </summary>
+        [Column(Name = "日期")]
+        public DateTime 日期 { get; set; }
+
+        /// <summary>
+        /// 品牌名称
+        /// </summary>
+        [Column(Name = "品牌名称")]
+        public string 品牌名称 { get; set; }
+
+        /// <summary>
+        /// 成交金额
+        /// </summary>
+        [Column(Name = "成交金额")]
+        public decimal? 成交金额 { get; set; }
+
+        /// <summary>
+        /// 更新时间
+        /// </summary>
+        [Column(Name = "更新时间", CanInsert = false, CanUpdate = true, ServerTime = DateTimeKind.Local)]
+        public DateTime 更新时间 { get; set; }
+    }
 }
