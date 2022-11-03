@@ -21,8 +21,8 @@
 	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 		<None Include="lib\DmProvider\netstandard2.0\DmProvider.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
-		<None Include="lib\DmProvider\netcoreapp31\DmProvider.dll" Pack="true" PackagePath="\lib\netcoreapp31\" />
-		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
+		<None Include="lib\DmProvider\netcoreapp3.1\DmProvider.dll" Pack="true" PackagePath="\lib\netcoreapp3.1\" />
+		<None Include="lib\DmProvider\net45\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
 		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib/**/*.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -31,6 +31,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+	<ItemGroup >
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0"  Condition="'$(TargetFramework)' == 'netcoreapp3.1'"/>
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0"  Condition="'$(TargetFramework)' == 'netstandard2.0'"/>
 	</ItemGroup>
 
 	<ItemGroup>
