@@ -351,6 +351,15 @@ namespace base_entity
             public int aa { get; set; }
         }
 
+        [Table(Name = "db2.sql_AAA_attr")]
+        [Index("{tablename}_xxx1", nameof(aa))]
+        [Index("{tablename}_xxx2", nameof(aa))]
+        public class SqliteAAA
+        {
+            [Column(Name = "aa_attr")]
+            public int aa { get; set; }
+        }
+
         public class JoinConditionAttribute : Attribute
         {
             public string Condition { get; set; }
@@ -389,6 +398,7 @@ namespace base_entity
                
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
+                //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
 
@@ -429,6 +439,14 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            //fsql.CodeFirst.SyncStructure<SqliteAAA>();
+
+            fsql.CodeFirst.Entity<JoinTest01>(a => a.Property(p => p.code).IsRequired());
+            var repo1010 = fsql.GetRepository<JoinTest01>();
+            var jtitem = new JoinTest01 { id = 100 };
+            repo1010.Attach(jtitem);
+            jtitem.name = "name01";
+            repo1010.Update(jtitem);
 
             var sqlt0a1 = fsql.InsertOrUpdate<抖店实时销售金额表>()
                 .SetSource(new 抖店实时销售金额表
