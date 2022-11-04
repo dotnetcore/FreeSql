@@ -208,7 +208,8 @@ And other friends who made important suggestions for this project, they include:
 constantine, 
 [JohnZhou2020](https://github.com/JohnZhou2020), 
 [mafeng8](https://github.com/mafeng8), 
-[VicBilibily](https://github.com/VicBilibily), etc.
+[VicBilibily](https://github.com/VicBilibily), 
+[Soar](https://github.com/sgf) etc.
 
 ## 💕 Donation
 
