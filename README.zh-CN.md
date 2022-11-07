@@ -211,7 +211,7 @@ constantine,
 [mafeng8](https://github.com/mafeng8), 
 [VicBilibily](https://github.com/VicBilibily), 
 [Soar](https://github.com/sgf),
-QLR 等。
+[quzhen91](https://github.com/quzhen91) 等。
 
 ## 💕 Donation (捐赠)
 

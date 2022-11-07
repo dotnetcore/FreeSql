@@ -1536,6 +1536,17 @@ namespace FreeSql.Internal.CommonProvider
                 var bindings = new List<MemberBinding>();
                 if (imni.IsOutputPrimary) bindings.AddRange(imni.Table.Primarys.Select(a => Expression.Bind(imni.Table.Properties[a.CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[a.CsName]))));
                 if (imni.Childs.Any()) bindings.AddRange(imni.Childs.Select(a => Expression.Bind(imni.Table.Properties[a.Key], GetIncludeManyNewInitExpression(a.Value))));
+                var pgarrayToManys = imni.Table.GetAllTableRef().Select(tr =>
+                {
+                    if (tr.Value.RefType != TableRefType.PgArrayToMany) return null;
+                    var reftb = _orm.CodeFirst.GetTableByEntity(tr.Value.RefEntityType);
+                    if (tr.Value.RefColumns[0] == reftb.Primarys[0])
+                    {
+                        bindings.Add(Expression.Bind(imni.Table.Properties[tr.Value.Columns[0].CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[tr.Value.Columns[0].CsName])));
+                        return tr.Key;
+                    }
+                    return null;
+                }).ToList();
                 return Expression.MemberInit(imni.Table.Type.InternalNewExpression(), bindings);
             }
 
