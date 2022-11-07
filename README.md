@@ -209,7 +209,8 @@ constantine,
 [JohnZhou2020](https://github.com/JohnZhou2020), 
 [mafeng8](https://github.com/mafeng8), 
 [VicBilibily](https://github.com/VicBilibily), 
-[Soar](https://github.com/sgf) etc.
+[Soar](https://github.com/sgf),
+QLR etc.
 
 ## 💕 Donation
 
