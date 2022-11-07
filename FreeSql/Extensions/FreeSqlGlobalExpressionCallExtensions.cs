@@ -82,7 +82,7 @@ namespace FreeSql
         /// count() over(order by ...)
         /// </summary>
         /// <returns></returns>
-        public static ISqlOver<long> Count() => Over<long>("count()");
+        public static ISqlOver<long> Count(object column) => Over<long>($"count({expContext.Value.ParsedContent["column"]})");
         /// <summary>
         /// sum(..) over(order by ...)
         /// </summary>
@@ -93,7 +93,7 @@ namespace FreeSql
         /// avg(..) over(order by ...)
         /// </summary>
         /// <returns></returns>
-        public static ISqlOver<decimal> Avg() => Over<decimal>($"avg({expContext.Value.ParsedContent["column"]})");
+        public static ISqlOver<decimal> Avg(object column) => Over<decimal>($"avg({expContext.Value.ParsedContent["column"]})");
         /// <summary>
         /// max(..) over(order by ...)
         /// </summary>
