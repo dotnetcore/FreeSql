@@ -16,6 +16,18 @@ namespace FreeSql
             _repo = repo;
         }
 
+        IUnitOfWork _uowPriv;
+        internal override IUnitOfWork _uow
+        {
+            get => _uowPriv;
+            set
+            {
+                _uowPriv = value;
+                foreach (var dbset in _dicDbSetObjects.Values) //配合 UnitOfWorkManager
+                    dbset._uow = _uowPriv;
+            }
+        }
+
         protected override ISelect<TEntity> OrmSelect(object dywhere)
         {
             var select = base.OrmSelect(dywhere).AsTable(_repo.AsTableSelectValueInternal);

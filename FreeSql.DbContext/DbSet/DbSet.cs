@@ -29,7 +29,7 @@ namespace FreeSql
     public abstract partial class DbSet<TEntity> : IDbSet where TEntity : class
     {
         internal DbContext _db { get; set; }
-        internal IUnitOfWork _uow { get; set; }
+        internal virtual IUnitOfWork _uow { get; set; }
 
         protected virtual ISelect<TEntity> OrmSelect(object dywhere)
         {
@@ -163,7 +163,7 @@ namespace FreeSql
             return this;
         }
 
-        Dictionary<Type, DbSet<object>> _dicDbSetObjects = new Dictionary<Type, DbSet<object>>();
+        internal Dictionary<Type, DbSet<object>> _dicDbSetObjects = new Dictionary<Type, DbSet<object>>();
         DbSet<object> GetDbSetObject(Type et)
         {
             if (_dicDbSetObjects.TryGetValue(et, out var tryds)) return tryds;
