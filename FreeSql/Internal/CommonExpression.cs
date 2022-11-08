@@ -2502,7 +2502,7 @@ namespace FreeSql.Internal
                     if (whereGlobalFilter.Any()) select._whereGlobalFilter.AddRange(whereGlobalFilter);
                 }
             }
-            while (true)
+            while (exp3Stack.Any())
             {
                 var exp4 = exp3Stack.Pop();
                 if (exp4.NodeType == ExpressionType.MemberAccess)
@@ -2546,8 +2546,15 @@ namespace FreeSql.Internal
                     var callExp = exp4 as MethodCallExpression;
                     switch (callExp.Method.Name)
                     {
+                        case "Exists":
                         case "Any":
-                            if (callExp.Arguments.Count == 2)
+                            if (callExp.Method.Name == "Exists" && callExp.Arguments.Count == 1 && callExp.Type.IsGenericType && callExp.Type.GetGenericTypeDefinition().IsAssignableFrom(typeof(IList<>)))
+                            {
+                                select._tables[0].Parameter = (callExp.Arguments[0] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select.InternalWhere(callExp.Arguments[0]);
+                            }
+                            if (callExp.Method.Name == "Any" && callExp.Arguments.Count == 2)
                             {
                                 select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
                                 LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
