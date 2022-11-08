@@ -2059,6 +2059,25 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
 FROM [tb_topic22] a With(NoLock) 
 INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
 
+
+            sql2 = orm.Select<Topic>()
+                .WithSql("select * from topic with (nolock)")
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM ( select * from topic with (nolock) ) a 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
             sql2 = orm.Select<Topic>()
                 .InnerJoin(a => a.Type.Guid == a.Id)
                 .WithLock()
