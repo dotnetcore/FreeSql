@@ -221,11 +221,8 @@ namespace FreeSql
                 return entity;
             }
             if (table.Primarys.Where(a => a.Attribute.IsIdentity).Count() == table.Primarys.Length)
-            {
                 Orm.ClearEntityPrimaryValueWithIdentity(EntityType, entity);
-                return Insert(entity);
-            }
-            throw new Exception(DbContextStrings.CannotAdd_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, entity)));
+            return Insert(entity);
         }
 
         public virtual int Update(TEntity entity) => Update(new[] { entity });
