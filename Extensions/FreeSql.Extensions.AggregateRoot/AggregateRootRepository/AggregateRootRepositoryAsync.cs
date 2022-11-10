@@ -268,7 +268,8 @@ namespace FreeSql
                 UpdateColumns = b.Item4,
                 UpdateColumnsString = string.Join(",", b.Item4.OrderBy(c => c))
             }).ToArray());
-            var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => a.Value.ToDictionary(b => b.UpdateColumnsString, b => a.Value.Where(c => c.UpdateColumnsString == b.UpdateColumnsString).ToArray()));
+            var updateLogDict2 = updateLogDict.ToDictionary(a => a.Key, a => 
+                a.Value.GroupBy(b => b.UpdateColumnsString).ToDictionary(b => b.Key, b => a.Value.Where(c => c.UpdateColumnsString == b.Key).ToArray()));
             foreach (var dl in updateLogDict2)
             {
                 foreach (var dl2 in dl.Value)
