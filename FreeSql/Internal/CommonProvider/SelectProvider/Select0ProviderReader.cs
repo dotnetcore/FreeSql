@@ -483,7 +483,11 @@ namespace FreeSql.Internal.CommonProvider
                             var curPropName = parentNameSplits[k];
                             if (curTb.Table.Properties.TryGetValue(parentNameSplits[k], out var tryprop) == false)
                             {
-                                k++;
+                                if (++k >= parentNameSplits.Length)
+                                {
+                                    iscontinue = true;
+                                    break;
+                                }
                                 curPropName = $"{curPropName}__{parentNameSplits[k]}";
                                 if (curTb.Table.Properties.TryGetValue(parentNameSplits[k], out tryprop) == false)
                                 {
