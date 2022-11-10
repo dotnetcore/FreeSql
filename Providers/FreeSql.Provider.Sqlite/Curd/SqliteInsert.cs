@@ -58,6 +58,22 @@ namespace FreeSql.Sqlite.Curd
             return ret;
         }
 
+        public override string ToSql()
+        {
+            if (_table.Columns.Count == 1 && _table.ColumnsByPosition[0].Attribute.IsIdentity)
+            {
+                var sb = new StringBuilder();
+                var didx = 0;
+                foreach (var d in _source)
+                {
+                    if (didx++ > 0) sb.Append(";\r\n");
+                    sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" DEFAULT VALUES");
+                }
+                return sb.ToString();
+            }
+            return base.ToSql();
+        }
+
 #if net40
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
