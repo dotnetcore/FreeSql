@@ -1019,6 +1019,9 @@ namespace FreeSql.Internal
                                 }
                                 else if (exp3.Arguments[a].IsParameter())
                                     exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+
+                                else if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(exp3.Arguments[a].Type.NullableTypeOrThis()) == false)
+                                    exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                                 else
                                 {
                                     var exp3CsValue = eccContent.StartsWith("N'") ?
@@ -1045,8 +1048,8 @@ namespace FreeSql.Internal
                             typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), ecc, null);
                         try
                         {
-                            var sqlRet = exp3.Method.Invoke(null, exp3InvokeParams);
-                            if (string.IsNullOrEmpty(ecc.Result) && sqlRet is string) ecc.Result = string.Concat(sqlRet);
+                            var invokeReturn = exp3.Method.Invoke(null, exp3InvokeParams);
+                            if (string.IsNullOrEmpty(ecc.Result) && invokeReturn is string) ecc.Result = string.Concat(invokeReturn);
                             if (string.IsNullOrEmpty(ecc.Result) && exp3MethodParams.Any()) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
                             if (ecc.UserParameters?.Any() == true) tsc.dbParams?.AddRange(ecc.UserParameters);
                             return ecc.Result;

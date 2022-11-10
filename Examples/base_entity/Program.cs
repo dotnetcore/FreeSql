@@ -439,6 +439,16 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            var tttsqlext01 = fsql.Select<User1>().ToSql(a => new
+            {
+                cou = SqlExt.Count(1).Over().PartitionBy(a.Id).ToValue(),
+                avg = SqlExt.Avg(1).Over().PartitionBy(a.Id).ToValue()
+
+            });
+
+
+
             //fsql.CodeFirst.SyncStructure<SqliteAAA>();
 
             fsql.CodeFirst.Entity<JoinTest01>(a => a.Property(p => p.code).IsRequired());
