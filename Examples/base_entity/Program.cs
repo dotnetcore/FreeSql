@@ -4,6 +4,7 @@ using FreeSql.Extensions;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
+using FreeSql.Odbc.Default;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -381,8 +382,39 @@ namespace base_entity
         }
         public enum JoinTest01Enum { f1, f2, f3 }
 
+        public class AccessOdbcAdapter : OdbcAdapter
+        {
+            public override string UnicodeStringRawSql(object value, ColumnInfo mapColumn) => value == null ? "NULL" : string.Concat("'", value.ToString().Replace("'", "''"), "'");
+        }
+        private static IFreeSql CreateInstance(string connectString, DataType type)
+        {
+            IFreeSql client = new FreeSqlBuilder()
+                .UseConnectionString(type, connectString)
+                .Build();
+            if (DataType.Odbc.Equals(type))
+            {
+                client.SetOdbcAdapter(new AccessOdbcAdapter());
+            }
+            return client;
+        }
+
         static void Main(string[] args)
         {
+            using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
+            {
+                Dictionary<string, object> data = new Dictionary<string, object>();
+                data.Add("ExpNo", "RSP0950008");
+                data.Add("SPoint", "RSP0950004");
+                data.Add("EPoint", "RSP095000440");
+                data.Add("PType", "RS");
+                data.Add("GType", "窨井轮廓线");
+                data.Add("LineStyle", 2);
+                data.Add("Memo", null);
+                data.Add("ClassID", null);
+                var kdkdksqlxx = client.InsertDict(data).AsTable("FZLINE").ToSql();
+            }
+
+
             BaseModel<User1>.fsql = 1;
             BaseModel<UserGroup>.fsql = 2;
             Console.WriteLine(BaseModel<User1>.fsql);
