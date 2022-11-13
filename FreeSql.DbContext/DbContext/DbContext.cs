@@ -83,20 +83,29 @@ namespace FreeSql
 
         #region Set
         static ConcurrentDictionary<Type, NativeTuple<PropertyInfo[], bool>> _dicGetDbSetProps = new ConcurrentDictionary<Type, NativeTuple<PropertyInfo[], bool>>();
+        static object _lockOnModelCreating = new object();
         internal void InitPropSets()
         {
             var thisType = this.GetType();
-            var dicval = _dicGetDbSetProps.GetOrAdd(thisType, tp =>
-                NativeTuple.Create(
-                    tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
-                        .Where(a => a.PropertyType.IsGenericType &&
-                            a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray(),
-                    false));
-            if (dicval.Item2 == false)
+            var isOnModelCreating = false;
+            if (_dicGetDbSetProps.TryGetValue(thisType, out var dicval) == false)
             {
-                if (_dicGetDbSetProps.TryUpdate(thisType, NativeTuple.Create(dicval.Item1, true), dicval))
-                    OnModelCreating(OrmOriginal.CodeFirst);
+                lock (_lockOnModelCreating)
+                {
+                    if (_dicGetDbSetProps.TryGetValue(thisType, out dicval) == false)
+                    {
+                        dicval = NativeTuple.Create(
+                            thisType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
+                                .Where(a => a.PropertyType.IsGenericType && 
+                                    a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray(),
+                            false);
+                        _dicGetDbSetProps.TryAdd(thisType, dicval);
+                        isOnModelCreating = true;
+                    }
+                }
             }
+            if (isOnModelCreating)
+                OnModelCreating(OrmOriginal.CodeFirst);
 
             foreach (var prop in dicval.Item1)
             {
