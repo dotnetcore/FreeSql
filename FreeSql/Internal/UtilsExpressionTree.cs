@@ -2458,6 +2458,7 @@ namespace FreeSql.Internal
                     }
                     if (sidx < sql.Length && sql[sidx] == '\'')
                     {
+                        sidx++;
                         startLength += 2;
                         continue;
                     }

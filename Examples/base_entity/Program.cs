@@ -400,6 +400,10 @@ namespace base_entity
 
         static void Main(string[] args)
         {
+            var pams = new Dictionary<string, string>();
+            var sql2rscs = Utils.ReplaceSqlConstString("'', 'SARTEN ACERO VITR.18CM''''GRAFIT''''', 'a",
+                pams, "@lantin1");
+
             using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
             {
                 Dictionary<string, object> data = new Dictionary<string, object>();
@@ -409,8 +413,8 @@ namespace base_entity
                 data.Add("PType", "RS");
                 data.Add("GType", "窨井轮廓线");
                 data.Add("LineStyle", 2);
-                data.Add("Memo", null);
-                data.Add("ClassID", null);
+                data.Add("Memo", DBNull.Value);
+                data.Add("ClassID", DBNull.Value);
                 var kdkdksqlxx = client.InsertDict(data).AsTable("FZLINE").ToSql();
             }
 
