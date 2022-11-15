@@ -406,6 +406,18 @@ namespace base_entity
 
             using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
             {
+                client.Aop.AuditValue += (_, e) =>
+                {
+                    if (e.Object is Dictionary<string, object> dict)
+                    {
+                        foreach(var key in dict.Keys)
+                        {
+                            var val = dict[key];
+                            if (val == DBNull.Value) dict[key] = null;
+                        }
+                        e.ObjectAuditBreak = true;
+                    }
+                };
                 Dictionary<string, object> data = new Dictionary<string, object>();
                 data.Add("ExpNo", "RSP0950008");
                 data.Add("SPoint", "RSP0950004");
