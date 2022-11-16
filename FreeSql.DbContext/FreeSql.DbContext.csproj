@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net60;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net70;net60;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Firebird, Odbc, 达梦, 人大金仓, 神舟通用, 南大通用, 翰高, And Access</Description>
@@ -33,13 +33,16 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50' or '$(TargetFramework)' == 'netcoreapp31' or '$(TargetFramework)' == 'netcoreapp21'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net70' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50' or '$(TargetFramework)' == 'netcoreapp31' or '$(TargetFramework)' == 'netcoreapp21'">
 		<DefineConstants>netcoreapp</DefineConstants>
 	</PropertyGroup>
 
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net60'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net70'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net50'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
