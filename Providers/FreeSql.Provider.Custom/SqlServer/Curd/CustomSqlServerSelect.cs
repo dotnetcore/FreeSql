@@ -45,7 +45,7 @@ namespace FreeSql.Custom.SqlServer
 
                 if (_limit > 0 || _skip > 0)
                 {
-                    if (string.IsNullOrEmpty(_orderby))
+                    if (string.IsNullOrEmpty(_orderby) && (_limit > 1 || _skip > 0))  //TOP 1 不自动 order by
                     {
                         if (string.IsNullOrEmpty(_groupby))
                         {
