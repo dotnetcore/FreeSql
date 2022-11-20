@@ -17,7 +17,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.2.683-preview20221118</Version>
+		<Version>3.2.683</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

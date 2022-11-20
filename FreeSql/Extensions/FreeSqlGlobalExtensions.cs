@@ -896,7 +896,8 @@ SELECT ");
     static void LocalReplaceDictDBNullValue(Dictionary<string, object> dict)
     {
         if (dict == null) return;
-        foreach (var key in dict.Keys)
+        var keys = dict.Keys;
+        foreach (var key in keys)
         {
             var val = dict[key];
             if (val == DBNull.Value) dict[key] = null;
