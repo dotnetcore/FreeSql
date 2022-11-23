@@ -404,31 +404,31 @@ namespace base_entity
             var sql2rscs = Utils.ReplaceSqlConstString("'', 'SARTEN ACERO VITR.18CM''''GRAFIT''''', 'a",
                 pams, "@lantin1");
 
-            using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
-            {
-                client.Aop.AuditValue += (_, e) =>
-                {
-                    if (e.Object is Dictionary<string, object> dict)
-                    {
-                        foreach(var key in dict.Keys)
-                        {
-                            var val = dict[key];
-                            if (val == DBNull.Value) dict[key] = null;
-                        }
-                        e.ObjectAuditBreak = true;
-                    }
-                };
-                Dictionary<string, object> data = new Dictionary<string, object>();
-                data.Add("ExpNo", "RSP0950008");
-                data.Add("SPoint", "RSP0950004");
-                data.Add("EPoint", "RSP095000440");
-                data.Add("PType", "RS");
-                data.Add("GType", "窨井轮廓线");
-                data.Add("LineStyle", 2);
-                data.Add("Memo", DBNull.Value);
-                data.Add("ClassID", DBNull.Value);
-                var kdkdksqlxx = client.InsertDict(data).AsTable("FZLINE").ToSql();
-            }
+            //using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
+            //{
+            //    client.Aop.AuditValue += (_, e) =>
+            //    {
+            //        if (e.Object is Dictionary<string, object> dict)
+            //        {
+            //            foreach(var key in dict.Keys)
+            //            {
+            //                var val = dict[key];
+            //                if (val == DBNull.Value) dict[key] = null;
+            //            }
+            //            e.ObjectAuditBreak = true;
+            //        }
+            //    };
+            //    Dictionary<string, object> data = new Dictionary<string, object>();
+            //    data.Add("ExpNo", "RSP0950008");
+            //    data.Add("SPoint", "RSP0950004");
+            //    data.Add("EPoint", "RSP095000440");
+            //    data.Add("PType", "RS");
+            //    data.Add("GType", "窨井轮廓线");
+            //    data.Add("LineStyle", 2);
+            //    data.Add("Memo", DBNull.Value);
+            //    data.Add("ClassID", DBNull.Value);
+            //    var kdkdksqlxx = client.InsertDict(data).AsTable("FZLINE").ToSql();
+            //}
 
 
             BaseModel<User1>.fsql = 1;
@@ -486,6 +486,16 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            //Func<string> getName1 = () => "xxx";
+            //fsql.GlobalFilter.Apply<User1>("fil1", a => a.Nickname == getName1());
+            //var gnsql2 = fsql.Select<User1>().ToSql();
+
+            var strs = new string[] { "a", "b", "c" };
+            var strssql1 = fsql.Select<User1>().Where(a => strs.Any(b => b == a.Nickname)).ToSql();
+            var strssql2 = fsql.Select<User1>().Where(a => strs.Any(b => a.Nickname.Contains(b))).ToSql();
+            var objs = new UserGroup[] { new UserGroup { GroupName = "a", Id = 1 }, new UserGroup { GroupName = "b", Id = 2 }, new UserGroup { GroupName = "c", Id = 3 } };
+            var objssql1 = fsql.Select<User1>().Where(a => objs.Any(b => b.GroupName == a.Nickname && b.Id == a.GroupId)).ToSql();
 
 
             var tttsqlext01 = fsql.Select<User1>().ToSql(a => new

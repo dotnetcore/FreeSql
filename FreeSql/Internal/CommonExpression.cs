@@ -2286,6 +2286,12 @@ namespace FreeSql.Internal
                     return Expression.Property(_replaceExp, node.Member.Name);
                 return base.VisitMember(node);
             }
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (node == oldParameter)
+                    return _replaceExp;
+                return base.VisitParameter(node);
+            }
         }
 
         public class ReplaceHzyTupleToMultiParam : ExpressionVisitor
