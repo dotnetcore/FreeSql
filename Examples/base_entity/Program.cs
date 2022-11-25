@@ -487,9 +487,37 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var dkdksql =  fsql.Select<User1>().WithLock().From<UserGroup>()
+                .InnerJoin<UserGroup>((user, usergroup) => user.GroupId == usergroup.Id && usergroup.GroupName == "xxx")
+                .ToSql();
+
             //Func<string> getName1 = () => "xxx";
             //fsql.GlobalFilter.Apply<User1>("fil1", a => a.Nickname == getName1());
             //var gnsql2 = fsql.Select<User1>().ToSql();
+
+            using (var ctx9 = fsql.CreateDbContext())
+            {
+                //var uset = ctx9.Set<UserGroup>();
+                //var item = new UserGroup
+                //{
+                //    GroupName = "group1"
+                //};
+                //uset.Add(item);
+                //item.GroupName = "group1_2";
+                //uset.Update(item);
+                var uset = ctx9.Set<User1>();
+                var item = new User1
+                {
+                    Nickname = "nick1",
+                    Username = "user1"
+                };
+                uset.Add(item);
+                item.Nickname = "nick1_2";
+                item.Username = "user1_2";
+                uset.Update(item);
+
+                ctx9.SaveChanges();
+            }
 
             var strs = new string[] { "a", "b", "c" };
             var strssql1 = fsql.Select<User1>().Where(a => strs.Any(b => b == a.Nickname)).ToSql();
