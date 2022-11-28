@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<DelaySign>false</DelaySign>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
-		<Version>3.2.683-preview20221101</Version>
+		<Version>3.2.684-preview20221124</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net451'">
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50'">
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.4" />

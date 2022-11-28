@@ -615,18 +615,21 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
+            if (_tables.Count > 1 && _tables[1].Table.Type == typeof(T2)) _tables[1].Parameter = exp.Parameters[1];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
         public TSelect InnerJoin<T2>(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
+            if (_tables.Count > 1 && _tables[1].Table.Type == typeof(T2)) _tables[1].Parameter = exp.Parameters[1];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
         }
         public TSelect RightJoin<T2>(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
+            if (_tables.Count > 1 && _tables[1].Table.Type == typeof(T2)) _tables[1].Parameter = exp.Parameters[1];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
         }
 

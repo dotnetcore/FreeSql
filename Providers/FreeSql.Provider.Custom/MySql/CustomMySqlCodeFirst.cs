@@ -200,7 +200,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 
                     if (istmpatler == false)
                     {
-                        var existsPrimary = LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1", tbname));
+                        var existsPrimary = LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" select 1 from information_schema.columns where table_schema={0} and table_name={1} and column_key = 'PRI' limit 1", tbname));
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;

@@ -210,8 +210,8 @@ constantine,
 [JohnZhou2020](https://github.com/JohnZhou2020), 
 [mafeng8](https://github.com/mafeng8), 
 [VicBilibily](https://github.com/VicBilibily), 
-[Soar](https://github.com/sgf) 等。
-
+[Soar](https://github.com/sgf),
+[quzhen91](https://github.com/quzhen91) 等。
 
 ## 💕 Donation (捐赠)
 

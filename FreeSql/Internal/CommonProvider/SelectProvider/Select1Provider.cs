@@ -1336,25 +1336,28 @@ namespace FreeSql.Internal.CommonProvider
                                 }).ToArray();
                                 var arrExp = Expression.NewArrayInit(tbref.RefColumns[0].CsType, listKeys.Where(a => a != null).SelectMany(a => a).Distinct()
                                     .Select(a => Expression.Constant(Utils.GetDataReaderValue(tbref.RefColumns[0].CsType, a), tbref.RefColumns[0].CsType)).ToArray());
-                                var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
-                                var containsMethod = _dicTypeMethod.GetOrAdd(tbref.RefColumns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
-                                    typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.RefColumns[0].CsType);
-                                var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
-                                subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
-                                    Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
-
-                                if (isAsync)
+                                if (arrExp.Expressions.Any())
                                 {
+                                    var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
+                                    var containsMethod = _dicTypeMethod.GetOrAdd(tbref.RefColumns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
+                                        typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.RefColumns[0].CsType);
+                                    var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
+                                    subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
+                                        Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
+
+                                    if (isAsync)
+                                    {
 #if net40
 #else
-                                    if (selectExp == null) subList = await subSelect.ToListAsync(true, cancellationToken);
-                                    else subList = await subSelect.ToListAsync<TNavigate>(selectExp, cancellationToken);
+                                        if (selectExp == null) subList = await subSelect.ToListAsync(true, cancellationToken);
+                                        else subList = await subSelect.ToListAsync<TNavigate>(selectExp, cancellationToken);
 #endif
-                                }
-                                else
-                                {
-                                    if (selectExp == null) subList = subSelect.ToList(true);
-                                    else subList = subSelect.ToList<TNavigate>(selectExp);
+                                    }
+                                    else
+                                    {
+                                        if (selectExp == null) subList = subSelect.ToList(true);
+                                        else subList = subSelect.ToList<TNavigate>(selectExp);
+                                    }
                                 }
 
                                 if (subList.Any() == false)
@@ -1536,6 +1539,17 @@ namespace FreeSql.Internal.CommonProvider
                 var bindings = new List<MemberBinding>();
                 if (imni.IsOutputPrimary) bindings.AddRange(imni.Table.Primarys.Select(a => Expression.Bind(imni.Table.Properties[a.CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[a.CsName]))));
                 if (imni.Childs.Any()) bindings.AddRange(imni.Childs.Select(a => Expression.Bind(imni.Table.Properties[a.Key], GetIncludeManyNewInitExpression(a.Value))));
+                var pgarrayToManys = imni.Table.GetAllTableRef().Select(tr =>
+                {
+                    if (tr.Value.RefType != TableRefType.PgArrayToMany) return null;
+                    var reftb = _orm.CodeFirst.GetTableByEntity(tr.Value.RefEntityType);
+                    if (tr.Value.RefColumns[0] == reftb.Primarys[0])
+                    {
+                        bindings.Add(Expression.Bind(imni.Table.Properties[tr.Value.Columns[0].CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[tr.Value.Columns[0].CsName])));
+                        return tr.Key;
+                    }
+                    return null;
+                }).ToList();
                 return Expression.MemberInit(imni.Table.Type.InternalNewExpression(), bindings);
             }
 

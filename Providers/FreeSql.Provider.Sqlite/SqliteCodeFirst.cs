@@ -136,7 +136,7 @@ namespace FreeSql.Sqlite
                         {
                             sb.Append("CREATE ");
                             if (uk.IsUnique) sb.Append("UNIQUE ");
-                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tbname[1]).Append("(");
+                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(tbname[0], ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tbname[1]).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -213,7 +213,7 @@ namespace FreeSql.Sqlite
                     {
                         if (string.Concat(dbIndex[3]) == "pk") continue;
                         var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_INFO({dbIndex[1]})");
-                        var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM sqlite_master WHERE name = '{dbIndex[1]}'"));
+                        var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM {_commonUtils.QuoteSqlName(tbtmp[0])}.sqlite_master WHERE name = '{dbIndex[1]}'"));
                         foreach (var dbcolumn in dbIndexesColumns)
                         {
                             var dbcolumnName = string.Concat(dbcolumn[2]);
@@ -292,7 +292,7 @@ namespace FreeSql.Sqlite
                 {
                     sb.Append("CREATE ");
                     if (uk.IsUnique) sb.Append("UNIQUE ");
-                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON \"").Append(tablenameOnlyTb).Append("\"(");
+                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(tbname[0], ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON \"").Append(tablenameOnlyTb).Append("\"(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));

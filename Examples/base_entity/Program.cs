@@ -4,6 +4,7 @@ using FreeSql.Extensions;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
+using FreeSql.Odbc.Default;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -351,6 +352,15 @@ namespace base_entity
             public int aa { get; set; }
         }
 
+        [Table(Name = "db2.sql_AAA_attr")]
+        [Index("{tablename}_xxx1", nameof(aa))]
+        [Index("{tablename}_xxx2", nameof(aa))]
+        public class SqliteAAA
+        {
+            [Column(Name = "aa_attr")]
+            public int aa { get; set; }
+        }
+
         public class JoinConditionAttribute : Attribute
         {
             public string Condition { get; set; }
@@ -372,8 +382,55 @@ namespace base_entity
         }
         public enum JoinTest01Enum { f1, f2, f3 }
 
+        public class AccessOdbcAdapter : OdbcAdapter
+        {
+            public override string UnicodeStringRawSql(object value, ColumnInfo mapColumn) => value == null ? "NULL" : string.Concat("'", value.ToString().Replace("'", "''"), "'");
+        }
+        private static IFreeSql CreateInstance(string connectString, DataType type)
+        {
+            IFreeSql client = new FreeSqlBuilder()
+                .UseConnectionString(type, connectString)
+                .Build();
+            if (DataType.Odbc.Equals(type))
+            {
+                client.SetOdbcAdapter(new AccessOdbcAdapter());
+            }
+            return client;
+        }
+
         static void Main(string[] args)
         {
+            var pams = new Dictionary<string, string>();
+            var sql2rscs = Utils.ReplaceSqlConstString("'', 'SARTEN ACERO VITR.18CM''''GRAFIT''''', 'a",
+                pams, "@lantin1");
+
+            //using (IFreeSql client = CreateInstance(@"Driver={Microsoft Access Driver (*.mdb)};DBQ=d:/accdb/2007.accdb", DataType.Odbc))
+            //{
+            //    client.Aop.AuditValue += (_, e) =>
+            //    {
+            //        if (e.Object is Dictionary<string, object> dict)
+            //        {
+            //            foreach(var key in dict.Keys)
+            //            {
+            //                var val = dict[key];
+            //                if (val == DBNull.Value) dict[key] = null;
+            //            }
+            //            e.ObjectAuditBreak = true;
+            //        }
+            //    };
+            //    Dictionary<string, object> data = new Dictionary<string, object>();
+            //    data.Add("ExpNo", "RSP0950008");
+            //    data.Add("SPoint", "RSP0950004");
+            //    data.Add("EPoint", "RSP095000440");
+            //    data.Add("PType", "RS");
+            //    data.Add("GType", "窨井轮廓线");
+            //    data.Add("LineStyle", 2);
+            //    data.Add("Memo", DBNull.Value);
+            //    data.Add("ClassID", DBNull.Value);
+            //    var kdkdksqlxx = client.InsertDict(data).AsTable("FZLINE").ToSql();
+            //}
+
+
             BaseModel<User1>.fsql = 1;
             BaseModel<UserGroup>.fsql = 2;
             Console.WriteLine(BaseModel<User1>.fsql);
@@ -389,6 +446,7 @@ namespace base_entity
                
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
+                //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
 
@@ -429,6 +487,62 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var dkdksql =  fsql.Select<User1>().WithLock().From<UserGroup>()
+                .InnerJoin<UserGroup>((user, usergroup) => user.GroupId == usergroup.Id && usergroup.GroupName == "xxx")
+                .ToSql();
+
+            //Func<string> getName1 = () => "xxx";
+            //fsql.GlobalFilter.Apply<User1>("fil1", a => a.Nickname == getName1());
+            //var gnsql2 = fsql.Select<User1>().ToSql();
+
+            using (var ctx9 = fsql.CreateDbContext())
+            {
+                //var uset = ctx9.Set<UserGroup>();
+                //var item = new UserGroup
+                //{
+                //    GroupName = "group1"
+                //};
+                //uset.Add(item);
+                //item.GroupName = "group1_2";
+                //uset.Update(item);
+                var uset = ctx9.Set<User1>();
+                var item = new User1
+                {
+                    Nickname = "nick1",
+                    Username = "user1"
+                };
+                uset.Add(item);
+                item.Nickname = "nick1_2";
+                item.Username = "user1_2";
+                uset.Update(item);
+
+                ctx9.SaveChanges();
+            }
+
+            var strs = new string[] { "a", "b", "c" };
+            var strssql1 = fsql.Select<User1>().Where(a => strs.Any(b => b == a.Nickname)).ToSql();
+            var strssql2 = fsql.Select<User1>().Where(a => strs.Any(b => a.Nickname.Contains(b))).ToSql();
+            var objs = new UserGroup[] { new UserGroup { GroupName = "a", Id = 1 }, new UserGroup { GroupName = "b", Id = 2 }, new UserGroup { GroupName = "c", Id = 3 } };
+            var objssql1 = fsql.Select<User1>().Where(a => objs.Any(b => b.GroupName == a.Nickname && b.Id == a.GroupId)).ToSql();
+
+
+            var tttsqlext01 = fsql.Select<User1>().ToSql(a => new
+            {
+                cou = SqlExt.Count(1).Over().PartitionBy(a.Id).ToValue(),
+                avg = SqlExt.Avg(1).Over().PartitionBy(a.Id).ToValue()
+
+            });
+
+
+
+            //fsql.CodeFirst.SyncStructure<SqliteAAA>();
+
+            fsql.CodeFirst.Entity<JoinTest01>(a => a.Property(p => p.code).IsRequired());
+            var repo1010 = fsql.GetRepository<JoinTest01>();
+            var jtitem = new JoinTest01 { id = 100 };
+            repo1010.Attach(jtitem);
+            jtitem.name = "name01";
+            repo1010.Update(jtitem);
 
             var sqlt0a1 = fsql.InsertOrUpdate<抖店实时销售金额表>()
                 .SetSource(new 抖店实时销售金额表

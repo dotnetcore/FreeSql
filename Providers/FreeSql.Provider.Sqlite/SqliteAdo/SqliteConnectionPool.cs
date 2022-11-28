@@ -76,7 +76,7 @@ namespace FreeSql.Sqlite
             {
                 _connectionString = value ?? "";
 
-                var minPoolSize = 0;
+                var minPoolSize = 1;
                 var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
                 var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success)

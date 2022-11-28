@@ -2028,6 +2028,11 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
                 Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock)", sql);
                 orm.Select<ToUpd1Pk>().WithLock().Limit(1).ToList();
 
+                sql = orm.Select<ToUpd1Pk>().WithLock().WithIndex("idx_01").Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(index=idx_01, NoLock)", sql);
+                sql = orm.Select<ToUpd1Pk>().WithIndex("idx_01").WithLock().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock, index=idx_01)", sql);
+
                 sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock).Limit(1).ToSql().Replace("\r\n", "");
                 Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock)", sql);
                 orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock).Limit(1).ToList();
@@ -2039,6 +2044,11 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
                 sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).Limit(1).ToSql().Replace("\r\n", "");
                 Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(UpdLock, RowLock, NoWait)", sql);
                 orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).WithIndex("idx_01").Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(index=idx_01, UpdLock, RowLock, NoWait)", sql);
+                sql = orm.Select<ToUpd1Pk>().WithIndex("idx_01").WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(UpdLock, RowLock, NoWait, index=idx_01)", sql);
             });
 
             var sql2 = orm.Select<Topic>()
@@ -2048,6 +2058,46 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT TOP 10 b.[Title]
             Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
 FROM [tb_topic22] a With(NoLock) 
 INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+
+            sql2 = orm.Select<Topic>()
+                .WithSql("select * from topic with (nolock)")
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM ( select * from topic with (nolock) ) a 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .WithIndex("idx_02")
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(index=idx_02, NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+            sql2 = orm.Select<Topic>()
+                .InnerJoin(a => a.Type.Guid == a.Id)
+                .WithLock()
+                .WithIndex("idx_02", new Dictionary<Type, string>
+                {
+                    [typeof(TestTypeInfo)] = "idx_03"
+                })
+                .ToSql();
+            Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a__Type.[Guid], a__Type.[ParentId], a__Type.[Name], a.[Title], a.[CreateTime] 
+FROM [tb_topic22] a With(index=idx_02, NoLock) 
+INNER JOIN [TestTypeInfo] a__Type With(index=idx_03, NoLock) ON a__Type.[Guid] = a.[Id]", sql2);
+
 
             sql2 = orm.Select<Topic>()
                 .InnerJoin(a => a.Type.Guid == a.Id)

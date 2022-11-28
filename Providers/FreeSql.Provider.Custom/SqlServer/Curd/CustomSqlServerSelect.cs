@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Custom.SqlServer
 {
@@ -44,7 +45,7 @@ namespace FreeSql.Custom.SqlServer
 
                 if (_limit > 0 || _skip > 0)
                 {
-                    if (string.IsNullOrEmpty(_orderby))
+                    if (string.IsNullOrEmpty(_orderby) && (_limit > 1 || _skip > 0))  //TOP 1 不自动 order by
                     {
                         if (string.IsNullOrEmpty(_groupby))
                         {
@@ -63,13 +64,15 @@ namespace FreeSql.Custom.SqlServer
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
+                    var alias = LocalGetTableAlias(tbsfrom[a].Table.Type, tbUnion[tbsfrom[a].Table.Type], tbsfrom[a].Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(alias);
                     if (tbsjoin.Length > 0)
                     {
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            alias = LocalGetTableAlias(tbsfrom[b].Table.Type, tbUnion[tbsfrom[b].Table.Type], tbsfrom[b].Alias, _aliasRule);
+                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(alias);
 
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
                             else
@@ -110,7 +113,8 @@ namespace FreeSql.Custom.SqlServer
                             sb.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+                    var alias = LocalGetTableAlias(tb.Table.Type, tbUnion[tb.Table.Type], tb.Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
                     if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
@@ -165,7 +169,7 @@ namespace FreeSql.Custom.SqlServer
                 if (tbUnionsIdx > 0) sb.Append("\r\n \r\nUNION ALL\r\n \r\n");
                 if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
-                
+
                 var sbnav = new StringBuilder();
                 sb.Append(_select);
                 if (_distinct) sb.Append("DISTINCT ");
@@ -176,13 +180,15 @@ namespace FreeSql.Custom.SqlServer
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
+                    var alias = LocalGetTableAlias(tbsfrom[a].Table.Type, tbUnion[tbsfrom[a].Table.Type], tbsfrom[a].Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(alias);
                     if (tbsjoin.Length > 0)
                     {
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            alias = LocalGetTableAlias(tbsfrom[b].Table.Type, tbUnion[tbsfrom[b].Table.Type], tbsfrom[b].Alias, _aliasRule);
+                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(alias);
 
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
                             else
@@ -223,7 +229,8 @@ namespace FreeSql.Custom.SqlServer
                             sb.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+                    var alias = LocalGetTableAlias(tb.Table.Type, tbUnion[tb.Table.Type], tb.Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
                     if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
@@ -270,6 +277,17 @@ namespace FreeSql.Custom.SqlServer
             return sb.Append(_tosqlAppendContent).ToString();
         }
         #endregion
+
+        static string LocalGetTableAlias(Type entityType, string tbname, string alias, Func<Type, string, string> aliasRule)
+        {
+            if (aliasRule != null)
+            {
+                alias = aliasRule(entityType, alias);
+                if (tbname.IndexOf(' ') != -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                    alias = Regex.Replace(alias, @" With\([^\)]+\)", ""); //替换 WithLock、WithIndex
+            }
+            return alias;
+        }
 
         public CustomSqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
         public override ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new OdbcSqlServerSelect<T1, T2>(_orm, _commonUtils, _commonExpression, null); CustomSqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }

@@ -1019,6 +1019,9 @@ namespace FreeSql.Internal
                                 }
                                 else if (exp3.Arguments[a].IsParameter())
                                     exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+
+                                else if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(exp3.Arguments[a].Type.NullableTypeOrThis()) == false)
+                                    exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                                 else
                                 {
                                     var exp3CsValue = eccContent.StartsWith("N'") ?
@@ -1045,8 +1048,8 @@ namespace FreeSql.Internal
                             typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), ecc, null);
                         try
                         {
-                            var sqlRet = exp3.Method.Invoke(null, exp3InvokeParams);
-                            if (string.IsNullOrEmpty(ecc.Result) && sqlRet is string) ecc.Result = string.Concat(sqlRet);
+                            var invokeReturn = exp3.Method.Invoke(null, exp3InvokeParams);
+                            if (string.IsNullOrEmpty(ecc.Result) && invokeReturn is string) ecc.Result = string.Concat(invokeReturn);
                             if (string.IsNullOrEmpty(ecc.Result) && exp3MethodParams.Any()) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
                             if (ecc.UserParameters?.Any() == true) tsc.dbParams?.AddRange(ecc.UserParameters);
                             return ecc.Result;
@@ -1695,7 +1698,7 @@ namespace FreeSql.Internal
                                 if (oper2.NodeType == ExpressionType.Parameter)
                                 {
                                     var oper2Parm = oper2 as ParameterExpression;
-                                    expStack.Push(exp2.Type.IsAbstract || exp2.Type.IsInterface ? oper2Parm : Expression.Parameter(exp2.Type, oper2Parm.Name));
+                                    expStack.Push(exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type) ? oper2Parm : Expression.Parameter(exp2.Type, oper2Parm.Name));
                                 }
                                 else
                                     expStack.Push(oper2);
@@ -2283,6 +2286,12 @@ namespace FreeSql.Internal
                     return Expression.Property(_replaceExp, node.Member.Name);
                 return base.VisitMember(node);
             }
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (node == oldParameter)
+                    return _replaceExp;
+                return base.VisitParameter(node);
+            }
         }
 
         public class ReplaceHzyTupleToMultiParam : ExpressionVisitor
@@ -2502,7 +2511,7 @@ namespace FreeSql.Internal
                     if (whereGlobalFilter.Any()) select._whereGlobalFilter.AddRange(whereGlobalFilter);
                 }
             }
-            while (true)
+            while (exp3Stack.Any())
             {
                 var exp4 = exp3Stack.Pop();
                 if (exp4.NodeType == ExpressionType.MemberAccess)
@@ -2546,8 +2555,15 @@ namespace FreeSql.Internal
                     var callExp = exp4 as MethodCallExpression;
                     switch (callExp.Method.Name)
                     {
+                        case "Exists":
                         case "Any":
-                            if (callExp.Arguments.Count == 2)
+                            if (callExp.Method.Name == "Exists" && callExp.Arguments.Count == 1 && callExp.Type.IsGenericType && callExp.Type.GetGenericTypeDefinition().IsAssignableFrom(typeof(IList<>)))
+                            {
+                                select._tables[0].Parameter = (callExp.Arguments[0] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select.InternalWhere(callExp.Arguments[0]);
+                            }
+                            if (callExp.Method.Name == "Any" && callExp.Arguments.Count == 2)
                             {
                                 select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
                                 LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);

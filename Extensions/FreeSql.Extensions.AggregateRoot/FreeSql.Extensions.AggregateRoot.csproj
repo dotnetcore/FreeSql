@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net60;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 扩展包，聚合根（实现室）.</Description>
@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>1.0.3</Version>
+		<Version>1.0.6</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+	  <PackageReference Include="FreeSql.DbContext" Version="3.2.666" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">

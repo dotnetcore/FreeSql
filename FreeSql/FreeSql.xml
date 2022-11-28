@@ -1201,7 +1201,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.SqlExt.Count">
+        <member name="M:FreeSql.SqlExt.Count(System.Object)">
             <summary>
             count() over(order by ...)
             </summary>
@@ -1214,7 +1214,7 @@
             <param name="column"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.SqlExt.Avg">
+        <member name="M:FreeSql.SqlExt.Avg(System.Object)">
             <summary>
             avg(..) over(order by ...)
             </summary>

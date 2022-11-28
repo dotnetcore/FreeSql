@@ -33,7 +33,7 @@ namespace FreeSql.Firebird
                 { typeof(double).FullName, CsToDb.New(FbDbType.Double, "double precision","double precision NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(FbDbType.Double, "double precision", "double precision", false, true, null) },
                 { typeof(decimal).FullName, CsToDb.New(FbDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(FbDbType.Numeric, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(string).FullName, CsToDb.New(FbDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(string).FullName, CsToDb.New(FbDbType.VarChar, "varchar", "varchar(200)", false, null, "") },
 
                 { typeof(TimeSpan).FullName, CsToDb.New(FbDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(FbDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(FbDbType.TimeStamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(FbDbType.TimeStamp, "timestamp", "timestamp", false, true, null) },
@@ -136,7 +136,7 @@ namespace FreeSql.Firebird
                         {
                             sb.Append("CREATE ");
                             if (uk.IsUnique) sb.Append("UNIQUE ");
-                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(createTableName).Append("(");
+                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname))).Append(" ON ").Append(createTableName).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -268,6 +268,19 @@ where d.rdb$index_type = 0 and trim(d.rdb$relation_name) = {0}", tboldname ?? tb
                     sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" COMMENT ").Append(" ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
             }
             return sb.Length == 0 ? null : sb.ToString();
+        }
+
+        public override int ExecuteDDLStatements(string ddl)
+        {
+            if (string.IsNullOrEmpty(ddl)) return 0;
+            var scripts = ddl.Split(new string[] { ";\r\n" }, StringSplitOptions.None).Where(a => string.IsNullOrEmpty(a.Trim()) == false).ToArray();
+
+            if (scripts.Any() == false) return 0;
+
+            var affrows = 0;
+            foreach (var script in scripts)
+                affrows += base.ExecuteDDLStatements(script);
+            return affrows;
         }
     }
 }

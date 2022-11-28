@@ -876,6 +876,7 @@ SELECT ");
     /// <returns></returns>
     public static InsertDictImpl InsertDict(this IFreeSql freesql, Dictionary<string, object> source)
     {
+        LocalReplaceDictDBNullValue(source);
         var insertDict = new InsertDictImpl(freesql);
         insertDict._insertProvider.AppendData(source);
         return insertDict;
@@ -887,9 +888,20 @@ SELECT ");
     /// <returns></returns>
     public static InsertDictImpl InsertDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
     {
+        if (source?.Any() == true) foreach (var dict in source) LocalReplaceDictDBNullValue(dict);
         var insertDict = new InsertDictImpl(freesql);
         insertDict._insertProvider.AppendData(source);
         return insertDict;
+    }
+    static void LocalReplaceDictDBNullValue(Dictionary<string, object> dict)
+    {
+        if (dict == null) return;
+        var keys = dict.Keys;
+        foreach (var key in keys)
+        {
+            var val = dict[key];
+            if (val == DBNull.Value) dict[key] = null;
+        }
     }
     /// <summary>
     /// 更新数据字典 Dictionary&lt;string, object&gt;
@@ -898,6 +910,7 @@ SELECT ");
     /// <returns></returns>
     public static UpdateDictImpl UpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
     {
+        LocalReplaceDictDBNullValue(source);
         var updateDict = new UpdateDictImpl(freesql);
         updateDict._updateProvider.SetSource(source);
         return updateDict;
@@ -909,6 +922,7 @@ SELECT ");
     /// <returns></returns>
     public static UpdateDictImpl UpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
     {
+        if (source?.Any() == true) foreach (var dict in source) LocalReplaceDictDBNullValue(dict);
         var updateDict = new UpdateDictImpl(freesql);
         updateDict._updateProvider.SetSource(source);
         return updateDict;
@@ -929,12 +943,14 @@ SELECT ");
     /// <returns></returns>
     public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
     {
+        LocalReplaceDictDBNullValue(source);
         var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
         insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
         return insertOrUpdateDict;
     }
     public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
     {
+        if (source?.Any() == true) foreach (var dict in source) LocalReplaceDictDBNullValue(dict);
         var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
         insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
         return insertOrUpdateDict;
@@ -946,6 +962,7 @@ SELECT ");
     /// <returns></returns>
     public static DeleteDictImpl DeleteDict(this IFreeSql freesql, Dictionary<string, object> source)
     {
+        LocalReplaceDictDBNullValue(source);
         var deleteDict = new DeleteDictImpl(freesql);
         UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(source, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
         var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, source.Keys.ToArray());
@@ -959,6 +976,7 @@ SELECT ");
     /// <returns></returns>
     public static DeleteDictImpl DeleteDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
     {
+        if (source?.Any() == true) foreach (var dict in source) LocalReplaceDictDBNullValue(dict);
         DeleteDictImpl deleteDict = null;
         if (source.Select(a => string.Join(",", a.Keys)).Distinct().Count() == 1)
         {

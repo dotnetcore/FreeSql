@@ -51,7 +51,7 @@ namespace FreeSql.ClickHouse
         }
 
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
-            Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "?", (name, type, value) =>
+            Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
                 if (value is string str) 
                     value = str?.Replace("\t", "\\t")
@@ -59,7 +59,7 @@ namespace FreeSql.ClickHouse
                         .Replace("\n", "\\n")
                         .Replace("\r", "\\r")
                         .Replace("/", "\\/");
-                DbParameter ret = new ClickHouseDbParameter { ParameterName = $"?{name}", Value = value };
+                DbParameter ret = new ClickHouseDbParameter { ParameterName = $"@{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null)
                     ret.DbType = (DbType)tp.Value;

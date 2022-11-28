@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>netcoreapp3.1;net60</TargetFrameworks>
+		<TargetFrameworks>net60</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IsPackable>true</IsPackable>
 		<PackAsTool>true</PackAsTool>
@@ -13,7 +13,7 @@
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
-		<Version>3.2.683-preview20221101</Version>
+		<Version>3.2.684-preview20221124</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
