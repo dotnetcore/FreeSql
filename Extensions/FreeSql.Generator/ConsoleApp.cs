@@ -22,6 +22,7 @@ namespace FreeSql.Generator
         string ArgsConnectionString { get; }
         string ArgsFilter { get; }
         string ArgsMatch { get; }
+        string ArgsJson { get; }
         string ArgsFileName { get; }
         bool ArgsReadKey { get; }
         internal string ArgsOutput { get; private set; }
@@ -62,6 +63,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
             ArgsNameSpace = "MyProject";
             ArgsFilter = "";
             ArgsMatch = "";
+            ArgsJson = "Newtonsoft.Json";
             ArgsFileName = "{name}.cs";
             ArgsReadKey = true;
             Action<string> setArgsOutput = value =>
@@ -94,7 +96,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
 
      -NameOptions              * 4个布尔值对应：
                                  首字母大写
-                                 首字母大写,其他小写
+                                 首字母大写，其他小写
                                  全部小写
                                  下划线转驼峰
 
@@ -116,6 +118,8 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
                                如果不想生成视图和存储过程 -Filter View+StoreProcedure
 
      -Match                    表名或正则表达式，只生成匹配的表，如：dbo\.TB_.+
+     -Json                     NTJ、STJ、NONE
+                               Newtonsoft.Json、System.Text.Json、不生成
 
      -FileName                 文件名，默认：{name}.cs
      -Output                   保存路径，默认为当前 shell 所在目录
@@ -194,6 +198,18 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                     case "-match":
                         ArgsMatch = args[a + 1];
                         if (Regex.IsMatch("", ArgsMatch)) { } //throw
+                        a++;
+                        break;
+                    case "-json":
+                        switch(args[a + 1].Trim().ToLower())
+                        {
+                            case "none":
+                                ArgsJson = "";
+                                break;
+                            case "stj":
+                                ArgsJson = "System.Text.Json";
+                                break;
+                        }
                         a++;
                         break;
                     case "-filename":

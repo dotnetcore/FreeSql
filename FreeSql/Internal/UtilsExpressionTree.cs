@@ -516,7 +516,9 @@ namespace FreeSql.Internal
             foreach (var col in trytb.Primarys)
             {
                 col.Attribute.IsNullable = false;
-                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim() + " NOT NULL"; //sqlite 主键也可以插入 null
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
+                if (common._orm.Ado.DataType == DataType.Sqlite)
+                    col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
             }
             foreach (var col in trytb.Columns.Values)
             {
