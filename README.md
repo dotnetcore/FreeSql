@@ -210,7 +210,8 @@ constantine,
 [mafeng8](https://github.com/mafeng8), 
 [VicBilibily](https://github.com/VicBilibily), 
 [Soar](https://github.com/sgf),
-[quzhen91](https://github.com/quzhen91) etc.
+[quzhen91](https://github.com/quzhen91),
+homejun etc.
 
 ## 💕 Donation
 
