@@ -9,13 +9,9 @@ using System.Text.RegularExpressions;
 using System.Data.Common;
 using FreeSql.Internal.ObjectPool;
 using ClickHouse.Client.ADO;
-using System.Data.SqlTypes;
-using static System.Net.Mime.MediaTypeNames;
-using System.ComponentModel.Design;
-using System.Reflection;
-  
+
 namespace FreeSql.ClickHouse
-{ 
+{
     class ClickHouseCodeFirst : Internal.CommonProvider.CodeFirstProvider
     {
         public ClickHouseCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm,
@@ -184,9 +180,11 @@ namespace FreeSql.ClickHouse
                                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
                                     sb.Append(", ");
                                 }
+
                                 sb.Remove(sb.Length - 2, 2).Append(") ");
                                 sb.Append("TYPE set(8192) GRANULARITY 5,");
                             }
+
                             sb.Remove(sb.Length - 1, 1);
                             sb.Append("\r\n) ");
                             sb.Append("\r\nENGINE = MergeTree()");
@@ -214,7 +212,8 @@ namespace FreeSql.ClickHouse
 
                         //如果新表，旧表在一个数据库下，直接修改表名
                         if (string.Compare(tbname[0], tboldname[0], true) == 0)
-                            sbalter.Append("RENAME TABLE ").Append(_commonUtils.QuoteSqlName(tboldname[0], tboldname[1]))
+                            sbalter.Append("RENAME TABLE ")
+                                .Append(_commonUtils.QuoteSqlName(tboldname[0], tboldname[1]))
                                 .Append(" TO ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1]))
                                 .Append(";\r\n");
                         else
@@ -231,7 +230,7 @@ namespace FreeSql.ClickHouse
 select
 a.name,
 a.type,
-if(ilike(a.`type`, 'Nullable(%S%)'),'is_nullable','0'),   
+if(ilike(a.`type`, 'Nullable(%S%)'),'is_nullable','0'),
 a.comment as comment,
 a.is_in_partition_key,
 a.is_in_sorting_key,
@@ -253,6 +252,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         };
                     }, StringComparer.CurrentCultureIgnoreCase);
 
+
                     if (istmpatler == false)
                     {
                         var existsPrimary = tbstruct.Any(o => o.Value.is_primary);
@@ -262,7 +262,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                             //表中有这个字段
                             var condition1 = tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol);
                             var condition2 = string.IsNullOrEmpty(tbcol.Attribute.OldName) == false;
-                            if (condition1 || condition2 && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
+                            if (condition1 ||
+                                condition2 && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                             {
                                 var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
                                 var ckDbType = CkNullableAdapter(tbcol.Attribute.DbType, tbcol.Attribute.IsPrimary);
@@ -274,7 +275,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                                     sbalter.Append("ALTER TABLE ")
                                         .Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}"))
                                         .Append(" MODIFY COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column))
-                                        .Append(tbcol.Attribute.IsNullable && tbcol.Attribute.DbType.Contains("Nullable") == false
+                                        .Append(tbcol.Attribute.IsNullable &&
+                                                tbcol.Attribute.DbType.Contains("Nullable") == false
                                             ? $"Nullable({tbcol.Attribute.DbType.Split(' ').First()})"
                                             : tbcol.Attribute.DbType.Split(' ').First())
                                         .Append(";\r\n");
@@ -297,7 +299,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
                             //添加列
                             sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1]))
-                                .Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ")
+                                .Append(" ADD Column ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ")
                                 .Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" &&
                                 tbcol.Attribute.IsIdentity == false)
@@ -318,7 +320,9 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                                 continue;
                             var ukname = ReplaceIndexName(uk.Name, tbname[1]);
                             //先判断表中有没此字段的索引
-                            if (indexCollect.Any(c => RemoveSpaceComparison(c.expr, string.Join(',', uk.Columns.Select(i => i.Column.CsName)))))
+                            if (indexCollect.Any(c =>
+                                    RemoveSpaceComparison(c.expr,
+                                        string.Join(',', uk.Columns.Select(i => i.Column.CsName)))))
                             {
                                 //有这个字段的索引，但是名称不一样 修改名 , ClickHouse不支持修改列
                                 //if (!indexCollect.Where(c => c.name == uk.Name).Any())
@@ -358,6 +362,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                             }
                         }
                     }
+
                     if (istmpatler == false)
                     {
                         sb.Append(sbalter);
@@ -366,14 +371,17 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     }
 
                     //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
-                    var tablename = tboldname == null ? _commonUtils.QuoteSqlName(tbname[0], tbname[1]) : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1]);
+                    var tablename = tboldname == null
+                        ? _commonUtils.QuoteSqlName(tbname[0], tbname[1])
+                        : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1]);
                     var tmptablename = _commonUtils.QuoteSqlName(tbname[0], $"FreeSqlTmp_{tbname[1]}");
                     //创建临时表
                     sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         tbcol.Attribute.DbType = tbcol.Attribute.DbType.Replace(" NOT NULL", "");
-                        sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+                        sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ")
+                            .Append(tbcol.Attribute.DbType);
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
                             sb.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment));
                         sb.Append(",");
@@ -382,14 +390,17 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     foreach (var uk in tb.Indexes)
                     {
                         sb.Append(" \r\n  ");
-                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append("(");
+                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1])))
+                            .Append("(");
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
                             sb.Append("TYPE set(8192) GRANULARITY 5, ");
                         }
+
                         sb.Remove(sb.Length - 2, 2).Append("),");
                     }
+
                     sb.Remove(sb.Length - 1, 1);
                     sb.Append("\r\n) ");
                     sb.Append("\r\nENGINE = MergeTree()");
@@ -407,6 +418,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         sb.Append(ls);
                         sb.Remove(sb.Length - 2, 2).Append(",");
                     }
+
                     sb.Remove(sb.Length - 1, 1);
                     //if (string.IsNullOrEmpty(tb.Comment) == false)
                     //    sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
@@ -417,27 +429,32 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     {
                         var insertvalue = "NULL";
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
-                            string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
+                            string.IsNullOrEmpty(tbcol.Attribute.OldName) == false &&
+                            tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType,
+                                    StringComparison.CurrentCultureIgnoreCase) == false)
                             {
                                 //insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                             }
+
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                                 insertvalue = $"ifnull({insertvalue},{tbcol.DbDefaultValue})";
                         }
                         else if (tbcol.Attribute.IsNullable == false)
                             if (tbcol.DbDefaultValue != "NULL")
                                 insertvalue = tbcol.DbDefaultValue;
+
                         sb.Append(insertvalue).Append(", ");
                     }
+
                     sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
                     sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
-                    sb.Append("RENAME TABLE ").Append(tmptablename).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(";\r\n");
-
-
+                    sb.Append("RENAME TABLE ").Append(tmptablename).Append(" TO ")
+                        .Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(";\r\n");
                 }
+
                 return sb.Length == 0 ? null : sb.ToString();
             }
             finally
@@ -484,17 +501,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
             string CkIntAdapter(string dbType)
             {
                 var result = dbType;
-                if (dbType.ToLower().Contains("int32"))
-                {
-                    if (dbType.Contains("Nullable"))
-                    {
-                        result = "Nullable(Int32)";
-                    }
-                    else
-                    {
-                        result = "Int32";
-                    }
-                }else if (dbType.ToLower().Contains("int64"))
+                if (dbType.ToLower().Contains("int64"))
                 {
                     if (dbType.Contains("Nullable"))
                     {
@@ -503,6 +510,17 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     else
                     {
                         result = "Int64";
+                    }
+                }
+                else if (dbType.ToLower().Contains("int"))
+                {
+                    if (dbType.Contains("Nullable"))
+                    {
+                        result = "Nullable(Int32)";
+                    }
+                    else
+                    {
+                        result = "Int32";
                     }
                 }
 
@@ -516,7 +534,6 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                 b = Regex.Replace(b, @"\s", "").ToLower();
                 return a == b;
             }
-            
         }
 
         public override int ExecuteDDLStatements(string ddl)
