@@ -15,7 +15,7 @@ using System.ComponentModel.Design;
 using System.Reflection;
 
 namespace FreeSql.ClickHouse
-{
+{ 
     class ClickHouseCodeFirst : Internal.CommonProvider.CodeFirstProvider
     {
         public ClickHouseCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm,
