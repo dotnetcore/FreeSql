@@ -13,7 +13,7 @@ using System.Data.SqlTypes;
 using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel.Design;
 using System.Reflection;
-
+  
 namespace FreeSql.ClickHouse
 { 
     class ClickHouseCodeFirst : Internal.CommonProvider.CodeFirstProvider
