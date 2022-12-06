@@ -487,7 +487,19 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            fsql.Select<IdentityTable>().Count();
+            var listaaaddd = new List<User1>();
+            for (int i = 0; i < 2; i++)
+            {
+                listaaaddd.Add(new User1 { Nickname = $"测试文本:{i}" });
+            }
+            fsql.Select<User1>();
+            fsql.Transaction(() =>
+            {
+
+                fsql.Insert(listaaaddd).ExecuteAffrows();  //加在事务里就出错
+            });
+
+                fsql.Select<IdentityTable>().Count();
 
             var dkdksql =  fsql.Select<User1>().WithLock().From<UserGroup>()
                 .InnerJoin<UserGroup>((user, usergroup) => user.GroupId == usergroup.Id && usergroup.GroupName == "xxx")
