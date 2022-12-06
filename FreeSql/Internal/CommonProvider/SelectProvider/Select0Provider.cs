@@ -557,7 +557,7 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this as TSelect;
         }
         public TSelect WithConnection(DbConnection connection)

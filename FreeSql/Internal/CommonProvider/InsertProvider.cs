@@ -78,7 +78,7 @@ namespace FreeSql.Internal.CommonProvider
         public IInsert<T1> WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this;
         }
         public IInsert<T1> WithConnection(DbConnection connection)
