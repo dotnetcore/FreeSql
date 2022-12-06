@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -135,6 +135,23 @@ namespace FreeSql.Tests.PostgreSQL
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
             insert.AppendData(items.First()).ExecuteInserted();
+        }
+
+        [Fact]
+        public void ExecutePgCopy()
+        {
+            var maxId = g.pgsql.Select<Topic>().Max(a => a.Id);
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = maxId + a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            insert.AppendData(items).InsertIdentity().ExecutePgCopy();
+
+            items = g.pgsql.Select<Topic>().OrderByDescending(a => a.Id).Limit(1000).ToList();
+            var sql = g.pgsql.Insert(items).InsertIdentity().NoneParameter().ToSql();
+            g.pgsql.Update<Topic>().SetSource(items).ExecutePgCopy();
+            g.pgsql.Update<Topic>().SetSource(items, a => new { a.Id, a.Clicks }).ExecutePgCopy();
+            g.pgsql.Update<Topic>().SetSource(items).UpdateColumns(a => new { a.Title }).ExecutePgCopy();
+            g.pgsql.Update<Topic>().SetSource(items, a => new { a.Id, a.Clicks }).UpdateColumns(a => new { a.Title }).ExecutePgCopy();
         }
 
         [Fact]

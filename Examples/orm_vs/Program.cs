@@ -23,8 +23,8 @@ namespace orm_vs
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Max Pool Size=21;TrustServerCertificate=true")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=21;AllowLoadLocalInfile=true;")
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=21;AllowLoadLocalInfile=true;")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
@@ -36,12 +36,12 @@ namespace orm_vs
             {
                 var db = new SqlSugarClient(new ConnectionConfig()
                 {
-                    //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=20;Max Pool Size=20;TrustServerCertificate=true",
-                    //DbType = DbType.SqlServer,
+                    ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=20;Max Pool Size=20;TrustServerCertificate=true",
+                    DbType = DbType.SqlServer,
                     //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20;AllowLoadLocalInfile=true;",
                     //DbType = DbType.MySql,
-                    ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20",
-                    DbType = DbType.PostgreSQL,
+                    //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20",
+                    //DbType = DbType.PostgreSQL,
                     IsAutoCloseConnection = true,
                     InitKeyType = InitKeyType.Attribute
                 });
@@ -59,10 +59,10 @@ namespace orm_vs
             public DbSet<PatientExamination_2022> PatientExamination_2022s { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                //optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=19;Max Pool Size=19;TrustServerCertificate=true");
+                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=19;Max Pool Size=19;TrustServerCertificate=true");
                 //var connectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=19;Max Pool Size=19";
                 //optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-                optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=19");
+                //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=19");
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -576,14 +576,14 @@ namespace orm_vs
             sw.Stop();
             sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效");
 
-            sw.Restart();
-            using (var conn = fsql.Ado.MasterPool.Get())
-            {
-                for (var a = 0; a < forTime; a++)
-                    Dapper.SqlMapper.Query<Song>(conn.Value, $"select * from freesql_song limit {size}").ToList();
-            }
-            sw.Stop();
-            sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+            //sw.Restart();
+            //using (var conn = fsql.Ado.MasterPool.Get())
+            //{
+            //    for (var a = 0; a < forTime; a++)
+            //        Dapper.SqlMapper.Query<Song>(conn.Value, $"select * from freesql_song limit {size}").ToList();
+            //}
+            //sw.Stop();
+            //sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
         }
 
         static void Insert(StringBuilder sb, int forTime, int size)
@@ -668,7 +668,7 @@ namespace orm_vs
             sw.Restart();
             for (var a = 0; a < forTime; a++)
             {
-                fsql.Update<Song>().SetSource(songs).ExecutePgCopy();
+                fsql.Update<Song>().SetSource(songs).ExecuteSqlBulkCopy();
             }
             sw.Stop();
             sb.AppendLine($"FreeSql BulkCopyUpdate {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");

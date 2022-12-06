@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -179,6 +179,32 @@ namespace FreeSql.Tests.MySqlConnector
             Assert.Equal(TestEnumInserTbType.sum211, g.mysql.Select<TestEnumInsertTb>().Where(a => a.id == id).First()?.type);
             id = g.mysql.Insert<TestEnumInsertTb>().MySqlIgnoreInto().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).NoneParameter().ExecuteIdentity();
             Assert.Equal(TestEnumInserTbType.sum211, g.mysql.Select<TestEnumInsertTb>().Where(a => a.id == id).First()?.type);
+        }
+
+
+        [Table(Name = "tb_topic_insertbulk")]
+        class TopicBulk
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
+        }
+        [Fact]
+        public void ExecuteMySqlBulkCopy()
+        {
+            g.mysql.Delete<TopicBulk>().Where(a => true).ExecuteAffrows();
+            var items = new List<TopicBulk>();
+            for (var a = 0; a < 10; a++) items.Add(new TopicBulk { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            g.mysql.Insert(items).ExecuteMySqlBulkCopy();
+
+            items = g.mysql.Select<TopicBulk>().OrderByDescending(a => a.Id).Limit(1000).ToList();
+            g.mysql.Update<TopicBulk>().SetSource(items).ExecuteMySqlBulkCopy();
+            g.mysql.Update<TopicBulk>().SetSource(items, a => new { a.Id, a.Clicks }).ExecuteMySqlBulkCopy();
+            g.mysql.Update<TopicBulk>().SetSource(items).UpdateColumns(a => new { a.Title }).ExecuteMySqlBulkCopy();
+            g.mysql.Update<TopicBulk>().SetSource(items, a => new { a.Id, a.Clicks }).UpdateColumns(a => new { a.Title }).ExecuteMySqlBulkCopy();
         }
 
         [Fact]

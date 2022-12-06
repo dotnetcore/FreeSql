@@ -4,6 +4,126 @@
         <name>FreeSql.Tests</name>
     </assembly>
     <members>
+        <member name="T:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01">
+            <summary>
+            实时数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.Guid">
+            <summary>
+            Guid
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.TenantId">
+            <summary>
+            租户Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.Version">
+            <summary>
+            版本
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.IsDeleted">
+            <summary>
+            是否删除
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.CreatedUserId">
+            <summary>
+            创建者Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.CreatedUserNameUpdate01">
+            <summary>
+            创建者
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.CreatedTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.ModifiedUserId">
+            <summary>
+            修改者Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.ModifiedUserName">
+            <summary>
+            修改者
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.ModifiedTime">
+            <summary>
+            修改时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.DataFlag">
+            <summary>
+            数据标识
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.Id">
+            <summary>
+            主键Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.EquipmentCode">
+            <summary>
+            设备编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.PropertyCode">
+            <summary>
+            数据编号，如为空使用默认数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.PropertyName">
+            <summary>
+             数据名称，如为空使用默认数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.IsValueOrStateChanged">
+            <summary>
+            数值或状态是否变更
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.NumericValue">
+            <summary>
+            采集数值
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.ServiceFlag">
+            <summary>
+            服务标记
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.StrState">
+            <summary>
+            状态
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.StrValue">
+            <summary>
+            文本数值
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.UnitStr">
+            <summary>
+            单位
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01.CollectTime">
+            <summary>
+            采集时间
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Firebird.FirebirdCodeFirstTest.AddUniquesInfo.id">
             <summary>
             编号

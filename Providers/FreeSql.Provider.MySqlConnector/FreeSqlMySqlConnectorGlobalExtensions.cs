@@ -34,60 +34,37 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var state = ExecuteMySqlBulkCopyState(update);
         return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteMySqlBulkCopy(bulkCopyTimeout));
     }
-    static NativeTuple<string, string, string, string> ExecuteMySqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
+    static NativeTuple<string, string, string, string, string[]> ExecuteMySqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
     {
         if (update._source.Any() != true) return null;
         var _table = update._table;
-        var _tempPrimarys = update._tempPrimarys;
         var _commonUtils = update._commonUtils;
-        var _ignore = update._ignore;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"Temp_{Guid.NewGuid().ToString("N")}";
-        if (update._connection == null)
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
+            update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
+        var sb = new StringBuilder().Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
+        foreach (var col in _table.Columns.Values)
         {
-            if (update._orm.Ado.TransactionCurrentThread != null)
-                update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
-        }
-        var sb = new StringBuilder();
-        sb.Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
-        foreach (var tbcol in _table.ColumnsByPosition)
-        {
-            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+            if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
+            else continue;
+            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" ").Append(col.Attribute.DbType.Replace("NOT NULL", ""));
             sb.Append(",");
         }
-        //if (_tempPrimarys.Any())
-        //{
-        //    sb.Append(" \r\n  PRIMARY KEY (");
-        //    foreach (var tbcol in _tempPrimarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-        //    sb.Remove(sb.Length - 2, 2).Append("),");
-        //}
         var sql1 = sb.Remove(sb.Length - 1, 1).Append(" \r\n) Engine=InnoDB;").ToString();
 
         sb.Clear().Append("UPDATE ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
-            .Append(" \r\nINNER JOIN ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" b ON ");
-        for (var a = 0; a < _tempPrimarys.Length; a++)
-        {
-            var pkname = _commonUtils.QuoteSqlName(_tempPrimarys[a].Attribute.Name);
-            if (a > 0) sb.Append(" AND ");
-            sb.Append("b.").Append(pkname).Append(" = a.").Append(pkname);
-        }
-        sb.Append("\r\n SET ");
-        var colidx = 0;
-        foreach (var col in _table.Columns.Values)
-        {
-            if (col.Attribute.IsPrimary) continue;
-            if (_tempPrimarys.Any(a => a.CsName == col.CsName)) continue;
-            if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
-            {
-                if (colidx > 0) sb.Append(",");
-                sb.Append(" \r\n  a.").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append("b.").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-                ++colidx;
-            }
-        }
+            .Append(" \r\nINNER JOIN ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" b ON ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")))
+            .Append(" \r\nSET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
         var sql2 = sb.ToString();
         sb.Clear();
         var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
-        return NativeTuple.Create(sql1, sql2, sql3, tempTableName);
+        return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
     }
 
     /// <summary>

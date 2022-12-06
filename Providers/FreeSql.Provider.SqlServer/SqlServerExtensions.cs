@@ -136,46 +136,32 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var state = ExecuteSqlBulkCopyState(update);
         return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
     }
-    static NativeTuple<string, string, string, string> ExecuteSqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
+    static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
     {
         if (update._source.Any() != true) return null;
         var _table = update._table;
-        var _tempPrimarys = update._tempPrimarys;
         var _commonUtils = update._commonUtils;
-        var _ignore = update._ignore;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"#Temp_{updateTableName}";
-        if (update._connection == null)
-        {
-            if (update._orm.Ado.TransactionCurrentThread != null)
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
                 update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
-        }
-        var sql1 = $"SELECT * INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
-        var sb = new StringBuilder().Append("UPDATE ").Append(" a SET \r\n ");
-        var colidx = 0;
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
         foreach (var col in _table.Columns.Values)
         {
-            if (col.Attribute.IsPrimary) continue;
-            if (_tempPrimarys.Any(a => a.CsName == col.CsName)) continue;
-            if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
-            {
-                if (colidx > 0) sb.Append(", \r\n ");
-                sb.Append("  a.").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append("b.").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-                ++colidx;
-            }
+            if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
         }
+        var sql1 = $"SELECT {string.Join(", ", pkColumns)}, {string.Join(", ", setColumns)} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
+        var sb = new StringBuilder().Append("UPDATE ").Append(" a SET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
         sb.Append(" \r\nFROM ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
-            .Append(" \r\nINNER JOIN ").Append(tempTableName).Append(" b ON ");
-        for (var a = 0; a < _tempPrimarys.Length; a++)
-        {
-            var pkname = _commonUtils.QuoteSqlName(_tempPrimarys[a].Attribute.Name);
-            if (a > 0) sb.Append(" AND ");
-            sb.Append("b.").Append(pkname).Append(" = a.").Append(pkname);
-        }
+            .Append(" \r\nINNER JOIN ").Append(tempTableName).Append(" b ON ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
         var sql2 = sb.ToString();
         sb.Clear();
         var sql3 = $"DROP TABLE {tempTableName}";
-        return NativeTuple.Create(sql1, sql2, sql3, tempTableName);
+        return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
     }
 
     /// <summary>
