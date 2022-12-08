@@ -47,6 +47,7 @@ namespace FreeSql.Internal.CommonProvider
         public Func<bool> _cancel;
         public bool _is_AsTreeCte;
         public BaseDiyMemberExpression _diymemexpWithTempQuery;
+        public Func<DbTransaction> _resolveHookTransaction;
 
         public bool IsDefaultSqlContent => _distinct == false && _is_AsTreeCte == false && _tables.Count == 1 && _where.Length == 0 && _join.Length == 0 &&
             string.IsNullOrWhiteSpace(_orderby) && string.IsNullOrWhiteSpace(_groupby) && string.IsNullOrWhiteSpace(_tosqlAppendContent) &&
@@ -1187,8 +1188,9 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect ForUpdate(bool noawait = false)
         {
-            if (_transaction == null && _orm.Ado.TransactionCurrentThread == null)
-                throw new Exception($"{CoreStrings.Begin_Transaction_Then_ForUpdate}");
+            if (_transaction == null && _orm.Ado.TransactionCurrentThread != null) this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+            if (_transaction == null && _resolveHookTransaction != null) this.WithTransaction(_resolveHookTransaction());
+            if (_transaction == null) throw new Exception($"{CoreStrings.Begin_Transaction_Then_ForUpdate}");
             switch (_orm.Ado.DataType)
             {
                 case DataType.MySql:

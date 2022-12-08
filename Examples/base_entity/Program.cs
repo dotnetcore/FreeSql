@@ -487,6 +487,11 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            using (var uow = fsql.CreateUnitOfWork())
+            {
+                uow.Orm.Select<User1>().ForUpdate().ToList();
+            }
+
             var listaaaddd = new List<User1>();
             for (int i = 0; i < 2; i++)
             {

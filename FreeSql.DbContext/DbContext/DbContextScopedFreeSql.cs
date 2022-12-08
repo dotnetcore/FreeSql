@@ -70,7 +70,10 @@ namespace FreeSql
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            var select = _originalFsql.Select<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction(false));
+            var uow = _resolveUnitOfWork?.Invoke();
+            var uowIsolationLevel = uow?.IsolationLevel ?? IsolationLevel.Unspecified;
+            var select = _originalFsql.Select<T1>().WithTransaction(uow?.GetOrBeginTransaction(uowIsolationLevel != IsolationLevel.Unspecified));
+            (select as Select0Provider)._resolveHookTransaction = () => uow?.GetOrBeginTransaction();
             if (db?.Options.EnableGlobalFilter == false) select.DisableGlobalFilter();
             return select;
         }
