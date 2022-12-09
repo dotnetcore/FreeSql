@@ -491,12 +491,19 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                 }
             }
 
+            string CkNullablePrimaryAdapter(string dbType, bool isPrimary)
+            {
+                return isPrimary
+                    ? dbType.Replace("Nullable(", "").Replace(")", "")
+                    : dbType.Replace(" NOT NULL", "");
+            }
             string CkNullableAdapter(string dbType, bool isPrimary)
             {
                 return isPrimary
-                    ? dbType.Replace("Nullable(", "").Replace(") NOT NULL", "")
+                    ? dbType.Replace("Nullable(", "").Replace(")","").Replace(" NOT NULL", "")
                     : dbType.Replace(" NOT NULL", "");
             }
+
 
             string CkIntAdapter(string dbType)
             {
