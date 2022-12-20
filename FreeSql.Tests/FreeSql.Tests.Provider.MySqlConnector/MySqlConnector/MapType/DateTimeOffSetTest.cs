@@ -1,4 +1,5 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
+using MySqlConnector;
 using System;
 using System.Numerics;
 using Xunit;
@@ -19,11 +20,17 @@ namespace FreeSql.Tests.MySqlConnectorMapType
         [Fact]
         public void DateTimeToDateTimeOffSet()
         {
+
+            //MySqlDateTime dt1 = new MySqlDateTime(DateTime.Now);
+            //System.Convert.ChangeType(dt1, typeof(DateTimeOffset)); //    System.Exception : Specified cast is not valid.
+
+
             //insert
             var orm = g.mysql;
+            orm.Delete<DateTimeOffSetTestMap>().Where(a => true).ExecuteAffrows();
             var item = new DateTimeOffSetTestMap { dtos_to_dt = DateTimeOffset.Now, dtosnullable_to_dt = DateTimeOffset.Now };
             Assert.Equal(1, orm.Insert<DateTimeOffSetTestMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<DateTimeOffSetTestMap>().Where(a => a.id == item.id).First();
+            var find = orm.Select<DateTimeOffSetTestMap>().Where(a => a.id == item.id).First(); //    System.Exception : Specified cast is not valid.
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.dtos_to_dt.ToString("g"), find.dtos_to_dt.ToString("g"));

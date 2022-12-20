@@ -1546,6 +1546,13 @@ namespace FreeSql.Internal
                 case DataType.GBase:
                     if (dr.IsDBNull(index)) return null;
                     break;
+                case DataType.MySql:
+                    if (dr.GetFieldType(index).FullName == "MySqlConnector.MySqlDateTime")
+                    {
+                        if (dr.IsDBNull(index)) return null;
+                        return dr.GetDateTime(index);
+                    }
+                    break;
             }
             return dr.GetValue(index);
         }
