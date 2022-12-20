@@ -211,7 +211,8 @@ constantine,
 [VicBilibily](https://github.com/VicBilibily), 
 [Soar](https://github.com/sgf),
 [quzhen91](https://github.com/quzhen91),
-homejun etc.
+homejun,
+[d4ilys](https://github.com/d4ilys) etc.
 
 ## 💕 Donation
 
