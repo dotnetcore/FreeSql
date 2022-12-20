@@ -277,15 +277,23 @@ namespace FreeSql.Internal
                             return false;
                         }
                         if (parent.CsType == null) parent.CsType = exp.Type;
-                        var pdbfield = parent.DbField = ExpressionLambdaToSql(exp, getTSC());
-                        if (parent.MapType == null || _tables?.Any(a => a.Table?.IsRereadSql == true) == true)
+                        try
                         {
-                            var findcol = SearchColumnByField(_tables, null, parent.DbField);
-                            if (parent.MapType == null) parent.MapType = findcol?.Attribute.MapType ?? exp.Type;
-                            if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
+                            var pdbfield = parent.DbField = ExpressionLambdaToSql(exp, getTSC());
+                            if (parent.MapType == null || _tables?.Any(a => a.Table?.IsRereadSql == true) == true)
+                            {
+                                var findcol = SearchColumnByField(_tables, null, parent.DbField);
+                                if (parent.MapType == null) parent.MapType = findcol?.Attribute.MapType ?? exp.Type;
+                                if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
+                            }
+                            field.Append(", ").Append(pdbfield);
+                            LocalSetFieldAlias(ref index, _tables != null ||
+                                SelectGroupingProvider._ParseExpOnlyDbField.Value != pdbfield);
                         }
-                        field.Append(", ").Append(pdbfield);
-                        LocalSetFieldAlias(ref index, true);
+                        finally
+                        {
+                            SelectGroupingProvider._ParseExpOnlyDbField.Value = null;
+                        }
                         return false;
                     }
                     return false;

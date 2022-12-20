@@ -487,6 +487,22 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var groupsql01 = fsql.Select<User1>()
+                .GroupBy(a => new
+                {
+                    djjg = a.Id,
+                    qllx = a.Nickname,
+                    hjhs = a.GroupId
+                })
+                .ToSql(g => new
+                {
+                    g.Key.djjg,
+                    g.Key.qllx,
+                    xhjsl = g.Count(g.Key.djjg),
+                    hjzhs = g.Sum(g.Key.hjhs),
+                    blywsl = g.Count()
+                }, FieldAliasOptions.AsProperty);
+
             using (var uow = fsql.CreateUnitOfWork())
             {
                 uow.Orm.Select<User1>().ForUpdate().ToList();
