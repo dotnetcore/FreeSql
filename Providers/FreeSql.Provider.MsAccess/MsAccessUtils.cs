@@ -38,7 +38,7 @@ namespace FreeSql.MsAccess
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatAccess(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {

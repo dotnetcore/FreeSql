@@ -28,7 +28,14 @@ namespace FreeSql.Internal
         public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
-        public abstract string QuoteSqlName(params string[] name);
+
+        public bool IsQuoteSqlName = true;
+        public string QuoteSqlName(params string[] name) {
+            if (IsQuoteSqlName) return QuoteSqlNameAdapter(name);
+            if (name == null) return "";
+            return string.Join(".", name);
+        }
+        public abstract string QuoteSqlNameAdapter(params string[] name);
         public abstract string TrimQuoteSqlName(string name);
         public abstract string[] SplitTableName(string name);
         public static string[] GetSplitTableNames(string name, char leftQuote, char rightQuote, int size)

@@ -1336,7 +1336,7 @@
             </summary>
             <param name="dataType">数据库类型</param>
             <param name="connectionString">数据库连接串</param>
-            <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
+            <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场<para></para>例如：typeof(FreeSql.SqlServer.SqlServerProvider&lt;&gt;)</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseSlave(System.String[])">
@@ -1352,7 +1352,7 @@
             </summary>
             <param name="dataType">数据库类型</param>
             <param name="connectionFactory">数据库连接对象创建器</param>
-            <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
+            <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场<para></para>例如：typeof(FreeSql.SqlServer.SqlServerProvider&lt;&gt;)</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseAutoSyncStructure(System.Boolean)">
@@ -1437,29 +1437,6 @@
             默认值: true
             </summary>
             <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToLower(System.Boolean)">
-            <summary>
-            转小写同步结构
-            </summary>
-            <param name="value">true:转小写, false:不转</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToUpper(System.Boolean)">
-            <summary>
-            转大写同步结构
-            </summary>
-            <param name="value">true:转大写, false:不转</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseEntityPropertyNameConvert(FreeSql.Internal.StringConvertType)">
-            <summary>
-            自动转换实体属性名称 Entity Property -> Db Filed
-            <para></para>
-            *不会覆盖 [Column] 特性设置的Name
-            </summary>
-            <param name="convertType"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDelete`1.WithTransaction(System.Data.Common.DbTransaction)">
@@ -4168,46 +4145,6 @@
             </summary>
         </member>
         <member name="F:FreeSql.Internal.NameConvertType.ToLower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Upper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Lower">
             <summary>
             将字符串转换为小写
             <para></para>

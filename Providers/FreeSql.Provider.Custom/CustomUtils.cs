@@ -41,7 +41,7 @@ namespace FreeSql.Custom
 
         static FreeSql.Custom.CustomAdo _customAdo = new FreeSql.Custom.CustomAdo();
         public override string FormatSql(string sql, params object[] args) => (_orm?.Ado as CustomAdo)?.Addslashes(sql, args) ?? _customAdo.Addslashes(sql, args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {
