@@ -159,6 +159,13 @@ namespace FreeSql
             _nameConvertType = convertType;
             return this;
         }
+        /// <summary>
+        /// SQL名称是否使用 [] `` ""<para></para>
+        /// true: SELECT .. FROM [table]<para></para>
+        /// false: SELECT .. FROM table
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public FreeSqlBuilder UseQuoteSqlName(bool value)
         {
             _isQuoteSqlName = value;

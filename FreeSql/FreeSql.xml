@@ -1413,6 +1413,15 @@
             <param name="convertType"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseQuoteSqlName(System.Boolean)">
+            <summary>
+            SQL名称是否使用 [] `` ""<para></para>
+            true: SELECT .. FROM [table]<para></para>
+            false: SELECT .. FROM table
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseMappingPriority(FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType)">
             <summary>
             指定映射优先级<para></para>

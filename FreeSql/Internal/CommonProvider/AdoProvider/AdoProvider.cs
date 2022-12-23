@@ -52,7 +52,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 TimeSpan ts = DateTime.Now.Subtract(dt);
                 if (ex == null && ts.TotalMilliseconds > 100)
-                    Trace.WriteLine(logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
+                    logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
                 else
                     logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）耗时{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
             }
@@ -69,7 +69,7 @@ namespace FreeSql.Internal.CommonProvider
                 log.Append(parm.ParameterName.PadRight(20, ' ')).Append(" = ").Append((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value).Append("\r\n");
 
             log.Append(ex.Message);
-            Trace.WriteLine(log.ToString());
+            //Trace.WriteLine(log.ToString());
 
             if (cmd.Transaction != null)
             {
@@ -601,6 +601,14 @@ namespace FreeSql.Internal.CommonProvider
 
             Object<DbConnection> conn = null;
             var pc = PrepareCommand(connection, transaction, cmdType, cmdText, cmdTimeout, cmdParms, logtxt);
+            if (string.IsNullOrEmpty(pc.cmd.CommandText)) //被拦截 CommandBefore
+            {
+                LoggerException(pool, pc, null, dt, logtxt);
+                pc.cmd.Parameters.Clear();
+                if (DataType == DataType.Sqlite) pc.cmd.Dispose();
+                return;
+            }
+
             if (IsTracePerformance)
             {
                 logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
@@ -785,8 +793,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
-                val = pc.cmd.ExecuteNonQuery();
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
+                    val = pc.cmd.ExecuteNonQuery();
+                }
             }
             catch (Exception ex2)
             {
@@ -821,8 +832,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
-                val = pc.cmd.ExecuteScalar();
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
+                    val = pc.cmd.ExecuteScalar();
+                }
             }
             catch (Exception ex2)
             {

@@ -508,6 +508,14 @@ namespace FreeSql.Internal.CommonProvider
 
             Object<DbConnection> conn = null;
             var pc = await PrepareCommandAsync(connection, transaction, cmdType, cmdText, cmdTimeout, cmdParms, logtxt, cancellationToken);
+            if (string.IsNullOrEmpty(pc.cmd.CommandText)) //被拦截 CommandBefore
+            {
+                LoggerException(pool, pc, null, dt, logtxt);
+                pc.cmd.Parameters.Clear();
+                if (DataType == DataType.Sqlite) pc.cmd.Dispose();
+                return;
+            }
+
             if (IsTracePerformance)
             {
                 logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
@@ -690,8 +698,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = await this.MasterPool.GetAsync()).Value;
-                val = await pc.cmd.ExecuteNonQueryAsync(cancellationToken);
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = await this.MasterPool.GetAsync()).Value;
+                    val = await pc.cmd.ExecuteNonQueryAsync(cancellationToken);
+                }
             }
             catch (Exception ex2)
             {
@@ -726,8 +737,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = await this.MasterPool.GetAsync()).Value;
-                val = await pc.cmd.ExecuteScalarAsync(cancellationToken);
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = await this.MasterPool.GetAsync()).Value;
+                    val = await pc.cmd.ExecuteScalarAsync(cancellationToken);
+                }
             }
             catch (Exception ex2)
             {
