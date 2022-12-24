@@ -15,7 +15,7 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<Version>3.2.685</Version>
+		<Version>3.2.686-preview20221224</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
