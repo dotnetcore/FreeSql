@@ -33,7 +33,6 @@ namespace FreeSql.Internal.CommonProvider
         public CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
-        private Random slaveRandom = new Random();
         protected Func<DbTransaction> ResolveTransaction;
 
         public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
@@ -584,7 +583,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (availables.Count == 1) pool = availables[0];
                         else
                         {
-                            var rnd = slaveRandom.Next(availables.Sum(a => a.Policy.Weight));
+                            var rnd = FreeUtil.rnd.Value.Next(availables.Sum(a => a.Policy.Weight));
                             for(var a = 0; a < availables.Count; a++)
                             {
                                 rnd -= availables[a].Policy.Weight;
