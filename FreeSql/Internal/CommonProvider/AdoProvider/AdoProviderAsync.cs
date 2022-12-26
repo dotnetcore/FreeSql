@@ -67,6 +67,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
                         var name = fetch.Object.GetName(a);
+                        if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                         if (dic.ContainsKey(name)) continue;
                         sbflag.Append(name).Append(":").Append(a).Append(",");
                         dic.Add(name, a);
@@ -111,6 +112,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -128,6 +130,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -180,6 +183,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -197,6 +201,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -214,6 +219,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -272,6 +278,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -289,6 +296,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -306,6 +314,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -323,6 +332,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -387,6 +397,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -404,6 +415,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -421,6 +433,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -438,6 +451,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -455,6 +469,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);

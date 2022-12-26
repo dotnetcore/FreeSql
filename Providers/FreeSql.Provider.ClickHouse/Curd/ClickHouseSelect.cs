@@ -46,7 +46,7 @@ namespace FreeSql.ClickHouse.Curd
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            sb.Append(" \r\nGLOBAL LEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
 
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
                             else
@@ -80,13 +80,13 @@ namespace FreeSql.ClickHouse.Curd
                         case SelectTableInfoType.RawJoin:
                             continue;
                         case SelectTableInfoType.LeftJoin:
-                            sb.Append(" \r\nLEFT JOIN ");
+                            sb.Append(" \r\nGLOBAL LEFT JOIN ");
                             break;
                         case SelectTableInfoType.InnerJoin:
-                            sb.Append(" \r\nINNER JOIN ");
+                            sb.Append(" \r\nGLOBAL INNER JOIN ");
                             break;
                         case SelectTableInfoType.RightJoin:
-                            sb.Append(" \r\nRIGHT JOIN ");
+                            sb.Append(" \r\nGLOBAL RIGHT JOIN ");
                             break;
                     }
                     sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
