@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace FreeSql.Tests.PostgreSQL
 
         IInsert<Topic> insert => g.pgsql.Insert<Topic>();
 
-        [Table(Name = "tb_topic_insert")]
+        [Table(Name = "tb_topic_insert2")]
         class Topic
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -135,6 +135,35 @@ namespace FreeSql.Tests.PostgreSQL
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
             insert.AppendData(items.First()).ExecuteInserted();
+        }
+
+
+        [Table(Name = "tb_topic_insert_pgcopy")]
+        class TopicPgCopy
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public int Clicks { get; set; }
+            public TestTypeInfo Type { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
+        }
+
+        [Fact]
+        public void ExecutePgCopy()
+        {
+            var maxId = g.pgsql.Select<TopicPgCopy>().Max(a => a.Id);
+            var items = new List<TopicPgCopy>();
+            for (var a = 0; a < 10; a++) items.Add(new TopicPgCopy { Id = maxId + a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            g.pgsql.Insert(items).InsertIdentity().ExecutePgCopy();
+
+            items = g.pgsql.Select<TopicPgCopy>().OrderByDescending(a => a.Id).Limit(1000).ToList();
+            var sql = g.pgsql.Insert(items).InsertIdentity().NoneParameter().ToSql();
+            g.pgsql.Update<TopicPgCopy>().SetSource(items).ExecutePgCopy();
+            g.pgsql.Update<TopicPgCopy>().SetSource(items, a => new { a.Id, a.Clicks }).ExecutePgCopy();
+            g.pgsql.Update<TopicPgCopy>().SetSource(items).UpdateColumns(a => new { a.Title }).ExecutePgCopy();
+            g.pgsql.Update<TopicPgCopy>().SetSource(items, a => new { a.Id, a.Clicks }).UpdateColumns(a => new { a.Title }).ExecutePgCopy();
         }
 
         [Fact]

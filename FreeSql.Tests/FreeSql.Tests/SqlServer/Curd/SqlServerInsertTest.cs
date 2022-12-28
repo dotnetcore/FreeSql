@@ -227,12 +227,19 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteSqlBulkCopy()
         {
+            var maxId = g.pgsql.Select<Topic>().Max(a => a.Id);
             var items = new List<Topic>();
-            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = maxId + a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
             insert.AppendData(items).InsertIdentity().ExecuteSqlBulkCopy();
             //insert.AppendData(items).IgnoreColumns(a => new { a.CreateTime, a.Clicks }).ExecuteSqlBulkCopy();
             // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
+
+            items = g.sqlserver.Select<Topic>().OrderByDescending(a => a.Id).Limit(1000).ToList();
+            g.sqlserver.Update<Topic>().SetSource(items).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items, a => new { a.Id, a.TypeGuid }).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items).UpdateColumns(a => new { a.Title }).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items, a => new { a.Id, a.TypeGuid }).UpdateColumns(a => new { a.Title }).ExecuteSqlBulkCopy();
         }
 
         [Fact]

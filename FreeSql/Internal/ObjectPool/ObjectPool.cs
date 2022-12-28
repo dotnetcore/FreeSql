@@ -250,6 +250,29 @@ namespace FreeSql.Internal.ObjectPool
             catch { }
         }
 
+        public void AutoFree()
+        {
+            if (running == false) return;
+            if (UnavailableException != null) return;
+
+            var list = new List<Object<T>>();
+            while (_freeObjects.TryPop(out var obj))
+                list.Add(obj);
+            foreach (var obj in list)
+            {
+                if (obj != null && obj.Value == null ||
+                    obj != null && Policy.IdleTimeout > TimeSpan.Zero && DateTime.Now.Subtract(obj.LastReturnTime) > Policy.IdleTimeout)
+                {
+                    if (obj.Value != null)
+                    {
+                        Return(obj, true);
+                        continue;
+                    }
+                }
+                Return(obj);
+            }
+        }
+
         /// <summary>
         /// 获取可用资源，或创建资源
         /// </summary>

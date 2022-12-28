@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
+        public bool _isAutoSyncStructure;
     }
 
     public abstract partial class DeleteProvider<T1> : DeleteProvider, IDelete<T1>
@@ -35,8 +36,9 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
+            _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
-            if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
 
@@ -51,7 +53,7 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this;
         }
         public IDelete<T1> WithConnection(DbConnection connection)
@@ -145,7 +147,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }
         public IDelete<T1> AsTable(Func<string, string> tableRule)
@@ -164,7 +166,7 @@ namespace FreeSql.Internal.CommonProvider
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IDelete"));
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             return this;
         }
 

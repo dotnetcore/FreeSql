@@ -61,7 +61,7 @@ namespace FreeSql.Internal.CommonProvider
         public IInsertOrUpdate<T1> WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this;
         }
         public IInsertOrUpdate<T1> WithConnection(DbConnection connection)
@@ -290,6 +290,7 @@ namespace FreeSql.Internal.CommonProvider
         public abstract string ToSql();
         public int ExecuteAffrows()
         {
+            if (_sourceSql != null) return this.RawExecuteAffrows();
             var affrows = 0;
             var ss = SplitSourceByIdentityValueIsNull(_source);
             try
@@ -408,6 +409,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         async public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
+            if (_sourceSql != null) return this.RawExecuteAffrows();
             var affrows = 0;
             var ss = SplitSourceByIdentityValueIsNull(_source);
             try

@@ -33,7 +33,6 @@ namespace FreeSql.Internal.CommonProvider
         public CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
-        private Random slaveRandom = new Random();
         protected Func<DbTransaction> ResolveTransaction;
 
         public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
@@ -52,7 +51,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 TimeSpan ts = DateTime.Now.Subtract(dt);
                 if (ex == null && ts.TotalMilliseconds > 100)
-                    Trace.WriteLine(logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
+                    logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
                 else
                     logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）耗时{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
             }
@@ -69,7 +68,7 @@ namespace FreeSql.Internal.CommonProvider
                 log.Append(parm.ParameterName.PadRight(20, ' ')).Append(" = ").Append((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value).Append("\r\n");
 
             log.Append(ex.Message);
-            Trace.WriteLine(log.ToString());
+            //Trace.WriteLine(log.ToString());
 
             if (cmd.Transaction != null)
             {
@@ -152,6 +151,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
                         var name = fetch.Object.GetName(a);
+                        if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                         if (dic.ContainsKey(name)) continue;
                         sbflag.Append(name).Append(":").Append(a).Append(",");
                         dic.Add(name, a);
@@ -195,6 +195,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -212,6 +213,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -263,6 +265,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -280,6 +283,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -297,6 +301,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -354,6 +359,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -371,6 +377,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -388,6 +395,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -405,6 +413,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -468,6 +477,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -485,6 +495,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -502,6 +513,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -519,6 +531,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -536,6 +549,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
+                                if (DataType == DataType.ClickHouse && name.Contains(".")) name = name.Substring(name.IndexOf('.') + 1);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -584,7 +598,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (availables.Count == 1) pool = availables[0];
                         else
                         {
-                            var rnd = slaveRandom.Next(availables.Sum(a => a.Policy.Weight));
+                            var rnd = FreeUtil.rnd.Value.Next(availables.Sum(a => a.Policy.Weight));
                             for(var a = 0; a < availables.Count; a++)
                             {
                                 rnd -= availables[a].Policy.Weight;
@@ -601,6 +615,14 @@ namespace FreeSql.Internal.CommonProvider
 
             Object<DbConnection> conn = null;
             var pc = PrepareCommand(connection, transaction, cmdType, cmdText, cmdTimeout, cmdParms, logtxt);
+            if (string.IsNullOrEmpty(pc.cmd.CommandText)) //被拦截 CommandBefore
+            {
+                LoggerException(pool, pc, null, dt, logtxt);
+                pc.cmd.Parameters.Clear();
+                if (DataType == DataType.Sqlite) pc.cmd.Dispose();
+                return;
+            }
+
             if (IsTracePerformance)
             {
                 logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
@@ -785,8 +807,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
-                val = pc.cmd.ExecuteNonQuery();
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
+                    val = pc.cmd.ExecuteNonQuery();
+                }
             }
             catch (Exception ex2)
             {
@@ -821,8 +846,11 @@ namespace FreeSql.Internal.CommonProvider
             Exception ex = null;
             try
             {
-                if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
-                val = pc.cmd.ExecuteScalar();
+                if (string.IsNullOrEmpty(pc.cmd.CommandText) == false) //是否被拦截 CommandBefore
+                {
+                    if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
+                    val = pc.cmd.ExecuteScalar();
+                }
             }
             catch (Exception ex2)
             {

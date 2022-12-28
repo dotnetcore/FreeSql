@@ -1,9 +1,13 @@
 ﻿using FreeSql;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
 using FreeSql.PostgreSQL.Curd;
 using Npgsql;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
@@ -32,6 +36,54 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     public static OnConflictDoUpdate<T1> OnConflictDoUpdate<T1>(this IInsert<T1> that, Expression<Func<T1, object>> columns = null) where T1 : class => new FreeSql.PostgreSQL.Curd.OnConflictDoUpdate<T1>(that.InsertIdentity(), columns);
 
     #region ExecutePgCopy
+    /// <summary>
+    /// 批量更新（更新字段数量超过 2000 时收益大）<para></para>
+    /// 实现原理：使用 PgCopy 插入临时表，再使用 UPDATE INNER JOIN 联表更新
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <returns></returns>
+    public static int ExecutePgCopy<T>(this IUpdate<T> that) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
+        var state = ExecutePgCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecutePgCopy());
+    }
+    static NativeTuple<string, string, string, string, string[]> ExecutePgCopyState<T>(UpdateProvider<T> update) where T : class
+    {
+        if (update._source.Any() != true) return null;
+        var _table = update._table;
+        var _commonUtils = update._commonUtils;
+        var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
+        var tempTableName = $"Temp_{Guid.NewGuid().ToString("N")}";
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
+            update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
+        var sb = new StringBuilder().Append("CREATE TEMP TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
+        foreach (var col in _table.Columns.Values)
+        {
+            if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
+            else continue;
+            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" ").Append(col.Attribute.DbType.Replace("NOT NULL", ""));
+            sb.Append(",");
+        }
+        var sql1 = sb.Remove(sb.Length - 1, 1).Append("\r\n) WITH (OIDS=FALSE);").ToString();
+
+        sb.Clear().Append("UPDATE ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
+            .Append("\r\nSET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")))
+            .Append("\r\nFROM ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" b ")
+            .Append("\r\nWHERE ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
+        var sql2 = sb.ToString();
+        sb.Clear();
+        var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
+        return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
+    }
+
     /// <summary>
     /// PostgreSQL COPY 批量导入功能，封装了 NpgsqlConnection.BeginBinaryImport 方法<para></para>
     /// 使用 IgnoreColumns/InsertColumns 设置忽略/指定导入的列<para></para>
@@ -121,6 +173,13 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
 
 #if net45
 #else
+    public static Task<int> ExecutePgCopyAsync<T>(this IUpdate<T> that, CancellationToken cancellationToken = default) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return Task.FromResult(0);
+        var state = ExecutePgCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdateAsync(update, state, insert => insert.ExecutePgCopyAsync(cancellationToken));
+    }
     async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;

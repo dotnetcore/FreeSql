@@ -37,7 +37,7 @@ namespace FreeSql.Odbc.MySql
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcMySql(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {

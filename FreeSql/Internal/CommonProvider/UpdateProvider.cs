@@ -1,5 +1,6 @@
 ﻿using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -37,6 +38,96 @@ namespace FreeSql.Internal.CommonProvider
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
         public object _updateVersionValue;
+        public bool _isAutoSyncStructure;
+
+
+        public static int ExecuteBulkUpdate<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Action<IInsert<T1>> funcBulkCopy) where T1 : class
+        {
+            if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
+            var fsql = update._orm;
+            var connection = update._connection;
+            var transaction = update._transaction;
+
+            Object<DbConnection> poolConn = null;
+            if (connection == null)
+            {
+                poolConn = fsql.Ado.MasterPool.Get();
+                connection = poolConn.Value;
+            }
+            try
+            {
+                var droped = false;
+                fsql.Ado.CommandFluent(state.Item1).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
+                try
+                {
+                    var insert = fsql.Insert<T1>(update._source)
+                        .AsType(update._table.Type)
+                        .WithConnection(connection)
+                        .WithTransaction(transaction)
+                        .InsertIdentity()
+                        .InsertColumns(state.Item5)
+                        .AsTable(state.Item4);
+                    (insert as InsertProvider)._isAutoSyncStructure = false;
+                    funcBulkCopy(insert);
+                    var affrows = fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
+                    droped = true;
+                    return affrows;
+                }
+                finally
+                {
+                    if (droped == false) fsql.Ado.CommandFluent(state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
+                }
+            }
+            finally
+            {
+                poolConn?.Dispose();
+            }
+        }
+#if net40
+#else
+        async public static Task<int> ExecuteBulkUpdateAsync<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Func<IInsert<T1>, Task> funcBulkCopy) where T1 : class
+        {
+            if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
+            var fsql = update._orm;
+            var connection = update._connection;
+            var transaction = update._transaction;
+
+            Object<DbConnection> poolConn = null;
+            if (connection == null)
+            {
+                poolConn = await fsql.Ado.MasterPool.GetAsync();
+                connection = poolConn.Value;
+            }
+            try
+            {
+                var droped = false;
+                await fsql.Ado.CommandFluent(state.Item1).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
+                try
+                {
+                    var insert = fsql.Insert<T1>(update._source)
+                        .AsType(update._table.Type)
+                        .WithConnection(connection)
+                        .WithTransaction(transaction)
+                        .InsertIdentity()
+                        .InsertColumns(state.Item5)
+                        .AsTable(state.Item4);
+                    (insert as InsertProvider)._isAutoSyncStructure = false;
+                    await funcBulkCopy(insert);
+                    var affrows = await fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
+                    droped = true;
+                    return affrows;
+                }
+                finally
+                {
+                    if (droped == false) await fsql.Ado.CommandFluent(state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
+                }
+            }
+            finally
+            {
+                poolConn?.Dispose();
+            }
+        }
+#endif
     }
 
     public abstract partial class UpdateProvider<T1> : UpdateProvider, IUpdate<T1>
@@ -54,8 +145,9 @@ namespace FreeSql.Internal.CommonProvider
             _tempPrimarys = _table?.Primarys ?? new ColumnInfo[0];
             _versionColumn = _table?.VersionColumn;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
+            _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
-            if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
             _sourceOld = _source;
@@ -95,7 +187,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this;
         }
         public IUpdate<T1> WithConnection(DbConnection connection)
@@ -797,7 +889,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }
         public IUpdate<T1> AsTable(Func<string, string> tableRule)
@@ -818,7 +910,7 @@ namespace FreeSql.Internal.CommonProvider
             _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IUpdate"));
             _tempPrimarys = _table.Primarys;
             _versionColumn = _ignoreVersion ? null : _table.VersionColumn;
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IgnoreCanUpdate();
             return this;
         }

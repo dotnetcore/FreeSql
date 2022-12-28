@@ -31,6 +31,7 @@ namespace FreeSql.Internal.CommonProvider
             _tables = tables;
         }
 
+        public static ThreadLocal<string> _ParseExpOnlyDbField = new ThreadLocal<string>();
         public override string ParseExp(Expression[] members)
         {
             ParseExpMapResult = null;
@@ -52,7 +53,11 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     ParseExpMapResult = read;
                     if (!_addFieldAlias) return read.DbField;
-                    if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false) return $"{read.DbField}{_comonExp._common.FieldAsAlias(read.DbNestedField)}";
+                    if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false)
+                    {
+                        _ParseExpOnlyDbField.Value = read.DbField;
+                        return $"{read.DbField}{_comonExp._common.FieldAsAlias(read.DbNestedField)}";
+                    }
                     return read.DbField;
                 case "Value":
                     var curtables = _tables;

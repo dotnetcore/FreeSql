@@ -15,15 +15,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FreeSql;
+using FreeSql.Internal.CommonProvider;
 
 namespace orm_vs
 {
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Max Pool Size=20")
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Max Pool Size=21;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=21;AllowLoadLocalInfile=true;")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
@@ -35,11 +36,11 @@ namespace orm_vs
             {
                 var db = new SqlSugarClient(new ConnectionConfig()
                 {
-                    ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                    ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=20;Max Pool Size=20;TrustServerCertificate=true",
                     DbType = DbType.SqlServer,
-                    //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                    //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20;AllowLoadLocalInfile=true;",
                     //DbType = DbType.MySql,
-                    //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
+                    //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20",
                     //DbType = DbType.PostgreSQL,
                     IsAutoCloseConnection = true,
                     InitKeyType = InitKeyType.Attribute
@@ -58,18 +59,15 @@ namespace orm_vs
             public DbSet<PatientExamination_2022> PatientExamination_2022s { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-                //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
-                //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21");
+                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=19;Max Pool Size=19;TrustServerCertificate=true");
+                //var connectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=19;Max Pool Size=19";
+                //optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=19");
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 base.OnModelCreating(modelBuilder);
-
-                modelBuilder.Entity<Song>()
-                    .Property(a => a.create_time)
-                    .HasConversion(a => int.Parse(a.ToString()), a => new DateTime(a));
             }
         }
 
@@ -136,7 +134,7 @@ namespace orm_vs
         }
         static void TestDapperSelectPatientExamination_2022()
         {
-            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=tedb;Pooling=true;Min Pool Size=21;Max Pool Size=22"))
+            using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=21;Max Pool Size=22"))
             {
                 var list = conn.Query<PatientExamination_2022>("select top 40000 * from PatientExamination_2022");
             }
@@ -145,28 +143,28 @@ namespace orm_vs
         static DbConnection fsqlConn = null;
         static void Main(string[] args)
         {
-            var count = 0;
-            var sws = new List<long>();
-            Console.WriteLine("观察查询4万条记录内存，按 Enter 进入下一次，按任易键即出程序。。。");
-            //while(Console.ReadKey().Key == ConsoleKey.Enter)
-            //using (var fcon = fsql.Ado.MasterPool.Get())
-            //{
-                //fsqlConn = fcon.Value;
-                for (var a = 0; a < 80; a++)
-                {
-                    Stopwatch sw = Stopwatch.StartNew();
-                    TestFreeSqlSelectPatientExamination_2022();
-                    //TestEfSelectPatientExamination_2022();
-                    //TestSqlSugarSelectPatientExamination_2022();
-                    //TestDapperSelectPatientExamination_2022();
-                    sw.Stop();
-                    sws.Add(sw.ElapsedMilliseconds);
-                    Console.WriteLine($"第 {++count} 次，查询4万条记录, {sw.ElapsedMilliseconds}ms，平均 {(long)sws.Average()}ms");
-                }
-            //}
-            Console.ReadKey();
-            fsql.Dispose();
-            return;
+            //var count = 0;
+            //var sws = new List<long>();
+            //Console.WriteLine("观察查询4万条记录内存，按 Enter 进入下一次，按任易键即出程序。。。");
+            ////while(Console.ReadKey().Key == ConsoleKey.Enter)
+            ////using (var fcon = fsql.Ado.MasterPool.Get())
+            ////{
+            //    //fsqlConn = fcon.Value;
+            //    for (var a = 0; a < 80; a++)
+            //    {
+            //        Stopwatch sw = Stopwatch.StartNew();
+            //        TestFreeSqlSelectPatientExamination_2022();
+            //        //TestEfSelectPatientExamination_2022();
+            //        //TestSqlSugarSelectPatientExamination_2022();
+            //        //TestDapperSelectPatientExamination_2022();
+            //        sw.Stop();
+            //        sws.Add(sw.ElapsedMilliseconds);
+            //        Console.WriteLine($"第 {++count} 次，查询4万条记录, {sw.ElapsedMilliseconds}ms，平均 {(long)sws.Average()}ms");
+            //    }
+            ////}
+            //Console.ReadKey();
+            //fsql.Dispose();
+            //return;
 
             //fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
@@ -185,13 +183,6 @@ namespace orm_vs
 
             var sb = new StringBuilder();
             var time = new Stopwatch();
-
-            var sql222 = fsql.Select<Song>().Where(a => DateTime.Now.Subtract(a.create_time.Value).TotalHours > 0).ToSql();
-
-            var conModels = new List<IConditionalModel>();
-            conModels.Add(new ConditionalModel { FieldName = "`id` = 1 or 1=1; delete from song_tag; -- ", ConditionalType = ConditionalType.Equal, FieldValue = "1" });
-
-            var student = sugar.Queryable<Song>().Where(conModels).ToList();
 
 
             #region ET test
@@ -483,23 +474,10 @@ namespace orm_vs
 
             #endregion
 
-            var testlist1 = fsql.Select<Song>().OrderBy(a => a.id).ToList();
-            var testlist2 = new List<Song>();
-            fsql.Select<Song>().OrderBy(a => a.id).ToChunk(2, fetch =>
+            sugar.Aop.OnLogExecuted = (s, e) =>
             {
-                testlist2.AddRange(fetch.Object);
-            });
-
-            var testlist22 = new List<object>();
-            fsql.Select<Song, Song_tag>().LeftJoin((a, b) => a.id == b.song_id).ToChunk((a, b) => new { a.title, a.create_time, b.tag_id }, 2, fetch =>
-            {
-                testlist22.AddRange(fetch.Object);
-            });
-
-            //sugar.Aop.OnLogExecuted = (s, e) =>
-            //{
-            //    Trace.WriteLine(s);
-            //};
+                Trace.WriteLine(s);
+            };
             //测试前清空数据
             fsql.Delete<Song>().Where(a => a.id > 0).ExecuteAffrows();
             sugar.Deleteable<Song>().Where(a => a.id > 0).ExecuteCommand();
@@ -548,10 +526,10 @@ namespace orm_vs
             sb.Clear();
 
             Console.WriteLine("更新：");
-            Update(sb, 100, 1);
+            Update(sb, 10, 1);
             Console.Write(sb.ToString());
             sb.Clear();
-            Update(sb, 100, 10);
+            Update(sb, 10, 10);
             Console.Write(sb.ToString());
             sb.Clear();
 
@@ -598,21 +576,21 @@ namespace orm_vs
             sw.Stop();
             sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效");
 
-            sw.Restart();
-            using (var conn = fsql.Ado.MasterPool.Get())
-            {
-                for (var a = 0; a < forTime; a++)
-                    Dapper.SqlMapper.Query<Song>(conn.Value, $"select top {size} * from freesql_song").ToList();
-            }
-            sw.Stop();
-            sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+            //sw.Restart();
+            //using (var conn = fsql.Ado.MasterPool.Get())
+            //{
+            //    for (var a = 0; a < forTime; a++)
+            //        Dapper.SqlMapper.Query<Song>(conn.Value, $"select * from freesql_song limit {size}").ToList();
+            //}
+            //sw.Stop();
+            //sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
         }
 
         static void Insert(StringBuilder sb, int forTime, int size)
         {
             var songs = Enumerable.Range(0, size).Select(a => new Song
             {
-                create_time = DateTime.Now,
+                create_time = DateTime.Now.ToString(),
                 is_deleted = false,
                 title = $"Insert_{a}",
                 url = $"Url_{a}"
@@ -647,6 +625,7 @@ namespace orm_vs
             try
             {
                 for (var a = 0; a < forTime; a++)
+                    //sugar.Fastest<Song>().BulkCopy(songs.ToList());
                     sugar.Insertable(songs.ToArray()).ExecuteCommand();
             }
             catch (Exception ex)
@@ -682,7 +661,61 @@ namespace orm_vs
                 fsql.Update<Song>().SetSource(songs).ExecuteAffrows();
             }
             sw.Stop();
-            sb.AppendLine($"FreeSql Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+            sb.AppendLine($"FreeSql Update1 {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+
+            songs = fsql.Select<Song>().Limit(size).ToList();
+            sw.Restart();
+            for (var a = 0; a < forTime; a++)
+            {
+                fsql.Update<Song>().SetSource(songs).ExecuteSqlBulkCopy();
+            }
+            sw.Stop();
+            sb.AppendLine($"FreeSql BulkCopyUpdate {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+            //            songs = fsql.Select<Song>().Limit(size).ToList();
+            //            sw.Restart();
+            //            for (var a = 0; a < forTime; a++)
+            //            {
+            //                //fsql.Update<Song>().SetSource(songs).ExecuteAffrows();
+            //                var iou = fsql.InsertOrUpdate<Song>() as InsertOrUpdateProvider<Song>;
+            //                var dbsql = new StringBuilder();
+            //                var dbparms = new List<DbParameter>();
+            //                iou.WriteSourceSelectUnionAll(songs, dbsql, dbparms);
+
+            //                var sql = $@"update freesql_song a
+            //inner join ( {dbsql} ) b on b.id = a.id
+            //set a.create_time = b.create_time, a.is_deleted = b.is_deleted, a.title = b.title, a.url = b.url";
+            //                fsql.Ado.ExecuteNonQuery(System.Data.CommandType.Text, sql, dbparms.ToArray());
+            //            }
+            //            sw.Stop();
+            //            sb.AppendLine($"FreeSql Update2(update inner join) {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+            //            songs = fsql.Select<Song>().Limit(size).ToList();
+            //            sw.Restart();
+            //            for (var a = 0; a < forTime; a++)
+            //            {
+            //                var isdroped = false;
+            //                var tempTableName = $"#Temp_freesql_song";
+            //                fsql.Ado.ExecuteNonQuery($"select * into {tempTableName} from [freesql_song] where 1=2");
+            //                try
+            //                {
+            //                    fsql.Insert(songs).AsTable(tempTableName).ExecuteMySqlBulkCopy();
+            //                    var sql = $@"update freesql_song a
+            //inner join {tempTableName} b on b.id = a.id;
+            //set a.create_time = b.create_time, a.is_deleted = b.is_deleted, a.title = b.title, a.url = b.url 
+            //; drop table {tempTableName}; ";
+            //                    fsql.Ado.ExecuteNonQuery(System.Data.CommandType.Text, sql);
+            //                    isdroped = true;
+            //                }
+            //                finally
+            //                {
+            //                    if (isdroped == false)
+            //                        fsql.Ado.ExecuteNonQuery($"drop table {tempTableName}");
+            //                }
+            //            }
+            //            sw.Stop();
+            //            sb.AppendLine($"FreeSql Update3(update inner join #temp) {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
 
             songs = sugar.Queryable<Song>().Take(size).ToList();
             sw.Restart();
@@ -690,7 +723,7 @@ namespace orm_vs
             try
             {
                 for (var a = 0; a < forTime; a++)
-                    sugar.Updateable(songs).ExecuteCommand();
+                    sugar.Fastest<Song>().BulkUpdate(songs);
             }
             catch (Exception ex)
             {
@@ -699,21 +732,21 @@ namespace orm_vs
             sw.Stop();
             sb.AppendLine($"SqlSugar Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms" + (sugarEx != null ? $"成绩无效，错误：{sugarEx.Message}" : ""));
 
-            using (var db = new SongContext())
-            {
-                songs = db.Songs.Take(size).AsNoTracking().ToList();
-            }
-            sw.Restart();
-            for (var a = 0; a < forTime; a++)
-            {
+            //using (var db = new SongContext())
+            //{
+            //    songs = db.Songs.Take(size).AsNoTracking().ToList();
+            //}
+            //sw.Restart();
+            //for (var a = 0; a < forTime; a++)
+            //{
 
-                using (var db = new SongContext())
-                {
-                    //db.Configuration.AutoDetectChangesEnabled = false;
-                    //db.Songs.UpdateRange(songs.ToArray());
-                    //db.SaveChanges();
-                }
-            }
+            //    using (var db = new SongContext())
+            //    {
+            //        //db.Configuration.AutoDetectChangesEnabled = false;
+            //        //db.Songs.UpdateRange(songs.ToArray());
+            //        //db.SaveChanges();
+            //    }
+            //}
             sw.Stop();
             sb.AppendLine($"EFCore Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效\r\n");
         }
@@ -729,7 +762,7 @@ namespace orm_vs
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-        public DateTime? create_time { get; set; }
+        public string create_time { get; set; }
         public bool? is_deleted { get; set; }
         public string title { get; set; }
         public string url { get; set; }

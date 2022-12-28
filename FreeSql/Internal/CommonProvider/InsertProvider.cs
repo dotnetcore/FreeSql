@@ -31,6 +31,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbTransaction _transaction;
         public DbConnection _connection;
         public int _commandTimeout = 0;
+        public bool _isAutoSyncStructure;
     }
 
     public abstract partial class InsertProvider<T1> : InsertProvider, IInsert<T1> where T1 : class
@@ -46,7 +47,8 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
-            if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
+            if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanInsert();
             _sourceOld = _source;
         }
@@ -78,7 +80,7 @@ namespace FreeSql.Internal.CommonProvider
         public IInsert<T1> WithTransaction(DbTransaction transaction)
         {
             _transaction = transaction;
-            _connection = _transaction?.Connection;
+            if (transaction != null) _connection = transaction.Connection;
             return this;
         }
         public IInsert<T1> WithConnection(DbConnection connection)
@@ -568,7 +570,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
             return newname;
         }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
@@ -588,7 +590,7 @@ namespace FreeSql.Internal.CommonProvider
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IInsert"));
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IgnoreCanInsert();
             return this;
         }

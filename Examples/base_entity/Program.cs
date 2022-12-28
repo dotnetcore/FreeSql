@@ -451,10 +451,10 @@ namespace base_entity
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
-                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                .UseQuoteSqlName(false)
 
-
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
@@ -480,12 +480,51 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText + "\r\n"))
+                .UseMonitorCommand(cmd =>
+                {
+                    Console.WriteLine(cmd.CommandText + "\r\n");
+                    cmd.CommandText = null; //不执行
+                })
                 .UseLazyLoading(true)
                 //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var groupsql01 = fsql.Select<User1>()
+                .GroupBy(a => new
+                {
+                    djjg = a.Id,
+                    qllx = a.Nickname,
+                    hjhs = a.GroupId
+                })
+                .ToSql(g => new
+                {
+                    g.Key.djjg,
+                    g.Key.qllx,
+                    xhjsl = g.Count(g.Key.djjg),
+                    hjzhs = g.Sum(g.Key.hjhs),
+                    blywsl = g.Count()
+                }, FieldAliasOptions.AsProperty);
+
+            using (var uow = fsql.CreateUnitOfWork())
+            {
+                uow.Orm.Select<User1>().ForUpdate().ToList();
+            }
+
+            var listaaaddd = new List<User1>();
+            for (int i = 0; i < 2; i++)
+            {
+                listaaaddd.Add(new User1 { Nickname = $"测试文本:{i}" });
+            }
+            fsql.Select<User1>();
+            fsql.Transaction(() =>
+            {
+
+                fsql.Insert(listaaaddd).ExecuteAffrows();  //加在事务里就出错
+            });
+
+                fsql.Select<IdentityTable>().Count();
 
             var dkdksql =  fsql.Select<User1>().WithLock().From<UserGroup>()
                 .InnerJoin<UserGroup>((user, usergroup) => user.GroupId == usergroup.Id && usergroup.GroupName == "xxx")

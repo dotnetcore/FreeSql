@@ -5,6 +5,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using FreeSql.Internal.CommonProvider;
+using System.Linq;
+using System.Text;
+using System.Data.Common;
+using FreeSql.Internal.ObjectPool;
 #if microsoft
 using Microsoft.Data.SqlClient;
 #else
@@ -116,6 +120,51 @@ public static partial class FreeSqlSqlServerGlobalExtensions
 
     #region ExecuteSqlBulkCopy
     /// <summary>
+    /// 批量更新（更新字段数量超过 2000 时收益大）<para></para>
+    /// 实现原理：使用 SqlBulkCopy 插入临时表，再使用 UPDATE INNER JOIN 联表更新
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="copyOptions"></param>
+    /// <param name="batchSize"></param>
+    /// <param name="bulkCopyTimeout"></param>
+    /// <returns></returns>
+    public static int ExecuteSqlBulkCopy<T>(this IUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
+        var state = ExecuteSqlBulkCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
+    }
+    static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
+    {
+        if (update._source.Any() != true) return null;
+        var _table = update._table;
+        var _commonUtils = update._commonUtils;
+        var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
+        var tempTableName = $"#Temp_{updateTableName}";
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
+                update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
+        foreach (var col in _table.Columns.Values)
+        {
+            if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
+        }
+        var sql1 = $"SELECT {string.Join(", ", pkColumns)}, {string.Join(", ", setColumns)} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
+        var sb = new StringBuilder().Append("UPDATE ").Append(" a SET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
+        sb.Append(" \r\nFROM ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
+            .Append(" \r\nINNER JOIN ").Append(tempTableName).Append(" b ON ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
+        var sql2 = sb.ToString();
+        sb.Clear();
+        var sql3 = $"DROP TABLE {tempTableName}";
+        return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
+    }
+
+    /// <summary>
     /// SqlServer SqlCopyBulk 批量插入功能<para></para>
     /// 使用 IgnoreColumns/InsertColumns 设置忽略/指定导入的列<para></para>
     /// 使用 WithConnection/WithTransaction 传入连接/事务对象<para></para>
@@ -214,6 +263,13 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     }
 #if net40
 #else
+    public static Task<int> ExecuteSqlBulkCopyAsync<T>(this IUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return Task.FromResult(0);
+        var state = ExecuteSqlBulkCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdateAsync(update, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions, batchSize, bulkCopyTimeout, cancellationToken));
+    }
     async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;

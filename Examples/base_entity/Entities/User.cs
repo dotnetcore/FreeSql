@@ -1,4 +1,5 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -56,4 +57,12 @@ public class User1 : BaseEntity<User1, Guid>
     /// </summary>
     [MaxLength(4000)]
     public string Description { get; set; }
+}
+
+public class IdentityTable
+{
+    [Column(IsIdentity = true, IsPrimary = true)]
+    public int id { get; set; }
+
+    public string name { get; set; }
 }

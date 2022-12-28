@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using FreeSql.Internal.Model;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.ObjectPool;
+using System.Linq;
+using System.Data.Common;
 #if MySqlConnector
 using MySqlConnector;
 #else
@@ -13,6 +18,55 @@ using MySql.Data.MySqlClient;
 public static class FreeSqlMySqlConnectorGlobalExtensions
 {
     #region ExecuteMySqlBulkCopy
+
+    /// <summary>
+    /// 批量更新（更新字段数量超过 2000 时收益大）<para></para>
+    /// 实现原理：使用 MySqlBulkCopy 插入临时表，再使用 UPDATE INNER JOIN 联表更新
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="bulkCopyTimeout"></param>
+    /// <returns></returns>
+    public static int ExecuteMySqlBulkCopy<T>(this IUpdate<T> that, int? bulkCopyTimeout = null) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
+        var state = ExecuteMySqlBulkCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteMySqlBulkCopy(bulkCopyTimeout));
+    }
+    static NativeTuple<string, string, string, string, string[]> ExecuteMySqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
+    {
+        if (update._source.Any() != true) return null;
+        var _table = update._table;
+        var _commonUtils = update._commonUtils;
+        var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
+        var tempTableName = $"Temp_{Guid.NewGuid().ToString("N")}";
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
+            update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
+        var sb = new StringBuilder().Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
+        foreach (var col in _table.Columns.Values)
+        {
+            if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
+            else continue;
+            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" ").Append(col.Attribute.DbType.Replace("NOT NULL", ""));
+            sb.Append(",");
+        }
+        var sql1 = sb.Remove(sb.Length - 1, 1).Append(" \r\n) Engine=InnoDB;").ToString();
+
+        sb.Clear().Append("UPDATE ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
+            .Append(" \r\nINNER JOIN ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" b ON ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")))
+            .Append(" \r\nSET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
+        var sql2 = sb.ToString();
+        sb.Clear();
+        var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
+        return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
+    }
+
     /// <summary>
     /// MySql MySqlCopyBulk 批量插入功能<para></para>
     /// 使用 IgnoreColumns/InsertColumns 设置忽略/指定导入的列<para></para>
@@ -93,6 +147,13 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
     }
 #if net40
 #else
+    public static Task<int> ExecuteMySqlBulkCopyAsync<T>(this IUpdate<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
+    {
+        var update = that as UpdateProvider<T>;
+        if (update._source.Any() != true || update._tempPrimarys.Any() == false) return Task.FromResult(0);
+        var state = ExecuteMySqlBulkCopyState(update);
+        return UpdateProvider.ExecuteBulkUpdateAsync(update, state, insert => insert.ExecuteMySqlBulkCopyAsync(bulkCopyTimeout, cancellationToken));
+    }
     async public static Task ExecuteMySqlBulkCopyAsync<T>(this IInsert<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;

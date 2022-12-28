@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using FreeSql.Internal.CommonProvider;
+using System.Data;
 
 namespace FreeSql
 {
@@ -34,7 +35,9 @@ namespace FreeSql
         protected virtual ISelect<TEntity> OrmSelect(object dywhere)
         {
             DbContextFlushCommand(); //查询前先提交，否则会出脏读
-            var select = _db.OrmOriginal.Select<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction(false)).TrackToList(TrackToList).WhereDynamic(dywhere);
+            var uowIsolationLevel = _uow?.IsolationLevel ?? IsolationLevel.Unspecified;
+            var select = _db.OrmOriginal.Select<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction(uowIsolationLevel != IsolationLevel.Unspecified)).TrackToList(TrackToList).WhereDynamic(dywhere);
+            (select as Select0Provider)._resolveHookTransaction = () => _uow?.GetOrBeginTransaction();
             if (_db.Options.EnableGlobalFilter == false) select.DisableGlobalFilter();
             return select;
         }

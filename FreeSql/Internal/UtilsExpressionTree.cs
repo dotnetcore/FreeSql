@@ -516,7 +516,9 @@ namespace FreeSql.Internal
             foreach (var col in trytb.Primarys)
             {
                 col.Attribute.IsNullable = false;
-                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim() + " NOT NULL"; //sqlite 主键也可以插入 null
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
+                if (common._orm.Ado.DataType == DataType.Sqlite)
+                    col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
             }
             foreach (var col in trytb.Columns.Values)
             {
@@ -1543,6 +1545,13 @@ namespace FreeSql.Internal
                 case DataType.Dameng: //OdbcDameng 不会报错
                 case DataType.GBase:
                     if (dr.IsDBNull(index)) return null;
+                    break;
+                case DataType.MySql:
+                    if (dr.GetFieldType(index).FullName == "MySqlConnector.MySqlDateTime")
+                    {
+                        if (dr.IsDBNull(index)) return null;
+                        return dr.GetDateTime(index);
+                    }
                     break;
             }
             return dr.GetValue(index);
