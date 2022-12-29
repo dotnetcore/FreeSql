@@ -53,6 +53,9 @@ public static class FreeSqlJsonMapCoreExtensions
             var isJsonMap = e.Property.GetCustomAttributes(typeof(JsonMapAttribute), false).Any() || _dicJsonMapFluentApi.TryGetValue(e.EntityType, out var tryjmfu) && tryjmfu.ContainsKey(e.Property.Name);
             if (isJsonMap)
             {
+                if (FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
+                    return; //基础类型使用 JsonMap 无效
+
                 e.ModifyResult.MapType = typeof(string);
                 e.ModifyResult.StringLength = -2;
                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))
