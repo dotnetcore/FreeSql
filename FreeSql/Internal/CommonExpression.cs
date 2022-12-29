@@ -1717,7 +1717,7 @@ namespace FreeSql.Internal
                                     var oper2Parm = oper2 as ParameterExpression;
                                     if (exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type))
                                         expStack.Push(oper2Parm);
-                                    else if (oper2Parm.Type.IsAssignableFrom(exp2.Type))
+                                    else if (oper2Parm.Type != typeof(object) && oper2Parm.Type.IsAssignableFrom(exp2.Type))
                                         expStack.Push(oper2Parm);
                                     else
                                         expStack.Push(Expression.Parameter(exp2.Type, oper2Parm.Name));
