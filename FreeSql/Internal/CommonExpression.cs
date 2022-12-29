@@ -1715,7 +1715,12 @@ namespace FreeSql.Internal
                                 if (oper2.NodeType == ExpressionType.Parameter)
                                 {
                                     var oper2Parm = oper2 as ParameterExpression;
-                                    expStack.Push(exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type) ? oper2Parm : Expression.Parameter(exp2.Type, oper2Parm.Name));
+                                    if (exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type))
+                                        expStack.Push(oper2Parm);
+                                    else if (oper2Parm.Type.IsAssignableFrom(exp2.Type))
+                                        expStack.Push(oper2Parm);
+                                    else
+                                        expStack.Push(Expression.Parameter(exp2.Type, oper2Parm.Name));
                                 }
                                 else
                                     expStack.Push(oper2);
