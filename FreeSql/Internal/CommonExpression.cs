@@ -2320,12 +2320,14 @@ namespace FreeSql.Internal
         {
             private List<SelectTableInfo> tables;
             private ParameterExpression[] parameters;
+            private ParameterExpression lambdaHzyParameter;
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
                 this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
                 parameters = this.tables.Select(a => a.Parameter ?? 
                     Expression.Parameter(a.Table.Type, 
                         a.Alias.StartsWith("SP10") ? a.Alias.Replace("SP10", "ht") : a.Alias)).ToArray();
+                lambdaHzyParameter = lambda.Parameters.FirstOrDefault();
                 var exp = Visit(lambda.Body);
                 return Expression.Lambda(exp, parameters);
             }
@@ -2338,6 +2340,7 @@ namespace FreeSql.Internal
                     var parent = node.Expression as MemberExpression;
                     if (parent.Expression?.NodeType == ExpressionType.Parameter &&
                         parent.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                        parent.Expression == lambdaHzyParameter &&
                         int.TryParse(parent.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                     {
                         if (parameters[widx - 1].Type != parent.Type) //解决 BaseEntity + AsTable 时报错
@@ -2348,6 +2351,7 @@ namespace FreeSql.Internal
 
                 if (node.Expression?.NodeType == ExpressionType.Parameter &&
                     node.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                    node.Expression == lambdaHzyParameter &&
                     int.TryParse(node.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                 {
                     if (parameters[widx - 1].Type != node.Type) //解决 BaseEntity + AsTable 时报错

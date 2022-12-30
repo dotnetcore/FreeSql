@@ -40,7 +40,7 @@ FROM (
         WHERE (ti2.[RefHeadId] = htb.[HeadId] AND ti2.[RefItemId] = htb.[Id])), 0) [RefQuantity] 
     FROM [bhe_1] a 
     INNER JOIN ( 
-        SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+        SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[RefItemComId] 
         FROM [bie_1] bi 
         WHERE (bi.[IsDeleted] = 0)) htb ON a.[Id] = htb.[HeadId] 
     WHERE (a.[IsDeleted] = 0) ) a 
@@ -74,7 +74,7 @@ WHERE (((a.[Id]) in (SELECT DISTINCT v.[Id]
             WHERE (ti2.[RefHeadId] = ht2.[HeadId] AND ti2.[RefItemId] = ht2.[Id])), 0) [RefQuantity] 
         FROM [bhe_1] bh 
         INNER JOIN ( 
-            SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+            SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[RefItemComId] 
             FROM [bie_1] bi 
             WHERE (bi.[IsDeleted] = 0)) ht2 ON bh.[Id] = ht2.[HeadId] 
         WHERE (bh.[IsDeleted] = 0) ) v 
@@ -111,7 +111,7 @@ RIGHT JOIN (
             WHERE (ti2.[RefHeadId] = htb.[HeadId] AND ti2.[RefItemId] = htb.[Id])), 0) [RefQuantity] 
         FROM [bhe_1] a 
         INNER JOIN ( 
-            SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+            SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[RefItemComId] 
             FROM [bie_1] bi 
             WHERE (bi.[IsDeleted] = 0)) htb ON a.[Id] = htb.[HeadId] 
         WHERE (a.[IsDeleted] = 0) ) a 
@@ -302,7 +302,7 @@ ORDER BY a.[Date] DESC", sql3);
                     .Where(ti => ti.RefHeadId == bi.HeadId && ti.RefItemId == bi.Id)
                     .Sum(ti => ti.Quantity) <= bi.Quantity)
                 .ToSql();
-            Assert.Equal(@"SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId] 
+            Assert.Equal(@"SELECT bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[RefItemComId] 
 FROM [bie_1] bi 
 WHERE (bi.[HeadId] = '62f83a6d-eb53-0608-0097-d177142cadcb' AND bi.[IsDeleted] = 0) AND (isnull((SELECT sum(ti.[Quantity]) 
     FROM [bie_2] ti 
@@ -324,7 +324,7 @@ WHERE (bi.[HeadId] = '62f83a6d-eb53-0608-0097-d177142cadcb' AND bi.[IsDeleted] =
                 .ToSql();
             Assert.Equal(@"SELECT * 
 FROM ( 
-    SELECT bi.[Id], bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[Quantity], isnull((SELECT sum(ti.[Quantity]) 
+    SELECT bi.[Id], bi.[IsDeleted], bi.[Id], bi.[HeadId], bi.[GoodsId], bi.[Quantity], bi.[RefHeadId], bi.[RefItemId], bi.[RefItemComId], bi.[Quantity], isnull((SELECT sum(ti.[Quantity]) 
         FROM [bie_2] ti 
         WHERE (ti.[RefHeadId] = bi.[HeadId] AND ti.[RefItemId] = bi.[Id])), 0) [RefQuantity] 
     FROM [bie_1] bi 
@@ -375,11 +375,122 @@ WHERE (a.[RefQuantity] < a.[Quantity])", sql2);
             public decimal Quantity { get; set; }
             public Guid? RefHeadId { get; set; }
             public Guid? RefItemId { get; set; }
+            public Guid? RefItemComId { get; set; }
         }
         [Table(Name = "bie_1")]
         class BiEntity1 : BaseItemEntity { }
         [Table(Name = "bie_2")]
         class BiEntity2 : BaseItemEntity { }
+        #endregion
+
+        #region 2022/12/30
+        abstract class BaseItemComEntity : SoftDelete
+        {
+            public Guid Id { get; set; }
+            public Guid HeadId { get; set; }
+            public Guid ItemId { get; set; }
+            public int GoodsId { get; set; }
+            public int ComponentId { get; set; }
+            public decimal Quantity { get; set; }
+            public int Level { get; set; }
+        }
+        [Table(Name = "bic_1")]
+        class BicEntity1 : BaseItemComEntity { }
+        [Fact]
+        public void VicDemo20221230()
+        {
+            var fsql = g.mysql;
+            // 逻辑相同 sql1 能够生成 sql2 就会报类型转换错误
+            var sql1 = fsql.Select<BaseItemComEntity>().AsType(typeof(BicEntity1)).As("bic")
+                .Where(bic => bic.Level == 0)
+                .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("bi"))
+                .InnerJoin((bic, bi) => bic.ItemId == bi.Id)
+                .Where((bic, bi) => bi.IsDeleted == false)
+                .WithTempQuery((bic, _) => bic)
+                .FromQuery(fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1)).As("bh"))
+                .InnerJoin((bic, bh) => bic.HeadId == bh.Id)
+                .Where((bic, bh) => bh.IsDeleted == false)
+                .WithTempQuery((bic, _) => new
+                {
+                    BillItemCom = bic,
+                    RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("ti")
+                        .Where(ti => ti.RefHeadId == bic.HeadId)
+                        .Where(ti => ti.RefItemId == bic.ItemId)
+                        .Where(ti => ti.RefItemComId == bic.Id)
+                        .Where(ti => ti.IsDeleted == false)
+                        .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)))
+                        .InnerJoin(ti => ti.t1.HeadId == ti.t2.Id)
+                        .Where(ti => ti.t2.IsDeleted == false)
+                        .Sum(ti => ti.t1.Quantity),
+                })
+                .Where(v => v.RefQuantity < v.BillItemCom.Quantity)
+                .ToSql();
+            Assert.Equal(@"SELECT * 
+FROM ( 
+    SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`ItemId`, a.`GoodsId`, a.`ComponentId`, a.`Quantity`, a.`Level`, ifnull((SELECT sum(ti.`Quantity`) 
+        FROM `bie_1` ti 
+        INNER JOIN ( 
+            SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`GoodsId`, a.`Quantity`, a.`RefHeadId`, a.`RefItemId`, a.`RefItemComId` 
+            FROM `bie_1` a) ht2 ON ti.`HeadId` = ht2.`Id` 
+        WHERE (ti.`RefHeadId` = a.`HeadId`) AND (ti.`RefItemId` = a.`ItemId`) AND (ti.`RefItemComId` = a.`Id`) AND (ti.`IsDeleted` = 0) AND (ht2.`IsDeleted` = 0)), 0) `RefQuantity` 
+    FROM ( 
+        SELECT bic.`IsDeleted`, bic.`Id`, bic.`HeadId`, bic.`ItemId`, bic.`GoodsId`, bic.`ComponentId`, bic.`Quantity`, bic.`Level` 
+        FROM `bic_1` bic 
+        INNER JOIN ( 
+            SELECT bi.`IsDeleted`, bi.`Id`, bi.`HeadId`, bi.`GoodsId`, bi.`Quantity`, bi.`RefHeadId`, bi.`RefItemId`, bi.`RefItemComId` 
+            FROM `bie_1` bi) bi ON bic.`ItemId` = bi.`Id` 
+        WHERE (bic.`Level` = 0) AND (bi.`IsDeleted` = 0) ) a 
+    INNER JOIN ( 
+        SELECT bh.`IsDeleted`, bh.`Id`, bh.`No`, bh.`Date` 
+        FROM `bhe_1` bh) bh ON a.`HeadId` = bh.`Id` 
+    WHERE (bh.`IsDeleted` = 0) ) a 
+WHERE (a.`RefQuantity` < a.`Quantity`)", sql1);
+
+            var sql2 = fsql.Select<BaseItemComEntity>().AsType(typeof(BicEntity1))
+                .Where(v => v.Level == 0)
+                .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)))
+                .InnerJoin(v => v.t1.ItemId == v.t2.Id)
+                .Where(v => v.t2.IsDeleted == false)
+                .WithTempQuery(v => v.t1)
+                .FromQuery(fsql.Select<BaseHeadEntity>().AsType(typeof(BhEntity1)))
+                .InnerJoin(v => v.t1.HeadId == v.t2.Id)
+                .Where(v => v.t2.IsDeleted == false)
+                .WithTempQuery(v => new
+                {
+                    BillItemCom = v.t1,
+                    RefQuantity = fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)).As("ti")
+                        .Where(ti => ti.RefHeadId == v.t1.HeadId)
+                        .Where(ti => ti.RefItemId == v.t1.ItemId)
+                        .Where(ti => ti.RefItemComId == v.t1.Id)
+                        .Where(ti => ti.IsDeleted == false)
+                        .FromQuery(fsql.Select<BaseItemEntity>().AsType(typeof(BiEntity1)))
+                        .InnerJoin(ti => ti.t1.HeadId == ti.t2.Id)
+                        .Where(ti => ti.t2.IsDeleted == false)
+                        .Sum(ti => ti.t1.Quantity),
+                })
+                .Where(v => v.RefQuantity < v.BillItemCom.Quantity)
+                .ToSql();
+            Assert.Equal(@"SELECT * 
+FROM ( 
+    SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`ItemId`, a.`GoodsId`, a.`ComponentId`, a.`Quantity`, a.`Level`, ifnull((SELECT sum(ti.`Quantity`) 
+        FROM `bie_1` ti 
+        INNER JOIN ( 
+            SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`GoodsId`, a.`Quantity`, a.`RefHeadId`, a.`RefItemId`, a.`RefItemComId` 
+            FROM `bie_1` a) ht2 ON ti.`HeadId` = ht2.`Id` 
+        WHERE (ti.`RefHeadId` = a.`HeadId`) AND (ti.`RefItemId` = a.`ItemId`) AND (ti.`RefItemComId` = a.`Id`) AND (ti.`IsDeleted` = 0) AND (ht2.`IsDeleted` = 0)), 0) `RefQuantity` 
+    FROM ( 
+        SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`ItemId`, a.`GoodsId`, a.`ComponentId`, a.`Quantity`, a.`Level` 
+        FROM `bic_1` a 
+        INNER JOIN ( 
+            SELECT a.`IsDeleted`, a.`Id`, a.`HeadId`, a.`GoodsId`, a.`Quantity`, a.`RefHeadId`, a.`RefItemId`, a.`RefItemComId` 
+            FROM `bie_1` a) htb ON a.`ItemId` = htb.`Id` 
+        WHERE (a.`Level` = 0) AND (htb.`IsDeleted` = 0) ) a 
+    INNER JOIN ( 
+        SELECT a.`IsDeleted`, a.`Id`, a.`No`, a.`Date` 
+        FROM `bhe_1` a) htb ON a.`HeadId` = htb.`Id` 
+    WHERE (htb.`IsDeleted` = 0) ) a 
+WHERE (a.`RefQuantity` < a.`Quantity`)", sql2);
+        }
         #endregion
 
         [Fact]
