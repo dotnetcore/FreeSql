@@ -317,16 +317,9 @@ namespace FreeSql.ClickHouse
                     case "Contains":
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (args0Value.Contains("%"))
-                        {
-                            if (exp.Method.Name == "StartsWith") return $"locate({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"locate({args0Value}, {left}) = char_length({args0Value})";
-                            return $"locate({args0Value}, {left}) > 0";
-                        }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"concat({args0Value}, '%')")}";
+                        if (exp.Method.Name == "StartsWith") return $"positionCaseInsensitive({left}, {args0Value}) = 1";
                         if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE concat('%', {args0Value}, '%')";
+                        return $"positionCaseInsensitive({left}, {args0Value}) > 0";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":

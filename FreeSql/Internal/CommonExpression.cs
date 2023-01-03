@@ -1715,7 +1715,12 @@ namespace FreeSql.Internal
                                 if (oper2.NodeType == ExpressionType.Parameter)
                                 {
                                     var oper2Parm = oper2 as ParameterExpression;
-                                    expStack.Push(exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type) ? oper2Parm : Expression.Parameter(exp2.Type, oper2Parm.Name));
+                                    if (exp2.Type.IsAbstract || exp2.Type.IsInterface || exp2.Type.IsAssignableFrom(oper2Parm.Type))
+                                        expStack.Push(oper2Parm);
+                                    else if (oper2Parm.Type != typeof(object) && oper2Parm.Type.IsAssignableFrom(exp2.Type))
+                                        expStack.Push(oper2Parm);
+                                    else
+                                        expStack.Push(Expression.Parameter(exp2.Type, oper2Parm.Name));
                                 }
                                 else
                                     expStack.Push(oper2);
@@ -2315,12 +2320,14 @@ namespace FreeSql.Internal
         {
             private List<SelectTableInfo> tables;
             private ParameterExpression[] parameters;
+            private ParameterExpression lambdaHzyParameter;
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
                 this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
                 parameters = this.tables.Select(a => a.Parameter ?? 
                     Expression.Parameter(a.Table.Type, 
                         a.Alias.StartsWith("SP10") ? a.Alias.Replace("SP10", "ht") : a.Alias)).ToArray();
+                lambdaHzyParameter = lambda.Parameters.FirstOrDefault();
                 var exp = Visit(lambda.Body);
                 return Expression.Lambda(exp, parameters);
             }
@@ -2333,6 +2340,7 @@ namespace FreeSql.Internal
                     var parent = node.Expression as MemberExpression;
                     if (parent.Expression?.NodeType == ExpressionType.Parameter &&
                         parent.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                        parent.Expression == lambdaHzyParameter &&
                         int.TryParse(parent.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                     {
                         if (parameters[widx - 1].Type != parent.Type) //解决 BaseEntity + AsTable 时报错
@@ -2343,6 +2351,7 @@ namespace FreeSql.Internal
 
                 if (node.Expression?.NodeType == ExpressionType.Parameter &&
                     node.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                    node.Expression == lambdaHzyParameter &&
                     int.TryParse(node.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                 {
                     if (parameters[widx - 1].Type != node.Type) //解决 BaseEntity + AsTable 时报错

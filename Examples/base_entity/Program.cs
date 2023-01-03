@@ -443,7 +443,7 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
                 .UseNameConvert(NameConvertType.ToLower)
                 .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
-               
+
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
@@ -491,6 +491,17 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var sqlv01 = fsql.Select<BaseDataEntity>().AsType(typeof(GoodsData))
+                .ToSql(v => new GoodsDataDTO()
+                {
+                    Id = v.Id,
+                    GoodsNo = v.Code,
+                    GoodsName = v.Name,
+                });
+            // 解析会连带导出 CategoryId ，但是如果查询别名不是 a 时就会重置到基类表
+            // SELECT a.`CategoryId` as1, v.`Id` as2, v.`Code` as3, v.`Name` as4 
+            // FROM `FreeSqlTest`.`bdd_1` a, `BaseDataEntity` v
+
             var groupsql01 = fsql.Select<User1>()
                 .GroupBy(a => new
                 {
@@ -524,9 +535,9 @@ namespace base_entity
                 fsql.Insert(listaaaddd).ExecuteAffrows();  //加在事务里就出错
             });
 
-                fsql.Select<IdentityTable>().Count();
+            fsql.Select<IdentityTable>().Count();
 
-            var dkdksql =  fsql.Select<User1>().WithLock().From<UserGroup>()
+            var dkdksql = fsql.Select<User1>().WithLock().From<UserGroup>()
                 .InnerJoin<UserGroup>((user, usergroup) => user.GroupId == usergroup.Id && usergroup.GroupName == "xxx")
                 .ToSql();
 
@@ -791,7 +802,7 @@ namespace base_entity
                 .Where(a => a.Id == a1id1 || a.Id == a1id2)
                 .ToSql();
             var sql1a2 = fsql.Select<User1, UserGroup>()
-                .InnerJoin((a,b)=> a.GroupId == b.Id)
+                .InnerJoin((a, b) => a.GroupId == b.Id)
                 .Where((a, b) => a.Id == a1id1)
                 .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
 
@@ -823,8 +834,8 @@ namespace base_entity
 
             fsql.CodeFirst.ConfigEntity<TestClass>(cf =>
             {
-	            cf.Property(p => p.Name).IsNullable(false);
-	            cf.Property(p => p.Tags).JsonMap();
+                cf.Property(p => p.Name).IsNullable(false);
+                cf.Property(p => p.Tags).JsonMap();
             });
 
             fsql.Insert(new TestClass("test 1")
@@ -1029,7 +1040,7 @@ namespace base_entity
                 if (CommandTimeoutCascade._asyncLocalTimeout.Value > 0)
                     e.Command.CommandTimeout = CommandTimeoutCascade._asyncLocalTimeout.Value;
             };
-            
+
             using (new CommandTimeoutCascade(1000))
             {
                 fsql.Select<Order>().ToList();
@@ -1043,7 +1054,8 @@ namespace base_entity
                 .Where((a, b) => a.IsDeleted == false)
                 .ToSql((a, b) => new
                 {
-                    user = a, group = b
+                    user = a,
+                    group = b
                 });
             sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
@@ -1100,7 +1112,8 @@ namespace base_entity
                         groups11 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(),
                         groups22 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(c => new
                         {
-                            c.Id, c.GroupName,
+                            c.Id,
+                            c.GroupName,
                             username = b.Username,
                         })
                     }),
@@ -1370,10 +1383,10 @@ namespace base_entity
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {
-                
+
             });
 
-            
+
 
 
             for (var a = 0; a < 10000; a++)
@@ -1526,7 +1539,7 @@ namespace base_entity
     },
   ]
 }
-"); 
+");
             var config = new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = null,
@@ -1637,9 +1650,9 @@ namespace base_entity
             //fsql.Aop.ConfigEntityProperty += ConfigEntityProperty;
 
 
-            
 
-            
+
+
 
             Console.WriteLine("按任意键结束。。。");
             Console.ReadKey();
@@ -1804,5 +1817,27 @@ namespace base_entity
         /// </summary>
         [Column(Name = "更新时间", CanInsert = false, CanUpdate = true, ServerTime = DateTimeKind.Local)]
         public DateTime 更新时间 { get; set; }
+    }
+
+    abstract class BaseDataEntity
+    {
+        public Guid Id { get; set; }
+        public virtual int CategoryId { get; set; }
+        public virtual string Code { get; set; }
+        public virtual string Name { get; set; }
+    }
+    [Table(Name = "`FreeSqlTest`.`bdd_1`")]
+    class GoodsData : BaseDataEntity
+    {
+        public override Int32 CategoryId { get; set; }
+        public override string Code { get; set; }
+        public override string Name { get; set; }
+    }
+    class GoodsDataDTO
+    {
+        public Guid Id { get; set; }
+        public int CategoryId { get; set; }
+        public string GoodsNo { get; set; }
+        public string GoodsName { get; set; }
     }
 }
