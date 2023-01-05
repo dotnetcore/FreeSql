@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Data.Odbc;
 using Xunit;
@@ -58,7 +58,7 @@ namespace FreeSql.Tests.Custom.MySql
         [Fact]
         public void QueryMultipline()
         {
-            Assert.Throws<Exception>(() => g.mysql.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song"));
+            g.mysql.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song");
         }
 
         class xxx

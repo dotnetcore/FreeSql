@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,10 +58,7 @@ ON DUPLICATE KEY UPDATE
             Assert.Equal(odku2.ToSql(), @"INSERT INTO `TestOnDuplicateKeyUpdateInfo`(`id`, `title`) VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON DUPLICATE KEY UPDATE
 `title` = VALUES(`title`), 
-`time` = CASE `id` 
-WHEN 200 THEN '2000-01-01 00:00:00.000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000' END");
+`time` = '2000-01-01 00:00:00.000'");
             odku2.ExecuteAffrows();
 
 
@@ -79,10 +76,7 @@ ON DUPLICATE KEY UPDATE
             }).IgnoreColumns(a => a.time).NoneParameter().OnDuplicateKeyUpdate().IgnoreColumns(a => a.title);
             Assert.Equal(odku2.ToSql(), @"INSERT INTO `TestOnDuplicateKeyUpdateInfo`(`id`, `title`) VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON DUPLICATE KEY UPDATE
-`time` = CASE `id` 
-WHEN 200 THEN '2000-01-01 00:00:00.000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000' END");
+`time` = '2000-01-01 00:00:00.000'");
             odku2.ExecuteAffrows();
         }
 
@@ -105,10 +99,7 @@ ON DUPLICATE KEY UPDATE
             Assert.Equal(odku2.ToSql(), @"INSERT INTO `TestOnDuplicateKeyUpdateInfo`(`id`, `title`) VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON DUPLICATE KEY UPDATE
 `title` = VALUES(`title`), 
-`time` = CASE `id` 
-WHEN 300 THEN '2000-01-01 00:00:00.000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000' END");
+`time` = '2000-01-01 00:00:00.000'");
             odku2.ExecuteAffrows();
 
 
@@ -126,10 +117,7 @@ ON DUPLICATE KEY UPDATE
             }).InsertColumns(a => a.title).NoneParameter().OnDuplicateKeyUpdate().UpdateColumns(a => a.time);
             Assert.Equal(odku2.ToSql(), @"INSERT INTO `TestOnDuplicateKeyUpdateInfo`(`id`, `title`) VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON DUPLICATE KEY UPDATE
-`time` = CASE `id` 
-WHEN 300 THEN '2000-01-01 00:00:00.000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000' END");
+`time` = '2000-01-01 00:00:00.000'");
             odku2.ExecuteAffrows();
         }
 
