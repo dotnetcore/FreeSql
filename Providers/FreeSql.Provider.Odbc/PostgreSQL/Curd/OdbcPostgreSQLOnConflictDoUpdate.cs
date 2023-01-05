@@ -109,6 +109,7 @@ namespace FreeSql.Odbc.PostgreSQL
             {
                 sb.Append(") DO UPDATE SET\r\n");
 
+                if (_pgsqlUpdate._tempPrimarys.Any() == false) _pgsqlUpdate._tempPrimarys = _tempPrimarys;
                 var sbSetEmpty = _pgsqlUpdate.InternalSbSet.Length == 0;
                 var sbSetIncrEmpty = _pgsqlUpdate.InternalSbSetIncr.Length == 0;
                 if (sbSetEmpty == false || sbSetIncrEmpty == false)

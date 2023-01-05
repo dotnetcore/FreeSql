@@ -109,6 +109,7 @@ namespace FreeSql.KingbaseES
             {
                 sb.Append(") DO UPDATE SET\r\n");
 
+                if (_update._tempPrimarys.Any() == false) _update._tempPrimarys = _tempPrimarys;
                 var sbSetEmpty = _update.InternalSbSet.Length == 0;
                 var sbSetIncrEmpty = _update.InternalSbSetIncr.Length == 0;
                 if (sbSetEmpty == false || sbSetIncrEmpty == false)
