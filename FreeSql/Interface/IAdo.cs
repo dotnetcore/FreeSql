@@ -173,6 +173,7 @@ namespace FreeSql
         int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, Action<DbCommand> cmdAfterHandler, params DbParameter[] cmdParms);
         /// <summary>
         /// 在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -381,6 +382,7 @@ namespace FreeSql
         Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, Func<DbCommand, Task> cmdAfterHandler, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
