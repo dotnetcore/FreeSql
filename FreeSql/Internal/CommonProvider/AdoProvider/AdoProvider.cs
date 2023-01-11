@@ -790,12 +790,13 @@ namespace FreeSql.Internal.CommonProvider
             }, cmdType, cmdText, cmdTimeout, cmdParms);
             return ret;
         }
-        public int ExecuteNonQuery(string cmdText, object parms = null) => ExecuteNonQuery(null, null, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));
-        public int ExecuteNonQuery(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(null, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));
-        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(connection, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));
-        public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, null, cmdType, cmdText, 0, cmdParms);
-        public int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, transaction, cmdType, cmdText, 0, cmdParms);
-        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms)
+        public int ExecuteNonQuery(string cmdText, object parms = null) => ExecuteNonQuery(null, null, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms));
+        public int ExecuteNonQuery(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(null, transaction, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms));
+        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(connection, transaction, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms));
+        public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, null, cmdType, cmdText, 0, null, cmdParms);
+        public int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, transaction, cmdType, cmdText, 0, null, cmdParms);
+        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms) => ExecuteNonQuery(null, transaction, cmdType, cmdText, 0, null, cmdParms);
+        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, Action<DbCommand> cmdAfterHandler, params DbParameter[] cmdParms)
         {
             if (string.IsNullOrEmpty(cmdText)) return 0;
             var dt = DateTime.Now;
@@ -811,6 +812,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = this.MasterPool.Get()).Value;
                     val = pc.cmd.ExecuteNonQuery();
+                    cmdAfterHandler?.Invoke(pc.cmd);
                 }
             }
             catch (Exception ex2)

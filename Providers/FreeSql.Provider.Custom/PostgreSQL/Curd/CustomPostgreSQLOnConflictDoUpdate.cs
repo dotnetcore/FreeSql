@@ -24,7 +24,7 @@ namespace FreeSql.Custom.PostgreSQL
         public CustomPostgreSQLOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _pgsqlInsert = insert as CustomPostgreSQLInsert<T1>;
-            if (_pgsqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "Odbc/PostgreSQL"));
+            if (_pgsqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "Custom/PostgreSQL"));
             if (_pgsqlInsert._noneParameterFlag == "c") _pgsqlInsert._noneParameterFlag = "cu";
 
             if (columns != null)
@@ -109,6 +109,7 @@ namespace FreeSql.Custom.PostgreSQL
             {
                 sb.Append(") DO UPDATE SET\r\n");
 
+                if (_pgsqlUpdate._tempPrimarys.Any() == false) _pgsqlUpdate._tempPrimarys = _tempPrimarys;
                 var sbSetEmpty = _pgsqlUpdate.InternalSbSet.Length == 0;
                 var sbSetIncrEmpty = _pgsqlUpdate.InternalSbSetIncr.Length == 0;
                 if (sbSetEmpty == false || sbSetIncrEmpty == false)

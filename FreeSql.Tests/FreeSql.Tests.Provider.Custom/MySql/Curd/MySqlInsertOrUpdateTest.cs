@@ -87,7 +87,7 @@ ON DUPLICATE KEY UPDATE
             Assert.Equal(@"INSERT INTO `tbiou022`(`id`, `name`) VALUES(1, '01'), (2, '02'), (3, '03'), (4, '04')
 ON DUPLICATE KEY UPDATE
 `name` = VALUES(`name`)", sql);
-            Assert.Equal(4, iou.ExecuteAffrows());
+            Assert.Equal(5, iou.ExecuteAffrows());
 
             iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "001" }, new tbiou022 { id = 2, name = "002" }, new tbiou022 { id = 3, name = "003" }, new tbiou022 { id = 4, name = "004" } });
             sql = iou.ToSql();

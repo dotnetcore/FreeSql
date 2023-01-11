@@ -846,7 +846,9 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                var nulls = 0;
+                string valsqlOld = null;
+                var valsqlOldStats = 1; //start 1
+                var nullStats = 0;
                 var cwsb = new StringBuilder().Append(cw);
                 foreach (var d in _source)
                 {
@@ -854,11 +856,15 @@ namespace FreeSql.Internal.CommonProvider
                     ToSqlWhen(cwsb, _tempPrimarys, d);
                     cwsb.Append(" THEN ");
                     var val = col.GetDbValue(d);
-                    cwsb.Append(thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val))));
-                    if (val == null || val == DBNull.Value) nulls++;
+                    var valsql = thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val)));
+                    cwsb.Append(valsql);
+                    if (valsqlOld == null) valsqlOld = valsql;
+                    else if (valsqlOld == valsql) valsqlOldStats++;
+                    if (val == null || val == DBNull.Value) nullStats++;
                 }
                 cwsb.Append(" END");
-                if (nulls == _source.Count) sb.Append("NULL");
+                if (nullStats == _source.Count) sb.Append("NULL");
+                else if (valsqlOldStats == _source.Count) sb.Append(valsqlOld);
                 else sb.Append(cwsb);
                 cwsb.Clear();
 

@@ -709,12 +709,13 @@ namespace FreeSql.Internal.CommonProvider
             }, cmdType, cmdText, cmdTimeout, cmdParms, cancellationToken);
             return ret;
         }
-        public Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, null, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
-        public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
-        public Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(connection, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
-        public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, null, cmdType, cmdText, 0, cmdParms, cancellationToken);
-        public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, transaction, cmdType, cmdText, 0, cmdParms, cancellationToken);
-        async public Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
+        public Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, null, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms), cancellationToken);
+        public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, transaction, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms), cancellationToken);
+        public Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(connection, transaction, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms), cancellationToken);
+        public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, null, cmdType, cmdText, 0, null, cmdParms, cancellationToken);
+        public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, transaction, cmdType, cmdText, 0, null, cmdParms, cancellationToken);
+        public Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteNonQueryAsync(null, transaction, cmdType, cmdText, 0, null, cmdParms, cancellationToken);
+        async public Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, Func<DbCommand, Task> cmdAfterHandler, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(cmdText)) return 0;
             var dt = DateTime.Now;
@@ -730,6 +731,11 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = await this.MasterPool.GetAsync()).Value;
                     val = await pc.cmd.ExecuteNonQueryAsync(cancellationToken);
+                    if (cmdAfterHandler != null)
+                    {
+                        var afterTask = cmdAfterHandler(pc.cmd);
+                        if (afterTask != null) await afterTask;
+                    }
                 }
             }
             catch (Exception ex2)

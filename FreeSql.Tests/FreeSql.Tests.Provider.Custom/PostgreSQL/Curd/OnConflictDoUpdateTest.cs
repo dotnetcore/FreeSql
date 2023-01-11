@@ -59,10 +59,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             Assert.Equal(@"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON CONFLICT(""id"") DO UPDATE SET
 ""title"" = EXCLUDED.""title"", 
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 200 THEN '2000-01-01 00:00:00.000000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000000' END::timestamp", odku2.ToSql());
+""time"" = '2000-01-01 00:00:00.000000'", odku2.ToSql());
             odku2.ExecuteAffrows();
 
 
@@ -80,10 +77,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             }).IgnoreColumns(a => a.time).NoneParameter().InsertIdentity()).IgnoreColumns(a => a.title);
             Assert.Equal(@"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON CONFLICT(""id"") DO UPDATE SET
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 200 THEN '2000-01-01 00:00:00.000000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000000' END::timestamp", odku2.ToSql());
+""time"" = '2000-01-01 00:00:00.000000'", odku2.ToSql());
             odku2.ExecuteAffrows();
         }
 
@@ -106,10 +100,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             Assert.Equal(@"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON CONFLICT(""id"") DO UPDATE SET
 ""title"" = EXCLUDED.""title"", 
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 300 THEN '2000-01-01 00:00:00.000000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000000' END::timestamp", odku2.ToSql());
+""time"" = '2000-01-01 00:00:00.000000'", odku2.ToSql());
             odku2.ExecuteAffrows();
 
 
@@ -127,10 +118,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             }).InsertColumns(a => a.title).NoneParameter().InsertIdentity()).UpdateColumns(a => a.time);
             Assert.Equal(@"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON CONFLICT(""id"") DO UPDATE SET
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 300 THEN '2000-01-01 00:00:00.000000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000000' END::timestamp", odku2.ToSql());
+""time"" = '2000-01-01 00:00:00.000000'", odku2.ToSql());
             odku2.ExecuteAffrows();
         }
 
