@@ -21,6 +21,7 @@ namespace FreeSql.Custom.Oracle
             if (connectionFactory != null)
             {
                 var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 using (var conn = pool.Get())
                     UserId = CustomOracleAdo.GetUserId(conn.Value.ConnectionString);

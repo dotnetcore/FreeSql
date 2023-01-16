@@ -19,7 +19,9 @@ namespace FreeSql.Odbc.SqlServer
             base._util = util;
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcSqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcSqlServer, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
+                MasterPool = pool;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))

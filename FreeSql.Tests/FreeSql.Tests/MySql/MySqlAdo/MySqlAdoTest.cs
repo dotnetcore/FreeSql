@@ -1,4 +1,5 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
+using MySql.Data.MySqlClient;
 using System;
 using Xunit;
 
@@ -10,6 +11,14 @@ namespace FreeSql.Tests.MySql
         public void Pool()
         {
             var t1 = g.mysql.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=51;Allow User Variables=True";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.MySql, () => new MySqlConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]

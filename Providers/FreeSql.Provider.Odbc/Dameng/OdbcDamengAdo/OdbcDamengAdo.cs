@@ -18,7 +18,9 @@ namespace FreeSql.Odbc.Dameng
             base._util = util;
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcDameng, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcDameng, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
+                MasterPool = pool;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))

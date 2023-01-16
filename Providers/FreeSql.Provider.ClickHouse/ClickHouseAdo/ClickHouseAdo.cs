@@ -19,7 +19,9 @@ namespace FreeSql.ClickHouse
             base._util = util;
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.ClickHouse, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.ClickHouse, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
+                MasterPool = pool;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))

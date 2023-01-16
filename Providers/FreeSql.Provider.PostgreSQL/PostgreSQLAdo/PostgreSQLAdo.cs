@@ -21,7 +21,9 @@ namespace FreeSql.PostgreSQL
             base._util = util; 
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
+                MasterPool = pool;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))

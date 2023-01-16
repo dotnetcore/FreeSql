@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -11,6 +12,14 @@ namespace FreeSql.Tests.Oracle
         public void Pool()
         {
             var t1 = g.oracle.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=21";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.Oracle, () => new OracleConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]
