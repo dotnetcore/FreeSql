@@ -330,7 +330,7 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
             var itemstb = select.ToDataTable();
         }
 
-        [Table(Name = "tb_alltype_nts")]
+        [Table(Name = "tb_alltype_nts2")]
         class TableAllType
         {
             [Column(IsIdentity = true, IsPrimary = true)]

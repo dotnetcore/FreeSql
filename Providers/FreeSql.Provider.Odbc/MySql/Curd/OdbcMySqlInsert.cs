@@ -49,7 +49,7 @@ namespace FreeSql.Odbc.MySql
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();", _commandTimeout), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;

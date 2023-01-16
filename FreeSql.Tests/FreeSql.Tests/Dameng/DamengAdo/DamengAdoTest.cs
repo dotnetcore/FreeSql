@@ -11,12 +11,12 @@ namespace FreeSql.Tests.Dameng
         {
             var t1 = g.dameng.Ado.MasterPool.StatisticsFullily;
 
-            var connectionString = "data source=127.0.0.1:5236;user id=2user;password=123456789;Pooling=true;poolsize=5";
+            var connectionString = "data source=127.0.0.1:5236;user id=2user;password=123456789;";
             using (var t2 = new FreeSqlBuilder()
                 .UseConnectionFactory(FreeSql.DataType.Dameng, () => new Dm.DmConnection(connectionString))
                 .Build())
             {
-                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+                Assert.Equal("data source=127.0.0.1;port=5236;user id=2user;password=123456789", t2.Ado.ConnectionString);
             }
         }
 
