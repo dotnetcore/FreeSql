@@ -33,7 +33,7 @@ namespace FreeSql.Odbc.PostgreSQL
                     {
                         try
                         {
-                            _ServerVersionValue = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
+                            _ServerVersionValue = ParsePgVersion(conn.Value.ServerVersion, 10, 0).Item2;
                         }
                         catch
                         {
@@ -142,7 +142,7 @@ namespace FreeSql.Odbc.PostgreSQL
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
                 olddatabase = conn.Value.Database;
-                is96 = PgVersionIs(conn.Value.ServerVersion, 9, 6);
+                is96 = ParsePgVersion(conn.Value.ServerVersion, 9, 6).Item1;
             }
             string[] tbname = null;
             string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
@@ -536,13 +536,23 @@ where a.typtype = 'e' and ns.nspname in (SELECT ""schema_name"" FROM information
             return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
         }
 
-        public static bool PgVersionIs(string serverVersion, int version1, int version2 = 0)
+        public static NativeTuple<bool, int, int> ParsePgVersion(string versionString, int v1, int v2)
         {
-            int[] version = serverVersion.Split('.').Select(a => int.TryParse(a, out var tryint) ? tryint : 0).ToArray();
-            if (version?.Any() != true) return true;
-            if (version[0] > version1) return true;
-            if (version[0] == version1 && version.Length > 1 && version[1] >= version2) return true;
-            return false;
+            int[] version = new int[] { 0, 0 };
+            var vmatch = Regex.Match(versionString, @"(\d+)\.(\d+)");
+            if (vmatch.Success)
+            {
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+                version[1] = int.Parse(vmatch.Groups[2].Value);
+            }
+            else
+            {
+                vmatch = Regex.Match(versionString, @"(\d+)");
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+            }
+            if (version[0] > v1) return NativeTuple.Create(true, version[0], version[1]);
+            if (version[0] == v1 && version[1] >= v2) return NativeTuple.Create(true, version[0], version[1]);
+            return NativeTuple.Create(false, version[0], version[1]);
         }
     }
 }

@@ -90,8 +90,8 @@ namespace FreeSql.Odbc.PostgreSQL
             var isPg10 = (_orm.DbFirst as OdbcPostgreSQLDbFirst).IsPg10;
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
-                isPg95 = OdbcPostgreSQLDbFirst.PgVersionIs(conn.Value.ServerVersion, 9, 5);
-                isPg96 = OdbcPostgreSQLDbFirst.PgVersionIs(conn.Value.ServerVersion, 9, 6);
+                isPg95 = OdbcPostgreSQLDbFirst.ParsePgVersion(conn.Value.ServerVersion, 9, 5).Item1;
+                isPg96 = OdbcPostgreSQLDbFirst.ParsePgVersion(conn.Value.ServerVersion, 9, 6).Item1;
             }
 
             foreach (var obj in objects)
