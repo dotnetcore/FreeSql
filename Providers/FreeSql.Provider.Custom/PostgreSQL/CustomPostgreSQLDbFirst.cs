@@ -148,7 +148,7 @@ namespace FreeSql.Custom.PostgreSQL
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
                 olddatabase = conn.Value.Database;
-                is96 = PgVersionIs96(conn.Value.ServerVersion);
+                is96 = PgVersionIs(conn.Value.ServerVersion, 9, 6);
             }
             string[] tbname = null;
             string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
