@@ -91,7 +91,7 @@ namespace FreeSql.Internal
                     else colattr.IsIgnore = true;
                     //Navigate 错误提示
                     var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, p);
-                    if (pnvAttr != null) throw new Exception(CoreStrings.Navigation_Missing_SetProperty(trytb.Type.DisplayCsharp(),p.Name));
+                    if (pnvAttr != null) throw new Exception(CoreStrings.Navigation_Missing_SetProperty(trytb.Type.DisplayCsharp(), p.Name));
                 }
                 if (tp == null && colattr?.IsIgnore != true)
                 {
@@ -396,7 +396,7 @@ namespace FreeSql.Internal
             trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
             if (trytb.VersionColumn != null)
             {
-                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || 
+                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() ||
                     trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(trytb.VersionColumn.Attribute.MapType))
                     throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
             }
@@ -1061,7 +1061,7 @@ namespace FreeSql.Internal
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             }
                         }
-                        
+
                         if (nvref.Exception == null && trytb.Primarys.Length == 1 && isArrayToMany == false)
                         {
                             if (pnvBind?.Length == 1)
@@ -1431,7 +1431,7 @@ namespace FreeSql.Internal
             var type = obj.GetType();
             if (ttype.IsAssignableFrom(type)) return new[] { (T)obj };
             var ret = new List<T>();
-            var dic = obj as IDictionary;
+            var dic = obj as IDictionary<string, object>;
             if (dic != null)
             {
                 foreach (var key in dic.Keys)
