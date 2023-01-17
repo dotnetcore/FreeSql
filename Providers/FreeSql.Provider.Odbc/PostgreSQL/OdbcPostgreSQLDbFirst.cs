@@ -536,12 +536,12 @@ where a.typtype = 'e' and ns.nspname in (SELECT ""schema_name"" FROM information
             return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
         }
 
-        public static bool PgVersionIs96(string serverVersion)
+        public static bool PgVersionIs(string serverVersion, int version1, int version2 = 0)
         {
             int[] version = serverVersion.Split('.').Select(a => int.TryParse(a, out var tryint) ? tryint : 0).ToArray();
             if (version?.Any() != true) return true;
-            if (version[0] > 9) return true;
-            if (version[0] == 9 && version.Length > 1 && version[1] >= 6) return true;
+            if (version[0] > version1) return true;
+            if (version[0] == version1 && version.Length > 1 && version[1] >= version2) return true;
             return false;
         }
     }

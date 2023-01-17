@@ -134,11 +134,13 @@ namespace FreeSql.PostgreSQL
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
 
+            var isPg95 = true;
             var isPg96 = true;
             var isPg10 = (_orm.DbFirst as PostgreSQLDbFirst).IsPg10;
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
-                isPg96 = PostgreSQLDbFirst.PgVersionIs96(conn.Value.ServerVersion);
+                isPg95 = PostgreSQLDbFirst.PgVersionIs(conn.Value.ServerVersion, 9, 5);
+                isPg96 = PostgreSQLDbFirst.PgVersionIs(conn.Value.ServerVersion, 9, 6);
             }
 
             foreach (var obj in objects)
@@ -206,7 +208,9 @@ namespace FreeSql.PostgreSQL
                         {
                             sb.Append("CREATE ");
                             if (uk.IsUnique) sb.Append("UNIQUE ");
-                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName).Append("(");
+                            sb.Append("INDEX ");
+                            if (isPg95) sb.Append("IF NOT EXISTS ");
+                            sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -385,7 +389,9 @@ where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", 
                             if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(";\r\n");
                             sbalter.Append("CREATE ");
                             if (uk.IsUnique) sbalter.Append("UNIQUE ");
-                            sbalter.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append("(");
+                            sbalter.Append("INDEX ");
+                            if (isPg95) sbalter.Append("IF NOT EXISTS ");
+                            sbalter.Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -480,7 +486,9 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                 {
                     sb.Append("CREATE ");
                     if (uk.IsUnique) sb.Append("UNIQUE ");
-                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                    sb.Append("INDEX ");
+                    if (isPg95) sb.Append("IF NOT EXISTS ");
+                    sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
