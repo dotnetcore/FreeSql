@@ -1433,14 +1433,25 @@ namespace FreeSql.Internal
             var type = obj.GetType();
             if (ttype.IsAssignableFrom(type)) return new[] { (T)obj };
             var ret = new List<T>();
-            var dic = obj as IDictionary<string, object>;
-            if (dic != null)
+            if (obj is IDictionary<string, object> dic1)
             {
-                foreach (var key in dic.Keys)
+                foreach (var key in dic1.Keys)
+                {
+                    var dbkey = key.TrimStart('@', '?', ':');
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var val = dic1[key];
+                    var valType = val == null ? typeof(string) : val.GetType();
+                    if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
+                    else ret.Add(constructorParamter(dbkey, valType, val));
+                }
+            }
+            else if (obj is IDictionary dic2)
+            {
+                foreach (var key in dic2.Keys)
                 {
                     var dbkey = key.ToString().TrimStart('@', '?', ':');
                     if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
-                    var val = dic[key];
+                    var val = dic2[key];
                     var valType = val == null ? typeof(string) : val.GetType();
                     if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
                     else ret.Add(constructorParamter(dbkey, valType, val));
