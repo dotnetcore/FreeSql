@@ -166,6 +166,10 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var sql18 = select.Where(a => a.testFieldJArray.Count > 0).Limit(10).ToList();
 
             var sql19 = select.First(a => a.testFieldJToken["a"]);
+            var sql20 = select.Where(a => a.testFieldJToken["a"].ToString().Equals("1")).ToList();
+            var sql21 = select.Where(a => a.testFieldJToken["a"].ToString() == "1").ToList();
+            var sql23 = select.Where(a => int.Parse(a.testFieldJToken["a"].ToString()) > 0).ToList();
+
         }
 
         [Fact]

@@ -398,6 +398,27 @@ namespace base_entity
             return client;
         }
 
+        class TJson01
+        {
+            public Guid id { get; set; }
+            [JsonMap]
+            public DJson02 Json02 { get; set; }
+            [JsonMap]
+            public DJson02 Json03 { get; set; }
+        }
+        class TJson02
+        {
+            public Guid id { get; set; }
+            [JsonMap]
+            public DJson02 Json02 { get; set; }
+        }
+        public class DJson02
+        {
+            public string code { get; set; }
+            public string parentcode { get; set; }
+            public string name { get; set; }
+        }
+
         static void Main(string[] args)
         {
             var pams = new Dictionary<string, string>();
@@ -452,7 +473,7 @@ namespace base_entity
 
 
                 .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
-                .UseQuoteSqlName(false)
+                //.UseQuoteSqlName(false)
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
@@ -483,13 +504,30 @@ namespace base_entity
                 .UseMonitorCommand(cmd =>
                 {
                     Console.WriteLine(cmd.CommandText + "\r\n");
-                    cmd.CommandText = null; //不执行
+                    //cmd.CommandText = null; //不执行
                 })
                 .UseLazyLoading(true)
                 //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+            fsql.UseJsonMap();
+
+            fsql.Delete<TJson01>().Where(a => true).ExecuteAffrows();
+            fsql.Insert(new TJson01
+            {
+                Json02 = new DJson02 { code = "002", name = "name002", parentcode = "002_parent" },
+                Json03 = new DJson02 { code = "003", name = "name003", parentcode = "003_parent" },
+            }).NoneParameter(false).ExecuteAffrows();
+            var tjson01 = fsql.Select<TJson01>().First();
+
+            fsql.Delete<TJson02>().Where(a => true).ExecuteAffrows();
+            fsql.Insert(new TJson02
+            {
+                Json02 = new DJson02 { code = "0022", name = "name0022", parentcode = "0022_parent" },
+            }).NoneParameter(false).ExecuteAffrows();
+            var tjson02 = fsql.Select<TJson02>().First();
+
 
             var sqlv01 = fsql.Select<BaseDataEntity>().AsType(typeof(GoodsData))
                 .ToSql(v => new GoodsDataDTO()
