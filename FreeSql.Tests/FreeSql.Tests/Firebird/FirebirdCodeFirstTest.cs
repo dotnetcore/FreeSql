@@ -11,6 +11,29 @@ namespace FreeSql.Tests.Firebird
     public class FirebirdCodeFirstTest
     {
         [Fact]
+        public void Issues1413()
+        {
+            var fsql = g.firebird;
+            fsql.Select<MCliFile>().Count();
+        }
+        [Table(Name = "Issues1413_client_file")]
+        [Index("idx_Issues1413_client_file", "cfiState, cfiBranch desc")]
+        public class MCliFile
+        {
+            [Column(IsPrimary = true, StringLength = 16, Position = 1)]
+            public string cfiNo { get; set; }
+
+            public short cfiState { get; set; }
+
+            [Column(StringLength = 6, CanUpdate = false, IsNullable = false)]
+            public string cfiBranch { get; set; }
+
+            [Column(CanUpdate = false, IsNullable = false)]
+            public string cfiName { get; set; }
+
+        }
+
+        [Fact]
         public void Test_0String()
         {
             var fsql = g.firebird;

@@ -237,27 +237,32 @@ order by a.rdb$relation_name, a.rdb$field_position", tboldname ?? tbname);
 select
 trim(c.rdb$field_name),
 trim(d.rdb$index_name),
-0,
+coalesce(d.rdb$index_type, 0),
 case when d.rdb$unique_flag = 1 then 1 else 0 end
 from rdb$indices d
 inner join rdb$index_segments c on c.rdb$index_name = d.rdb$index_name
-where d.rdb$index_type = 0 and trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
+where trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
                 var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                 foreach (var uk in tb.Indexes)
                 {
                     if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                     var ukname = ReplaceIndexName(uk.Name, tbname);
                     var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                    if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                    if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || 
+                        dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Columns.Length ||
+                        dsukfind1.Any(a => a[2] == "1") && !uk.Columns.Any(a => a.IsDesc))
                     {
-                        if (dsukfind1.Any()) sb.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname)).Append(";\r\n");
+                        if (dsukfind1.Any()) sb.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname))
+                                //.Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname))
+                                .Append(";\r\n");
                         sb.Append("CREATE ");
                         if (uk.IsUnique) sb.Append("UNIQUE ");
+                        if (uk.Columns.Any(a => a.IsDesc)) sb.Append("DESC ");
                         sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname)).Append("(");
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                            if (tbcol.IsDesc) sb.Append(" DESC");
+                            //if (tbcol.IsDesc) sb.Append(" DESC");
                             sb.Append(", ");
                         }
                         sb.Remove(sb.Length - 2, 2).Append(");\r\n");
