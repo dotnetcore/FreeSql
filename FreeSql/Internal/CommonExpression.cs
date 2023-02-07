@@ -1113,7 +1113,7 @@ namespace FreeSql.Internal
                                     exp3sb.Append(" OR ").Append(ExpressionLambdaToSql(exp3NewExp, tsc));
                                 }
                                 if (exp3sb.Length == 0) return "1=2";
-                                return exp3sb.Remove(0, 4).ToString();
+                                return $"({exp3sb.Remove(0, 4).ToString()})";
                             }
                         }
                     }
