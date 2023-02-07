@@ -639,9 +639,15 @@ namespace FreeSql.Internal
 
         static readonly Dictionary<ExpressionType, string> dicExpressionOperator = new Dictionary<ExpressionType, string>() {
             { ExpressionType.OrElse, "OR" },
-            { ExpressionType.Or, "|" },
             { ExpressionType.AndAlso, "AND" },
+
+            { ExpressionType.Or, "|" },
             { ExpressionType.And, "&" },
+            { ExpressionType.LeftShift, "<<" },
+            { ExpressionType.RightShift, ">>" },
+            { ExpressionType.ExclusiveOr, "^" },
+            { ExpressionType.Not, "^" },
+
             { ExpressionType.GreaterThan, ">" },
             { ExpressionType.GreaterThanOrEqual, ">=" },
             { ExpressionType.LessThan, "<" },
@@ -754,8 +760,6 @@ namespace FreeSql.Internal
             switch (oper)
             {
                 case "OR":
-                case "|":
-                case "&":
                 case "+":
                 case "-":
                     if (oper == "+" && (leftExp.Type == typeof(string) || rightExp.Type == typeof(string)))
@@ -918,7 +922,7 @@ namespace FreeSql.Internal
             {
                 case ExpressionType.Not:
                     var notExp = (exp as UnaryExpression)?.Operand;
-                    if (notExp.Type.IsNumberType()) return $"~{ExpressionLambdaToSql(notExp, tsc)}"; //位操作
+                    if (notExp.Type.IsNumberType())return _common.BitNot(ExpressionLambdaToSql(notExp, tsc)); //位操作
                     if (notExp.NodeType == ExpressionType.MemberAccess)
                     {
                         var notBody = ExpressionLambdaToSql(notExp, tsc);
@@ -2019,6 +2023,11 @@ namespace FreeSql.Internal
             {
                 case ExpressionType.Coalesce:
                     return _common.IsNull(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
+                case ExpressionType.And: return _common.BitAnd(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
+                case ExpressionType.Or: return _common.BitOr(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
+                case ExpressionType.LeftShift: return _common.BitShiftLeft(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
+                case ExpressionType.RightShift: return _common.BitShiftRight(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
+                case ExpressionType.ExclusiveOr: return _common.BitXor(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
             }
             if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false)
             {

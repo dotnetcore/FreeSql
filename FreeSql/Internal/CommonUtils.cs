@@ -57,6 +57,12 @@ namespace FreeSql.Internal
         public abstract string StringConcat(string[] objs, Type[] types);
         public abstract string Mod(string left, string right, Type leftType, Type rightType);
         public abstract string Div(string left, string right, Type leftType, Type rightType);
+        public virtual string BitAnd(string left, string right) => $"({left} & {right})";
+        public virtual string BitOr(string left, string right) => $"({left} | {right})";
+        public virtual string BitShiftLeft(string left, string right) => $"({left} << {right})";
+        public virtual string BitShiftRight(string left, string right) => $"({left} >> {right})";
+        public virtual string BitNot(string left) => $"~{left}";
+        public virtual string BitXor(string left, string right) => $"({left} ^ {right})";
         public abstract string Now { get; }
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamterAdapter(Type type, string paramterName);
