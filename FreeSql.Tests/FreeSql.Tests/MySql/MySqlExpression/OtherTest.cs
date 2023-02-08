@@ -18,6 +18,80 @@ namespace FreeSql.Tests.MySqlExpression
         }
 
         [Fact]
+        public void BitEnum()
+        {
+            var fsql = g.mysql;
+            var sql1 = fsql.Select<BitEnum01>().Where(a => a.enum1 == TableAllTypeEnumType1.e5).ToSql();
+            var enum1 = TableAllTypeEnumType1.e5;
+            var sql2 = fsql.Select<BitEnum01>().Where(a => a.enum1 == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`enum1` = 'e5')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.enum2 == TableAllTypeEnumType1.e5).ToSql();
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.enum2 == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`enum2` = 3)", sql1);
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.enum1 & TableAllTypeEnumType1.e2) == TableAllTypeEnumType1.e2).ToSql();
+            enum1 = TableAllTypeEnumType1.e2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.enum1 & enum1) == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`enum1` & 'e2') = 'e2')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.enum2 & TableAllTypeEnumType1.e2) == TableAllTypeEnumType1.e2).ToSql();
+            enum1 = TableAllTypeEnumType1.e2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.enum2 & enum1) == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`enum2` & 1) = 1)", sql1);
+
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.set1 == TableAllTypeEnumType2.f3).ToSql();
+            var set1 = TableAllTypeEnumType2.f3;
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.set1 == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`set1` = 'f3')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.set2 == TableAllTypeEnumType2.f3).ToSql();
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.set2 == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`set2` = 2)", sql1);
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.set1 & TableAllTypeEnumType2.f2) == TableAllTypeEnumType2.f2).ToSql();
+            set1 = TableAllTypeEnumType2.f2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.set1 & set1) == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`set1` & 'f2') = 'f2')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.set2 & TableAllTypeEnumType2.f2) == TableAllTypeEnumType2.f2).ToSql();
+            set1 = TableAllTypeEnumType2.f2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.set2 & set1) == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`set2` & 1) = 1)", sql1);
+        }
+        class BitEnum01
+        {
+            public int id { get; set; }
+            public TableAllTypeEnumType1 enum1 { get; set; }
+            [Column(MapType = typeof(int))]
+            public TableAllTypeEnumType1 enum2 { get; set; }
+            public TableAllTypeEnumType2 set1 { get; set; }
+            [Column(MapType = typeof(long))]
+            public TableAllTypeEnumType2 set2 { get; set; }
+        }
+
+        [Fact]
         public void ArrayAnyOr()
         {
             var arr = new int[] { 1, 3, 8 };

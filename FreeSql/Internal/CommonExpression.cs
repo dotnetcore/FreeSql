@@ -2034,7 +2034,96 @@ namespace FreeSql.Internal
                 if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                 return "";
             }
+            switch (expBinary.NodeType)
+            {
+                case ExpressionType.Equal:
+                case ExpressionType.NotEqual:
+                    //位运算 + MapType
+                    var bitwiseResult = ExpressionBinaryBitwise(tryoper, expBinary.Left, expBinary.Right, tsc);
+                    if (string.IsNullOrEmpty(bitwiseResult) == false) return bitwiseResult;
+                    break;
+            }
             return ExpressionBinary(tryoper, expBinary.Left, expBinary.Right, tsc);
+        }
+        public string ExpressionBinaryBitwise(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc)
+        {
+            string LocalSwithBitResult(Expression expBit, string r1, string r2)
+            {
+                switch (expBit.NodeType)
+                {
+                    case ExpressionType.And: return _common.BitAnd(r1, r2);
+                    case ExpressionType.Or: return _common.BitOr(r1, r2);
+                    case ExpressionType.LeftShift: return _common.BitShiftLeft(r1, r2);
+                    case ExpressionType.RightShift: return _common.BitShiftRight(r1, r2);
+                    case ExpressionType.ExclusiveOr: return _common.BitXor(r1, r2);
+                }
+                return "";
+            }
+            while (leftExp.NodeType == ExpressionType.Convert && leftExp is UnaryExpression leftExpUExp) leftExp = leftExpUExp.Operand;
+            switch (leftExp.NodeType)
+            {
+                case ExpressionType.And:
+                case ExpressionType.Or:
+                case ExpressionType.LeftShift:
+                case ExpressionType.RightShift:
+                case ExpressionType.ExclusiveOr:
+                    var leftBinary = leftExp as BinaryExpression;
+                    var leftBinaryL = ExpressionLambdaToSql(leftBinary.Left, tsc);
+                    var leftBinaryR = "";
+                    var leftBinaryColumn = SearchColumnByField(tsc._tables, tsc.currentTable, leftBinaryL);
+                    if (leftBinaryColumn != null)
+                    {
+                        var oldMapType = tsc.SetMapTypeReturnOld(leftBinaryColumn.Attribute.MapType);
+                        leftBinaryR = ExpressionLambdaToSql(leftBinary.Right, tsc);
+                        var rightResult = ExpressionLambdaToSql(rightExp, tsc);
+                        tsc.SetMapTypeReturnOld(oldMapType);
+                        return $"{LocalSwithBitResult(leftExp, leftBinaryL, leftBinaryR)} {oper} {rightResult}";
+                    }
+                    leftBinaryR = ExpressionLambdaToSql(leftBinary.Right, tsc);
+                    leftBinaryColumn = SearchColumnByField(tsc._tables, tsc.currentTable, leftBinaryR);
+                    if (leftBinaryColumn != null)
+                    {
+                        var oldMapType = tsc.SetMapTypeReturnOld(leftBinaryColumn.Attribute.MapType);
+                        leftBinaryL = ExpressionLambdaToSql(leftBinary.Left, tsc);
+                        var rightResult = ExpressionLambdaToSql(rightExp, tsc);
+                        tsc.SetMapTypeReturnOld(oldMapType);
+                        return $"{LocalSwithBitResult(leftExp, leftBinaryL, leftBinaryR)} {oper} {rightResult}";
+                    }
+                    break;
+            }
+            while (rightExp.NodeType == ExpressionType.Convert && rightExp is UnaryExpression rightExpUExp) rightExp = rightExpUExp.Operand;
+            switch (rightExp.NodeType)
+            {
+                case ExpressionType.And:
+                case ExpressionType.Or:
+                case ExpressionType.LeftShift:
+                case ExpressionType.RightShift:
+                case ExpressionType.ExclusiveOr:
+                    var rightBinary = rightExp as BinaryExpression;
+                    var rightBinaryL = ExpressionLambdaToSql(rightBinary.Left, tsc);
+                    var rightBinaryR = "";
+                    var rightBinaryColumn = SearchColumnByField(tsc._tables, tsc.currentTable, rightBinaryL);
+                    if (rightBinaryColumn != null)
+                    {
+                        var oldMapType = tsc.SetMapTypeReturnOld(rightBinaryColumn.Attribute.MapType);
+                        rightBinaryR = ExpressionLambdaToSql(rightBinary.Right, tsc);
+                        var leftResult = ExpressionLambdaToSql(leftExp, tsc);
+                        tsc.SetMapTypeReturnOld(oldMapType);
+                        return $"{leftResult} {oper} {LocalSwithBitResult(rightExp, rightBinaryL, rightBinaryR)}";
+                    }
+                    rightBinaryR = ExpressionLambdaToSql(rightBinary.Right, tsc);
+                    rightBinaryColumn = SearchColumnByField(tsc._tables, tsc.currentTable, rightBinaryR);
+                    if (rightBinaryColumn != null)
+                    {
+                        var oldMapType = tsc.SetMapTypeReturnOld(rightBinaryColumn.Attribute.MapType);
+                        rightBinaryL = ExpressionLambdaToSql(rightBinary.Left, tsc);
+                        var leftResult = ExpressionLambdaToSql(leftExp, tsc);
+                        tsc.SetMapTypeReturnOld(oldMapType);
+                        return $"{leftResult} {oper} {LocalSwithBitResult(rightExp, rightBinaryL, rightBinaryR)}";
+                    }
+                    break;
+            }
+            return "";
         }
 
         public abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, ExpTSC tsc);
