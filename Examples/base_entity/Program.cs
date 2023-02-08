@@ -418,6 +418,31 @@ namespace base_entity
             public string parentcode { get; set; }
             public string name { get; set; }
         }
+        class VersionBytes01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            [Column(IsVersion = true, DbType = "timestamp", CanInsert = false, CanUpdate = false)]
+            public byte[] version { get; set; }
+        }
+        public static void VersionBytes(IFreeSql fsql)
+        {
+            fsql.Delete<VersionBytes01>().Where("1=1").ExecuteAffrows();
+            var item = new VersionBytes01 { name = "name01" };
+            fsql.Insert(item).ExecuteAffrows();
+            var itemVersion = item.version;
+
+            item = fsql.Select<VersionBytes01>().Where(a => a.id == item.id).First();
+
+            item.name = "name02";
+            var sql = fsql.Update<VersionBytes01>().SetSource(item).ToSql();
+            if (1 != fsql.Update<VersionBytes01>().SetSource(item).ExecuteAffrows()) throw new Exception("不相同");
+
+            //item.name = "name03";
+            //if (1 != fsql.Update<VersionBytes01>().SetSource(item).ExecuteAffrows()) throw new Exception("不相同");
+
+            if (1 != fsql.Update<VersionBytes01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ExecuteAffrows()) throw new Exception("不相同");
+        }
 
         static void Main(string[] args)
         {
@@ -477,7 +502,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -512,6 +537,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+            VersionBytes(fsql);
+
 
             fsql.Delete<TJson01>().Where(a => true).ExecuteAffrows();
             fsql.Insert(new TJson01
