@@ -327,7 +327,7 @@ namespace FreeSql.Internal
                     }
                 }
                 if (colattr.MapType == typeof(string) && colattr.IsVersion == true) colattr.StringLength = 40;
-                if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16;
+                if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16; // 8=sqlserver timestamp, 16=GuidToBytes
                 if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;

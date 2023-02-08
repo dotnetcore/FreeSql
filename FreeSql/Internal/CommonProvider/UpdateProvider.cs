@@ -1144,7 +1144,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
             }
 
-            if (_versionColumn != null)
+            if (_versionColumn != null && _versionColumn.Attribute.CanUpdate)
             {
                 var vcname = _commonUtils.QuoteSqlName(_versionColumn.Attribute.Name);
                 if (_versionColumn.Attribute.MapType == typeof(byte[]))
