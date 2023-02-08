@@ -136,6 +136,7 @@ namespace FreeSql.Firebird
                         {
                             sb.Append("CREATE ");
                             if (uk.IsUnique) sb.Append("UNIQUE ");
+                            if (uk.Columns.Any(a => a.IsDesc)) sb.Append("DESC ");
                             sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname))).Append(" ON ").Append(createTableName).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
@@ -262,7 +263,6 @@ where trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                            //if (tbcol.IsDesc) sb.Append(" DESC");
                             sb.Append(", ");
                         }
                         sb.Remove(sb.Length - 2, 2).Append(");\r\n");
