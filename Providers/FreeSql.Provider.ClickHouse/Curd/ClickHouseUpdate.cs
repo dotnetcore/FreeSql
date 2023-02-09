@@ -189,7 +189,7 @@ namespace FreeSql.ClickHouse.Curd
                 return;
 
             if (_setIncr.Length > 0)
-                sb.Append(_set.Length > 0 ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
+                sb.Append(_set.Length > 0 || _source.Any() ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
 
             if (_source.Any() == false)
             {

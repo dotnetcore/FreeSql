@@ -422,11 +422,23 @@ namespace base_entity
         {
             public Guid id { get; set; }
             public string name { get; set; }
-            [Column(IsVersion = true, DbType = "timestamp", CanInsert = false, CanUpdate = false)]
+            [Column(IsVersion = true)]
             public byte[] version { get; set; }
         }
         public static void VersionBytes(IFreeSql fsql)
         {
+
+            fsql.Aop.ConfigEntityProperty += (_, e) =>
+            {
+                if (fsql.Ado.DataType == DataType.SqlServer &&
+                    e.Property.Name == "version")
+                {
+                    e.ModifyResult.DbType = "timestamp";
+                    e.ModifyResult.CanInsert = false;
+                    e.ModifyResult.CanUpdate = false;
+                }
+            };
+
             fsql.Delete<VersionBytes01>().Where("1=1").ExecuteAffrows();
             var item = new VersionBytes01 { name = "name01" };
             fsql.Insert(item).ExecuteAffrows();
@@ -537,7 +549,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
-            VersionBytes(fsql);
+
+            var items = new List<User1>();
+            for (var a = 0; a < 3; a++) items.Add(new User1 { Id = Guid.NewGuid(), Avatar = $"avatar{a}" });
+            var sqltest01 = fsql.Update<User1>()
+                .SetSource(items)
+                .UpdateColumns(a => a.Avatar)
+                .Set(a => a.Sort + 1).ToSql();
+
+            //VersionBytes(fsql);
 
 
             fsql.Delete<TJson01>().Where(a => true).ExecuteAffrows();
