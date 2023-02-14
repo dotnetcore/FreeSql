@@ -5,8 +5,12 @@ using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
+using K4os.Hash.xxHash;
+using MySqlX.XDevAPI;
+using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Npgsql;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -455,6 +459,12 @@ namespace base_entity
 
             if (1 != fsql.Update<VersionBytes01>().Set(a => a.name, "name04").Where(a => a.id == item.id).ExecuteAffrows()) throw new Exception("不相同");
         }
+        public class City
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public Point Center { get; set; }
+        }
 
         static void Main(string[] args)
         {
@@ -516,7 +526,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
@@ -544,11 +554,72 @@ namespace base_entity
                     //cmd.CommandText = null; //不执行
                 })
                 .UseLazyLoading(true)
-                //.UseGenerateCommandParameterWithLambda(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            fsql.Aop.ParseExpression += (_, e) =>
+            {
+                if (fsql.Ado.DataType == DataType.PostgreSQL)
+                {
+                    if (e.Expression is MethodCallExpression callExp &&
+                        callExp.Object is not null && typeof(Geometry).IsAssignableFrom(callExp.Method.DeclaringType))
+                    {
+                        var instance = callExp.Object;
+                        var arguments = callExp.Arguments;
+                        var Function = new Func<string, Expression[], Type, string>((dbfunc, args, returnType) =>
+                        {
+                            return $"{dbfunc}({string.Join(", ", args.Select(a => e.FreeParse(a)))})";
+                        });
+                        e.Result = callExp.Method.Name switch
+                        {
+                            nameof(Geometry.AsBinary) => Function("ST_AsBinary", new[] { instance }, typeof(byte[])),
+                            nameof(Geometry.AsText) => Function("ST_AsText", new[] { instance }, typeof(string)),
+                            nameof(Geometry.Buffer) => Function("ST_Buffer", new[] { instance }.Concat(arguments).ToArray(), typeof(Geometry)),
+                            nameof(Geometry.Contains) => Function("ST_Contains", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.ConvexHull) => Function("ST_ConvexHull", new[] { instance }, typeof(Geometry)),
+                            nameof(Geometry.CoveredBy) => Function("ST_CoveredBy", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Covers) => Function("ST_Covers", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Crosses) => Function("ST_Crosses", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Disjoint) => Function("ST_Disjoint", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Difference) => Function("ST_Difference", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(Geometry.Distance) => Function("ST_Distance", new[] { instance }.Concat(arguments).ToArray(), typeof(double)),
+                            nameof(Geometry.EqualsExact) => Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.EqualsTopologically) => Function("ST_Equals", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.GetGeometryN) => Function("ST_GeometryN", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(Polygon.GetInteriorRingN) => Function("ST_InteriorRingN", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(LineString.GetPointN) => Function("ST_PointN", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(Geometry.Intersection) => Function("ST_Intersection", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(Geometry.Intersects) => Function("ST_Intersects", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.IsWithinDistance) => Function("ST_DWithin", new[] { instance }.Concat(arguments).ToArray(), typeof(bool)),
+                            nameof(Geometry.Normalized) => Function("ST_Normalize", new[] { instance }, typeof(Geometry)),
+                            nameof(Geometry.Overlaps) => Function("ST_Overlaps", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Relate) => Function("ST_Relate", new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+                            nameof(Geometry.Reverse) => Function("ST_Reverse", new[] { instance }, typeof(Geometry)),
+                            nameof(Geometry.SymmetricDifference) => Function("ST_SymDifference", new[] { instance, arguments[0] }, typeof(Geometry)),
+                            nameof(Geometry.ToBinary) => Function("ST_AsBinary", new[] { instance }, typeof(byte[])),
+                            nameof(Geometry.ToText) => Function("ST_AsText", new[] { instance }, typeof(string)),
+                            nameof(Geometry.Touches) => Function("ST_Touches", new[] { instance, arguments[0] }, typeof(bool)),
+                            nameof(Geometry.Within) => Function("ST_Within", new[] { instance, arguments[0] }, typeof(bool)),
+
+                            nameof(Geometry.Union) when arguments.Count == 0 => Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry)),
+                            nameof(Geometry.Union) when arguments.Count == 1 => Function("ST_Union", new[] { instance, arguments[0] }, typeof(Geometry)),
+
+                            _ => null
+                        };
+
+                    }
+                }
+            };
+
+            Npgsql.NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+            var geo = new Point(10, 20);
+            fsql.Select<City>()
+                .Where(a => geo.Distance(a.Center) < 100).ToList();
+
+
 
             var items = new List<User1>();
             for (var a = 0; a < 3; a++) items.Add(new User1 { Id = Guid.NewGuid(), Avatar = $"avatar{a}" });
