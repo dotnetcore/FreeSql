@@ -13,7 +13,7 @@
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
-		<Version>3.2.688-preview20230210</Version>
+		<Version>3.2.688-preview20230214</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
