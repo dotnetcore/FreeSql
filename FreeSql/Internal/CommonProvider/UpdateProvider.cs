@@ -106,7 +106,9 @@ namespace FreeSql.Internal.CommonProvider
                 await fsql.Ado.CommandFluent(state.Item1).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
                 try
                 {
-                    var insert = fsql.Insert<T1>(update._source)
+                    var insert = fsql.Insert<T1>();
+                    (insert as InsertProvider<T1>)._source.AddRange(update._source); //不能直接 AppendData，防止触发 Aop.AuditValue
+                    insert
                         .AsType(update._table.Type)
                         .WithConnection(connection)
                         .WithTransaction(transaction)
