@@ -465,6 +465,16 @@ namespace base_entity
             public string Name { get; set; }
             public Point Center { get; set; }
         }
+        public abstract class BaseEntity2
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public long Id { get; set; }
+        }
+
+        public class Student : BaseEntity2
+        {
+            public string Name { get; set; }
+        }
 
         static void Main(string[] args)
         {
@@ -526,7 +536,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
@@ -559,6 +569,26 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            var type = typeof(Student);
+
+            var sw111 = fsql.Queryable<object>()
+                .AsType(type)
+                .Where(s => (s as BaseEntity2).Id == 1)
+                .ToSql();
+
+            Console.WriteLine(sw111);
+
+            var testsql01 =  fsql.Select<User1>()
+                //.GroupBy(a => new { a.Avatar, a.GroupId })
+                //.Having(g => g.Sum(g.Value.Sort) > 0)
+                .WithTempQuery(a => new
+                {
+                    a.Avatar, a.GroupId, sum1 = SqlExt.Sum(a.Sort).ToValue()
+                })
+                .Where(a => a.sum1 > 0)
+                .ToSql();
+
 
             fsql.Aop.ParseExpression += (_, e) =>
             {

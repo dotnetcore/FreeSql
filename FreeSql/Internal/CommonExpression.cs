@@ -1723,6 +1723,8 @@ namespace FreeSql.Internal
                                         expStack.Push(oper2Parm);
                                     else if (oper2Parm.Type != typeof(object) && oper2Parm.Type.IsAssignableFrom(exp2.Type))
                                         expStack.Push(oper2Parm);
+                                    else if (oper2Parm.Type == typeof(object) && tsc._tables[0].Table != null && exp2.Type.IsAssignableFrom(tsc._tables[0].Table.Type) == true)
+                                        expStack.Push(oper2Parm);
                                     else
                                         expStack.Push(Expression.Parameter(exp2.Type, oper2Parm.Name));
                                 }
