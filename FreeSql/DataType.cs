@@ -69,6 +69,8 @@ namespace FreeSql
         /// </summary>
         GBase,
 
+        QuestDb,
+
         CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL
     }
 }
