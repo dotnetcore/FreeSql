@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.PostgreSQL.Curd;
+using FreeSql.Provider.QuestDb;
 using FreeSql.QuestDb.Curd;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,6 +17,7 @@ using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FreeSql.QuestDb
 {
@@ -134,6 +136,11 @@ namespace FreeSql.QuestDb
 
             Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] =
                 typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+
+            QuestDbContainer.Initialize(service =>
+            {
+                service.AddHttpClient();
+            });
         }
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) =>

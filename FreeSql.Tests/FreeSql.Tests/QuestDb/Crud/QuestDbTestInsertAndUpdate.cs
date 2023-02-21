@@ -110,6 +110,124 @@ namespace FreeSql.Tests.QuestDb.Crud
             Assert.True(result > 0);
         }
 
+        [Fact]
+        public async Task TestRestInsertAsync()
+        {
+            var result = await restFsql.Insert(new QuestDb_Model_Test01()
+            {
+                Primarys = Guid.NewGuid().ToString(),
+                CreateTime = DateTime.Now,
+                Activos = 100.21,
+                Id = "IdAsync",
+                IsCompra = true,
+                NameInsert = "NameInsert",
+                NameUpdate = "NameUpdate"
+            }).ExecuteAffrowsAsync();
+            Assert.True(result > 0);
+        }
+
+        [Fact]
+        public async Task TestRestInsertBatchAsync()
+        {
+            var list = new List<QuestDb_Model_Test01>()
+            {
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "1",
+                    IsCompra = true,
+                    NameInsert = "NameInsertAsync",
+                    NameUpdate = "NameUpdate"
+                },
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "2",
+                    IsCompra = true,
+                    NameInsert = "NameInsertAsync",
+                    NameUpdate = "NameUpdate"
+                },
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "3",
+                    IsCompra = true,
+                    NameInsert = "NameInsertAsync",
+                    NameUpdate = "NameUpdate"
+                },
+            };
+            var result = await restFsql.Insert(list).ExecuteAffrowsAsync();
+            Assert.True(result > 0);
+        }
+
+        [Fact]
+        public async Task TestRestInsertColumnsAsync()
+        {
+            var list = new List<QuestDb_Model_Test01>()
+            {
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "1",
+                    IsCompra = true,
+                    NameInsert = "NameInsert",
+                    NameUpdate = "NameUpdate"
+                },
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "2",
+                    IsCompra = true,
+                    NameInsert = "NameInsert",
+                    NameUpdate = "NameUpdate"
+                },
+                new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100.21,
+                    Id = "3",
+                    IsCompra = true,
+                    NameInsert = "NameInsert",
+                    NameUpdate = "NameUpdate"
+                },
+            };
+            var result = await restFsql.Insert(list).IgnoreColumns(q => q.NameInsert).ExecuteAffrowsAsync();
+            Assert.True(result > 0);
+        }
+
+        [Fact]
+        public async Task TestSqlBulkCopy()
+        {
+            var list = new List<QuestDb_Model_Test01>();
+            for (int i = 0; i < 10; i++)
+            {
+                list.Add(new QuestDb_Model_Test01()
+                {
+                    Primarys = Guid.NewGuid().ToString(),
+                    CreateTime = DateTime.Now,
+                    Activos = 100 + i,
+                    Id = "1",
+                    IsCompra = true,
+                    NameInsert = "NameInsertAsync",
+                    NameUpdate = "NameUpdate"
+                });
+            }
+            var result = await restFsql.Insert(list).ExecuteBulkCopyAsync();
+            Assert.True(result > 0);
+        }
+
+
         [Fact, Order(4)]
         public void TestNormalUpdate()
         {
@@ -209,5 +327,7 @@ WHERE (""Id"" = '{primary}')", sql);
                 .Set(q => q.UpdateTime, DateTime.Now)
                 .ExecuteAffrowsAsync();
         }
+
+
     }
 }

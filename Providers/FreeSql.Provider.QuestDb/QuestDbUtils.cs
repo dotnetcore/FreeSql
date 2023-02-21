@@ -14,10 +14,16 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Net.Http;
 using System.Numerics;
 using System.Text;
 using System.Threading;
 using FreeSql.QuestDb;
+using System.Web;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.IO;
+using CsvHelper;
 
 namespace FreeSql.QuestDb
 {
@@ -381,142 +387,5 @@ namespace FreeSql
         /// 月
         /// </summary>
         M
-    }
-
-    public static class SampleByExtension
-    {
-        //是否使用该方法
-        internal static AsyncLocal<bool> IsExistence = new AsyncLocal<bool>()
-        {
-            Value = false
-        };
-
-        internal static AsyncLocal<string> SamoleByString = new AsyncLocal<string>()
-        {
-            Value = string.Empty
-        };
-
-        public static void Initialize()
-        {
-            IsExistence.Value = false;
-            SamoleByString.Value = string.Empty;
-        }
-
-        /// <summary>
-        /// SAMPLE BY用于时间序列数据，将大型数据集汇总为同质时间块的聚合，作为SELECT语句的一部分。对缺少数据的数据集执行查询的用户可以使用FILL关键字指定填充行为
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="select"></param>
-        /// <param name="time">时长</param>
-        /// <param name="unit">单位</param>
-        /// <returns></returns>
-        public static ISelect<T> SampleBy<T>(this ISelect<T> select, double time, SampleUnits unit)
-        {
-            var _unit = Enum.GetName(typeof(SampleUnits), unit);
-            IsExistence.Value = true;
-            var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}}{Environment.NewLine}";
-            SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), _unit);
-            return select;
-        }
-    }
-
-    public static class LatestOnExtension
-    {
-        //是否使用该方法
-        internal static AsyncLocal<bool> IsExistence = new AsyncLocal<bool>()
-        {
-            Value = false
-        };
-
-        internal static AsyncLocal<string> LatestOnString = new AsyncLocal<string>()
-        {
-            Value = string.Empty
-        };
-
-        public static void Initialize()
-        {
-            IsExistence.Value = false;
-            LatestOnString.Value = string.Empty;
-        }
-
-        /// <summary>
-        /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-        /// </summary>
-        /// <typeparam name="T1"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <param name="select"></param>
-        /// <param name="timestamp">时间标识</param>
-        /// <param name="partition">最新项的列</param>
-        /// <returns></returns>
-        public static ISelect<T1> LatestOn<T1, TKey>(this ISelect<T1> select, Expression<Func<T1, DateTime?>> timestamp,
-            Expression<Func<T1, TKey>> partition)
-        {
-            Provider(timestamp, partition);
-            return select;
-        }
-
-        private static void Provider<T1, TKey>(Expression<Func<T1, DateTime?>> timestamp,
-            Expression<Func<T1, TKey>> partition)
-        {
-            IsExistence.Value = true;
-            var latestOnTemple = $"{Environment.NewLine}LATEST ON {{0}} PARTITION BY {{1}} ";
-            var expressionVisitor = new QuestDbExpressionVisitor();
-            expressionVisitor.Visit(timestamp);
-            var _timestamp = expressionVisitor.Fields();
-            expressionVisitor.Visit(partition);
-            var _partition = expressionVisitor.Fields();
-            LatestOnString.Value = string.Format(latestOnTemple, _timestamp, _partition);
-        }
-
-        /// <summary>
-        /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <param name="select"></param>
-        /// <param name="timestamp">时间标识</param>
-        /// <param name="partition">最新项的列</param>
-        /// <returns></returns>
-        public static ISelect<T1, T2> LatestOn<T1, T2, TKey>(this ISelect<T1, T2> select,
-            Expression<Func<T1, DateTime?>> timestamp,
-            Expression<Func<T1, TKey>> partition) where T2 : class
-        {
-            Provider(timestamp, partition);
-            return select;
-        }
-
-        /// <summary>
-        /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <param name="select"></param>
-        /// <param name="timestamp">时间标识</param>
-        /// <param name="partition">最新项的列</param>
-        /// <returns></returns>
-        public static ISelect<T1, T2, T3> LatestOn<T1, T2, T3, TKey>(this ISelect<T1, T2, T3> select,
-            Expression<Func<T1, DateTime?>> timestamp,
-            Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class
-        {
-            Provider(timestamp, partition);
-            return select;
-        }
-
-        /// <summary>
-        /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <param name="select"></param>
-        /// <param name="timestamp">时间标识</param>
-        /// <param name="partition">最新项的列</param>
-        /// <returns></returns>
-        public static ISelect<T1, T2, T3, T4> LatestOn<T1, T2, T3, T4, TKey>(this ISelect<T1, T2, T3, T4> select,
-            Expression<Func<T1, DateTime?>> timestamp,
-            Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class where T4 : class
-        {
-            Provider(timestamp, partition);
-            return select;
-        }
     }
 }
