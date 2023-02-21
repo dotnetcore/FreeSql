@@ -717,10 +717,33 @@ namespace FreeSql.QuestDb
             return res;
         }
 
-        public DbTableInfo GetTableByName(string name, bool ignoreCase = true) =>
-            GetTables(null, name, ignoreCase)?.FirstOrDefault();
+        public DbTableInfo GetTableByName(string name, bool ignoreCase = true)
+        {
+            var tableColumns = _orm.Ado.ExecuteDataTable($"SHOW COLUMNS FROM '{name}'");
+            List<DbColumnInfo> dbColumnInfos = new List<DbColumnInfo>();
+            var dbTableInfo = new DbTableInfo()
+            {
+                Name = name,
+                Columns = new List<DbColumnInfo>()
+            };
+            foreach (DataRow tableColumnsRow in tableColumns.Rows)
+            {
+                dbColumnInfos.Add(new DbColumnInfo()
+                {
+                    Name = tableColumnsRow["column"].ToString(),
+                    DbTypeText = tableColumnsRow["type"].ToString(),
+                    Table = dbTableInfo,
+                });
+            }
 
-        public List<DbTableInfo> GetTablesByDatabase(params string[] database) => GetTables(database, null, false);
+            dbTableInfo.Columns = dbColumnInfos;
+            return dbTableInfo;
+        }
+
+        public List<DbTableInfo> GetTablesByDatabase(params string[] database)
+        {
+            return GetTables(database, null, false);
+        }
 
         public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
