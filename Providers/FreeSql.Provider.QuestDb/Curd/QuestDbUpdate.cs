@@ -1,6 +1,8 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -11,10 +13,8 @@ using System.Threading.Tasks;
 
 namespace FreeSql.QuestDb.Curd
 {
-
     class QuestDbUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
-
         public QuestDbUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)
         {
@@ -25,11 +25,46 @@ namespace FreeSql.QuestDb.Curd
         internal StringBuilder InternalSbSetIncr => _setIncr;
         internal Dictionary<string, bool> InternalIgnore => _ignore;
         internal void InternalResetSource(List<T1> source) => _source = source;
-        internal string InternalWhereCaseSource(string CsName, Func<string, string> thenValue) => WhereCaseSource(CsName, thenValue);
+
+        internal string InternalWhereCaseSource(string CsName, Func<string, string> thenValue) =>
+            WhereCaseSource(CsName, thenValue);
+
         internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        private int InternelExecuteAffrows()
+        {
+            //如果设置了RestAPI的Url则走HTTP
+            var sql = ToSql();
+            var execAsync = RestAPIExtension.ExecAsync(sql).GetAwaiter().GetResult();
+            var resultHash = new Hashtable();
+            try
+            {
+                resultHash = JsonConvert.DeserializeObject<Hashtable>(execAsync);
+            }
+            catch
+            {
+                if (execAsync.Contains("401"))
+                {
+                    throw new Exception("请确认QuestDb设置的RestAPI账号是否正确.");
+                }
+            }
+            var ddl = resultHash["ddl"]?.ToString();
+            var updated = Convert.ToInt32(resultHash["updated"]);
+            return ddl?.ToLower() == "ok" ? updated : 0;
+        }
+
+        public override int ExecuteAffrows()
+        {
+            if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
+            {
+                return base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                    _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+            }
+            return InternelExecuteAffrows();
+        }
+
+        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(
+            _batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 
         protected override List<T1> RawExecuteUpdated()
         {
@@ -48,10 +83,12 @@ namespace FreeSql.QuestDb.Curd
                     foreach (var col in _table.Columns.Values)
                     {
                         if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)))
+                            .Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
+
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -59,7 +96,8 @@ namespace FreeSql.QuestDb.Curd
                 Exception exception = null;
                 try
                 {
-                    var rettmp = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    var rettmp = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction,
+                        CommandType.Text, sql, _commandTimeout, dbParms);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
@@ -87,15 +125,18 @@ namespace FreeSql.QuestDb.Curd
                 caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
+
             caseWhen.Append("(");
             var pkidx = 0;
             foreach (var pk in primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
-                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::text");
+                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)))
+                    .Append("::text");
                 ++pkidx;
             }
+
             caseWhen.Append(")");
         }
 
@@ -106,6 +147,7 @@ namespace FreeSql.QuestDb.Curd
                 sb.Append(_commonUtils.FormatSql("{0}", primarys[0].GetDbValue(d)));
                 return;
             }
+
             sb.Append("(");
             var pkidx = 0;
             foreach (var pk in primarys)
@@ -114,6 +156,7 @@ namespace FreeSql.QuestDb.Curd
                 sb.Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append("::text");
                 ++pkidx;
             }
+
             sb.Append(")");
         }
 
@@ -125,6 +168,7 @@ namespace FreeSql.QuestDb.Curd
                 sb.Append("::text");
                 return;
             }
+
             var dbtype = _commonUtils.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
             if (dbtype == null) return;
 
@@ -133,9 +177,22 @@ namespace FreeSql.QuestDb.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        
+        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
+            {
+                return base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                    _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
+            }
+         
+            return Task.FromResult(InternelExecuteAffrows());
+        }
+       
+
+        public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) =>
+            base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
+
         async protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default)
         {
             var ret = new List<T1>();
@@ -153,10 +210,12 @@ namespace FreeSql.QuestDb.Curd
                     foreach (var col in _table.Columns.Values)
                     {
                         if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)))
+                            .Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
+
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -164,7 +223,8 @@ namespace FreeSql.QuestDb.Curd
                 Exception exception = null;
                 try
                 {
-                    var rettmp = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    var rettmp = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection,
+                        _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
