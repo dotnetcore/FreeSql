@@ -319,6 +319,12 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.GBase.dll", "FreeSql.GBase.GBaseProvider<>");
                         break;
 
+                    case DataType.QuestDb:
+                        type = Type.GetType("FreeSql.QuestDb.QuestDbProvider`1,FreeSql.Provider.QuestDb")?.MakeGenericType(typeof(TMark));
+                        if (type == null)
+                            throwNotFind("FreeSql.Provider.QuestDb.dll", "FreeSql.QuestDb.QuestDbProvider<>");
+                        break;
+
                     case DataType.CustomOracle:
                         type = Type.GetType("FreeSql.Custom.Oracle.CustomOracleProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.Oracle.CustomOracleProvider<>");
