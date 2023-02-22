@@ -46,7 +46,7 @@ namespace FreeSql.QuestDb.Curd
             {
                 if (execAsync.Contains("401"))
                 {
-                    throw new Exception("请确认QuestDb设置的RestAPI账号是否正确.");
+                    throw new Exception("请确认new FreeSqlBuilder().UseQuestDbRestAPI()中设置的用户名密码是否正确.");
                 }
             }
             var ddl = resultHash["ddl"]?.ToString();
