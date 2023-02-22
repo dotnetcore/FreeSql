@@ -55,8 +55,6 @@ public static partial class QuestDbGlobalExtensions
                     lines.Add(line);
                     line = sr.ReadLine();
                 }
-
-                ;
             }
         }
 
@@ -140,8 +138,7 @@ public static partial class QuestDbGlobalExtensions
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            throw e;
         }
         finally
         {
