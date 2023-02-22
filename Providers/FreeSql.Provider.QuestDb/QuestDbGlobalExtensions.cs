@@ -35,6 +35,92 @@ public static partial class QuestDbGlobalExtensions
 
     static QuestDbAdo _QuestDbAdo = new QuestDbAdo();
 
+    public static FreeSqlBuilder UseQuestDbRestAPI(this FreeSqlBuilder buider, string host, string username = "",
+        string password = "") => RestAPIExtension.UseQuestDbRestAPI(buider, host, username, password);
+
+    /// <summary>
+    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="select"></param>
+    /// <param name="timestamp">时间标识</param>
+    /// <param name="partition">最新项的列</param>
+    /// <returns></returns>
+    public static ISelect<T1> LatestOn<T1, TKey>(this ISelect<T1> select, Expression<Func<T1, DateTime?>> timestamp,
+        Expression<Func<T1, TKey>> partition)
+    {
+        LatestOnExtension.InternelImpl(timestamp, partition);
+        return select;
+    }
+    /// <summary>
+    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="select"></param>
+    /// <param name="timestamp">时间标识</param>
+    /// <param name="partition">最新项的列</param>
+    /// <returns></returns>
+    public static ISelect<T1, T2> LatestOn<T1, T2, TKey>(this ISelect<T1, T2> select,
+        Expression<Func<T1, DateTime?>> timestamp,
+        Expression<Func<T1, TKey>> partition) where T2 : class
+    {
+        LatestOnExtension.InternelImpl(timestamp, partition);
+        return select;
+    }
+
+    /// <summary>
+    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="select"></param>
+    /// <param name="timestamp">时间标识</param>
+    /// <param name="partition">最新项的列</param>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3> LatestOn<T1, T2, T3, TKey>(this ISelect<T1, T2, T3> select,
+        Expression<Func<T1, DateTime?>> timestamp,
+        Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class
+    {
+        LatestOnExtension.InternelImpl(timestamp, partition);
+        return select;
+    }
+
+    /// <summary>
+    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="select"></param>
+    /// <param name="timestamp">时间标识</param>
+    /// <param name="partition">最新项的列</param>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4> LatestOn<T1, T2, T3, T4, TKey>(this ISelect<T1, T2, T3, T4> select,
+        Expression<Func<T1, DateTime?>> timestamp,
+        Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class where T4 : class
+    {
+        LatestOnExtension.InternelImpl(timestamp, partition);
+        return select;
+    }
+
+    /// <summary>
+    /// SAMPLE BY用于时间序列数据，将大型数据集汇总为同质时间块的聚合，作为SELECT语句的一部分。对缺少数据的数据集执行查询的用户可以使用FILL关键字指定填充行为
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="select"></param>
+    /// <param name="time">时长</param>
+    /// <param name="unit">单位</param>
+    /// <returns></returns>
+    public static ISelect<T> SampleBy<T>(this ISelect<T> select, double time, SampleUnits unit)
+    {
+        var _unit = Enum.GetName(typeof(SampleUnits), unit);
+        SampleByExtension.IsExistence.Value = true;
+        var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}} ";
+        SampleByExtension.SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), _unit);
+        return select;
+    }
+
 
     /// <summary>
     /// 逐行读取，包含空行
@@ -166,7 +252,7 @@ public static partial class QuestDbGlobalExtensions
     }
 }
 
-public static class SampleByExtension
+static class SampleByExtension
 {
     //是否使用该方法
     internal static AsyncLocal<bool> IsExistence = new AsyncLocal<bool>()
@@ -184,26 +270,9 @@ public static class SampleByExtension
         IsExistence.Value = false;
         SamoleByString.Value = string.Empty;
     }
-
-    /// <summary>
-    /// SAMPLE BY用于时间序列数据，将大型数据集汇总为同质时间块的聚合，作为SELECT语句的一部分。对缺少数据的数据集执行查询的用户可以使用FILL关键字指定填充行为
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="select"></param>
-    /// <param name="time">时长</param>
-    /// <param name="unit">单位</param>
-    /// <returns></returns>
-    public static ISelect<T> SampleBy<T>(this ISelect<T> select, double time, SampleUnits unit)
-    {
-        var _unit = Enum.GetName(typeof(SampleUnits), unit);
-        IsExistence.Value = true;
-        var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}} ";
-        SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), _unit);
-        return select;
-    }
 }
 
-public static class LatestOnExtension
+static class LatestOnExtension
 {
     //是否使用该方法
     internal static AsyncLocal<bool> IsExistence = new AsyncLocal<bool>()
@@ -222,23 +291,7 @@ public static class LatestOnExtension
         LatestOnString.Value = string.Empty;
     }
 
-    /// <summary>
-    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <param name="select"></param>
-    /// <param name="timestamp">时间标识</param>
-    /// <param name="partition">最新项的列</param>
-    /// <returns></returns>
-    public static ISelect<T1> LatestOn<T1, TKey>(this ISelect<T1> select, Expression<Func<T1, DateTime?>> timestamp,
-        Expression<Func<T1, TKey>> partition)
-    {
-        InternelImpl(timestamp, partition);
-        return select;
-    }
-
-    private static void InternelImpl<T1, TKey>(Expression<Func<T1, DateTime?>> timestamp,
+    internal static void InternelImpl<T1, TKey>(Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition)
     {
         IsExistence.Value = true;
@@ -250,60 +303,9 @@ public static class LatestOnExtension
         var _partition = expressionVisitor.Fields();
         LatestOnString.Value = string.Format(latestOnTemple, _timestamp, _partition);
     }
-
-    /// <summary>
-    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <param name="select"></param>
-    /// <param name="timestamp">时间标识</param>
-    /// <param name="partition">最新项的列</param>
-    /// <returns></returns>
-    public static ISelect<T1, T2> LatestOn<T1, T2, TKey>(this ISelect<T1, T2> select,
-        Expression<Func<T1, DateTime?>> timestamp,
-        Expression<Func<T1, TKey>> partition) where T2 : class
-    {
-        InternelImpl(timestamp, partition);
-        return select;
-    }
-
-    /// <summary>
-    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <param name="select"></param>
-    /// <param name="timestamp">时间标识</param>
-    /// <param name="partition">最新项的列</param>
-    /// <returns></returns>
-    public static ISelect<T1, T2, T3> LatestOn<T1, T2, T3, TKey>(this ISelect<T1, T2, T3> select,
-        Expression<Func<T1, DateTime?>> timestamp,
-        Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class
-    {
-        InternelImpl(timestamp, partition);
-        return select;
-    }
-
-    /// <summary>
-    /// 对于多个时间序列存储在同一个表中的场景，根据时间戳检索给定键或键组合的最新项。
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <param name="select"></param>
-    /// <param name="timestamp">时间标识</param>
-    /// <param name="partition">最新项的列</param>
-    /// <returns></returns>
-    public static ISelect<T1, T2, T3, T4> LatestOn<T1, T2, T3, T4, TKey>(this ISelect<T1, T2, T3, T4> select,
-        Expression<Func<T1, DateTime?>> timestamp,
-        Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class where T4 : class
-    {
-        InternelImpl(timestamp, partition);
-        return select;
-    }
 }
 
-public static class RestAPIExtension
+static class RestAPIExtension
 {
     internal static string BaseUrl = string.Empty;
     internal static string authorization = string.Empty;
@@ -321,7 +323,7 @@ public static class RestAPIExtension
         return result;
     }
 
-    public static FreeSqlBuilder UseQuestDbRestAPI(this FreeSqlBuilder buider, string host, string username = "",
+    internal static FreeSqlBuilder UseQuestDbRestAPI(FreeSqlBuilder buider, string host, string username = "",
         string password = "")
     {
         BaseUrl = host;
