@@ -71,6 +71,10 @@ public static partial class QuestDbGlobalExtensions
     /// <returns></returns>
     public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that) where T : class
     {
+        if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
+        {
+            throw new Exception("BulkCopy功能需要启用RestAPI，启用方式：new FreeSqlBuilder().UseQuestDbRestAPI(\"localhost:9000\", \"username\", \"password\")");
+        }
         var result = 0;
         var fileName = $"{Guid.NewGuid()}.csv";
         var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
@@ -89,7 +93,7 @@ public static partial class QuestDbGlobalExtensions
                     {
                         { "name", d.Name },
                         { "type", d.DbTypeText },
-                        { "pattern", "yyyy/M/dd HH:mm:ss" }
+                        { "pattern", "yyyy/M/d H:mm:ss" }
                     });
                 }
                 else
@@ -143,7 +147,7 @@ public static partial class QuestDbGlobalExtensions
         {
             try
             {
-                File.Delete(filePath);
+              //  File.Delete(filePath);
             }
             catch
             {
