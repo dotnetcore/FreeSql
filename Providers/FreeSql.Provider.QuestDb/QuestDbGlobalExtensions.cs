@@ -69,6 +69,7 @@ public static partial class QuestDbGlobalExtensions
     /// <returns></returns>
     public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that) where T : class
     {
+        //思路：通过提供的RestAPI imp，实现快速复制
         if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
         {
             throw new Exception("BulkCopy功能需要启用RestAPI，启用方式：new FreeSqlBuilder().UseQuestDbRestAPI(\"localhost:9000\", \"username\", \"password\")");
@@ -104,6 +105,7 @@ public static partial class QuestDbGlobalExtensions
                 }
             });
             var schema = JsonConvert.SerializeObject(list);
+            //写入CSV文件
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.CurrentCulture))
             {
@@ -146,9 +148,7 @@ public static partial class QuestDbGlobalExtensions
             {
                 File.Delete(filePath);
             }
-            catch
-            {
-            }
+            catch { }
         }
 
         return result;
@@ -197,7 +197,7 @@ public static class SampleByExtension
     {
         var _unit = Enum.GetName(typeof(SampleUnits), unit);
         IsExistence.Value = true;
-        var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}}{Environment.NewLine}";
+        var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}} ";
         SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), _unit);
         return select;
     }
@@ -234,11 +234,11 @@ public static class LatestOnExtension
     public static ISelect<T1> LatestOn<T1, TKey>(this ISelect<T1> select, Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition)
     {
-        Provider(timestamp, partition);
+        InternelImpl(timestamp, partition);
         return select;
     }
 
-    private static void Provider<T1, TKey>(Expression<Func<T1, DateTime?>> timestamp,
+    private static void InternelImpl<T1, TKey>(Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition)
     {
         IsExistence.Value = true;
@@ -264,7 +264,7 @@ public static class LatestOnExtension
         Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition) where T2 : class
     {
-        Provider(timestamp, partition);
+        InternelImpl(timestamp, partition);
         return select;
     }
 
@@ -281,7 +281,7 @@ public static class LatestOnExtension
         Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class
     {
-        Provider(timestamp, partition);
+        InternelImpl(timestamp, partition);
         return select;
     }
 
@@ -298,7 +298,7 @@ public static class LatestOnExtension
         Expression<Func<T1, DateTime?>> timestamp,
         Expression<Func<T1, TKey>> partition) where T2 : class where T3 : class where T4 : class
     {
-        Provider(timestamp, partition);
+        InternelImpl(timestamp, partition);
         return select;
     }
 }
@@ -310,6 +310,7 @@ public static class RestAPIExtension
 
     internal static async Task<string> ExecAsync(string sql)
     {
+        //HTTP GET 执行SQL
         var result = string.Empty;
         var client = QuestDbContainer.GetService<IHttpClientFactory>().CreateClient();
         var url = $"{BaseUrl}/exec?query={HttpUtility.UrlEncode(sql)}";
@@ -317,7 +318,6 @@ public static class RestAPIExtension
             client.DefaultRequestHeaders.Add("Authorization", authorization);
         var httpResponseMessage = await client.GetAsync(url);
         result = await httpResponseMessage.Content.ReadAsStringAsync();
-
         return result;
     }
 
@@ -330,11 +330,13 @@ public static class RestAPIExtension
 
         if (!BaseUrl.ToLower().StartsWith("http"))
             BaseUrl = $"http://{BaseUrl}";
+        //生成TOKEN
         if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
         {
             var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
             authorization = $"Basic {base64}";
         }
+        //RESTAPI需要无参数
         buider.UseNoneCommandParameter(true);
         return buider;
     }
