@@ -117,6 +117,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Orac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Custom", "FreeSql.Tests\FreeSql.Tests.Provider.Custom\FreeSql.Tests.Provider.Custom.csproj", "{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.QuestDb", "Providers\FreeSql.Provider.QuestDb\FreeSql.Provider.QuestDb.csproj", "{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -691,6 +693,18 @@ Global
 		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x64.Build.0 = Release|Any CPU
 		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x86.ActiveCfg = Release|Any CPU
 		{530E3032-F7CE-4EB2-9F21-B7D46331B9E6}.Release|x86.Build.0 = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|x64.Build.0 = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Debug|x86.Build.0 = Debug|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|x64.Build.0 = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|x86.ActiveCfg = Release|Any CPU
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -728,10 +742,11 @@ Global
 		{BDE8EDC6-2646-45E0-A921-39CD1538A8C5} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal
