@@ -7,8 +7,9 @@ namespace FreeSql.Provider.QuestDb
 {
     internal class QuestDbContainer
     {
+        //作用于HttpClientFatory
         private static IServiceCollection Services;
-        public static IServiceProvider ServiceProvider { get; private set; }
+        internal static IServiceProvider ServiceProvider { get; private set; }
 
         internal static void Initialize(Action<IServiceCollection> service)
         {
