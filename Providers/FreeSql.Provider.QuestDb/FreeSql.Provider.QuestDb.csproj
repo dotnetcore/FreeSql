@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>4.0.0.1</Version>
+		<Version>3.2.688-preview20230216</Version>
 	</PropertyGroup>
 
 	<!--<ItemGroup>
@@ -32,18 +32,16 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="5.0.11" />
-		<PackageReference Include="Npgsql.NetTopologySuite" Version="5.0.11" />
+		<PackageReference Include="Npgsql" Version="5.0.11" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.7" />
-		<PackageReference Include="Npgsql.NetTopologySuite" Version="4.1.7" />
+		<PackageReference Include="Npgsql" Version="4.1.7" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.11" />
+		<PackageReference Include="Npgsql" Version="4.0.11" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\Demo\FreeSql\FreeSql\FreeSql.csproj" />
+	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">

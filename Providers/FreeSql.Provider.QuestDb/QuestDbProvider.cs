@@ -1,11 +1,9 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
-using FreeSql.PostgreSQL.Curd;
 using FreeSql.Provider.QuestDb;
 using FreeSql.QuestDb.Curd;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -41,26 +39,6 @@ namespace FreeSql.QuestDb
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<long>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<decimal>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<DateTime>)] = true;
-
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPoint)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisLineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPolygon)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPoint)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiLineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPolygon)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometry)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometryCollection)] = true;
-
-#if nts
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Point)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.LineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Polygon)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPoint)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiLineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPolygon)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Geometry)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.GeometryCollection)] = true;
-#endif
 
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Dictionary<string, string>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JToken)] = true;

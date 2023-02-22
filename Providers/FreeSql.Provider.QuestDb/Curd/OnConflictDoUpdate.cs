@@ -24,7 +24,7 @@ namespace FreeSql.QuestDb.Curd
         public OnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _pgsqlInsert = insert as QuestDbInsert<T1>;
-            if (_pgsqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "PostgreSQL"));
+            if (_pgsqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "QuestDb"));
             if (_pgsqlInsert._noneParameterFlag == "c") _pgsqlInsert._noneParameterFlag = "cu";
 
             if (columns != null)

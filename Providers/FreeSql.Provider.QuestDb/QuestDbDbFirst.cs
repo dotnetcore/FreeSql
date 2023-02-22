@@ -2,7 +2,6 @@
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -412,12 +411,6 @@ namespace FreeSql.QuestDb
                             "JsonConvert.SerializeObject({0})", "Dictionary<string, string>",
                             typeof(Dictionary<string, string>), typeof(Dictionary<string, string>), "{0}", "GetValue")
                     },
-                    {
-                        (int)NpgsqlDbType.Geometry,
-                        ("(PostgisGeometry)", "JsonConvert.DeserializeObject<PostgisGeometry>({0})",
-                            "JsonConvert.SerializeObject({0})", "PostgisGeometry", typeof(PostgisGeometry),
-                            typeof(PostgisGeometry), "{0}", "GetValue")
-                    },
 
                     /*** array ***/
 
@@ -664,12 +657,6 @@ namespace FreeSql.QuestDb
                             "JsonConvert.SerializeObject({0})", "Dictionary<string, string>[]",
                             typeof(Dictionary<string, string>[]), typeof(Dictionary<string, string>[]), "{0}",
                             "GetValue")
-                    },
-                    {
-                        (int)(NpgsqlDbType.Geometry | NpgsqlDbType.Array),
-                        ("(PostgisGeometry[])", "JsonConvert.DeserializeObject<PostgisGeometry[]>({0})",
-                            "JsonConvert.SerializeObject({0})", "PostgisGeometry[]", typeof(PostgisGeometry[]),
-                            typeof(PostgisGeometry[]), "{0}", "GetValue")
                     },
                 };
 

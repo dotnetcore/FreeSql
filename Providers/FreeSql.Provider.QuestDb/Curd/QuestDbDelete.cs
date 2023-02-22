@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FreeSql.PostgreSQL.Curd
+namespace FreeSql.QuestDb.Curd
 {
 
     class QuestDbDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>

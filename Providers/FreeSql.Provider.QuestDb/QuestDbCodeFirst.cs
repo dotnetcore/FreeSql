@@ -2,7 +2,6 @@
 using FreeSql.Internal.Model;
 using FreeSql.Provider.QuestDb.Subtable;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;

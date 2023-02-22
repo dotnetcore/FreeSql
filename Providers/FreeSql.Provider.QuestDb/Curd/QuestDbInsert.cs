@@ -1,6 +1,5 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using NetTopologySuite.Mathematics;
 using Newtonsoft.Json;
 using System;
 using System.Collections;

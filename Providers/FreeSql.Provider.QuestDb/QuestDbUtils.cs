@@ -2,7 +2,6 @@
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -237,7 +236,7 @@ namespace FreeSql.QuestDb
                 return ret;
             });
 
-        public override string FormatSql(string sql, params object[] args) => sql?.FormatPostgreSQL(args);
+        public override string FormatSql(string sql, params object[] args) => sql?.FormatQuestDb(args);
 
         public override string QuoteSqlNameAdapter(params string[] name)
         {
@@ -273,30 +272,11 @@ namespace FreeSql.QuestDb
 
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
-
-        static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry =
-            new ConcurrentDictionary<Type, bool>();
-
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag,
             ColumnInfo col, Type type, object value)
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-            if (_dicIsAssignableFromPostgisGeometry.GetOrAdd(type, t2 =>
-                {
-                    var t2type = t2.IsArray ? t2.GetElementType() : t2;
-                    return typeof(PostgisGeometry).IsAssignableFrom(t2type)
-#if nts
-                           ||
-                           typeof(NetTopologySuite.Geometries.Geometry).IsAssignableFrom(t2type)
-#endif
-                        ;
-                }))
-            {
-                var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type,
-                    value);
-                return pam.ParameterName;
-            }
 
             value = getParamterValue(type, value);
             var type2 = value.GetType();
@@ -326,7 +306,7 @@ namespace FreeSql.QuestDb
             }
             else if (type2 == typeof(BitArray))
             {
-                return $"'{(value as BitArray).To1010()}'";
+                return $"'{To1010(value as BitArray)}'";
             }
             else if (type2 == typeof(NpgsqlLine) || type2 == typeof(NpgsqlLine?))
             {
@@ -345,6 +325,13 @@ namespace FreeSql.QuestDb
             }
 
             return FormatSql("{0}", value, 1);
+        }
+
+        string To1010(BitArray ba)
+        {
+            char[] ret = new char[ba.Length];
+            for (int a = 0; a < ba.Length; a++) ret[a] = ba[a] ? '1' : '0';
+            return new string(ret);
         }
     }
 }

@@ -15,13 +15,13 @@ namespace FreeSql.QuestDb
 {
     class QuestDbAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public QuestDbAdo() : base(DataType.PostgreSQL, null, null) { }
-        public QuestDbAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL, masterConnectionString, slaveConnectionStrings)
+        public QuestDbAdo() : base(DataType.QuestDb, null, null) { }
+        public QuestDbAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.QuestDb, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util; 
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.QuestDb, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 return;

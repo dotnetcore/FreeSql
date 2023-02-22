@@ -30,10 +30,10 @@ public static partial class QuestDbGlobalExtensions
     /// <param name="that"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    public static string FormatPostgreSQL(this string that, params object[] args) =>
-        _postgresqlAdo.Addslashes(that, args);
+    public static string FormatQuestDb(this string that, params object[] args) =>
+        _QuestDbAdo.Addslashes(that, args);
 
-    static QuestDbAdo _postgresqlAdo = new QuestDbAdo();
+    static QuestDbAdo _QuestDbAdo = new QuestDbAdo();
 
 
     /// <summary>

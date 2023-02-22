@@ -22,7 +22,7 @@ namespace FreeSql.QuestDb
         {
             this.availableHandler = availableHandler;
             this.unavailableHandler = unavailableHandler;
-            var policy = new PostgreSQLConnectionPoolPolicy
+            var policy = new QuestDbConnectionPoolPolicy
             {
                 _pool = this,
                 Name = name
@@ -42,11 +42,11 @@ namespace FreeSql.QuestDb
         }
     }
 
-    class PostgreSQLConnectionPoolPolicy : IPolicy<DbConnection>
+    class QuestDbConnectionPoolPolicy : IPolicy<DbConnection>
     {
 
         internal QuestDbConnectionPool _pool;
-        public string Name { get; set; } = $"PostgreSQL NpgsqlConnection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"QuestDb NpgsqlConnection {CoreStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 50;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
