@@ -144,7 +144,7 @@ public static partial class QuestDbGlobalExtensions
         {
             try
             {
-              //  File.Delete(filePath);
+                File.Delete(filePath);
             }
             catch
             {
