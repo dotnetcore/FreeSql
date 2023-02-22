@@ -33,7 +33,6 @@ namespace FreeSql.QuestDb.Curd
 
         private int InternelExecuteAffrows()
         {
-            //如果设置了RestAPI的Url则走HTTP
             var sql = ToSql();
             var execAsync = RestAPIExtension.ExecAsync(sql).GetAwaiter().GetResult();
             var resultHash = new Hashtable();
@@ -45,7 +44,7 @@ namespace FreeSql.QuestDb.Curd
             {
                 if (execAsync.Contains("401"))
                 {
-                    throw new Exception("请确认QuestDb设置的RestAPI账号是否正确.");
+                    throw new Exception("请确认new FreeSqlBuilder().UseQuestDbRestAPI()中设置的用户名密码是否正确.");
                 }
             }
             var ddl = resultHash["ddl"]?.ToString();
@@ -55,6 +54,7 @@ namespace FreeSql.QuestDb.Curd
 
         public override int ExecuteAffrows()
         {
+            //如果设置了RestAPI中Url则走HTTP
             if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
             {
                 return base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
