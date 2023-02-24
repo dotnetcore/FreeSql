@@ -4,6 +4,77 @@
         <name>base_entity</name>
     </assembly>
     <members>
+        <member name="T:Densen.Models.ids.AspNetRoleClaims">
+            <summary>
+            角色声明
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetRoles">
+            <summary>
+            角色定义
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserClaims">
+            <summary>
+            用户声明
+            </summary>
+        </member>
+        <member name="P:Densen.Models.ids.AspNetUserClaims.AspNetUsers">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserLogins">
+            <summary>
+            用户登录
+            </summary>
+        </member>
+        <member name="P:Densen.Models.ids.AspNetUserLogins.AspNetUsers">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserRoles">
+            <summary>
+            角色表
+            <para>存储向哪些用户分配哪些角色</para>
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUsers">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserTokens">
+            <summary>
+            用户令牌
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.DeviceCodes">
+            <summary>
+            设备代码
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.Keys">
+            <summary>
+            密钥
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.PersistedGrants">
+            <summary>
+            持久化保存
+            </summary>
+        </member>
+        <member name="P:Densen.Identity.Models.WebAppIdentityUser.Name">
+            <summary>
+            Full name
+            </summary>
+        </member>
+        <member name="P:Densen.Identity.Models.WebAppIdentityUser.DOB">
+            <summary>
+            Birth Date
+            </summary>
+        </member>
         <member name="P:UserGroup.GroupName">
             <summary>
             组名

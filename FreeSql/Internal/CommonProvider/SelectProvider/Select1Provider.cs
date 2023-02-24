@@ -561,6 +561,14 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var methodParameterTypes = node.Method.GetParameters().Select(a => a.ParameterType).ToArray();
                     var method = _replaceExp.Type.GetMethod(node.Method.Name, methodParameterTypes);
+                    if (method == null && _replaceExp.Type.IsInterface)
+                    {
+                        foreach (var baseInterface in _replaceExp.Type.GetInterfaces())
+                        {
+                            method = baseInterface.GetMethod(node.Method.Name, methodParameterTypes);
+                            if (method != null) break;
+                        }
+                    }
                     if (node.Object?.NodeType == ExpressionType.Parameter && node.Object == oldParameter)
                         return Expression.Call(_replaceExp, method, node.Arguments);
                     return Expression.Call(Visit(node.Object), method, node.Arguments);

@@ -1,4 +1,5 @@
-﻿using FreeSql;
+﻿using Densen.Models.ids;
+using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
 using FreeSql.Internal;
@@ -524,17 +525,18 @@ namespace base_entity
 
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
+                .UseConnectionString(DataType.Sqlite, "data source=C:\\Users\\28810\\Desktop\\github\\FreeSql\\Examples\\base_entity\\AspNetRoleClaims\\ids_api.db")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
-                .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -569,6 +571,11 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            var dywhere = new DynamicFilterInfo { Field = "AspNetRoless.Name", Operator = DynamicFilterOperator.Equal, Value = "Admin" };
+            var method = typeof(ISelect<object>).GetMethod("WhereDynamicFilter");
+            var users4 = fsql.Select<AspNetUsers>().IncludeByPropertyName("AspNetUserRoless", then => then.WhereDynamicFilter(dywhere)).ToList();
+
 
             var type = typeof(Student);
 
