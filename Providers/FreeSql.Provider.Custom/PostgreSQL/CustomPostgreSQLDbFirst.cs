@@ -53,15 +53,21 @@ namespace FreeSql.Custom.PostgreSQL
             DbType ret = DbType.String;
             switch (dbtype?.ToLower().TrimStart('_'))
             {
+                case "smallint":
                 case "int2": ret = DbType.Int16; break;
+                case "integer":
                 case "int4": ret = DbType.Int32; break;
+                case "bigint":
                 case "int8": ret = DbType.Int64; break;
                 case "numeric": ret = DbType.Decimal; break;
+                case "real":
                 case "float4": ret = DbType.Single; break;
+                case "double precision":
                 case "float8": ret = DbType.Double; break;
                 case "money": ret = DbType.Decimal; break;
 
                 case "bpchar": ret = DbType.AnsiString; break;
+                case "character varying":
                 case "varchar": ret = DbType.String; break;
                 case "text": ret = DbType.String; break;
 

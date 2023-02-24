@@ -59,15 +59,21 @@ namespace FreeSql.PostgreSQL
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
             switch (dbtype?.ToLower().TrimStart('_'))
             {
+                case "smallint":
                 case "int2": ret = NpgsqlDbType.Smallint; break;
+                case "integer":
                 case "int4": ret = NpgsqlDbType.Integer; break;
+                case "bigint":
                 case "int8": ret = NpgsqlDbType.Bigint; break;
                 case "numeric": ret = NpgsqlDbType.Numeric; break;
+                case "real":
                 case "float4": ret = NpgsqlDbType.Real; break;
+                case "double precision":
                 case "float8": ret = NpgsqlDbType.Double; break;
                 case "money": ret = NpgsqlDbType.Money; break;
 
                 case "bpchar": ret = NpgsqlDbType.Char; break;
+                case "character varying":
                 case "varchar": ret = NpgsqlDbType.Varchar; break;
                 case "text": ret = NpgsqlDbType.Text; break;
 

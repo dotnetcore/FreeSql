@@ -219,6 +219,18 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                     var type = string.Concat(a[1]);
                     var sqlType = string.Concat(a[3]);
                     var max_length = long.Parse(string.Concat(a[2]));
+                    type = type.Replace("smallint", "int2")
+                        .Replace("integer", "int4")
+                        .Replace("bigint", "int8")
+                        .Replace("real", "float4")
+                        .Replace("double precision", "float8")
+                        .Replace("character varying", "varchar"); //pg15+
+                    sqlType = type.Replace("smallint", "int2")
+                        .Replace("integer", "int4")
+                        .Replace("bigint", "int8")
+                        .Replace("real", "float4")
+                        .Replace("double precision", "float8")
+                        .Replace("character varying", "varchar"); //pg15+
                     switch (sqlType.ToLower())
                     {
                         case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;

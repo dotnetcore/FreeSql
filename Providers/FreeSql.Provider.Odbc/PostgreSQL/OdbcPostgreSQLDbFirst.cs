@@ -54,15 +54,21 @@ namespace FreeSql.Odbc.PostgreSQL
             OdbcType ret = OdbcType.VarChar;
             switch (dbtype?.ToLower().TrimStart('_'))
             {
+                case "smallint":
                 case "int2": ret = OdbcType.SmallInt; break;
+                case "integer":
                 case "int4": ret = OdbcType.Int; break;
+                case "bigint":
                 case "int8": ret = OdbcType.BigInt; break;
                 case "numeric": ret = OdbcType.Numeric; break;
+                case "real":
                 case "float4": ret = OdbcType.Real; break;
+                case "double precision":
                 case "float8": ret = OdbcType.Double; break;
                 case "money": ret = OdbcType.Numeric; break;
 
                 case "bpchar": ret = OdbcType.Char; break;
+                case "character varying":
                 case "varchar": ret = OdbcType.VarChar; break;
                 case "text": ret = OdbcType.Text; break;
 
