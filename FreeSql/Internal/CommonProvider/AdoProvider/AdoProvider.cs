@@ -795,7 +795,7 @@ namespace FreeSql.Internal.CommonProvider
         public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(connection, transaction, CommandType.Text, cmdText, 0, null, GetDbParamtersByObject(cmdText, parms));
         public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, null, cmdType, cmdText, 0, null, cmdParms);
         public int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, transaction, cmdType, cmdText, 0, null, cmdParms);
-        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms) => ExecuteNonQuery(connection, transaction, cmdType, cmdText, 0, null, cmdParms);
+        public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms) => ExecuteNonQuery(connection, transaction, cmdType, cmdText, cmdTimeout, null, cmdParms);
         public int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, Action<DbCommand> cmdAfterHandler, params DbParameter[] cmdParms)
         {
             if (string.IsNullOrEmpty(cmdText)) return 0;
