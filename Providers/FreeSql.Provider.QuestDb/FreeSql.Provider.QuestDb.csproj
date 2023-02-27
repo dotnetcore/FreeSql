@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin;Daily</Authors>
-		<Description>FreeSql实现QuestDb时序数据库访问</Description>
+		<Description>FreeSql 实现 QuestDB 时序数据库访问</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
