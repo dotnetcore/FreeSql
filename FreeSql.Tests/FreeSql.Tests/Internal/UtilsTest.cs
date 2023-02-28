@@ -23,7 +23,7 @@ namespace FreeSql.Tests.Internal
                    (name, type, value) =>
                       {
                           if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-                          var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
+                          var ret = new SqlParameter { ParameterName = name, Value = value };
                           return ret;
                       });
             Assert.Single(ps);
@@ -39,7 +39,7 @@ namespace FreeSql.Tests.Internal
                    (name, type, value) =>
                    {
                        if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-                       var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
+                       var ret = new SqlParameter { ParameterName = name, Value = value };
                        return ret;
                    });
             Assert.Single(ps2);
@@ -55,7 +55,7 @@ namespace FreeSql.Tests.Internal
             Func<string, Type, object, DbParameter> constructorParamter = (name, type, value) =>
                                {
                                    if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-                                   var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
+                                   var ret = new SqlParameter { ParameterName = name, Value = value };
                                    return ret;
                                };
 

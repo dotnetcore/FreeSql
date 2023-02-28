@@ -9,7 +9,83 @@ namespace FreeSql.Tests.SqlServer
 {
     public class SqlServerSelectWithTempQueryTest
     {
-        #region issues #1215
+        [Fact]
+        public void IssuesWithTempQueryAndDto()
+        {
+            var fsql = g.sqlserver;
+            var lpsPgi = fsql.Select<UnitLog, LoadPlan, Instruction>()
+                .InnerJoin((a, b, c) => a.LoadNo == b.LoadNo && a.UnitTransactionType == "TO")
+                .InnerJoin((a, b, c) => b.InstructionNo == c.InstructionNo)
+                .WithTempQuery((a, b, c) => new
+                {
+                    a.LoadNo,
+                    a.SeqNoLog,
+                    c.DeliveryInstractionStatus,
+                    c.UpTime, 
+                    RN = SqlExt.RowNumber().Over().PartitionBy(a.UnitId).OrderByDescending(a.SeqNoLog).ToValue()
+                });
+
+            var sql = fsql.Select<UnitLog>()
+                .FromQuery(lpsPgi)
+                .InnerJoin((a, b) => a.SeqNoLog == b.SeqNoLog)
+                .WithTempQuery((a, b) => new { Item1 = a, Item2 = b })
+                .From<Unit>()
+                .InnerJoin((a, b) => a.Item1.UnitId == b.UnitId)
+                .Where((a, b) => a.Item2.RN < 2)
+                .ToSql((a, b) => new MB51_View
+                {
+                    //CkassIfCation = a.Item1.CkassIfCation,
+                    PGI = a.Item2.DeliveryInstractionStatus,
+                    PGITime = a.Item2.UpTime,
+                    IsDelayPGI = true,
+                    RunNo = b.RunNo
+                });
+            Assert.Equal(@"SELECT a.[CkassIfCation] as1, a.[DeliveryInstractionStatus] as2, a.[UpTime] as3, 1 as4, b.[RunNo] as5 
+FROM ( 
+    SELECT a.[UnitId], a.[LoadNo], a.[UnitTransactionType], a.[SeqNoLog], a.[CkassIfCation], b.[LoadNo] [LoadNo2], b.[SeqNoLog] [SeqNoLog2], b.[DeliveryInstractionStatus], b.[UpTime], b.[RN] 
+    FROM [UnitLog] a 
+    INNER JOIN ( 
+        SELECT a.[LoadNo], a.[SeqNoLog], c.[DeliveryInstractionStatus], c.[UpTime], row_number() over( partition by a.[UnitId] order by a.[SeqNoLog] desc) [RN] 
+        FROM [UnitLog] a 
+        INNER JOIN [LoadPlan] b ON a.[LoadNo] = b.[LoadNo] AND a.[UnitTransactionType] = N'TO' 
+        INNER JOIN [Instruction] c ON b.[InstructionNo] = c.[InstructionNo] ) b ON a.[SeqNoLog] = b.[SeqNoLog] ) a 
+INNER JOIN [Unit] b ON a.[UnitId] = b.[UnitId] 
+WHERE (a.[RN] < 2)", sql);
+        }
+        class MB51_View
+        {
+            public string CkassIfCation { get; set; }
+            public string PGI { get; set; }
+            public DateTime PGITime { get; set; }
+            public bool IsDelayPGI { get; set; }
+            public string RunNo { get; set; }
+        }
+        class Unit
+        {
+            public string UnitId { get; set; }
+            public string RunNo { get; set; }
+            public string CkassIfCation { get; set; }
+        }
+        class UnitLog
+        {
+            public string UnitId { get; set; }
+            public string LoadNo { get; set; }
+            public string UnitTransactionType { get; set; }
+            public string SeqNoLog { get; set; }
+            public string CkassIfCation { get; set; }
+        }
+        class LoadPlan
+        {
+            public string LoadNo { get; set; }
+            public string InstructionNo { get; set; }
+
+        }
+        class Instruction
+        {
+            public string InstructionNo { get; set; }
+            public string DeliveryInstractionStatus { get; set; }
+            public DateTime UpTime { get; set; }
+        }
 
         [Fact]
         public void IssuesParameter01()
@@ -49,12 +125,14 @@ INNER JOIN [QLR_TO_LSH] b ON a.[BBH] = b.[BBH] AND b.[QLRZJHM] = N'qlrzjh' AND b
                     .First();
             }
         }
-        class QLR_TO_LSH 
+        class QLR_TO_LSH
         {
             public string QLRZJHM { get; set; }
             public string QZH { get; set; }
             public int BBH { get; set; }
         }
+
+        #region issues #1215
 
         [Fact]
         public void VicDemo20220815()
@@ -1275,7 +1353,7 @@ WHERE ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02'))";
                 .InnerJoin((a, b) => a.user.Id == b.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
-            var assertSql08 = @"SELECT a.[rownum] as1, b.[Remark] as2 
+            var assertSql08 = @"SELECT a.[Id] as1, a.[rownum] as2, b.[Remark] as3 
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
@@ -1298,10 +1376,10 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .ToList<TwoTablePartitionBy_UserDto>();
             Assert.Equal(list08.Count, 2);
             Assert.Equal(list08[0].rownum, 1);
-            Assert.Equal(list08[0].Id, 0);
+            Assert.Equal(list08[0].Id, 4);
             Assert.Equal(list08[0].remark, "remark04");
             Assert.Equal(list08[1].rownum, 1);
-            Assert.Equal(list08[1].Id, 0);
+            Assert.Equal(list08[1].Id, 5);
             Assert.Equal(list08[1].remark, "remark05");
 
 
@@ -1316,7 +1394,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .InnerJoin((a, b) => a.user.Id == b.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
-            var assertSql09 = @"SELECT a.[rownum] as1, b.[Remark] as2 
+            var assertSql09 = @"SELECT a.[Id] as1, a.[rownum] as2, b.[Remark] as3 
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
@@ -1339,10 +1417,10 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .ToList<TwoTablePartitionBy_UserDto>();
             Assert.Equal(list09.Count, 2);
             Assert.Equal(list09[0].rownum, 1);
-            Assert.Equal(list09[0].Id, 0);
+            Assert.Equal(list09[0].Id, 4);
             Assert.Equal(list09[0].remark, "remark04");
             Assert.Equal(list09[1].rownum, 1);
-            Assert.Equal(list09[1].Id, 0);
+            Assert.Equal(list09[1].Id, 5);
             Assert.Equal(list09[1].remark, "remark05");
 
 
@@ -1357,7 +1435,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .InnerJoin((a, b) => a.user.Id == b.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
-            var assertSql091 = @"SELECT a.[rownum] as1, b.[Remark] as2 
+            var assertSql091 = @"SELECT a.[Id] as1, a.[rownum] as2, b.[Remark] as3 
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
@@ -1381,10 +1459,10 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .ToList<TwoTablePartitionBy_UserDto>();
             Assert.Equal(list091.Count, 2);
             Assert.Equal(list091[0].rownum, 1);
-            Assert.Equal(list091[0].Id, 0);
+            Assert.Equal(list091[0].Id, 4);
             Assert.Equal(list091[0].remark, "remark04");
             Assert.Equal(list091[1].rownum, 1);
-            Assert.Equal(list091[1].Id, 0);
+            Assert.Equal(list091[1].Id, 5);
             Assert.Equal(list091[1].remark, "remark05");
 
 
@@ -1399,7 +1477,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .InnerJoin((a, b) => a.user.Id == b.Key.UserId)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
-            var assertSql10 = @"SELECT a.[rownum] as1 
+            var assertSql10 = @"SELECT a.[Id] as1, a.[rownum] as2, b.[Remark] as3 
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
@@ -1423,11 +1501,11 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .ToList<TwoTablePartitionBy_UserDto>();
             Assert.Equal(list10.Count, 2);
             Assert.Equal(list10[0].rownum, 1);
-            Assert.Equal(list10[0].Id, 0);
-            Assert.Null(list10[0].remark);
+            Assert.Equal(list10[0].Id, 4);
+            Assert.Equal(list10[0].remark, "remark04");
             Assert.Equal(list10[1].rownum, 1);
-            Assert.Equal(list10[1].Id, 0);
-            Assert.Null(list10[1].remark);
+            Assert.Equal(list10[1].Id, 5);
+            Assert.Equal(list10[1].remark, "remark05");
 
 
             var sql11 = fsql.Select<TwoTablePartitionBy_User>()
@@ -1441,7 +1519,7 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .InnerJoin((a, b) => a.user.Id == b.uid)
                 .Where((a, b) => a.user.Nickname == "name03" || a.user.Nickname == "name02")
                 .ToSql((a, b) => new TwoTablePartitionBy_UserDto());
-            var assertSql11 = @"SELECT a.[rownum] as1 
+            var assertSql11 = @"SELECT a.[Id] as1, a.[rownum] as2 
 FROM ( 
     SELECT a.[Id], a.[Nickname], row_number() over( partition by a.[Nickname] order by a.[Id]) [rownum] 
     FROM [TwoTablePartitionBy_User] a ) a 
@@ -1465,11 +1543,11 @@ WHERE (a.[rownum] = 1) AND ((a.[Nickname] = N'name03' OR a.[Nickname] = N'name02
                 .ToList<TwoTablePartitionBy_UserDto>();
             Assert.Equal(list11.Count, 2);
             Assert.Equal(list11[0].rownum, 1);
-            Assert.Equal(list11[0].Id, 0);
+            Assert.Equal(list11[0].Id, 4);
             Assert.Null(list11[0].remark);
             Assert.Equal(list11[1].rownum, 1);
-            Assert.Equal(list11[1].Id, 0);
-            Assert.Null(list11[1].remark);
+            Assert.Equal(list11[1].Id, 5);
+            Assert.Null(list11[0].remark);
 
 
             var sql12 = fsql.Select<TwoTablePartitionBy_User>()

@@ -28,7 +28,7 @@ namespace FreeSql.Tests.SqliteExpression
             }.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t1);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10)))", t1);
 
             var t2 = fsql.Select<ArrayAny01>().Where(a => new[] {
                 new ArrayAny02 { Name1 = "name01", Click1 = 1 },
@@ -36,7 +36,7 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t1);
             }.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10))", t2);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10)))", t2);
 
             var aa03 = new[] {
                 new ArrayAny02 { Name1 = "name01", Click1 = 1 },
@@ -44,7 +44,7 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name
             var t3 = fsql.Select<ArrayAny01>().Where(a => aa03.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t3);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10)))", t3);
 
             var aa04 = new[] {
                 new ArrayAny02 { Name1 = "name01", Click1 = 1 },
@@ -53,7 +53,7 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t3);
             var t4 = fsql.Select<ArrayAny01>().Where(a => aa04.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10))", t4);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10)))", t4);
 
             // List
 
@@ -63,7 +63,7 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name
             var t5 = fsql.Select<ArrayAny01>().Where(a => aa05.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t5);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10)))", t5);
 
             var aa06 = new List<ArrayAny02> {
                 new ArrayAny02 { Name1 = "name01", Click1 = 1 },
@@ -72,7 +72,7 @@ WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10))", t5);
             var t6 = fsql.Select<ArrayAny01>().Where(a => aa06.Any(b => b.Name1 == a.Name && b.Click1 == a.Click || a.Click > 10)).ToSql();
             Assert.Equal(@"SELECT a.""Id"", a.""Name"", a.""Click"" 
 FROM ""ArrayAny01"" a 
-WHERE (('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10))", t6);
+WHERE ((('name01' = a.""Name"" AND 1 = a.""Click"" OR a.""Click"" > 10) OR ('name02' = a.""Name"" AND 2 = a.""Click"" OR a.""Click"" > 10)))", t6);
         }
         class ArrayAny01
         {

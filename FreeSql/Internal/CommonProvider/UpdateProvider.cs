@@ -655,11 +655,6 @@ namespace FreeSql.Internal.CommonProvider
             if (col.Attribute.MapType == col.CsType) val = value;
             else val = Utils.GetDataReaderValue(col.Attribute.MapType, value);
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-            if (value == null)
-            {
-                _set.Append("NULL");
-                return;
-            }
 
             var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, val) :
                 _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_params.Count}"));
