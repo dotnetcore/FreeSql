@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +10,51 @@ namespace FreeSql.Tests.SqlServer
     public class SqlServerSelectWithTempQueryTest
     {
         #region issues #1215
+
+        [Fact]
+        public void IssuesParameter01()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.SqlServer, () => new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=36;TrustServerCertificate=true"))
+                .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
+                .Build())
+            {
+                fsql.Aop.CommandBefore += (_, e) =>
+                {
+
+                };
+                var qlrzjh = "qlrzjh";
+                var qzh = "qzh";
+                var sql = fsql.Select<QLR_TO_LSH>()
+                    .Where(a => a.QLRZJHM == qlrzjh && a.QZH == qzh)
+                    .GroupBy(a => new { a.QLRZJHM, a.QZH })
+                    .WithTempQuery(g => new { BBH = g.Min(g.Value.BBH), g.Key })
+                    .From<QLR_TO_LSH>()
+                    .InnerJoin((a, b) => a.BBH == b.BBH && b.QLRZJHM == qlrzjh && b.QZH == qzh)
+                    .ToSql((a, b) => b);
+                Assert.Equal(@"SELECT b.[QLRZJHM] as1, b.[QZH] as2, b.[BBH] as3 
+FROM ( 
+    SELECT min(a.[BBH]) [BBH], a.[QLRZJHM], a.[QZH] 
+    FROM [QLR_TO_LSH] a 
+    WHERE (a.[QLRZJHM] = @exp_0 AND a.[QZH] = @exp_1) 
+    GROUP BY a.[QLRZJHM], a.[QZH] ) a 
+INNER JOIN [QLR_TO_LSH] b ON a.[BBH] = b.[BBH] AND b.[QLRZJHM] = N'qlrzjh' AND b.[QZH] = N'qzh'", sql);
+                fsql.Select<QLR_TO_LSH>()
+                    .Where(a => a.QLRZJHM == qlrzjh && a.QZH == qzh)
+                    .GroupBy(a => new { a.QLRZJHM, a.QZH })
+                    .WithTempQuery(g => new { BBH = g.Min(g.Value.BBH), g.Key })
+                    .From<QLR_TO_LSH>()
+                    .InnerJoin((a, b) => a.BBH == b.BBH && b.QLRZJHM == qlrzjh && b.QZH == qzh)
+                    .First();
+            }
+        }
+        class QLR_TO_LSH 
+        {
+            public string QLRZJHM { get; set; }
+            public string QZH { get; set; }
+            public int BBH { get; set; }
+        }
 
         [Fact]
         public void VicDemo20220815()

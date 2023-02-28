@@ -552,6 +552,29 @@
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
             </summary>
         </member>
+        <member name="T:FreeSql.Tests.QuestDb.Utils.OrderAttribute">
+            <summary>
+            测试方法的执行顺序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.QuestDb.Utils.OrderAttribute.Sort">
+            <summary>
+            顺序
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.QuestDb.Utils.TestOrders">
+            <summary>
+            单元测试的排序策略
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.QuestDb.Utils.TestOrders.OrderTestCases``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            执行顺序
+            </summary>
+            <typeparam name="TTestCase"></typeparam>
+            <param name="testCases"></param>
+            <returns></returns>
+        </member>
         <member name="T:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01">
             <summary>
             表中带点
