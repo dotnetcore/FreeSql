@@ -113,7 +113,7 @@ namespace base_entity
             public B B { get; set; }
         }
 
-        [Table(Name = "as_table_log_{yyyyMM}", AsTable = "createtime=2022-1-1 11(1 month)")]
+        [Table(Name = "as_table_log_{yyyyMMddHH}", AsTable = "createtime=2022-1-1 11(1 month)")]
         class AsTableLog
         {
             public Guid id { get; set; }
@@ -521,7 +521,7 @@ namespace base_entity
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 .UseNameConvert(NameConvertType.ToLower)
-                .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
+                //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
 
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")

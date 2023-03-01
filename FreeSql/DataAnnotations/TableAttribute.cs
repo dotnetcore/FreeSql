@@ -104,7 +104,7 @@ namespace FreeSql.DataAnnotations
         public DateTimeAsTableImpl(string tableName, DateTime beginTime, Func<DateTime, DateTime> nextTimeFunc)
         {
             if (nextTimeFunc == null) throw new ArgumentException(CoreStrings.Cannot_Be_NULL_Name("nextTimeFunc"));
-            beginTime = beginTime.Date; //日期部分作为开始
+            //beginTime = beginTime.Date; //日期部分作为开始
             _beginTime = beginTime;
             _nextTimeFunc = nextTimeFunc;
             _tableName = tableName;
