@@ -22,7 +22,7 @@ FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.
 - 📃 Support Read/Write separation, Splitting Table/Database, Global filters, Optimistic and pessimistic locker.
 - 🌳 Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/南大通用/翰高/ClickHouse/QuestDB/MsAccess, etc.
 
-QQ Groups：561616019(idle)、4336577(full)、8578575(full)、**52508226(available)**
+QQ Groups：**561616019(available)**、4336577(full)、8578575(full)、52508226(full)
 
 ## 📚 Documentation
 
