@@ -113,7 +113,7 @@ namespace base_entity
             public B B { get; set; }
         }
 
-        [Table(Name = "as_table_log_{yyyyMM}", AsTable = "createtime=2022-1-1(1 month)")]
+        [Table(Name = "as_table_log_{yyyyMM}", AsTable = "createtime=2022-1-1 11(1 month)")]
         class AsTableLog
         {
             public Guid id { get; set; }
@@ -571,6 +571,11 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
+                .AsTableImpl;
+
+            atimpl.GetTableNameByColumnValue(DateTime.Parse("2023-7-1"), autoExpand: true);
 
             var dywhere = new DynamicFilterInfo { Field = "AspNetRoless.Name", Operator = DynamicFilterOperator.Equal, Value = "Admin" };
             var method = typeof(ISelect<object>).GetMethod("WhereDynamicFilter");
@@ -1086,10 +1091,10 @@ namespace base_entity
                 .ToList();
 
 
-            var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
+            var atimpl2 = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
                 .AsTableImpl;
 
-            atimpl.GetTableNameByColumnValue(DateTime.Parse("2023-7-1"), autoExpand: true);
+            atimpl2.GetTableNameByColumnValue(DateTime.Parse("2023-7-1"), autoExpand: true);
 
 
             fsql.Select<User1, UserGroup>()

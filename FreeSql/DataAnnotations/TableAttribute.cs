@@ -45,7 +45,7 @@ namespace FreeSql.DataAnnotations
         {
             if (string.IsNullOrEmpty(AsTable) == false)
             {
-                var atm = Regex.Match(AsTable, @"([\w_\d]+)\s*=\s*(\d\d\d\d)\s*\-\s*(\d\d?)\s*\-\s*(\d\d?)\s*\((\d+)\s*(year|month|day|hour)\)", RegexOptions.IgnoreCase);
+                var atm = Regex.Match(AsTable, @"([\w_\d]+)\s*=\s*(\d\d\d\d)\s*\-\s*(\d\d?)\s*\-\s*(\d\d?)\s*( [\d:]+)?\((\d+)\s*(year|month|day|hour)\)", RegexOptions.IgnoreCase);
                 if (atm.Success == false)
                     throw new Exception(CoreStrings.AsTable_PropertyName_FormatError(AsTable));
 
@@ -56,16 +56,25 @@ namespace FreeSql.DataAnnotations
                     tb.AsTableColumn = null;
                     throw new Exception(CoreStrings.AsTable_PropertyName_NotDateTime(atm.Groups[1].Value));
                 }
-                int.TryParse(atm.Groups[5].Value, out var atm5);
-                string atm6 = atm.Groups[6].Value.ToLower();
-                tb.AsTableImpl = new DateTimeAsTableImpl(Name, DateTime.Parse($"{atm.Groups[2].Value}-{atm.Groups[3].Value}-{atm.Groups[4].Value}"), dt =>
+                var beginTime = $"{atm.Groups[2].Value}-{atm.Groups[3].Value}-{atm.Groups[4].Value}";
+                var atm5 = atm.Groups[5].Value;
+                if (string.IsNullOrWhiteSpace(atm5) == false)
                 {
-                    switch (atm6)
+                    var hhmmss = atm5.Split(':').Select(a => int.TryParse(a.Trim(), out var tryint) ? tryint : 0).ToArray();
+                    if (hhmmss.Length == 1) beginTime = $"{beginTime} {hhmmss[0]}:0:0";
+                    else if (hhmmss.Length == 2) beginTime = $"{beginTime} {hhmmss[0]}:{hhmmss[1]}:0";
+                    else if (hhmmss.Length == 3) beginTime = $"{beginTime} {hhmmss[0]}:{hhmmss[1]}:{hhmmss[2]}";
+                }
+                int.TryParse(atm.Groups[6].Value, out var atm6);
+                string atm7 = atm.Groups[7].Value.ToLower();
+                tb.AsTableImpl = new DateTimeAsTableImpl(Name, DateTime.Parse(beginTime), dt =>
+                {
+                    switch (atm7)
                     {
-                        case "year": return dt.AddYears(atm5);
-                        case "month": return dt.AddMonths(atm5);
-                        case "day": return dt.AddDays(atm5);
-                        case "hour": return dt.AddHours(atm5);
+                        case "year": return dt.AddYears(atm6);
+                        case "month": return dt.AddMonths(atm6);
+                        case "day": return dt.AddDays(atm6);
+                        case "hour": return dt.AddHours(atm6);
                     }
                     throw new NotImplementedException(CoreStrings.Functions_AsTable_NotImplemented(AsTable));
                 });
