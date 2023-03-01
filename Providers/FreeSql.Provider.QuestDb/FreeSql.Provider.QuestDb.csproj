@@ -11,19 +11,19 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;QuestDb</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-		<!--<PackageIcon>logo.png</PackageIcon>-->
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.2.689</Version>
+		<Version>3.2.690-preview20230301</Version>
 	</PropertyGroup>
 
-	<!--<ItemGroup>
+	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
-	</ItemGroup>-->
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Http" Version="3.1.32" />
