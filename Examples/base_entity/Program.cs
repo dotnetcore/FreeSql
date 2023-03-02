@@ -366,11 +366,6 @@ namespace base_entity
             public int aa { get; set; }
         }
 
-        public class JoinConditionAttribute : Attribute
-        {
-            public string Condition { get; set; }
-            public JoinConditionAttribute(string condition) => Condition = condition;
-        }
         public class JoinTest01
         {
             public int id { get; set; }
@@ -382,8 +377,10 @@ namespace base_entity
             [Column(MapType = typeof(int))]
             public JoinTest01Enum JoinTest01Enum2 { get; set; }
 
-            [JoinCondition("a.parentcode = b.code")]
+            [Navigate(nameof(parentcode), TempPrimary = nameof(JoinTest01.code))]
             public JoinTest01 Parent { get; set; }
+            [Navigate(nameof(JoinTest01.parentcode), TempPrimary = nameof(code))]
+            public List<JoinTest01> Childs { get; set; }
         }
         public enum JoinTest01Enum { f1, f2, f3 }
 
@@ -571,6 +568,14 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            var joinsql1 = fsql.Select<JoinTest01>()
+                .Include(a => a.Parent.Parent)
+                .Where(a => a.Parent.Parent.code == "001")
+                .Where(a => a.JoinTest01Enum == JoinTest01Enum.f3.ToString())
+                .Where(a => object.Equals(a.JoinTest01Enum, JoinTest01Enum.f3))
+                .Where(a => new[] { JoinTest01Enum.f2, JoinTest01Enum.f3 }.Contains(a.JoinTest01Enum2))
+                .ToSql();
 
             var atimpl = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog))
                 .AsTableImpl;
@@ -899,53 +904,7 @@ namespace base_entity
             });
             var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
 
-            fsql.Aop.ParseExpression += (_, e) =>
-            {
-                if (e.Expression is MemberExpression memExp == false) return;
-                ParameterExpression parmExp = null;
-                var exps = new List<MemberExpression>();
-                exps.Add(memExp);
-                while (memExp.Expression != null)
-                {
-                    if (memExp.Expression is MemberExpression parentExp)
-                    {
-                        exps.Add(parentExp);
-                        memExp = parentExp;
-                        if (fsql.CodeFirst.GetTableByEntity(memExp.Type) == null) return;
-                        continue;
-                    }
-                    if (memExp.Expression is ParameterExpression parmExp2)
-                    {
-                        parmExp = parmExp2;
-                        break;
-                    }
-                    return;
-                }
-                if (parmExp == null) return;
-                if (e.Tables == null) return;
-                var oldTables = e.Tables.ToArray();
-                var result = e.FreeParse(e.Expression);
-                for (var a = oldTables.Length; a < e.Tables.Count; a++)
-                {
-                    if (string.IsNullOrEmpty(e.Tables[a].NavigateCondition) == false) continue;
-                    var parentTableAlias = e.Tables[a].Alias?.Split(new[] { "__" }, StringSplitOptions.None);
-                    if (parentTableAlias == null || parentTableAlias.Length <= 1) continue;
-                    var parentTable = e.Tables.Where(c => c.Alias == string.Join("__", parentTableAlias.Take(parentTableAlias.Length - 1))).FirstOrDefault();
-                    if (parentTable == null || parentTable.Table.Properties.TryGetValue(parentTableAlias.Last(), out var navProp) == false) continue;
-                    var joinAttr = navProp.GetCustomAttribute<JoinConditionAttribute>();
-                    if (joinAttr == null) continue;
-                    e.Tables[a].NavigateCondition = joinAttr.Condition
-                        .Replace("a.", e.Tables[a].Alias + ".")
-                        .Replace("b.", parentTable.Alias + ".");
-                }
-            };
-            var joinsql1 = fsql.Select<JoinTest01>()
-                .Include(a => a.Parent.Parent)
-                .Where(a => a.Parent.Parent.code == "001")
-                .Where(a => a.JoinTest01Enum == JoinTest01Enum.f3.ToString())
-                .Where(a => object.Equals(a.JoinTest01Enum, JoinTest01Enum.f3))
-                .Where(a => new[] { JoinTest01Enum.f2, JoinTest01Enum.f3 }.Contains(a.JoinTest01Enum2))
-                .ToSql();
+            
 
 
             fsql.Aop.ConfigEntity += (_, e) =>

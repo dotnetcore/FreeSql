@@ -2514,7 +2514,8 @@ namespace FreeSql.Internal
         {
             if (tb == null || dtoProp == null || tb.Parameter == null) return null;
             var retList = new List<Expression[]>();
-            LocalMatch(tb.Parameter.Type, tb.Parameter);
+            var retExp = LocalMatch(tb.Parameter.Type, tb.Parameter);
+            if (retList.Any() == false) retList.Add(new[] { retExp });
             return retList;
 
             Expression LocalMatch(Type type, Expression memExp)

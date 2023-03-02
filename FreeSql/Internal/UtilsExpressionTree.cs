@@ -632,7 +632,7 @@ namespace FreeSql.Internal
             var propTypeIsObservableCollection = propElementType != null && pnv.PropertyType == typeof(ObservableCollection<>).MakeGenericType(propElementType);
 
             #region islazy
-            void LocalManyLazyLoadingCode(PropertyInfo refprop, string cscodeExtLogic1, string cscodeExtLogic2, string lmbdWhere)
+            void LocalOneToManyLazyLoadingCode(PropertyInfo refprop, string cscodeExtLogic1, string cscodeExtLogic2, string lmbdWhere)
             {
                 cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
                             .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
@@ -768,7 +768,7 @@ namespace FreeSql.Internal
                         nvref.RefType = TableRefType.OneToMany;
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     }
-                    if (isLazy) LocalManyLazyLoadingCode(null, null, null, lmbdWhere.ToString());
+                    if (isLazy) LocalOneToManyLazyLoadingCode(null, null, null, lmbdWhere.ToString());
                 }
                 else
                 {
@@ -802,6 +802,7 @@ namespace FreeSql.Internal
                     }
                     if (isLazy) LocalLazyLoadingCode(lmbdWhere.ToString());
                 }
+                return;
             }
             #endregion
 
@@ -1401,7 +1402,7 @@ namespace FreeSql.Internal
                         }
 
                     }
-                    if (isLazy) LocalManyLazyLoadingCode(refprop, cscodeExtLogic1, cscodeExtLogic2, lmbdWhere.ToString());
+                    if (isLazy) LocalOneToManyLazyLoadingCode(refprop, cscodeExtLogic1, cscodeExtLogic2, lmbdWhere.ToString());
                 }
             }
             else
