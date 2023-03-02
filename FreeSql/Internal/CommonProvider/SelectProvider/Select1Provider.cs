@@ -503,7 +503,7 @@ namespace FreeSql.Internal.CommonProvider
             if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
             var parTb = _commonUtils.GetTableByEntity(memExp.Expression.Type);
             if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
-            var parTbref = parTb.GetTableRef(memExp.Member.Name, true);
+            var parTbref = parTb.GetTableRef(memExp.Member.Name, true, true);
             if (parTbref == null) throw new ArgumentException(CoreStrings.Not_Valid_Navigation_Property(nameof(property)));
             switch (parTbref.RefType)
             {
@@ -682,7 +682,7 @@ namespace FreeSql.Internal.CommonProvider
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
             if (whereExp == null)
             {
-                tbref = tb.GetTableRef(collMem.Member.Name, true);
+                tbref = tb.GetTableRef(collMem.Member.Name, true, true);
                 if (tbref == null) throw new Exception(CoreStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
             }
             else

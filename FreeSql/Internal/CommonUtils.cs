@@ -352,6 +352,7 @@ namespace FreeSql.Internal
                         if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._navigates.TryGetValue(proto.Name, out var trynav))
                         {
                             if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                            if (!string.IsNullOrEmpty(trynav.TempPrimary)) attr.TempPrimary = trynav.TempPrimary;
                             if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
                         }
                         break;
@@ -362,6 +363,7 @@ namespace FreeSql.Internal
                             trynav = tryattrobj as NavigateAttribute;
                             if (trynav == null) continue;
                             if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                            if (!string.IsNullOrEmpty(trynav.TempPrimary)) attr.TempPrimary = trynav.TempPrimary;
                             if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
                         }
                         break;

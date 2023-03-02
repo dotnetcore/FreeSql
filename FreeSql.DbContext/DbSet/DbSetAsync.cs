@@ -151,7 +151,7 @@ namespace FreeSql
             if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextStrings.NotFound_Property(_table.Type.FullName, propertyName));
             if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
 
-            var tref = _table.GetTableRef(propertyName, true);
+            var tref = _table.GetTableRef(propertyName, true, false);
             if (tref == null) return;
             switch (tref.RefType)
             {
@@ -209,7 +209,7 @@ namespace FreeSql
                 if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) return;
                 if (_table.ColumnsByCs.ContainsKey(prop.Name)) return;
 
-                var tref = _table.GetTableRef(prop.Name, false); //防止非正常的导航属性报错
+                var tref = _table.GetTableRef(prop.Name, false, false); //防止非正常的导航属性报错
                 if (tref == null) return;
                 DbSet<object> refSet = null;
                 switch (tref.RefType)

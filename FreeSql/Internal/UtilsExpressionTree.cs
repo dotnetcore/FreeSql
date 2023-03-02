@@ -623,12 +623,188 @@ namespace FreeSql.Internal
 
             var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
             var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+            var pnvBindTempPrimary = pnvAttr?.TempPrimary?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
             var nvref = new TableRef();
             nvref.Property = pnv;
 
             //List 或 ICollection，一对多、多对多
             var propElementType = pnv.PropertyType.GetGenericArguments().FirstOrDefault() ?? pnv.PropertyType.GetElementType();
             var propTypeIsObservableCollection = propElementType != null && pnv.PropertyType == typeof(ObservableCollection<>).MakeGenericType(propElementType);
+
+            #region islazy
+            void LocalManyLazyLoadingCode(PropertyInfo refprop, string cscodeExtLogic1, string cscodeExtLogic2, string lmbdWhere)
+            {
+                cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                            .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                if (vp?.Item2 == true)
+                { //get 重写
+                    cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                        .Append(cscodeExtLogic1)
+                        .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                    if (nvref.Exception == null)
+                    {
+                        cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere).AppendLine(").ToList();")
+                            .Append(cscodeExtLogic2)
+                            .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;");
+                        if (refprop != null)
+                        {
+                            cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
+                                .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
+                        }
+                        cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                    }
+                    else
+                        cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                    cscode
+                        .Append("			}\r\n")
+                        .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                        .Append("		}\r\n");
+                }
+                if (vp?.Item3 == true)
+                { //set 重写
+                    cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
+                        .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                        .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("		}\r\n");
+                }
+                cscode.AppendLine("	}");
+            }
+            void LocalLazyLoadingCode(string lmbdWhere)
+            {
+                cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                        .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                if (vp?.Item2 == true)
+                { //get 重写
+                    cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                        .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                    if (nvref.Exception == null)
+                        cscode.Append("				var loc3 = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere).AppendLine(").ToOne();")
+                            .Append("				base.").Append(pnv.Name).AppendLine(" = loc3;")
+                            .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                    else
+                        cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                    cscode
+                        .Append("			}\r\n")
+                        .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                        .Append("		}\r\n");
+                }
+                if (vp?.Item3 == true)
+                { //set 重写
+                    cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
+                        .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                        .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("		}\r\n");
+                }
+                cscode.AppendLine("	}");
+            }
+            #endregion
+
+            #region [Navigate("xx", Ref = "...")]
+            if (pnvBind != null && pnvBindTempPrimary != null && pnvBind.Length > 0 && pnvBindTempPrimary.Length == pnvBind.Length)
+            {
+                nvref.IsTempPrimary = true;
+                TableInfo tbref = null;
+                //OneToMany
+                if (propElementType != null)
+                {
+                    if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
+                    tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
+                }
+                else
+                {
+                    tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
+                }
+
+                if (tbref == null) return;
+                var tbrefTypeName = tbref.Type.DisplayCsharp();
+                Func<TableInfo, string[], string, List<ColumnInfo>> getBindColumns = (locTb, locBind, locFindTypeName) =>
+                {
+                    var locRet = new List<ColumnInfo>();
+                    foreach (var bi in locBind)
+                    {
+                        if (locTb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                        {
+                            nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, locFindTypeName, bi));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        locRet.Add(trybindcol);
+                    }
+                    return locRet;
+                };
+
+                if (propElementType != null)
+                {
+                    var bindColumns = getBindColumns(tbref, pnvBind, tbrefTypeName);
+                    var bindColumnsTempPrimary = getBindColumns(trytb, pnvBindTempPrimary, trytbTypeName);
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    for (var a = 0; nvref.Exception == null && a < bindColumnsTempPrimary.Count; a++)
+                    {
+                        if (bindColumnsTempPrimary[a].CsType.NullableTypeOrThis() != bindColumns[a].CsType.NullableTypeOrThis())
+                        {
+                            nvref.Exception = new Exception(CoreStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, bindColumnsTempPrimary[a].CsName, tbref.CsName, bindColumns[a].CsName));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        nvref.Columns.Add(bindColumnsTempPrimary[a]);
+                        nvref.RefColumns.Add(bindColumns[a]);
+
+                        if (isLazy && nvref.Exception == null)
+                        {
+                            if (a > 0) lmbdWhere.Append(" && ");
+                            lmbdWhere.Append("a.").Append(bindColumns[a].CsName).Append(" == this.").Append(bindColumnsTempPrimary[a].CsName);
+                        }
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.OneToMany;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    }
+                    if (isLazy) LocalManyLazyLoadingCode(null, null, null, lmbdWhere.ToString());
+                }
+                else
+                {
+                    var bindColumns = getBindColumns(trytb, pnvBind, trytbTypeName);
+                    var bindColumnsTempPrimary = getBindColumns(tbref, pnvBindTempPrimary, tbrefTypeName);
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    for (var a = 0; nvref.Exception == null && a < bindColumnsTempPrimary.Count; a++)
+                    {
+                        if (bindColumns[a].CsType.NullableTypeOrThis() != bindColumnsTempPrimary[a].CsType.NullableTypeOrThis())
+                        {
+                            nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, bindColumns[a].CsName, tbref.CsName, bindColumnsTempPrimary[a].CsName));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        nvref.Columns.Add(bindColumns[a]);
+                        nvref.RefColumns.Add(bindColumnsTempPrimary[a]);
+
+                        if (isLazy && nvref.Exception == null)
+                        {
+                            if (a > 0) lmbdWhere.Append(" && ");
+                            lmbdWhere.Append("a.").Append(bindColumnsTempPrimary[a].CsName).Append(" == this.").Append(bindColumns[a].CsName);
+                        }
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.ManyToOne;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    }
+                    if (isLazy) LocalLazyLoadingCode(lmbdWhere.ToString());
+                }
+            }
+            #endregion
+
             if (propElementType != null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
@@ -780,11 +956,11 @@ namespace FreeSql.Internal
                         TableRef trytbTf = null;
                         try
                         {
-                            trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                            trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true, false);
                             if (trytbTf == null)
                             {
                                 AddTableRef(common, tbmid, midTypePropsTrytb, false, null, null);
-                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true, false);
                             }
                         }
                         catch (Exception ex)
@@ -827,11 +1003,11 @@ namespace FreeSql.Internal
                             TableRef tbrefTf = null;
                             try
                             {
-                                tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true, false);
                                 if (tbrefTf == null)
                                 {
                                     AddTableRef(common, tbmid, midTypePropsTbref, false, null, null);
-                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true, false);
                                 }
                             }
                             catch (Exception ex)
@@ -1225,45 +1401,7 @@ namespace FreeSql.Internal
                         }
 
                     }
-                    if (isLazy)
-                    {
-                        cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                            .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                        if (vp?.Item2 == true)
-                        { //get 重写
-                            cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
-                                .Append(cscodeExtLogic1)
-                                .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                            if (nvref.Exception == null)
-                            {
-                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();")
-                                    .Append(cscodeExtLogic2)
-                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;");
-                                if (refprop != null)
-                                {
-                                    cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
-                                        .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
-                                }
-                                cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                            }
-                            else
-                                cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                            cscode
-                                .Append("			}\r\n")
-                                .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                                .Append("		}\r\n");
-                        }
-                        if (vp?.Item3 == true)
-                        { //set 重写
-                            cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
-                                .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                                .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
-                                .Append("		}\r\n");
-                        }
-                        cscode.AppendLine("	}");
-                    }
+                    if (isLazy) LocalManyLazyLoadingCode(refprop, cscodeExtLogic1, cscodeExtLogic2, lmbdWhere.ToString());
                 }
             }
             else
@@ -1385,37 +1523,7 @@ namespace FreeSql.Internal
                     nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.ManyToOne;
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                 }
-
-                if (isLazy)
-                {
-                    cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                        .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                    if (vp?.Item2 == true)
-                    { //get 重写
-                        cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
-                            .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                        if (nvref.Exception == null)
-                            cscode.Append("				var loc3 = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
-                                .Append("				base.").Append(pnv.Name).AppendLine(" = loc3;")
-                                .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                        else
-                            cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                        cscode
-                            .Append("			}\r\n")
-                            .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                            .Append("		}\r\n");
-                    }
-                    if (vp?.Item3 == true)
-                    { //set 重写
-                        cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
-                            .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                            .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
-                            .Append("		}\r\n");
-                    }
-                    cscode.AppendLine("	}");
-                }
+                if (isLazy) LocalLazyLoadingCode(lmbdWhere.ToString());
             }
         }
         static Lazy<MethodInfo> MethodLazyLoadingComplier = new Lazy<MethodInfo>(() =>

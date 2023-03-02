@@ -60,10 +60,12 @@ namespace FreeSql.DataAnnotations
         /// <param name="bind"></param>
         /// <param name="manyToMany">多对多关系的中间实体类型</param>
         /// <returns></returns>
-        public TableFluent Navigate(string proto, string bind, Type manyToMany = null)
+        public TableFluent Navigate(string proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
             if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_Property(proto));
-            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
         }
@@ -148,18 +150,22 @@ namespace FreeSql.DataAnnotations
         /// <param name="bind"></param>
         /// <param name="manyToMany">多对多关系的中间实体类型</param>
         /// <returns></returns>
-        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null)
+        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent<T> NavigateInternal<TProto>(Expression<Func<T, TProto>> proto, string bind, string tempPrimary, Type manyToMany = null)
         {
             var exp = proto?.Body;
             if (exp.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var member = (exp as MemberExpression)?.Member;
             if (member == null) throw new FormatException(CoreStrings.Bad_Expression_Format(proto));
-            return Navigate(member.Name, bind, manyToMany);
+            return NavigateInternal(member.Name, bind, tempPrimary, manyToMany);
         }
-        public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null)
+        public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent<T> Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent<T> NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
             if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
-            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
         }

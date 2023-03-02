@@ -375,29 +375,29 @@ namespace FreeSql
                     switch (_nameConvertType)
                     {
                         case NameConvertType.ToLower:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.ModifyResult.Name?.ToLower();
+                            ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = e.ModifyResult.Name?.ToLower(); };
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.ModifyResult.Name?.ToLower();
                             ret.CodeFirst.IsSyncStructureToLower = true;
                             break;
                         case NameConvertType.ToUpper:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.ModifyResult.Name?.ToUpper();
+                            ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = e.ModifyResult.Name?.ToUpper(); };
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.ModifyResult.Name?.ToUpper();
                             ret.CodeFirst.IsSyncStructureToUpper = true;
                             break;
                         case NameConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name);
+                            ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name); };
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name);
                             break;
                         case NameConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToLower();
+                            ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToLower(); };
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToLower();
                             break;
                         case NameConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToUpper();
+                            ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToUpper(); };
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.ModifyResult.Name)?.ToUpper();
                             break;
                         //case NameConvertType.UnderscoreToPascalCase:
-                        //    ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.ModifyResult.Name);
+                        //    ret.Aop.ConfigEntity += (_, e) => { if (string.IsNullOrWhiteSpace(e.ModifyResult.AsTable)) e.ModifyResult.Name = UnderScorePascalCase(e.ModifyResult.Name); };
                         //    ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.ModifyResult.Name);
                         //    break;
                         default:

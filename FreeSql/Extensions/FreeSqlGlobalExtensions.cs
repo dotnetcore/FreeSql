@@ -409,7 +409,7 @@ public static partial class FreeSqlGlobalExtensions
 #endif
             return list;
         }
-        var tbtr = t1tb.GetTableRef(props[0], true);
+        var tbtr = t1tb.GetTableRef(props[0], true, true);
         if (tbtr == null) throw new ArgumentException(CoreStrings.ParameterError_NotValid_Navigation(nameof(property)));
         var reftb = orm.CodeFirst.GetTableByEntity(t1exp.Type);
         var refsel = orm.Select<object>().AsType(t1exp.Type) as Select1Provider<object>;

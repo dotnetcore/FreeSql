@@ -377,7 +377,7 @@ namespace FreeSql
                         continue;
                     }
                     if (cascade == false) continue;
-                    var tbref = table.GetTableRef(prop.Name, false);
+                    var tbref = table.GetTableRef(prop.Name, false, false);
                     if (tbref == null) continue;
                     var boundaryAttr = GetPropertyBoundaryAttribute(prop, boundaryName);
                     if (boundaryAttr?.Break == true) continue;

@@ -22,6 +22,13 @@ namespace FreeSql.DataAnnotations
         /// _________________public List&lt;Topic&gt; Topics { get; set; }<para></para>
         /// </summary>
         public string Bind { get; set; }
+
+        /// <summary>
+        /// 与非主键进行关联，仅支持 OneToMany、ManyToOne<para></para>
+        /// 使用方法参考 Bind 属性
+        /// </summary>
+        public string TempPrimary { get; set; }
+
         /// <summary>
         /// 手工绑定 ManyToMany 导航关系
         /// </summary>

@@ -385,6 +385,12 @@
             _________________public List&lt;Topic&gt; Topics { get; set; }<para></para>
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.NavigateAttribute.TempPrimary">
+            <summary>
+            与非主键进行关联，仅支持 OneToMany、ManyToOne<para></para>
+            使用方法参考 Bind 属性
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.NavigateAttribute.ManyToMany">
             <summary>
             手工绑定 ManyToMany 导航关系

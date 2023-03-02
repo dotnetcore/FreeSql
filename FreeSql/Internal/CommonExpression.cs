@@ -1428,7 +1428,7 @@ namespace FreeSql.Internal
                                         }
 
                                         var parm123Tb = _common.GetTableByEntity(asSelectParentExp.Type);
-                                        var parm123Ref = parm123Tb.GetTableRef(asSelectParentExp1.Member.Name, true);
+                                        var parm123Ref = parm123Tb.GetTableRef(asSelectParentExp1.Member.Name, true, true);
                                         if (parm123Ref != null)
                                         {
                                             if (parm123Ref.RefType == TableRefType.PgArrayToMany)
@@ -1902,7 +1902,7 @@ namespace FreeSql.Internal
                             { //导航条件，OneToOne、ManyToOne
                                 var firstTb = tsc._tables.First().Table;
                                 var parentTb = _common.GetTableByEntity(mp.Expression.Type);
-                                var parentTbRef = parentTb?.GetTableRef(mp.Member.Name, tsc.style == ExpressionStyle.AsSelect);
+                                var parentTbRef = parentTb?.GetTableRef(mp.Member.Name, tsc.style == ExpressionStyle.AsSelect, true);
                                 if (parentTbRef != null)
                                 {
                                     Expression navCondExp = null;
@@ -2015,7 +2015,7 @@ namespace FreeSql.Internal
                                     }
                                     if (tb2.ColumnsByCsIgnore.ContainsKey(mp2.Member.Name))
                                         throw new ArgumentException(CoreStrings.Ignored_Check_Confirm_PublicGetSet(tb2.DbName, mp2.Member.Name));
-                                    if (tb2.GetTableRef(mp2.Member.Name, false) != null)
+                                    if (tb2.GetTableRef(mp2.Member.Name, false, true) != null)
                                         throw new ArgumentException(CoreStrings.Navigation_Missing_AsSelect(tb2.DbName, mp2.Member.Name));
                                     throw new ArgumentException(CoreStrings.NotFound_Column(tb2.DbName, mp2.Member.Name));
                                 }
@@ -2718,7 +2718,7 @@ namespace FreeSql.Internal
                     }
                     if (select != null) return;
                     memberExp = tmpExp;
-                    memberTbref = exp3Tb.GetTableRef(memberExp.Member.Name, false);
+                    memberTbref = exp3Tb.GetTableRef(memberExp.Member.Name, false, true);
                     if (memberTbref == null) return;
                     switch (memberTbref.RefType)
                     {
