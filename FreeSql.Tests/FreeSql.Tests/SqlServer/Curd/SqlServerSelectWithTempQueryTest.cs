@@ -51,6 +51,39 @@ FROM (
         INNER JOIN [Instruction] c ON b.[InstructionNo] = c.[InstructionNo] ) b ON a.[SeqNoLog] = b.[SeqNoLog] ) a 
 INNER JOIN [Unit] b ON a.[UnitId] = b.[UnitId] 
 WHERE (a.[RN] < 2)", sql);
+
+            sql = fsql.Select<UnitLog>().FromQuery(
+                    fsql.Select<UnitLog, LoadPlan, Instruction>()
+                        .InnerJoin((a, b, c) => a.LoadNo == b.LoadNo && a.UnitTransactionType == "TO")
+                        .InnerJoin((a, b, c) => b.InstructionNo == c.InstructionNo)
+                        .WithTempQuery((a, b, c) => new
+                        {
+                            a.LoadNo,
+                            a.SeqNoLog,
+                            c.DeliveryInstractionStatus,
+                            c.UpTime,
+                            RN = SqlExt.RowNumber().Over().PartitionBy(a.UnitId).OrderByDescending(a.SeqNoLog).ToValue()
+                        }),
+                    fsql.Select<Unit>())
+                .InnerJoin((a,b,c) => a.SeqNoLog == b.SeqNoLog)
+                .InnerJoin((a,b,c) => a.UnitId == c.UnitId)
+                .Where((a,b,c) => b.RN < 2)
+                .ToSql((a,b,c) => new MB51_View
+                {
+                    //CkassIfCation = a.Item1.CkassIfCation,
+                    PGI = b.DeliveryInstractionStatus,
+                    PGITime = b.UpTime,
+                    IsDelayPGI = true,
+                    RunNo = c.RunNo
+                });
+            Assert.Equal(@"SELECT a.[CkassIfCation] as1, b.[DeliveryInstractionStatus] as2, b.[UpTime] as3, 1 as4, c.[RunNo] as5 
+FROM [UnitLog] a 
+INNER JOIN (SELECT a.[LoadNo], a.[SeqNoLog], c.[DeliveryInstractionStatus], c.[UpTime], row_number() over( partition by a.[UnitId] order by a.[SeqNoLog] desc) [RN] 
+    FROM [UnitLog] a 
+    INNER JOIN [LoadPlan] b ON a.[LoadNo] = b.[LoadNo] AND a.[UnitTransactionType] = N'TO' 
+    INNER JOIN [Instruction] c ON b.[InstructionNo] = c.[InstructionNo] ) b ON a.[SeqNoLog] = b.[SeqNoLog] 
+INNER JOIN [Unit] c ON a.[UnitId] = c.[UnitId] 
+WHERE (b.[RN] < 2)", sql);
         }
         class MB51_View
         {

@@ -80,6 +80,9 @@ namespace FreeSql.Internal.CommonProvider
             _diymemexpWithTempQuery = null;
         }
 
+        public abstract string ToSqlBase(string field = null);
+        public abstract void AsTableBase(Func<Type, string, string> tableRule);
+
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
         {
             if (to == null) return;
@@ -221,9 +224,10 @@ namespace FreeSql.Internal.CommonProvider
                 }
             }
 
-            public WithTempQueryParser Append<TDto>(ISelect<TDto> select, SelectTableInfo outsideTable)
+            public WithTempQueryParser Append(Select0Provider select, SelectTableInfo outsideTable)
             {
-                if (outsideTable != null && (select as Select0Provider)?._diymemexpWithTempQuery is WithTempQueryParser withTempQuery)
+                //select is ISelect<T>
+                if (outsideTable != null && select?._diymemexpWithTempQuery is WithTempQueryParser withTempQuery)
                 {
                     _insideSelectList.Add(withTempQuery._insideSelectList[0]);
                     _outsideTable.Add(outsideTable);
@@ -927,6 +931,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return unions;
         }
+        public override void AsTableBase(Func<Type, string, string> tableRule) => AsTable(tableRule);
         public TSelect AsTable(Func<Type, string, string> tableRule)
         {
             if (_tableRules.Count == 1 && _diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser tempQueryParser)
@@ -958,6 +963,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             return this as TSelect;
         }
+        public override string ToSqlBase(string field = null) => ToSql(field);
         public abstract string ToSql(string field = null);
 
         public TSelect Where(string sql, object parms = null) => this.WhereIf(true, sql, parms);

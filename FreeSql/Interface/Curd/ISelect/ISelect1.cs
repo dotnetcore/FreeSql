@@ -193,6 +193,9 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
 
         ISelect<T1, T2> FromQuery<T2>(ISelect<T2> select2) where T2 : class;
+        ISelect<T1, T2, T3> FromQuery<T2, T3>(ISelect<T2> select2, ISelect<T3> select3) where T2 : class where T3 : class;
+        ISelect<T1, T2, T3, T4> FromQuery<T2, T3, T4>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4) where T2 : class where T3 : class where T4 : class;
+        ISelect<T1, T2, T3, T4, T5> FromQuery<T2, T3, T4, T5>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5) where T2 : class where T3 : class where T4 : class where T5 : class;
         ISelect<T1> UnionAll(params ISelect<T1>[] querys);
 
         /// <summary>
