@@ -16,6 +16,8 @@ namespace FreeSql
         Task<long> CountAsync(CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default);
+
 #endif
 
         /// <summary>
@@ -54,6 +56,13 @@ namespace FreeSql
         /// <returns></returns>
         List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
         Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector);
+        /// <summary>
+        ///  执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="select"></param>
+        /// <returns></returns>
+        TReturn First<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
         /// <summary>
         /// 【linq to sql】专用方法，不建议直接使用

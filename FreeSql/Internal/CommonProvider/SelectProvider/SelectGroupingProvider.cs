@@ -329,6 +329,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
+        public TReturn First<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList<TReturn>(select).FirstOrDefault();
         public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
             _lambdaParameter = select?.Parameters[0];
@@ -344,6 +345,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         async public Task<long> CountAsync(CancellationToken cancellationToken = default) => _select._cancel?.Invoke() == true ? 0 : long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_select._connection, _select._transaction, CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._commandTimeout, _select._params.ToArray(), cancellationToken)), out var trylng) ? trylng : default(long);
 
+        async public Task<TReturn> FirstAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default) => (await ToListAsync<TReturn>(select, cancellationToken)).FirstOrDefault();
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default)
         {
             var map = new ReadAnonymousTypeInfo();

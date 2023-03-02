@@ -1154,6 +1154,7 @@ namespace FreeSql.Internal.CommonProvider
                             var tbrefMid = _commonUtils.GetTableByEntity(tbref.RefMiddleEntityType);
                             var tbrefMidName = _tableRules?.FirstOrDefault()?.Invoke(tbref.RefMiddleEntityType, tbrefMid.DbName) ?? tbrefMid.DbName;
                             var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMidName)} midtb ON ");
+                            if (_orm.CodeFirst.IsAutoSyncStructure && tbrefMid.Type != typeof(object)) _orm.CodeFirst.SyncStructure(tbrefMid.Type, tbrefMidName);
                             for (var z = 0; z < tbref.RefColumns.Count; z++)
                             {
                                 if (z > 0) sbJoin.Append(" AND ");

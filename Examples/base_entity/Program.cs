@@ -569,6 +569,8 @@ namespace base_entity
             #endregion
             fsql.UseJsonMap();
 
+            fsql.Select<User1>().IncludeMany(a => a.Roles);
+
             var displayNameTb = fsql.CodeFirst.GetTableByEntity(typeof(DeviceCodes));
 
             var joinsql1 = fsql.Select<JoinTest01>()
@@ -598,7 +600,7 @@ namespace base_entity
 
             Console.WriteLine(sw111);
 
-            var testsql01 =  fsql.Select<User1>()
+            var testsql01 = fsql.Select<User1>()
                 //.GroupBy(a => new { a.Avatar, a.GroupId })
                 //.Having(g => g.Sum(g.Value.Sort) > 0)
                 .WithTempQuery(a => new
@@ -662,13 +664,13 @@ namespace base_entity
                     }
                 }
             };
-
-            Npgsql.NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
-            var geo = new Point(10, 20);
-            fsql.Select<City>()
-                .Where(a => geo.Distance(a.Center) < 100).ToList();
-
-
+            if (fsql.Ado.DataType == DataType.PostgreSQL)
+            {
+                Npgsql.NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+                var geo = new Point(10, 20);
+                fsql.Select<City>()
+                    .Where(a => geo.Distance(a.Center) < 100).ToList();
+            }
 
             var items = new List<User1>();
             for (var a = 0; a < 3; a++) items.Add(new User1 { Id = Guid.NewGuid(), Avatar = $"avatar{a}" });
@@ -853,6 +855,15 @@ namespace base_entity
             var userRepository = fsql.GetAggregateRootRepository<User1>();
 
             var testsublist1 = fsql.Select<UserGroup>()
+                .First(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
+
+            var testsublist2 = fsql.Select<UserGroup>()
+                .GroupBy(a => new { a.Id })
                 .First(a => new
                 {
                     a.Id,
@@ -1985,7 +1996,7 @@ namespace base_entity
         public virtual string Code { get; set; }
         public virtual string Name { get; set; }
     }
-    [Table(Name = "`FreeSqlTest`.`bdd_1`")]
+    [Table(Name = "`bdd_1`")]
     class GoodsData : BaseDataEntity
     {
         public override Int32 CategoryId { get; set; }
