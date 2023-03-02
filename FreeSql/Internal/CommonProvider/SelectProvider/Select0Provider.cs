@@ -493,6 +493,12 @@ namespace FreeSql.Internal.CommonProvider
                 var tb = _select._tables.Find(a => a.Parameter == firstExp)?.Table;
                 if (tb == null) return base.VisitMember(node);
 
+                if (tb.Columns.Any() == false && _select._diymemexpWithTempQuery != null) //匿名类，嵌套查询 DTO
+                {
+                    Result.Add(NativeTuple.Create(node, default(ColumnInfo)));
+                    return node;
+                }
+
                 while (exps.Any())
                 {
                     var memExp = exps.Pop() as MemberExpression;

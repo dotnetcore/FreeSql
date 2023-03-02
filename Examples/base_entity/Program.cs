@@ -864,9 +864,10 @@ namespace base_entity
 
             var testsublist2 = fsql.Select<UserGroup>()
                 .GroupBy(a => new { a.Id })
+                .WithTempQuery(a => a.Key)
                 .First(a => new
                 {
-                    a.Id,
+                    id = a,
                     list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
                     list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
                 });

@@ -955,12 +955,12 @@ namespace FreeSql.Internal
                     return $"not({ExpressionLambdaToSql(notExp, tsc)})";
                 case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
                 case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, tsc);
-                //case ExpressionType.Invoke: return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
-                case ExpressionType.Invoke:
+                case ExpressionType.Invoke: //#1378
                     var invokeExp = exp as InvocationExpression;
-                    var invokeReplaceVistor = new FreeSql.Internal.CommonExpression.ReplaceVisitor();
                     var invokeReplaceExp = invokeExp.Expression;
-                    var invokeLambdaExp = invokeReplaceExp as LambdaExpression;
+                    var invokeLambdaExp = invokeReplaceExp as LambdaExpression; 
+                    if (invokeLambdaExp == null) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    var invokeReplaceVistor = new FreeSql.Internal.CommonExpression.ReplaceVisitor();
                     var len = Math.Min(invokeExp.Arguments.Count, invokeLambdaExp.Parameters.Count);
                     for (var a = 0; a < len; a++)
                         invokeReplaceExp = invokeReplaceVistor.Modify(invokeReplaceExp, invokeLambdaExp.Parameters[a], invokeExp.Arguments[a]);
