@@ -1,6 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
-using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
@@ -10,7 +9,6 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -607,6 +605,21 @@ namespace FreeSql.Internal
 
             return dic;
 
+            string GetByAttribute(object[] attrs, string attributeName)
+            {
+                var dyattr = attrs?.Where(a => {
+                    return ((a as Attribute)?.TypeId as Type)?.Name == attributeName;
+                }).FirstOrDefault();
+                if (dyattr == null) return null;
+                var dyattrProps = dyattr.GetType().GetProperties();
+                return dyattrProps.Where(a => a.PropertyType == typeof(string) && a.Name == "Description").FirstOrDefault()?.GetValue(dyattr, null)?.ToString() ??
+                    dyattrProps.Where(a => a.PropertyType == typeof(string) && a.Name == "Name").FirstOrDefault()?.GetValue(dyattr, null)?.ToString() ??
+                    dyattrProps.Where(a => a.PropertyType == typeof(string) && a.Name == "ShortName").FirstOrDefault()?.GetValue(dyattr, null)?.ToString() ??
+                    dyattrProps.Where(a => a.PropertyType == typeof(string))
+                        .Select(a => a?.GetValue(dyattr, null)?.ToString())
+                        .Where(a => !string.IsNullOrWhiteSpace(a))
+                        .FirstOrDefault();
+            }
             void GetDydesc(PropertyInfo prop)
             {
                 object[] attrs = null;
@@ -617,19 +630,12 @@ namespace FreeSql.Internal
                         prop.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
                 }
                 catch { }
-
-                var dyattr = attrs?.Where(a => {
-                    return ((a as Attribute)?.TypeId as Type)?.Name == "DescriptionAttribute";
-                }).FirstOrDefault();
-                if (dyattr != null)
-                {
-                    var valueProp = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string)).FirstOrDefault();
-                    var comment = valueProp?.GetValue(dyattr, null)?.ToString();
-                    if (string.IsNullOrEmpty(comment) == false)
-                        dic.Add(prop == null ? 
-                            "" : 
-                            prop.Name, comment);
-                }
+                var comment = GetByAttribute(attrs, "DescriptionAttribute");
+                if (string.IsNullOrEmpty(comment)) comment = GetByAttribute(attrs, "DisplayNameAttribute");
+                if (string.IsNullOrEmpty(comment)) comment = GetByAttribute(attrs, "DisplayAttribute");
+                if (string.IsNullOrEmpty(comment)) comment = GetByAttribute(attrs, "DisplayColumnAttribute");
+                if (string.IsNullOrEmpty(comment) == false)
+                    dic.Add(prop == null ? "" : prop.Name, comment);
             }
         }
 

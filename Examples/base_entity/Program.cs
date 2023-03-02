@@ -569,6 +569,8 @@ namespace base_entity
             #endregion
             fsql.UseJsonMap();
 
+            var displayNameTb = fsql.CodeFirst.GetTableByEntity(typeof(DeviceCodes));
+
             var joinsql1 = fsql.Select<JoinTest01>()
                 .Include(a => a.Parent.Parent)
                 .Where(a => a.Parent.Parent.code == "001")
