@@ -62,7 +62,7 @@ namespace FreeSql.Odbc.MySql
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                        var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                         sql = new OdbcMySqlOnDuplicateKeyUpdate<T1>(insert)
                             .UpdateColumns(cols.Select(a => a.Attribute.Name).ToArray())
                             .ToSql();
