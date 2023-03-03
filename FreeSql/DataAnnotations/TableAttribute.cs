@@ -253,7 +253,9 @@ namespace FreeSql.DataAnnotations
         public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
         {
             if (string.IsNullOrWhiteSpace(sqlWhere)) return AllTables;
-            var quoteParameterName = commonUtils.QuoteParamterName("");
+            var quoteParameterName = "";
+            if (commonUtils._orm.Ado.DataType == DataType.ClickHouse) quoteParameterName = "@"; //特殊处理 Clickhouse 参数化
+            else quoteParameterName = commonUtils.QuoteParamterName("");
             var quoteParameterNameCharArray = quoteParameterName.ToCharArray();
             var columnName = commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name);
 
