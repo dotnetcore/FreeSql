@@ -118,6 +118,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public IInsertOrUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
+        public IInsertOrUpdate<T1> SetSource(T1 source, Expression<Func<T1, object>> tempPrimarys) => this.SetSource(new[] { source }, tempPrimarys);
         public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
