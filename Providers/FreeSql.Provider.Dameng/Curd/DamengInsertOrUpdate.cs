@@ -48,10 +48,15 @@ namespace FreeSql.Dameng.Curd
                             ))).Append(" \r\n");
 
                 cols = _table.Columns.Values.Where(a => a.Attribute.CanInsert == true);
+                if (_tempPrimarys.Any(b => b.Attribute.IsIdentity) == false) cols = cols.Where(a => a.Attribute.IsIdentity == false || string.IsNullOrEmpty(a.DbInsertValue) == false);
                 if (cols.Any())
                     sb.Append("WHEN NOT MATCHED THEN \r\n")
                         .Append("  insert (").Append(string.Join(", ", cols.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(") \r\n")
-                        .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(")");
+                        .Append("  values (").Append(string.Join(", ", cols.Select(a =>
+                        {
+                            if (string.IsNullOrEmpty(a.DbInsertValue) == false) return a.DbInsertValue;
+                            return $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}";
+                        }))).Append(")");
 
                 return sb.ToString();
             }
