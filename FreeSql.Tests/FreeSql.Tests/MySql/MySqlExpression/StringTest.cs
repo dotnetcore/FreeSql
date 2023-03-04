@@ -74,6 +74,14 @@ namespace FreeSql.Tests.MySqlExpression
             val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.id));
             val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").ToList(b => b.id)));
             Assert.Equal(val1, val2[0]);
+
+            //val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.name));
+            //val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").GroupBy(b => b.name).WithTempQuery(b => new { b.Key }).ToList(b => b.Key)));
+            //Assert.Equal(val1, val2[0]);
+
+            //val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.id));
+            //val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").GroupBy(b => b.id).WithTempQuery(b => new { b.Key }).ToList(b => b.Key)));
+            //Assert.Equal(val1, val2[0]);
         }
         class StringJoin01
         {

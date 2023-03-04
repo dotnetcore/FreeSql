@@ -34,11 +34,12 @@ namespace FreeSql.ShenTong.Curd
             {
                 if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
 
+                var tempPrimaryIsIdentity = _tempPrimarys.Any(b => b.Attribute.IsIdentity);
                 var sb = new StringBuilder().Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
                 sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _tempPrimarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
 
-                var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>
@@ -48,10 +49,16 @@ namespace FreeSql.ShenTong.Curd
                             ))).Append(" \r\n");
 
                 cols = _table.Columns.Values.Where(a => a.Attribute.CanInsert == true);
+                if (tempPrimaryIsIdentity == false) cols = cols.Where(a => a.Attribute.IsIdentity == false || string.IsNullOrEmpty(a.DbInsertValue) == false);
                 if (cols.Any())
                     sb.Append("WHEN NOT MATCHED THEN \r\n")
                         .Append("  insert (").Append(string.Join(", ", cols.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(") \r\n")
-                        .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(")");
+                        .Append("  values (").Append(string.Join(", ", cols.Select(a =>
+                        {
+                            //InsertValueSql = "seq.nextval"
+                            if (tempPrimaryIsIdentity == false && a.Attribute.IsIdentity && string.IsNullOrEmpty(a.DbInsertValue) == false) return a.DbInsertValue;
+                            return $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}";
+                        }))).Append(")");
 
                 return sb.ToString();
             }

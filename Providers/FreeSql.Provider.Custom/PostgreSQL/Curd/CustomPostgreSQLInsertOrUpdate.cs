@@ -57,7 +57,7 @@ namespace FreeSql.Custom.PostgreSQL
                 {
                     var ocdu = new CustomPostgreSQLOnConflictDoUpdate<T1>(insert.InsertIdentity());
                     ocdu._tempPrimarys = _tempPrimarys;
-                    var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                    var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                     ocdu.UpdateColumns(cols.Select(a => a.Attribute.Name).ToArray());
                     if (_doNothing == true || cols.Any() == false)
                         ocdu.DoNothing();

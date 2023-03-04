@@ -1770,6 +1770,17 @@
             <param name="source">实体</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsertOrUpdate`1.SetSource(`0,System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            添加或更新，设置实体
+            </summary>
+            <param name="source">实体</param>
+            <param name="tempPrimarys">
+            根据临时主键插入或更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}<para></para>
+            注意：不处理自增，因某些数据库依赖主键或唯一键，所以指定临时主键仅对 SqlServer/PostgreSQL/Firebird/达梦/南大通用/金仓/神通 有效
+            </param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsertOrUpdate`1.SetSource(System.Collections.Generic.IEnumerable{`0},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             添加或更新，设置实体集合
@@ -5855,60 +5866,7 @@
         </member>
     </members>
 </doc>
-ystem.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
-            </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      em.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
             <summary>
             使用 or 拼接两个 lambda 表达式
             </summary>
