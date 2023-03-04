@@ -182,8 +182,10 @@ namespace FreeSql.QuestDb
                         if (timeAttr != null)
                         {
                             var ckey = propety.Name;
+                            //如果存在Column.Name
                             var colNameAttr = propety.GetCustomAttribute<ColumnAttribute>();
                             if (!string.IsNullOrWhiteSpace(colNameAttr?.Name))
+                                //则以Column中的Name为主
                                 ckey = colNameAttr.Name;
                             var colName = tb.Columns.FirstOrDefault(it => it.Key == ckey).Value;
                             sbalter.Append(
