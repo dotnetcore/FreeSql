@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using FreeSql.Provider.QuestDb.Subtable;
 using Newtonsoft.Json.Linq;

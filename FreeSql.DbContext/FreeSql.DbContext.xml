@@ -733,6 +733,15 @@
             <param name="modelBuilder"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlDbContextExtensions.ApplyConfigurationsFromAssembly(FreeSql.ICodeFirst,System.Reflection.Assembly,System.Func{System.Type,System.Boolean})">
+            <summary>
+            根据Assembly扫描所有继承IEntityTypeConfiguration&lt;T&gt;的配置类
+            </summary>
+            <param name="codeFirst"></param>
+            <param name="assembly"></param>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">
             <summary>
             创建普通数据上下文档对象
@@ -789,6 +798,15 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
