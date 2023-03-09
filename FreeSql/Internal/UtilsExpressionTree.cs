@@ -666,7 +666,7 @@ namespace FreeSql.Internal
                 { //set 重写
                     cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                         .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                        .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
                         .Append("		}\r\n");
                 }
                 cscode.AppendLine("	}");
@@ -696,7 +696,7 @@ namespace FreeSql.Internal
                 { //set 重写
                     cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                         .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                        .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
                         .Append("		}\r\n");
                 }
                 cscode.AppendLine("	}");
@@ -1166,7 +1166,7 @@ namespace FreeSql.Internal
                         { //set 重写
                             cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                                 .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                                .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                                .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
                                 .Append("		}\r\n");
                         }
                         cscode.AppendLine("	}");
