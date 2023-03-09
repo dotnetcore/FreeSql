@@ -36,11 +36,11 @@ namespace aspnetcore_transaction
 
             services.AddSingleton<IFreeSql>(Fsql);
             services.AddScoped<UnitOfWorkManager>();
-
-            //批量注入
-            foreach (var repo in typeof(Startup).Assembly.GetTypes()
-                .Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
-                services.AddScoped(repo);
+            services.AddFreeRepository(null, typeof(Startup).Assembly);
+            ////批量注入
+            //foreach (var repo in typeof(Startup).Assembly.GetTypes()
+            //    .Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
+            //    services.AddScoped(repo);
             services.AddScoped<SongService>();
         }
 
