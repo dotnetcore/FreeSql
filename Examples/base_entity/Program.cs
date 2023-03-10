@@ -528,7 +528,7 @@ namespace base_entity
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
-                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
@@ -568,6 +568,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
             fsql.UseJsonMap();
+
+            var updatejoin01 = fsql.Update<User1>()
+                .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)
+                .Set((a, b) => a.Nickname == b.GroupName)
+                .ExecuteAffrows();
+            var updatejoin02 = fsql.Update<User1>()
+                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
+                .Set((a, b) => a.Nickname == b.GroupName)
+                .ExecuteAffrows();
 
             fsql.Select<User1>().IncludeMany(a => a.Roles);
 

@@ -10,6 +10,31 @@ namespace FreeSql
 {
     public interface IUpdate<T1>
     {
+        /// <summary>
+        /// 联表更新(危险操作)，支持更复杂的联表更新<para></para>
+        /// fsql.Update&lt;T1&gt;()<para></para>
+        /// .Join(fsql.Select&lt;T1&gt;(), (a, b) => a.id == b.id)<para></para>
+        /// .Set((a, b) => a.name == b.name)<para></para>
+        /// .Set((a, b) => a.time == b.time2)<para></para>
+        /// .ExecuteAffrows();
+        /// </summary>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="query"></param>
+        /// <param name="on"></param>
+        /// <returns></returns>
+        IUpdateJoin<T1, T2> Join<T2>(ISelect<T2> query, Expression<Func<T1, T2, bool>> on) where T2 : class;
+        /// <summary>
+        /// 联表更新(危险操作)<para></para>
+        /// fsql.Update&lt;T1&gt;()<para></para>
+        /// .Join&lt;T2&gt;((a, b) => a.id == b.id)<para></para>
+        /// .Set((a, b) => a.name == b.name)<para></para>
+        /// .Set((a, b) => a.time == b.time2)<para></para>
+        /// .ExecuteAffrows();
+        /// </summary>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="on"></param>
+        /// <returns></returns>
+        IUpdateJoin<T1, T2> Join<T2>(Expression<Func<T1, T2, bool>> on) where T2 : class;
 
         /// <summary>
         /// 指定事务对象
@@ -134,7 +159,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value);
         /// <summary>
-        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// 设置列的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
         /// </summary>
@@ -143,7 +168,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp);
         /// <summary>
-        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// 设置列的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
         /// </summary>
