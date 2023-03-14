@@ -122,7 +122,7 @@ namespace FreeSql.Custom.Oracle
                 var valueBytes = value as byte[];
                 if (valueBytes != null)
                 {
-                    if (valueBytes.Length < 4000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
+                    if (valueBytes.Length < 2000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
                     var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
                     return pam.ParameterName;
                 }
