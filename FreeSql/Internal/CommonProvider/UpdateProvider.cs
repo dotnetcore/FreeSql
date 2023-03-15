@@ -622,7 +622,8 @@ namespace FreeSql.Internal.CommonProvider
                         Attribute = new DataAnnotations.ColumnAttribute
                         {
                             Name = colName,
-                            MapType = colType
+                            MapType = colType,
+                            DbType = "", //for SqlServer: ncharDbTypes.Any(a => mapColumn.Attribute.DbType.Contains(a))
                         },
                         CsType = colType
                     };

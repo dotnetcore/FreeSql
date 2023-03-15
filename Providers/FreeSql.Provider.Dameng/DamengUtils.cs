@@ -118,7 +118,16 @@ namespace FreeSql.Dameng
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-            if (type == typeof(byte[])) return $"hextoraw('{CommonUtils.BytesSqlRaw(value as byte[])}')";
+            if (type == typeof(byte[]))
+            {
+                var valueBytes = value as byte[];
+                if (valueBytes != null)
+                {
+                    if (valueBytes.Length < 2000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
+                    return pam.ParameterName;
+                }
+            }
             return FormatSql("{0}", value, 1);
         }
     }

@@ -431,7 +431,7 @@ namespace base_entity
         {
             [Column(Name = "ID", IsPrimary = true)]
             public string Id { get; set; }
-            [Column(Name = "XP")]
+            [Column(Name = "XP", StringLength = -1)]
             public byte[] Bytes { get; set; }
             [Column(Name = "UPLOAD_TIME")]
             public DateTime UploadTime { get; set; }
@@ -543,14 +543,14 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=5;min pool size=1")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -622,9 +622,9 @@ namespace base_entity
 
             atimpl.GetTableNameByColumnValue(DateTime.Parse("2023-7-1"), autoExpand: true);
 
-            var dywhere = new DynamicFilterInfo { Field = "AspNetRoless.Name", Operator = DynamicFilterOperator.Equal, Value = "Admin" };
-            var method = typeof(ISelect<object>).GetMethod("WhereDynamicFilter");
-            var users4 = fsql.Select<AspNetUsers>().IncludeByPropertyName("AspNetUserRoless", then => then.WhereDynamicFilter(dywhere)).ToList();
+            //var dywhere = new DynamicFilterInfo { Field = "AspNetRoless.Name", Operator = DynamicFilterOperator.Equal, Value = "Admin" };
+            //var method = typeof(ISelect<object>).GetMethod("WhereDynamicFilter");
+            //var users4 = fsql.Select<AspNetUsers>().IncludeByPropertyName("AspNetUserRoless", then => then.WhereDynamicFilter(dywhere)).ToList();
 
 
             var type = typeof(Student);
@@ -924,8 +924,8 @@ namespace base_entity
 
             var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
             var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
-            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
-            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
+            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
+            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
 
             dic["xxx"] = null;
             dic["yyy"] = 111;
