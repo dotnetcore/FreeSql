@@ -602,12 +602,17 @@ namespace FreeSql.Internal.CommonProvider
                 table.Type = typeof(Dictionary<string, object>);
                 table.CsName = dic.TryGetValue("", out var tryval) ? string.Concat(tryval) : "";
                 table.DbName = table.CsName;
+                if (orm.CodeFirst.IsSyncStructureToLower) table.DbName = table.DbName.ToLower();
+                if (orm.CodeFirst.IsSyncStructureToUpper) table.DbName = table.DbName.ToUpper();
+
                 table.DisableSyncStructure = true;
                 table.IsDictionaryType = true;
                 var colpos = new List<ColumnInfo>();
                 foreach (var kv in dic)
                 {
                     var colName = kv.Key;
+                    if (string.IsNullOrWhiteSpace(colName)) continue;
+                    var colType = kv.Value == null ? typeof(object) : kv.Value.GetType();
                     if (orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
                     if (orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
                     var col = new ColumnInfo
@@ -617,9 +622,9 @@ namespace FreeSql.Internal.CommonProvider
                         Attribute = new DataAnnotations.ColumnAttribute
                         {
                             Name = colName,
-                            MapType = typeof(object)
+                            MapType = colType
                         },
-                        CsType = typeof(object)
+                        CsType = colType
                     };
                     table.Columns.Add(colName, col);
                     table.ColumnsByCs.Add(kv.Key, col);
