@@ -126,74 +126,31 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1, T2> FromQuery<T2>(ISelect<T2> select2) where T2 : class
         {
             var ret = From<T2>();
-            var retsp = ret as Select0Provider;
-            var rettbs = retsp._tables;
-            if (rettbs[1].Table == null) rettbs[1].Table = TableInfo.GetDefaultTable(typeof(T2));
-            var select2sp = select2 as Select0Provider;
-            (_diymemexpWithTempQuery as WithTempQueryParser)?.Append(select2sp, rettbs[1]);
-            string sql2 = null;
-            if (select2sp._diymemexpWithTempQuery == null)
-            {
-                if (select2sp._tableRule == null && select2sp._tables[0].Table.Type == typeof(T2) && select2sp.IsDefaultSqlContent == true)
-                    return ret;
-                sql2 = select2?.ToSql(a => a, FieldAliasOptions.AsProperty);
-            }
-            else
-            {
-                if (retsp._diymemexpWithTempQuery == null)
-                    retsp._diymemexpWithTempQuery = new WithTempQueryParser(null, null, null, null).Append(select2sp, rettbs[1]);
-                if (select2sp._tableRule != null && select2sp.IsDefaultSqlContent == true)
-                {
-                    sql2 = select2sp._tableRule(select2sp._tables[0].Table.Type, null);
-                    if (sql2.StartsWith("(") && sql2.EndsWith(")")) sql2 = sql2.Substring(1, sql2.Length - 2);
-                    if (sql2.StartsWith(" \r\n")) sql2 = sql2.Substring(3);
-                }
-                if (string.IsNullOrWhiteSpace(sql2))
-                    sql2 = select2?.ToSql("*");
-            }
-            if (retsp._tableRules.Count > 0)
-            {
-                var tbrules = retsp._tableRules.ToList();
-                retsp._tableRules.Clear();
-                tbrules.ForEach(tbrule =>
-                {
-                    var tbruler1 = tbrule(typeof(T1), retsp._tables[0].Table.DbName);
-                    if (string.IsNullOrWhiteSpace(tbruler1) == false)
-                        retsp._tableRules.Add((type, old) =>
-                        {
-                            if (type == typeof(T1)) return tbruler1;
-                            if (type == typeof(T2)) return $"( \r\n{sql2})";
-
-                            return old;
-                        });
-                });
-            }
-            if (retsp._tableRules.Count == 0) ret.WithSql(null, $" \r\n{sql2}");
-            return ret;
+            return FromQueryMulti(ret, new[] { typeof(T2) }, new[] { select2 as Select0Provider });
         }
 
         public TQuery FromQueryMulti<TQuery>(TQuery ret, Type[] entityTypes, Select0Provider[] querys)
         {
             var retsp = ret as Select0Provider;
             var rettbs = retsp._tables;
-            var sql2List = new string[rettbs.Count - 1];
-            for (var a = 1; a < rettbs.Count; a++)
+            var sql2List = new string[querys.Length];
+            for (var a = 0; a < querys.Length; a++)
             {
-                var select2 = querys[a - 1];
-                var entityType2 = entityTypes[a - 1];
-                var rettb2 = rettbs[a];
+                var select2 = querys[a];
+                var entityType2 = entityTypes[a];
+                var rettb2 = rettbs[a + 1];
                 if (rettb2.Table == null) rettb2.Table = TableInfo.GetDefaultTable(entityType2);
-                (_diymemexpWithTempQuery as WithTempQueryParser)?.Append(select2, rettb2);
+                (retsp._diymemexpWithTempQuery as WithTempQueryParser)?.Append(select2, rettb2);
                 string sql2 = null;
                 if (select2._diymemexpWithTempQuery == null)
                 {
                     if (select2._tableRule == null && select2._tables[0].Table.Type == entityType2 && select2.IsDefaultSqlContent == true)
                         continue;
-                    var selectorParameter = Expression.Parameter(entityType2);
+                    var selectorParameter = Expression.Parameter(entityType2, select2._tables[0].Alias);
                     var selector = Expression.Lambda(selectorParameter, selectorParameter);
                     select2._tables[0].Parameter = selectorParameter;
-                    var af = this.GetExpressionField(selector, FieldAliasOptions.AsProperty);
-                    sql2 = this.ToSql(af.field);
+                    var af = select2.GetExpressionField(selector, FieldAliasOptions.AsProperty);
+                    sql2 = select2.ToSqlBase(af.field);
                 }
                 else
                 {
@@ -208,7 +165,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (string.IsNullOrWhiteSpace(sql2))
                         sql2 = select2.ToSqlBase("*");
                 }
-                sql2List[a - 1] = sql2;
+                sql2List[a] = sql2;
             }
             if (retsp._tableRules.Count > 0)
             {
@@ -232,7 +189,7 @@ namespace FreeSql.Internal.CommonProvider
                 retsp.AsTableBase((type, old) =>
                 {
                     for (var a = 0; a < entityTypes.Length; a++)
-                        if (entityTypes[a] == type) return string.IsNullOrWhiteSpace(sql2List[a]) ? old : $"({sql2List[a]})";
+                        if (entityTypes[a] == type) return string.IsNullOrWhiteSpace(sql2List[a]) ? old : $"( \r\n{sql2List[a]})";
                     return old;
                 });
             }

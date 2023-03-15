@@ -39,7 +39,7 @@ namespace FreeSql.Custom.SqlServer
                 return (bool)param ? 1 : 0;
             else if (param is string)
             {
-                if (mapColumn != null && mapColumn.CsType.NullableTypeOrThis() == typeof(string) && ncharDbTypes.Any(a => mapColumn.Attribute.DbType.Contains(a)) == false)
+                if (mapColumn != null && mapColumn.CsType.NullableTypeOrThis() == typeof(string) && !string.IsNullOrWhiteSpace(mapColumn.Attribute.DbType) && ncharDbTypes.Any(a => mapColumn.Attribute.DbType.Contains(a)) == false)
                     return string.Concat("'", param.ToString().Replace("'", "''"), "'");
                 return string.Concat("N'", param.ToString().Replace("'", "''"), "'");
             }
