@@ -71,6 +71,15 @@ namespace FreeSql.Internal.CommonProvider
                         .AsTable(state.Item4);
                     (insert as InsertProvider)._isAutoSyncStructure = false;
                     funcBulkCopy(insert);
+                    switch (fsql.Ado.DataType)
+                    {
+                        case DataType.Oracle:
+                        case DataType.OdbcOracle:
+                        case DataType.CustomOracle:
+                        case DataType.Dameng:
+                        case DataType.OdbcDameng:
+                            return fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
+                    }
                     var affrows = fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
                     droped = true;
                     return affrows;

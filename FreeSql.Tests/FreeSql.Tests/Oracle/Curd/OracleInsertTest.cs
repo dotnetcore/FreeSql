@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -235,13 +235,16 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
         public void ExecuteOracleBulkCopy()
         {
             var items = new List<Topic_bulkcopy>();
-            for (var a = 0; a < 10; a++) items.Add(new Topic_bulkcopy { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            for (var a = 0; a < 100; a++) items.Add(new Topic_bulkcopy { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
+            g.oracle.Delete<Topic_bulkcopy>().Where("1=1").ExecuteAffrows();
             g.oracle.Insert<Topic_bulkcopy>().AppendData(items).InsertIdentity().ExecuteOracleBulkCopy();
             //insert.AppendData(items).IgnoreColumns(a => new { a.CreateTime, a.Clicks }).ExecuteSqlBulkCopy();
             // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
+
+            g.oracle.Update<Topic_bulkcopy>().SetSource(items).ExecuteOracleBulkCopy();
         }
-        [Table(Name = "tb_topic_bulkcopy")]
+        [Table(Name = "tb_topic_bk1")]
         class Topic_bulkcopy
         {
             public Guid Id { get; set; }
