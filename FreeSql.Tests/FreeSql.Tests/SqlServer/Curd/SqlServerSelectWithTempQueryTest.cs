@@ -10,6 +10,484 @@ namespace FreeSql.Tests.SqlServer
     public class SqlServerSelectWithTempQueryTest
     {
         [Fact]
+        public void Issues1467()
+        {
+            var fsql = g.mysql;
+            //测试任务信息子查询
+            var deliverInfoQuery = fsql.Select<Issues1467Class.DeliverInfo, Issues1467Class.DeliverInfo, Issues1467Class.DeliverInfoBottle, Issues1467Class.DeliverInfoBottle>()
+                .LeftJoin(x => x.t1.Id == x.t2.RefId)
+                .LeftJoin(x => x.t3.DeliverId == x.t1.Id)
+                .LeftJoin(x => x.t4.DeliverId == x.t2.Id)
+                .GroupBy(x => x.t1.Id)
+                .WithTempQuery(x => new
+                {
+                    x.Value.Item1.Id,
+                    Bottlecodes = SqlExt.GroupConcat(x.Value.Item3.BottleCode).ToValue(),
+                    Pbottlecodes = SqlExt.GroupConcat(x.Value.Item4.BottleCode).ToValue()
+                });
+
+            //测试任务送样子查询
+            var deliverProtocolQuery = fsql.Select<Issues1467Class.DeliverProtocol>()
+                .WithTempQuery(x => new
+                {
+                    x.DeliverId,
+                    ProtocolIds = SqlExt.GroupConcat(x.ProtocolId).ToValue()
+                });
+
+            //接收状态
+            var deliverStatusQuery = fsql.Select<Issues1467Class.DeliverInfo, Issues1467Class.DeliverInfoBottle, Issues1467Class.Biologys>()
+                .LeftJoin(x => x.t1.Id == x.t2.DeliverId)
+                .LeftJoin(x => x.t3.DeliverId == x.t1.Id)
+                .Where(x => x.t3.Status != 1);
+
+            //项目信息子查询
+            var projectQuery = fsql.Select<Issues1467Class.Project>();
+
+            var sql1 = fsql.Select<Issues1467Class.DeliverInfo>()
+                .FromQuery(deliverInfoQuery, deliverProtocolQuery, projectQuery)
+                .LeftJoin(x => x.t1.Id == x.t2.Id)
+                .LeftJoin(x => x.t1.Id == x.t3.DeliverId)
+                .LeftJoin(x => x.t1.ProjectId == x.t4.Id)
+                .Page(1, 20)
+                .ToSql(x => new Issues1467Class.ResponseDeliverInfoDto
+                {
+                    ProjectCode = x.t4.ProjectCode,
+                    ProjectName = x.t4.ProjectName,
+                    ReceiveStatus = x.t1.Receivestatus == 1 ? x.t1.Receivestatus.Value : fsql.Select<Issues1467Class.DeliverInfo, Issues1467Class.DeliverInfoBottle, Issues1467Class.Biologys>()
+                        .LeftJoin(y => y.t1.Id == y.t2.DeliverId)
+                        .LeftJoin(y => y.t3.DeliverId == y.t1.Id)
+                        .Where(y => y.t3.Status != 1)
+                        .Where(y => y.t1.Id == x.t1.Id || y.t1.RefId == x.t1.Id).Count(),//deliverStatusQuery.Where(y => y.t1.Id == x.t1.Id || y.t1.RefId == x.t1.Id).Count(),
+                    RefCount = fsql.Select<Issues1467Class.DeliverInfo>().Where(y => y.RefId == x.t1.Id).Count()
+                });
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Code` as2, a.`Deliver_Date` as3, a.`Receiver` as4, a.`Creator` as5, a.`CreatorName` as6, a.`Create_Date` as7, a.`ReceiverName` as8, a.`SampleSender` as9, a.`SampleSenderName` as10, a.`Receive_Date` as11, a.`Type` as12, htc.`ProtocolIds` as13, a.`ProjectID` as14, a.`Status` as15, a.`RefuseReason` as16, a.`RefId` as17, htb.`Bottlecodes` as18, htb.`Pbottlecodes` as19, htd.`ProjectCode` as20, htd.`ProjectName` as21, case when a.`Receivestatus` = 1 then a.`Receivestatus` else (SELECT count(1) 
+    FROM `Issues1467Class_deliverinfo` ht1 
+    LEFT JOIN `Issues1467Class_deliverinfo_bottle` ht2 ON ht1.`Id` = ht2.`DeliverId` 
+    LEFT JOIN `Issues1467Class_biologys` ht3 ON ht3.`DeliverId` = ht1.`Id` 
+    WHERE (ht3.`Status` <> 1) AND ((ht1.`Id` = a.`Id` OR ht1.`RefId` = a.`Id`))) end as22, (SELECT count(1) 
+    FROM `Issues1467Class_deliverinfo` y 
+    WHERE (y.`RefId` = a.`Id`)) as23 
+FROM `Issues1467Class_deliverinfo` a 
+LEFT JOIN ( 
+    SELECT a.`Id`, group_concat(c.`BottleCode`) `Bottlecodes`, group_concat(d.`BottleCode`) `Pbottlecodes` 
+    FROM `Issues1467Class_deliverinfo` a 
+    LEFT JOIN `Issues1467Class_deliverinfo` b ON a.`Id` = b.`RefId` 
+    LEFT JOIN `Issues1467Class_deliverinfo_bottle` c ON c.`DeliverId` = a.`Id` 
+    LEFT JOIN `Issues1467Class_deliverinfo_bottle` d ON d.`DeliverId` = b.`Id` 
+    GROUP BY a.`Id` ) htb ON a.`Id` = htb.`Id` 
+LEFT JOIN ( 
+    SELECT a.`DeliverID` `DeliverId`, group_concat(a.`ProtocolID`) `ProtocolIds` 
+    FROM `Issues1467Class_deliverinfo_protocols` a ) htc ON a.`Id` = htc.`DeliverId` 
+LEFT JOIN `Issues1467Class_project` htd ON a.`ProjectID` = htd.`Id` 
+limit 0,20", sql1);
+
+            var reponse = fsql.Select<Issues1467Class.DeliverInfo>()
+                .FromQuery(deliverInfoQuery, deliverProtocolQuery, projectQuery)
+                .LeftJoin(x => x.t1.Id == x.t2.Id)
+                .LeftJoin(x => x.t1.Id == x.t3.DeliverId)
+                .LeftJoin(x => x.t1.ProjectId == x.t4.Id)
+                .Page(1, 20)
+                .Count(out var total)
+                .ToSql(x => new Issues1467Class.ResponseDeliverInfoDto
+                {
+                    ProjectCode = x.t4.ProjectCode,
+                    ProjectName = x.t4.ProjectName,
+                    ReceiveStatus = x.t1.Receivestatus == 1 ? x.t1.Receivestatus.Value : deliverStatusQuery.Where(y => y.t1.Id == x.t1.Id || y.t1.RefId == x.t1.Id).Count(),
+                    RefCount = fsql.Select<Issues1467Class.DeliverInfo>().Where(y => y.RefId == x.t1.Id).Count()
+                });
+        }
+
+        #region #1467 class
+        public class Issues1467Class
+        {
+            public class ResponseDeliverInfoDto
+            {
+                public string Id { get; set; }
+                /// <summary>
+                /// 测试任务编号，系统自动生成
+                /// </summary>
+                public string Code { get; set; }
+                /// <summary>
+                /// 送样日期
+                /// </summary>
+                public DateTime Deliver_Date { get; set; }
+                /// <summary>
+                /// 接收人
+                /// </summary>
+                public string Receiver { get; set; }
+                /// <summary>
+                /// 创建人
+                /// </summary>
+                public string Creator { get; set; }
+                /// <summary>
+                /// 提交人
+                /// </summary>
+                public string CreatorName { get; set; }
+
+                /// <summary>
+                /// 提交日期
+                /// </summary>
+                public DateTime Create_Date { get; set; }
+
+                /// <summary>
+                /// 接收人姓名
+                /// </summary>
+                public string ReceiverName { get; set; }
+                /// <summary>
+                /// 送样人员
+                /// </summary>
+                public string SampleSender { get; set; }
+                /// <summary>
+                /// 送样人员姓名
+                /// </summary>
+                public string SampleSenderName { get; set; }
+                /// <summary>
+                /// 接收日期
+                /// </summary>
+                public DateTime? Receive_Date { get; set; }
+                /// <summary>
+                /// 测试方式（取字典）
+                /// </summary>
+                public string Type { get; set; }
+                /// <summary>
+                /// 实验方法ID字符串，以分号间隔
+                /// </summary>
+                public string ProtocolIds { get; set; }
+                /// <summary>
+                /// 项目编号（原为ProjectID）
+                /// </summary>
+                public string ProjectId { get; set; }
+                /// <summary>
+                /// 任务状态
+                /// </summary>
+                public int Status { get; set; }
+                /// <summary>
+                /// 接收状态 
+                /// </summary>
+                public long ReceiveStatus { get; set; }
+                /// <summary>
+                /// 拒收理由
+                /// </summary>
+                public string RefuseReason { get; set; }
+                /// <summary>
+                /// 分配关联送样Id
+                /// </summary>
+                public string RefId { get; set; }
+                /// <summary>
+                /// 分配子任务数量
+                /// </summary>
+                public long RefCount { get; set; }
+                /// <summary>
+                /// 样品编号(目前本身有的)
+                /// </summary>
+                public string BottleCodes { get; set; }
+                /// <summary>
+                /// 样品编号(已经被分配出去的)
+                /// </summary>
+                public string PBottleCodes { get; set; }
+                /// <summary>
+                /// 项目编号
+                /// </summary>
+                public string ProjectCode { get; set; }
+                /// <summary>
+                /// 项目名称
+                /// </summary>
+                public string ProjectName { get; set; }
+            }
+
+            public class BaseEntity
+            {
+                [Column(IsPrimary = true)]
+                public string Id { get; set; }
+                /// <summary>
+                /// 版本号
+                /// </summary>
+                public string Version { get; set; }
+                /// <summary>
+                /// 创建者ID
+                /// </summary>
+                public string Creator { get; set; }
+                /// <summary>
+                /// 创建人姓名
+                /// </summary>
+                public string CreatorName { get; set; }
+                /// <summary>
+                /// 创建时间
+                /// </summary>
+                [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
+                public DateTime Create_Date { get; set; }
+                /// <summary>
+                /// ip地址
+                /// </summary>
+                [Column(Name = "IP_Address")]
+                public string IpAddress { get; set; }
+                /// <summary>
+                /// 修改人id
+                /// </summary>
+                public string Modifier { get; set; }
+                /// <summary>
+                /// 修改人姓名
+                /// </summary>
+                public string ModifierName { get; set; }
+                /// <summary>
+                /// 修改人ip
+                /// </summary>
+                public string Modifier_IP { get; set; }
+                /// <summary>
+                /// 修改时间
+                /// </summary>
+                [Column(ServerTime = DateTimeKind.Local)]
+                public DateTime Modify_Date { get; set; }
+                /// <summary>
+                /// 审批状态，由审批模块返回
+                /// </summary>
+                public int? Auditstatus { get; set; }
+                /// <summary>
+                /// 信息状态 
+                /// </summary>
+                public int Status { get; set; }
+                /// <summary>
+                /// 备注
+                /// </summary>
+                public string Comments { get; set; }
+                /// <summary>
+                /// 组织编码
+                /// </summary>
+                public string OrganCode { get; set; }
+            }
+
+            /// <summary>
+            /// 测试任务表
+            /// 主表
+            /// </summary>
+            [Table(Name = "Issues1467Class_deliverinfo")]
+            public class DeliverInfo : BaseEntity
+            {
+                /// <summary>
+                /// 测试任务编号，系统自动生成
+                /// </summary>
+                public string Code { get; set; }
+                /// <summary>
+                /// 送样日期
+                /// </summary>
+                public DateTime Deliver_Date { get; set; }
+                /// <summary>
+                /// 接收人
+                /// </summary>
+                public string Receiver { get; set; }
+                /// <summary>
+                /// 接收人姓名
+                /// </summary>
+                public string ReceiverName { get; set; }
+                /// <summary>
+                /// 送样人员
+                /// </summary>
+                public string SampleSender { get; set; }
+                /// <summary>
+                /// 送样人员姓名
+                /// </summary>
+                public string SampleSenderName { get; set; }
+                /// <summary>
+                /// 接收日期
+                /// </summary>
+                public DateTime? Receive_Date { get; set; }
+                /// <summary>
+                /// 测试方式（取字典）
+                /// </summary>
+                public string Type { get; set; }
+                /// <summary>
+                /// 项目编号
+                /// </summary>
+                [Column(Name = "ProjectID")]
+                public string ProjectId { get; set; }
+                /// <summary>
+                /// 接收状态 
+                /// </summary>
+                public int? Receivestatus { get; set; }
+                /// <summary>
+                /// 拒收理由
+                /// </summary>
+                public string RefuseReason { get; set; }
+                /// <summary>
+                /// 分配关联送样ID
+                /// </summary>
+                public string RefId { get; set; }
+                /// <summary>
+                /// 分配子任务数量
+                /// </summary>
+                [Column(IsIgnore = true)]
+                public int RefCount { get; set; }
+                /// <summary>
+                /// 自定义表单内容
+                /// </summary>
+                public string CustomColumns { get; set; }
+            }
+
+            /// <summary>
+            /// 送样样品中间表
+            /// </summary>
+            [Table(Name = "Issues1467Class_deliverinfo_bottle")]
+            public class DeliverInfoBottle
+            {
+                [Column(IsPrimary = true)]
+                public string Id { get; set; }
+                /// <summary>
+                /// 样品编号
+                /// </summary>
+                public string BottleCode { get; set; }
+                /// <summary>
+                /// 送样ID
+                /// </summary>
+                public string DeliverId { get; set; }
+                /// <summary>
+                /// 送样量
+                /// </summary>
+                public string Amount { get; set; }
+            }
+
+            /// <summary>
+            /// 测试任务送样方法表
+            /// </summary>
+            [Table(Name = "Issues1467Class_deliverinfo_protocols")]
+            public class DeliverProtocol
+            {
+                /// <summary>
+                /// 数据主键
+                /// </summary>
+                [Column(IsPrimary = true)]
+                public string Id { get; set; }
+                /// <summary>
+                /// 测试任务ID
+                /// </summary>
+                [Column(Name = "DeliverID")]
+                public string DeliverId { get; set; }
+                /// <summary>
+                /// 实验方法ID
+                /// </summary>
+                [Column(Name = "ProtocolID")]
+                public string ProtocolId { get; set; }
+            }
+
+            /// <summary>
+            /// 项目信息
+            /// </summary>
+            /// <returns></returns>
+            [Table(Name = "Issues1467Class_project")]
+            public class Project : BaseEntity
+            {
+                /// <summary>
+                /// 项目编号
+                /// </summary> 
+                public string ProjectCode { get; set; }
+                /// <summary>
+                /// 项目名称
+                /// </summary> 
+                public string ProjectName { get; set; }
+                /// <summary>
+                /// 所属部门
+                /// </summary> 
+                public string Department { get; set; }
+                /// <summary>
+                /// 说明
+                /// </summary> 
+                public string Description { get; set; }
+                /// <summary>
+                /// 计划开始时间
+                /// </summary> 
+                public DateTime? StartTime_Plan { get; set; }
+                /// <summary>
+                /// 计划结束时间
+                /// </summary> 
+                public DateTime? EndTime_Plan { get; set; }
+                /// <summary>
+                /// 实际开始时间
+                /// </summary> 
+                public DateTime? StartTime { get; set; }
+                /// <summary>
+                /// 实际结束时间
+                /// </summary> 
+                public DateTime? EndTime { get; set; }
+
+                /// <summary>
+                /// 是否是PM同步过来的
+                /// </summary>
+                public int IsSync { get; set; }
+
+                /// <summary>
+                /// PM同步的项目主键信息
+                /// </summary>
+                [Column(Name = "RefID")]
+                public int RefId { get; set; }
+                /// <summary>
+                /// 是否禁用 1是 0 否
+                /// </summary>
+                public int IsDisable { get; set; }
+
+                /// <summary>
+                /// 部门Id
+                /// </summary>
+                public int DeptId { get; set; }
+            }
+
+            /// <summary>
+            /// 生物模块信息表
+            /// 主表
+            /// </summary>
+            [Table(Name = "Issues1467Class_biologys")]
+            public class Biologys : BaseEntity
+            {
+                /// <summary>
+                /// 生物编号,系统自动生成
+                /// </summary>
+                public string Code { get; set; }
+                /// <summary>
+                /// 项目编号
+                /// </summary>
+                [Column(Name = "ProjectID")]
+                public string ProjectId { get; set; }
+
+                /// <summary>
+                /// 样品编号
+                /// </summary>
+                public string BottleCode { get; set; }
+                /// <summary>
+                /// 测试方法Id
+                /// </summary>
+                [Column(Name = "ProtocolID")]
+                public string ProtocolId { get; set; }
+                /// <summary>
+                /// 实验日期
+                /// </summary>
+                public DateTime? Experiment_Date { get; set; }
+                /// <summary>
+                /// 送样日期
+                /// </summary>
+                public DateTime? Deliver_Date { get; set; }
+                /// <summary>
+                /// 测试任务ID
+                /// </summary>
+                public string DeliverId { get; set; }
+                /// <summary>
+                /// 测试任务编号
+                /// </summary>
+                public string DeliverCode { get; set; }
+                /// <summary>
+                /// 记录编号
+                /// </summary>
+                public string BookNumber { get; set; }
+                /// <summary>
+                /// 自定义表单数据
+                /// </summary>
+                public string CustomColumns { get; set; }
+                /// <summary>
+                /// 测试类型
+                /// </summary>
+                public string BiologyType { get; set; }
+            }
+        }
+        #endregion
+
+        [Fact]
         public void IssuesWithTempQueryAndDto()
         {
             var fsql = g.sqlserver;

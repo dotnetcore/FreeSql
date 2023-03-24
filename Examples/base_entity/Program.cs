@@ -578,6 +578,23 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var sql1c2 = fsql.Select<User1>()
+                .GroupBy(a => new { a.Nickname, a.Avatar })
+                .WithTempQuery(b => new
+                {
+                    sum = b.Sum(b.Value.Sort),
+                    b.Key.Nickname,
+                    b.Key.Avatar,
+                })
+                .OrderByDescending(arg => arg.sum)
+                .ToSql(arg => new
+                {
+                    str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
+                    str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
+                });   //报错 多括号
+                //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
+            Console.WriteLine(sql1c2);
+
             var xp = new Xpb()
             {
                 Id = "L23035555",

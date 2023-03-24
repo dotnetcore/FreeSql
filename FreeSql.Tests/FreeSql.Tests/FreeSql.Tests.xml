@@ -575,6 +575,424 @@
             <param name="testCases"></param>
             <returns></returns>
         </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Code">
+            <summary>
+            测试任务编号，系统自动生成
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Deliver_Date">
+            <summary>
+            送样日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Receiver">
+            <summary>
+            接收人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Creator">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.CreatorName">
+            <summary>
+            提交人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Create_Date">
+            <summary>
+            提交日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ReceiverName">
+            <summary>
+            接收人姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.SampleSender">
+            <summary>
+            送样人员
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.SampleSenderName">
+            <summary>
+            送样人员姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Receive_Date">
+            <summary>
+            接收日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Type">
+            <summary>
+            测试方式（取字典）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ProtocolIds">
+            <summary>
+            实验方法ID字符串，以分号间隔
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ProjectId">
+            <summary>
+            项目编号（原为ProjectID）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Status">
+            <summary>
+            任务状态
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ReceiveStatus">
+            <summary>
+            接收状态 
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.RefuseReason">
+            <summary>
+            拒收理由
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.RefId">
+            <summary>
+            分配关联送样Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.RefCount">
+            <summary>
+            分配子任务数量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.BottleCodes">
+            <summary>
+            样品编号(目前本身有的)
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.PBottleCodes">
+            <summary>
+            样品编号(已经被分配出去的)
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ProjectCode">
+            <summary>
+            项目编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.ProjectName">
+            <summary>
+            项目名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Version">
+            <summary>
+            版本号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Creator">
+            <summary>
+            创建者ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.CreatorName">
+            <summary>
+            创建人姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Create_Date">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.IpAddress">
+            <summary>
+            ip地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Modifier">
+            <summary>
+            修改人id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.ModifierName">
+            <summary>
+            修改人姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Modifier_IP">
+            <summary>
+            修改人ip
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Modify_Date">
+            <summary>
+            修改时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Auditstatus">
+            <summary>
+            审批状态，由审批模块返回
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Status">
+            <summary>
+            信息状态 
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.Comments">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.BaseEntity.OrganCode">
+            <summary>
+            组织编码
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo">
+            <summary>
+            测试任务表
+            主表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Code">
+            <summary>
+            测试任务编号，系统自动生成
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Deliver_Date">
+            <summary>
+            送样日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Receiver">
+            <summary>
+            接收人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.ReceiverName">
+            <summary>
+            接收人姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.SampleSender">
+            <summary>
+            送样人员
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.SampleSenderName">
+            <summary>
+            送样人员姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Receive_Date">
+            <summary>
+            接收日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Type">
+            <summary>
+            测试方式（取字典）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.ProjectId">
+            <summary>
+            项目编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.Receivestatus">
+            <summary>
+            接收状态 
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.RefuseReason">
+            <summary>
+            拒收理由
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.RefId">
+            <summary>
+            分配关联送样ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.RefCount">
+            <summary>
+            分配子任务数量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfo.CustomColumns">
+            <summary>
+            自定义表单内容
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfoBottle">
+            <summary>
+            送样样品中间表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfoBottle.BottleCode">
+            <summary>
+            样品编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfoBottle.DeliverId">
+            <summary>
+            送样ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverInfoBottle.Amount">
+            <summary>
+            送样量
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverProtocol">
+            <summary>
+            测试任务送样方法表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverProtocol.Id">
+            <summary>
+            数据主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverProtocol.DeliverId">
+            <summary>
+            测试任务ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.DeliverProtocol.ProtocolId">
+            <summary>
+            实验方法ID
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project">
+            <summary>
+            项目信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.ProjectCode">
+            <summary>
+            项目编号
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.ProjectName">
+            <summary>
+            项目名称
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.Department">
+            <summary>
+            所属部门
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.Description">
+            <summary>
+            说明
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.StartTime_Plan">
+            <summary>
+            计划开始时间
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.EndTime_Plan">
+            <summary>
+            计划结束时间
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.StartTime">
+            <summary>
+            实际开始时间
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.EndTime">
+            <summary>
+            实际结束时间
+            </summary> 
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.IsSync">
+            <summary>
+            是否是PM同步过来的
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.RefId">
+            <summary>
+            PM同步的项目主键信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.IsDisable">
+            <summary>
+            是否禁用 1是 0 否
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Project.DeptId">
+            <summary>
+            部门Id
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys">
+            <summary>
+            生物模块信息表
+            主表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.Code">
+            <summary>
+            生物编号,系统自动生成
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.ProjectId">
+            <summary>
+            项目编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.BottleCode">
+            <summary>
+            样品编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.ProtocolId">
+            <summary>
+            测试方法Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.Experiment_Date">
+            <summary>
+            实验日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.Deliver_Date">
+            <summary>
+            送样日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.DeliverId">
+            <summary>
+            测试任务ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.DeliverCode">
+            <summary>
+            测试任务编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.BookNumber">
+            <summary>
+            记录编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.CustomColumns">
+            <summary>
+            自定义表单数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.Biologys.BiologyType">
+            <summary>
+            测试类型
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01">
             <summary>
             表中带点

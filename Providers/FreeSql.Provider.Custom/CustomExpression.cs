@@ -262,7 +262,10 @@ namespace FreeSql.Custom
                 {
                     case "IsNullOrEmpty": return _utils.Adapter.LambdaString_IsNullOrEmpty(getExp(exp.Arguments[0]));
                     case "IsNullOrWhiteSpace": return _utils.Adapter.LambdaString_IsNullOrWhiteSpace(getExp(exp.Arguments[0]));
-                    case "Concat": return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
+                    case "Concat":
+                        if (exp.Arguments.Count == 1 && exp.Arguments[0].NodeType == ExpressionType.NewArrayInit && exp.Arguments[0] is NewArrayExpression concatNewArrExp)
+                            return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), concatNewArrExp.Expressions.Select(a => a.Type).ToArray());
+                        return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
                 }
             }
             else
