@@ -578,6 +578,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var updatejoin01 = fsql.Update<User1>()
+                .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)
+                .Set((a, b) => a.Nickname == b.GroupName)
+                .ExecuteAffrows();
+            var updatejoin02 = fsql.Update<User1>()
+                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
+                .Set((a, b) => a.Nickname == b.GroupName)
+                .ExecuteAffrows();
+
             var sql1c2 = fsql.Select<User1>()
                 .GroupBy(a => new { a.Nickname, a.Avatar })
                 .WithTempQuery(b => new
@@ -612,15 +621,6 @@ namespace base_entity
             }).WherePrimary("Id").ExecuteAffrows();
 
         fsql.UseJsonMap();
-
-            var updatejoin01 = fsql.Update<User1>()
-                .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)
-                .Set((a, b) => a.Nickname == b.GroupName)
-                .ExecuteAffrows();
-            var updatejoin02 = fsql.Update<User1>()
-                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
-                .Set((a, b) => a.Nickname == b.GroupName)
-                .ExecuteAffrows();
 
             fsql.Select<User1>().IncludeMany(a => a.Roles);
 

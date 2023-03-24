@@ -203,7 +203,7 @@ namespace FreeSql.Internal.CommonProvider
             var sqltab = sql.Substring(7, setStartIndex - 7);
             var sqlset = "";
             var sqlwhere = "";
-            var sqltab2 = _query2Provider._tableRules.FirstOrDefault()?.Invoke(typeof(T2), null).Replace(" \r\n", " \r\n    ") ?? _commonUtils.QuoteSqlName(_query2Provider._tables[1].Table?.DbName);
+            var sqltab2 = _query2Provider._tableRules.FirstOrDefault()?.Invoke(typeof(T2), null)?.Replace(" \r\n", " \r\n    ") ?? _commonUtils.QuoteSqlName(_query2Provider._tables[1].Table?.DbName);
             var whereStartIndex = sql.IndexOf(" \r\nWHERE ", setStartIndex);
             if (whereStartIndex == -1)
             {
