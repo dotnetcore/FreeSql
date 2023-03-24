@@ -578,6 +578,10 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.InsertOrUpdate<User1>()
+                .SetSource(fsql.Select<User1>().ToList())
+                .ExecuteSqlBulkCopy();
+
             var updatejoin01 = fsql.Update<User1>()
                 .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)
                 .Set((a, b) => a.Nickname == b.GroupName)

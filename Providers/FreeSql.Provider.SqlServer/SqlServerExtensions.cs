@@ -120,6 +120,55 @@ public static partial class FreeSqlSqlServerGlobalExtensions
 
     #region ExecuteSqlBulkCopy
     /// <summary>
+    /// 批量插入或更新（操作的字段数量超过 2000 时收益大）<para></para>
+    /// 实现原理：使用 SqlBulkCopy 插入临时表，再执行 MERGE INTO t1 using (select * from #temp) ...
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="copyOptions"></param>
+    /// <param name="batchSize"></param>
+    /// <param name="bulkCopyTimeout"></param>
+    /// <returns></returns>
+    public static int ExecuteSqlBulkCopy<T>(this IInsertOrUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
+    {
+        var upsert = that as InsertOrUpdateProvider<T>;
+        if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return 0;
+        var state = ExecuteSqlBulkCopyState(upsert);
+        return UpdateProvider.ExecuteBulkUpsert(upsert, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
+
+    }
+    static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(InsertOrUpdateProvider<T> upsert) where T : class
+    {
+        if (upsert._source.Any() != true) return null;
+        var _table = upsert._table;
+        var _commonUtils = upsert._commonUtils;
+        var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
+        var tempTableName = $"#Temp_{updateTableName}";
+        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
+            upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
+        var setColumns = new List<string>();
+        var pkColumns = new List<string>();
+        foreach (var col in _table.Columns.Values)
+        {
+            if (upsert._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
+            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && upsert._updateIgnore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
+        }
+        var sql1 = $"SELECT {string.Join(", ", pkColumns.Select(a => _commonUtils.QuoteSqlName(a)))}, {string.Join(", ", setColumns.Select(a => _commonUtils.QuoteSqlName(a)))} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
+        try
+        {
+            upsert._sourceSql = $"select * from {tempTableName}";
+            var sql2 = upsert.ToSql();
+            var sql3 = $"DROP TABLE {tempTableName}";
+            return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
+        }
+        finally
+        {
+            upsert._sourceSql = null;
+        }
+    }
+    /// <summary>
     /// 批量更新（更新字段数量超过 2000 时收益大）<para></para>
     /// 实现原理：使用 SqlBulkCopy 插入临时表，再使用 UPDATE INNER JOIN 联表更新
     /// </summary>
@@ -154,7 +203,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             if (update._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
             else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && update._ignore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
         }
-        var sql1 = $"SELECT {string.Join(", ", pkColumns)}, {string.Join(", ", setColumns)} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
+        var sql1 = $"SELECT {string.Join(", ", pkColumns.Select(a => _commonUtils.QuoteSqlName(a)))}, {string.Join(", ", setColumns.Select(a => _commonUtils.QuoteSqlName(a)))} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
         var sb = new StringBuilder().Append("UPDATE ").Append(" a SET \r\n  ").Append(string.Join(", \r\n  ", setColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
         sb.Append(" \r\nFROM ").Append(_commonUtils.QuoteSqlName(updateTableName)).Append(" a ")
             .Append(" \r\nINNER JOIN ").Append(tempTableName).Append(" b ON ").Append(string.Join(" AND ", pkColumns.Select(col => $"a.{_commonUtils.QuoteSqlName(col)} = b.{_commonUtils.QuoteSqlName(col)}")));
@@ -263,6 +312,13 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     }
 #if net40
 #else
+    public static Task<int> ExecuteSqlBulkCopyAsync<T>(this IInsertOrUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
+    {
+        var upsert = that as InsertOrUpdateProvider<T>;
+        if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return Task.FromResult(0);
+        var state = ExecuteSqlBulkCopyState(upsert);
+        return UpdateProvider.ExecuteBulkUpsertAsync(upsert, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions, batchSize, bulkCopyTimeout, cancellationToken));
+    }
     public static Task<int> ExecuteSqlBulkCopyAsync<T>(this IUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var update = that as UpdateProvider<T>;

@@ -41,12 +41,18 @@ namespace FreeSql.Internal.CommonProvider
         public bool _isAutoSyncStructure;
 
 
-        public static int ExecuteBulkUpdate<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Action<IInsert<T1>> funcBulkCopy) where T1 : class
+        public static int ExecuteBulkUpdate<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Action<IInsert<T1>> funcBulkCopy) where T1 : class =>
+            ExecuteBulkCommand(update._source, update._tempPrimarys, update._orm, update._connection, update._transaction, update._table, state, funcBulkCopy);
+        public static int ExecuteBulkUpsert<T1>(InsertOrUpdateProvider<T1> upsert, NativeTuple<string, string, string, string, string[]> state, Action<IInsert<T1>> funcBulkCopy) where T1 : class =>
+            ExecuteBulkCommand(upsert._source, upsert._tempPrimarys, upsert._orm, upsert._connection, upsert._transaction, upsert._table, state, funcBulkCopy);
+
+        public static int ExecuteBulkCommand<T1>(List<T1> _source, ColumnInfo[] _tempPrimarys, IFreeSql _orm, DbConnection _connection, DbTransaction _transaction, TableInfo _table,
+            NativeTuple<string, string, string, string, string[]> state, Action<IInsert<T1>> funcBulkCopy) where T1 : class
         {
-            if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
-            var fsql = update._orm;
-            var connection = update._connection;
-            var transaction = update._transaction;
+            if (_source.Any() != true || _tempPrimarys.Any() == false) return 0;
+            var fsql = _orm;
+            var connection = _connection;
+            var transaction = _transaction;
 
             Object<DbConnection> poolConn = null;
             if (connection == null)
@@ -61,9 +67,9 @@ namespace FreeSql.Internal.CommonProvider
                 try
                 {
                     var insert = fsql.Insert<T1>();
-                    (insert as InsertProvider<T1>)._source.AddRange(update._source); //不能直接 AppendData，防止触发 Aop.AuditValue
+                    (insert as InsertProvider<T1>)._source.AddRange(_source); //不能直接 AppendData，防止触发 Aop.AuditValue
                     insert
-                        .AsType(update._table.Type)
+                        .AsType(_table.Type)
                         .WithConnection(connection)
                         .WithTransaction(transaction)
                         .InsertIdentity()
@@ -96,12 +102,18 @@ namespace FreeSql.Internal.CommonProvider
         }
 #if net40
 #else
-        async public static Task<int> ExecuteBulkUpdateAsync<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Func<IInsert<T1>, Task> funcBulkCopy) where T1 : class
+        public static Task<int> ExecuteBulkUpdateAsync<T1>(UpdateProvider<T1> update, NativeTuple<string, string, string, string, string[]> state, Func<IInsert<T1>, Task> funcBulkCopy) where T1 : class =>
+            ExecuteBulkCommandAsync(update._source, update._tempPrimarys, update._orm, update._connection, update._transaction, update._table, state, funcBulkCopy);
+        public static Task<int> ExecuteBulkUpsertAsync<T1>(InsertOrUpdateProvider<T1> upsert, NativeTuple<string, string, string, string, string[]> state, Func<IInsert<T1>, Task> funcBulkCopy) where T1 : class =>
+            ExecuteBulkCommandAsync(upsert._source, upsert._tempPrimarys, upsert._orm, upsert._connection, upsert._transaction, upsert._table, state, funcBulkCopy);
+
+        async public static Task<int> ExecuteBulkCommandAsync<T1>(List<T1> _source, ColumnInfo[] _tempPrimarys, IFreeSql _orm, DbConnection _connection, DbTransaction _transaction, TableInfo _table,
+            NativeTuple<string, string, string, string, string[]> state, Func<IInsert<T1>, Task> funcBulkCopy) where T1 : class
         {
-            if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
-            var fsql = update._orm;
-            var connection = update._connection;
-            var transaction = update._transaction;
+            if (_source.Any() != true || _tempPrimarys.Any() == false) return 0;
+            var fsql = _orm;
+            var connection = _connection;
+            var transaction = _transaction;
 
             Object<DbConnection> poolConn = null;
             if (connection == null)
@@ -116,9 +128,9 @@ namespace FreeSql.Internal.CommonProvider
                 try
                 {
                     var insert = fsql.Insert<T1>();
-                    (insert as InsertProvider<T1>)._source.AddRange(update._source); //不能直接 AppendData，防止触发 Aop.AuditValue
+                    (insert as InsertProvider<T1>)._source.AddRange(_source); //不能直接 AppendData，防止触发 Aop.AuditValue
                     insert
-                        .AsType(update._table.Type)
+                        .AsType(_table.Type)
                         .WithConnection(connection)
                         .WithTransaction(transaction)
                         .InsertIdentity()
@@ -126,6 +138,15 @@ namespace FreeSql.Internal.CommonProvider
                         .AsTable(state.Item4);
                     (insert as InsertProvider)._isAutoSyncStructure = false;
                     await funcBulkCopy(insert);
+                    switch (fsql.Ado.DataType)
+                    {
+                        case DataType.Oracle:
+                        case DataType.OdbcOracle:
+                        case DataType.CustomOracle:
+                        case DataType.Dameng:
+                        case DataType.OdbcDameng:
+                            return await fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
+                    }
                     var affrows = await fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
                     droped = true;
                     return affrows;
