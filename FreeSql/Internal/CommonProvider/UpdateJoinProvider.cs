@@ -169,11 +169,23 @@ namespace FreeSql.Internal.CommonProvider
             if (cols.Count != 1) return this;
             var col = cols[0].Column;
             var columnSql = $"{_commonUtils.QuoteSqlName(col.Attribute.Name)}";
+            var valueSql = "";
 
-            _query2Provider._groupby = null;
-            var valueExp = Expression.Lambda<Func<T1, T2, object>>(equalBinaryExp.Right, exp.Parameters);
-            _query2.GroupBy(valueExp);
-            var valueSql = _query2Provider._groupby?.Remove(0, " \r\nGROUP BY ".Length);
+            if (equalBinaryExp.Right.IsParameter())
+            {
+                _query2Provider._groupby = null;
+                var valueExp = Expression.Lambda<Func<T1, T2, object>>(equalBinaryExp.Right, exp.Parameters);
+                _query2.GroupBy(valueExp);
+                valueSql = _query2Provider._groupby?.Remove(0, " \r\nGROUP BY ".Length);
+            }
+            else
+            {
+                valueSql = _commonExpression.ExpressionLambdaToSql(equalBinaryExp.Right, new CommonExpression.ExpTSC
+                {
+                    isQuoteName = true,
+                    mapType = equalBinaryExp.Right is BinaryExpression ? null : col.Attribute.MapType
+                });
+            }
             if (string.IsNullOrEmpty(valueSql)) return this;
 
             switch (_orm.Ado.DataType)

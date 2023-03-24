@@ -586,6 +586,10 @@ namespace base_entity
                 .Join<UserGroup>((a, b) => a.GroupId == b.Id)
                 .Set((a, b) => a.Nickname == b.GroupName)
                 .ExecuteAffrows();
+            var updatejoin03 = fsql.Update<User1>()
+                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
+                .Set((a, b) => a.Nickname == "b.groupname")
+                .ExecuteAffrows();
 
             var sql1c2 = fsql.Select<User1>()
                 .GroupBy(a => new { a.Nickname, a.Avatar })
