@@ -13,7 +13,7 @@ namespace FreeSql.Internal.Model
         public string CsName { get; set; }
         public Type CsType { get; set; }
         public ColumnAttribute Attribute { get; set; }
-        public string Comment { get; internal set; }
+        public string Comment { get; set; }
         public string DbTypeText { get; internal set; }
         public string DbDefaultValue { get; internal set; }
         public string DbInsertValue { get; internal set; }

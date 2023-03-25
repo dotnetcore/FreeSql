@@ -55,7 +55,7 @@ public class User1 : BaseEntity<User1, Guid>
     /// <summary>
     /// 描述
     /// </summary>
-    [MaxLength(4000)]
+    [MaxLength(2000)]
     public string Description { get; set; }
 }
 

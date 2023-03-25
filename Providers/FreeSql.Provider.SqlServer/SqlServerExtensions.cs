@@ -135,7 +135,6 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return 0;
         var state = ExecuteSqlBulkCopyState(upsert);
         return UpdateProvider.ExecuteBulkUpsert(upsert, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
-
     }
     static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(InsertOrUpdateProvider<T> upsert) where T : class
     {
@@ -148,20 +147,13 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
             upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
-        var setColumns = new List<string>();
-        var pkColumns = new List<string>();
-        foreach (var col in _table.Columns.Values)
-        {
-            if (upsert._tempPrimarys.Any(a => a.CsName == col.CsName)) pkColumns.Add(col.Attribute.Name);
-            else if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && upsert._updateIgnore.ContainsKey(col.Attribute.Name) == false) setColumns.Add(col.Attribute.Name);
-        }
-        var sql1 = $"SELECT {string.Join(", ", pkColumns.Select(a => _commonUtils.QuoteSqlName(a)))}, {string.Join(", ", setColumns.Select(a => _commonUtils.QuoteSqlName(a)))} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
+        var sql1 = $"SELECT {string.Join(", ", _table.Columns.Values.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
         try
         {
             upsert._sourceSql = $"select * from {tempTableName}";
             var sql2 = upsert.ToSql();
             var sql3 = $"DROP TABLE {tempTableName}";
-            return NativeTuple.Create(sql1, sql2, sql3, tempTableName, pkColumns.Concat(setColumns).ToArray());
+            return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
         }
         finally
         {
@@ -195,7 +187,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
         if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
-                update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
+            update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
         var setColumns = new List<string>();
         var pkColumns = new List<string>();
         foreach (var col in _table.Columns.Values)
