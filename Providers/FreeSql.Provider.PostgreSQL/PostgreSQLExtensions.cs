@@ -71,8 +71,14 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
         sb.Clear();
         try
         {
-            upsert._sourceSql = $"select * from {tempTableName}";
+            upsert._sourceSql = $"select __**__ from {tempTableName}";
             var sql2 = upsert.ToSql();
+            if (string.IsNullOrWhiteSpace(sql2) == false)
+            {
+                var field = sql2.Substring(sql2.IndexOf("\"(") + 2);
+                field = field.Remove(field.IndexOf(upsert._sourceSql)).TrimEnd().TrimEnd(')');
+                sql2 = sql2.Replace(upsert._sourceSql, $"select {field} from {tempTableName}");
+            }
             var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
             return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
         }

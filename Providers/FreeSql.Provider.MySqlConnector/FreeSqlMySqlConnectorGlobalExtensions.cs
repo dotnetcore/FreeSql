@@ -18,7 +18,57 @@ using MySql.Data.MySqlClient;
 public static class FreeSqlMySqlConnectorGlobalExtensions
 {
     #region ExecuteMySqlBulkCopy
-
+    /// <summary>
+    /// 批量插入或更新（操作的字段数量超过 2000 时收益大）<para></para>
+    /// 实现原理：使用 MySqlBulkCopy 插入临时表，再执行 INSERT INTO t1 select * from #temp ON DUPLICATE KEY UPDATE ...
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="bulkCopyTimeout"></param>
+    /// <returns></returns>
+    public static int ExecuteMySqlBulkCopy<T>(this IInsertOrUpdate<T> that, int? bulkCopyTimeout = null) where T : class
+    {
+        var upsert = that as InsertOrUpdateProvider<T>;
+        if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return 0;
+        var state = ExecuteMySqlBulkCopyState(upsert);
+        return UpdateProvider.ExecuteBulkUpsert(upsert, state, insert => insert.ExecuteMySqlBulkCopy(bulkCopyTimeout));
+    }
+    static NativeTuple<string, string, string, string, string[]> ExecuteMySqlBulkCopyState<T>(InsertOrUpdateProvider<T> upsert) where T : class
+    {
+        if (upsert._source.Any() != true) return null;
+        var _table = upsert._table;
+        var _commonUtils = upsert._commonUtils;
+        var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
+        var tempTableName = $"Temp_{Guid.NewGuid().ToString("N")}";
+        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
+        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
+            upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
+        var sb = new StringBuilder().Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
+        foreach (var col in _table.Columns.Values)
+        {
+            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" ").Append(col.Attribute.DbType.Replace("NOT NULL", ""));
+            sb.Append(",");
+        }
+        var sql1 = sb.Remove(sb.Length - 1, 1).Append(" \r\n) Engine=InnoDB;").ToString();
+        try
+        {
+            upsert._sourceSql = $"select __**__ from {tempTableName}";
+            var sql2 = upsert.ToSql();
+            if (string.IsNullOrWhiteSpace(sql2) == false)
+            {
+                var field = sql2.Substring(sql2.IndexOf("`(") + 2);
+                field = field.Remove(field.IndexOf(upsert._sourceSql)).TrimEnd().TrimEnd(')');
+                sql2 = sql2.Replace(upsert._sourceSql, $"select {field} from {tempTableName}");
+            }
+            var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
+            return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
+        }
+        finally
+        {
+            upsert._sourceSql = null;
+        }
+    }
     /// <summary>
     /// 批量更新（更新字段数量超过 2000 时收益大）<para></para>
     /// 实现原理：使用 MySqlBulkCopy 插入临时表，再使用 UPDATE INNER JOIN 联表更新
@@ -147,6 +197,13 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
     }
 #if net40
 #else
+    public static Task<int> ExecuteMySqlBulkCopyAsync<T>(this IInsertOrUpdate<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
+    {
+        var upsert = that as UpdateProvider<T>;
+        if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return Task.FromResult(0);
+        var state = ExecuteMySqlBulkCopyState(upsert);
+        return UpdateProvider.ExecuteBulkUpdateAsync(upsert, state, insert => insert.ExecuteMySqlBulkCopyAsync(bulkCopyTimeout, cancellationToken));
+    }
     public static Task<int> ExecuteMySqlBulkCopyAsync<T>(this IUpdate<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var update = that as UpdateProvider<T>;
