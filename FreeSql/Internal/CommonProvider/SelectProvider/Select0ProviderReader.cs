@@ -585,6 +585,29 @@ namespace FreeSql.Internal.CommonProvider
                 var type = tb1.TypeLazy ?? tb1.Type;
                 var props = tb1.Properties;
 
+                if (type == typeof(object) && typeof(T1) == typeof(object))
+                {
+                    return new GetAllFieldExpressionTreeInfo
+                    {
+                        Field = "*",
+                        Read = (orm, dr) =>
+                        {
+                            //dynamic expando = new DynamicDictionary(); //动态类型字段 可读可写
+                            var expandodic = new Dictionary<string, object>();// (IDictionary<string, object>)expando;
+                            var fc = dr.FieldCount;
+                            for (var a = 0; a < fc; a++)
+                            {
+                                var name = dr.GetName(a);
+                                //expando[name] = row2.GetValue(a);
+                                if (expandodic.ContainsKey(name)) continue;
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(_commonUtils, dr, a));
+                            }
+                            //expando = expandodic;
+                            return (T1)((object)expandodic);
+                        }
+                    };
+                }
+
                 var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
                 var rowExp = Expression.Parameter(typeof(DbDataReader), "row");
                 var returnTarget = Expression.Label(type);

@@ -576,6 +576,163 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
+
+            var astsql = fsql.Select<AsTableLog, Sys_owner>()
+                .InnerJoin((a, b) => a.id == b.Id)
+                .OrderBy((a,b) => a.createtime)
+                .ToSql();
+
+            var testitems = new[]
+            {
+                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11"), click = 1 },
+                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12"), click = 2 },
+                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13"), click = 3 },
+                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13"), click = 4 },
+                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13"), click = 5 },
+                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13"), click = 6 },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13"), click = 7 },
+                new AsTableLog{ msg = "msg08", createtime = DateTime.Parse("2022-7-1"), click = 8},
+                new AsTableLog{ msg = "msg09", createtime = DateTime.Parse("2022-7-1 11:00:00"), click = 8}
+
+            };
+            var sqlatb = fsql.Insert(testitems).NoneParameter();
+            var sqlat = sqlatb.ToSql();
+            var sqlatr = sqlatb.ExecuteAffrows();
+
+            var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2022-3-8 15:00:13"));
+            var sqlatca1 = sqlatc1.ToSql();
+            var sqlatcr1 = sqlatc1.ExecuteAffrows();
+
+            var sqlatc2 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2021-3-8 15:00:13"));
+            var sqlatca2 = sqlatc2.ToSql();
+            var sqlatcr2 = sqlatc2.ExecuteAffrows();
+
+            var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatca = sqlatc.ToSql();
+            var sqlatcr = sqlatc.ExecuteAffrows();
+
+            var sqlatd1 = fsql.Update<AsTableLog>().SetSource(testitems[0]);
+            var sqlatd101 = sqlatd1.ToSql();
+            var sqlatd102 = sqlatd1.ExecuteAffrows();
+
+            var sqlatd2 = fsql.Update<AsTableLog>().SetSource(testitems[5]);
+            var sqlatd201 = sqlatd2.ToSql();
+            var sqlatd202 = sqlatd2.ExecuteAffrows();
+
+            var sqlatd3 = fsql.Update<AsTableLog>().SetSource(testitems);
+            var sqlatd301 = sqlatd3.ToSql();
+            var sqlatd302 = sqlatd3.ExecuteAffrows();
+
+            var sqlatd4 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg");
+            var sqlatd401 = sqlatd4.ToSql();
+            var sqlatd402 = sqlatd4.ExecuteAffrows();
+
+            var sqlatd5 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatd501 = sqlatd5.ToSql();
+            var sqlatd502 = sqlatd5.ExecuteAffrows();
+
+            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd601 = sqlatd6.ToSql();
+            var sqlatd602 = sqlatd6.ExecuteAffrows();
+
+            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqlatd701 = sqlatd7.ToSql();
+            var sqlatd702 = sqlatd7.ExecuteAffrows();
+
+            var sqlatd8 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd801 = sqlatd8.ToSql();
+            var sqlatd802 = sqlatd8.ExecuteAffrows();
+
+            var sqlatd12 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems[0]);
+            var sqlatd1201 = sqlatd12.ToSql();
+            var sqlatd1202 = sqlatd12.ExecuteAffrows();
+
+            var sqlatd22 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems[5]);
+            var sqlatd2201 = sqlatd22.ToSql();
+            var sqlatd2202 = sqlatd22.ExecuteAffrows();
+
+            var sqlatd32 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems);
+            var sqlatd3201 = sqlatd32.ToSql();
+            var sqlatd3202 = sqlatd32.ExecuteAffrows();
+
+            var sqls1 = fsql.Select<AsTableLog>().OrderBy(a => a.createtime);
+            var sqls101 = sqls1.ToSql();
+            var sqls102 = sqls1.ToList();
+
+            var sqls2 = fsql.Select<AsTableLog>().Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqls201 = sqls2.ToSql();
+            var sqls202 = sqls2.ToList();
+
+            var sqls3 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls301 = sqls3.ToSql();
+            var sqls302 = sqls3.ToList();
+
+            var sqls4 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqls401 = sqls4.ToSql();
+            var sqls402 = sqls4.ToList();
+
+            var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls501 = sqls5.ToSql();
+            var sqls502 = sqls5.ToList();
+
+            var sqls6 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).Limit(10).OrderBy(a => a.createtime);
+            var sqls601 = sqls6.ToSql();
+            var sqls602 = sqls6.ToList();
+
+            var sqls7 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).ToAggregate(g => new
+            {
+                sum1 = g.Sum(g.Key.click),
+                cou1 = g.Count(),
+                avg1 = g.Avg(g.Key.click),
+                min = g.Min(g.Key.click),
+                max = g.Max(g.Key.click)
+            });
+
+
+            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
+            usergroupRepository.Delete(a => true);
+            usergroupRepository.Insert(new[]{
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group1",
+                    UpdateTime = DateTime.Now,
+                    Sort = 1,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
+                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
+                    }
+                },
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group2",
+                    UpdateTime = DateTime.Now,
+                    Sort = 2,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
+                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
+                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                    }
+                },
+            });
+            var ugroupFirst = usergroupRepository.Select.First();
+            ugroupFirst.Sort++;
+            usergroupRepository.Update(ugroupFirst);
+            var userRepository = fsql.GetAggregateRootRepository<User1>();
+
+            var testsublist1 = fsql.Select<UserGroup>()
+                .First(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
+
             //fsql.CodeFirst.GetTableByEntity(typeof(User1)).Columns.Values.ToList().ForEach(col =>
             //{
             //    col.Comment = "";
@@ -886,46 +1043,6 @@ namespace base_entity
                 DateTime.UtcNow,
                 Math.PI
             });
-
-            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
-            usergroupRepository.Delete(a => true);
-            usergroupRepository.Insert(new[]{
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group1",
-                    UpdateTime = DateTime.Now,
-                    Sort = 1,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
-                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
-                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
-                    }
-                },
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group2",
-                    UpdateTime = DateTime.Now,
-                    Sort = 2,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
-                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
-                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
-                    }
-                },
-            });
-            var userRepository = fsql.GetAggregateRootRepository<User1>();
-
-            var testsublist1 = fsql.Select<UserGroup>()
-                .First(a => new
-                {
-                    a.Id,
-                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
-                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
-                });
 
             var testsublist2 = fsql.Select<UserGroup>()
                 .GroupBy(a => new { a.Id })
@@ -1513,109 +1630,7 @@ namespace base_entity
             //    .ToSql();
             #endregion
 
-            var testitems = new[]
-            {
-                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11"), click = 1 },
-                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12"), click = 2 },
-                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13"), click = 3 },
-                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13"), click = 4 },
-                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13"), click = 5 },
-                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13"), click = 6 },
-                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13"), click = 7 },
-                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1"), click = 8}
-            };
-            var sqlatb = fsql.Insert(testitems).NoneParameter();
-            var sqlat = sqlatb.ToSql();
-            var sqlatr = sqlatb.ExecuteAffrows();
-
-            var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2022-3-8 15:00:13"));
-            var sqlatca1 = sqlatc1.ToSql();
-            var sqlatcr1 = sqlatc1.ExecuteAffrows();
-
-            var sqlatc2 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2021-3-8 15:00:13"));
-            var sqlatca2 = sqlatc2.ToSql();
-            var sqlatcr2 = sqlatc2.ExecuteAffrows();
-
-            var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
-            var sqlatca = sqlatc.ToSql();
-            var sqlatcr = sqlatc.ExecuteAffrows();
-
-            var sqlatd1 = fsql.Update<AsTableLog>().SetSource(testitems[0]);
-            var sqlatd101 = sqlatd1.ToSql();
-            var sqlatd102 = sqlatd1.ExecuteAffrows();
-
-            var sqlatd2 = fsql.Update<AsTableLog>().SetSource(testitems[5]);
-            var sqlatd201 = sqlatd2.ToSql();
-            var sqlatd202 = sqlatd2.ExecuteAffrows();
-
-            var sqlatd3 = fsql.Update<AsTableLog>().SetSource(testitems);
-            var sqlatd301 = sqlatd3.ToSql();
-            var sqlatd302 = sqlatd3.ExecuteAffrows();
-
-            var sqlatd4 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg");
-            var sqlatd401 = sqlatd4.ToSql();
-            var sqlatd402 = sqlatd4.ExecuteAffrows();
-
-            var sqlatd5 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
-            var sqlatd501 = sqlatd5.ToSql();
-            var sqlatd502 = sqlatd5.ExecuteAffrows();
-
-            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
-            var sqlatd601 = sqlatd6.ToSql();
-            var sqlatd602 = sqlatd6.ExecuteAffrows();
-
-            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
-            var sqlatd701 = sqlatd7.ToSql();
-            var sqlatd702 = sqlatd7.ExecuteAffrows();
-
-            var sqlatd8 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
-            var sqlatd801 = sqlatd8.ToSql();
-            var sqlatd802 = sqlatd8.ExecuteAffrows();
-
-            var sqlatd12 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems[0]);
-            var sqlatd1201 = sqlatd12.ToSql();
-            var sqlatd1202 = sqlatd12.ExecuteAffrows();
-
-            var sqlatd22 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems[5]);
-            var sqlatd2201 = sqlatd22.ToSql();
-            var sqlatd2202 = sqlatd22.ExecuteAffrows();
-
-            var sqlatd32 = fsql.InsertOrUpdate<AsTableLog>().SetSource(testitems);
-            var sqlatd3201 = sqlatd32.ToSql();
-            var sqlatd3202 = sqlatd32.ExecuteAffrows();
-
-            var sqls1 = fsql.Select<AsTableLog>().OrderBy(a => a.createtime);
-            var sqls101 = sqls1.ToSql();
-            var sqls102 = sqls1.ToList();
-
-            var sqls2 = fsql.Select<AsTableLog>().Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
-            var sqls201 = sqls2.ToSql();
-            var sqls202 = sqls2.ToList();
-
-            var sqls3 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
-            var sqls301 = sqls3.ToSql();
-            var sqls302 = sqls3.ToList();
-
-            var sqls4 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1"));
-            var sqls401 = sqls4.ToSql();
-            var sqls402 = sqls4.ToList();
-
-            var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
-            var sqls501 = sqls5.ToSql();
-            var sqls502 = sqls5.ToList();
-
-            var sqls6 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).Limit(10).OrderBy(a => a.createtime);
-            var sqls601 = sqls6.ToSql();
-            var sqls602 = sqls6.ToList();
-
-            var sqls7 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).ToAggregate(g => new
-            {
-                sum1 = g.Sum(g.Key.click),
-                cou1 = g.Count(),
-                avg1 = g.Avg(g.Key.click),
-                min = g.Min(g.Key.click),
-                max = g.Max(g.Key.click)
-            });
+            
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {
