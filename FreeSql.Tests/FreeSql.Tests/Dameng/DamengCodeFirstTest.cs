@@ -156,7 +156,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
 
             //NoneParameter
             item1 = new TS_BLB01 { Data = data1 };
-            Assert.Throws<Exception>(() => g.dameng.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, g.dameng.Insert(item1).NoneParameter().ExecuteAffrows());
             //DmException: 字符串截断
         }
         class TS_BLB01
