@@ -32,6 +32,12 @@ namespace FreeSql.Internal.Model
         public ColumnInfo AsTableColumn { get; internal set; }
         public ColumnInfo VersionColumn { get; set; }
 
+        public void SetAsTable(IAsTable astable, ColumnInfo column)
+        {
+            AsTableImpl = astable;
+            AsTableColumn = column;
+        }
+
         ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);
 
         internal void AddOrUpdateTableRef(string propertyName, TableRef tbref)

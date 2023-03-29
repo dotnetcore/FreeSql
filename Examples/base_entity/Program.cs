@@ -584,6 +584,11 @@ namespace base_entity
                 .OrderBy((a,b) => a.createtime)
                 .ToSql();
 
+
+            var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
+            //table.SetAsTable(null, table.ColumnsByCs[nameof(AsTableLog.createtime)]);
+
+
             var testitems = new[]
             {
                 new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11"), click = 1 },
