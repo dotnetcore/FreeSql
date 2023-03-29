@@ -577,6 +577,7 @@ namespace base_entity
             #endregion
 
             var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
+            var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
 
             var astsql = fsql.Select<AsTableLog, Sys_owner>()
                 .InnerJoin((a, b) => a.id == b.Id)

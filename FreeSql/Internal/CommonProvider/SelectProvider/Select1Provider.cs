@@ -371,7 +371,12 @@ namespace FreeSql.Internal.CommonProvider
             }
             return ret;
         }
-        public List<TDto> ToList<TDto>() => typeof(T1) == typeof(TDto) ? ToList() as List<TDto> : ToList(GetToListDtoSelector<TDto>());
+        public List<TDto> ToList<TDto>()
+        {
+            if (typeof(T1) == typeof(TDto)) return ToList() as List<TDto>;
+            if (_tables.FirstOrDefault()?.Table.Type == typeof(object)) return ToList<TDto>("*");
+            return ToList(GetToListDtoSelector<TDto>());
+        }
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
             var expParam = _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a");
