@@ -1635,7 +1635,12 @@ namespace FreeSql.Internal.CommonProvider
             }
             return ret;
         }
-        async public Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default) => typeof(T1) == typeof(TDto) ? await ToListAsync(false, cancellationToken) as List<TDto> : await ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
+        async public Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default)
+        {
+            if (typeof(T1) == typeof(TDto)) return await ToListAsync(false, cancellationToken) as List<TDto>;
+            if (_tables.FirstOrDefault()?.Table.Type == typeof(object)) return await ToListAsync<TDto>("*", cancellationToken);
+            return await ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
+        }
 
         public Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class => base.InternalInsertIntoAsync<TTargetEntity>(tableName, select, cancellationToken);
 
