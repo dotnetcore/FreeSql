@@ -6,6 +6,7 @@ using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
+using Microsoft.Data.SqlClient;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -541,7 +542,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2;AllowLoadLocalInfile=true")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -576,6 +577,23 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var bulkUsers = new[] {
+                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
+                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
+                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
+
+                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
+                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
+                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
+            };
+            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
+            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
+            bulkUsers[0].Nickname += "_bulkupdate";
+            bulkUsers[1].Nickname += "_bulkupdate";
+            bulkUsers[2].Nickname += "_bulkupdate";
+            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
+
+
             var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
             var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
 
@@ -585,8 +603,8 @@ namespace base_entity
                 .ToSql();
 
 
-            var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
-            //table.SetAsTable(null, table.ColumnsByCs[nameof(AsTableLog.createtime)]);
+            //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
+            //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
 
 
             var testitems = new[]
@@ -598,9 +616,9 @@ namespace base_entity
                 new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13"), click = 5 },
                 new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13"), click = 6 },
                 new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13"), click = 7 },
-                new AsTableLog{ msg = "msg08", createtime = DateTime.Parse("2022-7-1"), click = 8},
-                new AsTableLog{ msg = "msg09", createtime = DateTime.Parse("2022-7-1 11:00:00"), click = 8}
-
+                new AsTableLog{ msg = "msg08", createtime = DateTime.Parse("2022-7-1"), click = 9},
+                new AsTableLog{ msg = "msg09", createtime = DateTime.Parse("2022-7-1 11:00:00"), click = 10},
+                new AsTableLog{ msg = "msg10", createtime = DateTime.Parse("2022-7-1 12:00:00"), click = 10}
             };
             var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();

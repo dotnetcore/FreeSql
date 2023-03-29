@@ -134,7 +134,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var upsert = that as InsertOrUpdateProvider<T>;
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return 0;
         var state = ExecuteSqlBulkCopyState(upsert);
-        return UpdateProvider.ExecuteBulkUpsert(upsert, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
+        return UpdateProvider.ExecuteBulkUpsert(upsert, state, insert => insert.ExecuteSqlBulkCopy(copyOptions | SqlBulkCopyOptions.KeepIdentity, batchSize, bulkCopyTimeout));
     }
     static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(InsertOrUpdateProvider<T> upsert) where T : class
     {
@@ -175,7 +175,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var update = that as UpdateProvider<T>;
         if (update._source.Any() != true || update._tempPrimarys.Any() == false) return 0;
         var state = ExecuteSqlBulkCopyState(update);
-        return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteSqlBulkCopy(copyOptions, batchSize, bulkCopyTimeout));
+        return UpdateProvider.ExecuteBulkUpdate(update, state, insert => insert.ExecuteSqlBulkCopy(copyOptions | SqlBulkCopyOptions.KeepIdentity, batchSize, bulkCopyTimeout));
     }
     static NativeTuple<string, string, string, string, string[]> ExecuteSqlBulkCopyState<T>(UpdateProvider<T> update) where T : class
     {
@@ -309,14 +309,14 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var upsert = that as InsertOrUpdateProvider<T>;
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return Task.FromResult(0);
         var state = ExecuteSqlBulkCopyState(upsert);
-        return UpdateProvider.ExecuteBulkUpsertAsync(upsert, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions, batchSize, bulkCopyTimeout, cancellationToken));
+        return UpdateProvider.ExecuteBulkUpsertAsync(upsert, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions | SqlBulkCopyOptions.KeepIdentity, batchSize, bulkCopyTimeout, cancellationToken));
     }
     public static Task<int> ExecuteSqlBulkCopyAsync<T>(this IUpdate<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var update = that as UpdateProvider<T>;
         if (update._source.Any() != true || update._tempPrimarys.Any() == false) return Task.FromResult(0);
         var state = ExecuteSqlBulkCopyState(update);
-        return UpdateProvider.ExecuteBulkUpdateAsync(update, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions, batchSize, bulkCopyTimeout, cancellationToken));
+        return UpdateProvider.ExecuteBulkUpdateAsync(update, state, insert => insert.ExecuteSqlBulkCopyAsync(copyOptions | SqlBulkCopyOptions.KeepIdentity, batchSize, bulkCopyTimeout, cancellationToken));
     }
     async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
