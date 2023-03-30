@@ -121,6 +121,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.QuestDb", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.AggregateRoot", "Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj", "{71A6F937-D11B-4AE4-9933-BB6B4D925665}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Xugu", "Providers\FreeSql.Provider.Xugu\FreeSql.Provider.Xugu.csproj", "{8064870C-22EA-4A58-972D-DBD57D096D91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -719,6 +721,18 @@ Global
 		{71A6F937-D11B-4AE4-9933-BB6B4D925665}.Release|x64.Build.0 = Release|Any CPU
 		{71A6F937-D11B-4AE4-9933-BB6B4D925665}.Release|x86.ActiveCfg = Release|Any CPU
 		{71A6F937-D11B-4AE4-9933-BB6B4D925665}.Release|x86.Build.0 = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|x64.Build.0 = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Debug|x86.Build.0 = Debug|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|x64.ActiveCfg = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|x64.Build.0 = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|x86.ActiveCfg = Release|Any CPU
+		{8064870C-22EA-4A58-972D-DBD57D096D91}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -758,10 +772,11 @@ Global
 		{ECF7FC70-A7FC-4FC3-9BF7-462EA0A65F9C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{8A06B18A-A8BF-4AEA-AFE4-0F573C2DBFEE} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{71A6F937-D11B-4AE4-9933-BB6B4D925665} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
+		{8064870C-22EA-4A58-972D-DBD57D096D91} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal
