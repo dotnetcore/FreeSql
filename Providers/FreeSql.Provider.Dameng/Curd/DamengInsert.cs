@@ -67,7 +67,7 @@ namespace FreeSql.Dameng.Curd
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
-                    if (string.IsNullOrEmpty(col.DbInsertValue) == false)
+                    if (string.IsNullOrEmpty(col.DbInsertValue) == false && _ignoreInsertValueSql.ContainsKey(col.Attribute.Name) == false)
                         sb.Append(col.DbInsertValue);
                     else
                     {

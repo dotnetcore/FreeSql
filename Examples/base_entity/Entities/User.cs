@@ -33,7 +33,7 @@ public class IdentityUser1
     public int Id { get; set; }
     [MaxLength(32)]
     public string Username { get; set; }
-    [MaxLength(64)]
+    [MaxLength(64), Column(InsertValueSql = "'defaultname'")]
     public string Nickname { get; set; }
 }
 

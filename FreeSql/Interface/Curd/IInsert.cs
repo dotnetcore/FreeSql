@@ -77,6 +77,14 @@ namespace FreeSql
         IInsert<T1> IgnoreColumns(string[] columns);
 
         /// <summary>
+        /// 忽略 InsertValueSql 设置，将使用实体对象的值插入<para></para>
+        /// IgnoreInsertValueSql(a => a.Name) | IgnoreInsertValueSql(a => new{a.Name,a.Time}) | IgnoreInsertValueSql(a => new[]{"name","time"})
+        /// </summary>
+        /// <param name="columns">属性名，或者字段名</param>
+        /// <returns></returns>
+        IInsert<T1> IgnoreInsertValueSql(Expression<Func<T1, object>> columns);
+
+        /// <summary>
         /// 指定可插入自增字段
         /// </summary>
         /// <returns></returns>

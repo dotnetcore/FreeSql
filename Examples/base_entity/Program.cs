@@ -587,6 +587,7 @@ namespace base_entity
                 new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
             };
             fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
+            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
             bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
             bulkUsers[0].Nickname += "_bulkupdate";
             bulkUsers[1].Nickname += "_bulkupdate";

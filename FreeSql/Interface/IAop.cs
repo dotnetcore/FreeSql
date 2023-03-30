@@ -308,9 +308,9 @@ namespace FreeSql.Aop
     #region AuditValue
     public class AuditValueEventArgs : EventArgs
     {
-        public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value, object obj)
+        public AuditValueEventArgs(AuditValueType auditValueType, ColumnInfo column, PropertyInfo property, object value, object obj)
         {
-            this.AuditValueType = autoValueType;
+            this.AuditValueType = auditValueType;
             this.Column = column;
             this.Property = property;
             this._value = value;

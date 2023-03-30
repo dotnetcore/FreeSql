@@ -20,6 +20,7 @@ namespace FreeSql.Internal.CommonProvider
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
         public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _ignoreInsertValueSql = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
         public Func<string, string> _tableRule;
@@ -72,6 +73,7 @@ namespace FreeSql.Internal.CommonProvider
             _source.Clear();
             _sourceOld = _source;
             _ignore.Clear();
+            _ignoreInsertValueSql.Clear();
             _auditValueChangedDict.Clear();
             _params = null;
             IgnoreCanInsert();
@@ -530,6 +532,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public IInsert<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
         public IInsert<T1> InsertColumns(Expression<Func<T1, object>> columns) => InsertColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
+        public IInsert<T1> IgnoreInsertValueSql(Expression<Func<T1, object>> columns) => IgnoreInsertValueSql(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
 
         public IInsert<T1> IgnoreColumns(string[] columns)
         {
@@ -547,6 +550,15 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in _table.Columns.Values)
                 if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false && _auditValueChangedDict.ContainsKey(col.Attribute.Name) == false)
                     _ignore.Add(col.Attribute.Name, true);
+            return this;
+        }
+        public IInsert<T1> IgnoreInsertValueSql(string[] columns)
+        {
+            var cols = columns.Distinct().ToDictionary(a => a);
+            _ignoreInsertValueSql.Clear();
+            foreach (var col in _table.Columns.Values)
+                if (cols.ContainsKey(col.Attribute.Name) == true || cols.ContainsKey(col.CsName) == true)
+                    _ignoreInsertValueSql.Add(col.Attribute.Name, true);
             return this;
         }
 
@@ -655,7 +667,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
-                    if (string.IsNullOrEmpty(col.DbInsertValue) == false)
+                    if (string.IsNullOrEmpty(col.DbInsertValue) == false && _ignoreInsertValueSql.ContainsKey(col.Attribute.Name) == false)
                         sb.Append(col.DbInsertValue);
                     else
                     {

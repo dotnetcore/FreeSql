@@ -1650,6 +1650,14 @@
             <param name="columns">属性名，或者字段名</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreInsertValueSql(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            忽略 InsertValueSql 设置，将使用实体对象的值插入<para></para>
+            IgnoreInsertValueSql(a => a.Name) | IgnoreInsertValueSql(a => new{a.Name,a.Time}) | IgnoreInsertValueSql(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsert`1.InsertIdentity">
             <summary>
             指定可插入自增字段
