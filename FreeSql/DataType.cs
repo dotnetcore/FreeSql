@@ -8,7 +8,7 @@ namespace FreeSql
 
         MySql, SqlServer, PostgreSQL, Oracle, Sqlite,
 
-        OdbcOracle, OdbcSqlServer, OdbcMySql, OdbcPostgreSQL, 
+        OdbcOracle, OdbcSqlServer, OdbcMySql, OdbcPostgreSQL,
 
         /// <summary>
         /// 通用的 Odbc 实现，只能做基本的 Crud 操作 <para></para>
@@ -70,6 +70,11 @@ namespace FreeSql
         GBase,
 
         QuestDb,
+
+        /// <summary>
+        /// 虚谷
+        /// </summary>
+        Xugu,
 
         CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL
     }

@@ -268,7 +268,7 @@ namespace FreeSql
                         type = Type.GetType("FreeSql.Odbc.Default.OdbcProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Default.OdbcProvider<>");
                         break;
-
+                  
                     case DataType.OdbcDameng:
                         type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Dameng.OdbcDamengProvider<>");
@@ -325,6 +325,11 @@ namespace FreeSql
                             throwNotFind("FreeSql.Provider.QuestDb.dll", "FreeSql.QuestDb.QuestDbProvider<>");
                         break;
 
+                    case DataType.Xugu:
+                        type = Type.GetType("FreeSql.Xugu.XuguProvider`1,FreeSql.Provider.Xugu")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Xugu.dll", "FreeSql.Xugu.XuguProvider<>");
+                        break;
+
                     case DataType.CustomOracle:
                         type = Type.GetType("FreeSql.Custom.Oracle.CustomOracleProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.Oracle.CustomOracleProvider<>");
@@ -344,7 +349,7 @@ namespace FreeSql
                         type = Type.GetType("FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider<>");
                         break;
-
+                     
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }

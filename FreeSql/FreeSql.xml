@@ -719,6 +719,11 @@
             天津南大通用数据技术股份有限公司成立于2004年,是国产数据库、大数据领域的知名企业，基于 Odbc 的实现
             </summary>
         </member>
+        <member name="F:FreeSql.DataType.Xugu">
+            <summary>
+            虚谷
+            </summary>
+        </member>
         <member name="M:FreeSql.AdoNetExtensions.GetIFreeSql(System.Data.IDbConnection)">
             <summary>
             获取 IDbConnection 对应的 IFreeSql 实例
