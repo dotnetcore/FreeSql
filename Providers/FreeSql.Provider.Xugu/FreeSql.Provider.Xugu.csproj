@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net60</TargetFrameworks>
+		<TargetFrameworks>net70;net60;netstandard2.0</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 虚谷数据库 Ado.Net (XuguClient.dll)</Description>
@@ -24,7 +24,11 @@
 	
 	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
-		<None Include="lib\XuguClient.dll" Pack="true" PackagePath="\lib\net60\" />
+		<None Include="lib\XuguClient\netstandard2.0\XuguClient.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
+		<None Include="lib\XuguClient\net45\XuguClient.dll" Pack="true" PackagePath="\lib\net45\" />
+		<None Include="lib/**/*.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -33,7 +37,7 @@
 
 	<ItemGroup>
 		<Reference Include="XuguClient">
-			<HintPath>lib\XuguClient.dll</HintPath>
+			<HintPath>lib\core\XuguClient.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>

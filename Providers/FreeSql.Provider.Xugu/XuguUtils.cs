@@ -97,7 +97,7 @@ namespace FreeSql.Xugu
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type; 
             if (col != null)
             {
-                var dbtype = (XGDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
+                var dbtype = (XGDbType?)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
                 if (dbtype != null)
                 { 
                     if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
