@@ -1,0 +1,1713 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>XuguClient</name>
+    </assembly>
+    <members>
+        <member name="T:XuguClient.XGCommand">
+             <summary>
+            摘要:
+                 表示要对数据源执行的 SQL 语句或存储过程。 
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.Use_Server_Cursor">
+             <summary>
+            摘要:
+             是否在下面的查询语句使用服务器端游标
+             默认是不启用游标
+             add 2016-02-04
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGCommand.Parameters">
+             <summary>
+            摘要:
+                获取 System.Data.Common.DbParameter 对象的集合。 有关参数的更多信息，请参见 配置参数和参数数据类型。
+            返回结果:
+                SQL 语句或存储过程的参数。
+             </summary>
+        </member>
+        <member name="F:XuguClient.XGCommand.ArrayBindCount">
+             <summary>
+            摘要:
+            开启批量执行多行参数绑定标志  
+             !=0 时 启动多行绑定功能
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.CommandText">
+            <summary>
+            摘要:
+                获取或设置针对数据源运行的文本命令。
+            返回结果:
+                要执行的文本命令。 默认值为空字符串 ("")。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.CommandTimeout">
+             <summary>
+             摘要:
+                 获取或设置在终止执行命令的尝试并生成错误之前的等待时间。
+            
+             返回结果:
+                 等待命令执行的时间（以秒为单位）。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.Connection">
+             <summary>
+            摘要:
+                获取或设置此 XGCommand 使用的 XGConnection。
+            返回结果:
+                与数据源的连接。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.Dispose">
+             <summary>
+             摘要:
+                 释放由XGCommand 使用的托管资源，还可以选择释放非托管资源。
+            
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.Transaction">
+             <summary>
+            摘要:
+                获取或设置将在其中执行此 System.Data.Common.DbCommand 对象的 System.Data.Common.DbTransaction。
+            返回结果:
+                要在其中执行 .NET Framework 数据提供程序的 Command 对象的事务。 默认值为 null 引用（在 Visual Basic
+                中为 Nothing）。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.CommandType">
+             <summary>
+            摘要:
+                指示或指定如何解释 System.Data.Common.DbCommand.CommandText 属性。
+            返回结果:
+                System.Data.CommandType 值之一。 默认值为 Text。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.DesignTimeVisible">
+             <summary>
+            摘要:
+                获取或设置一个值，该值指示此命令对象在自定义界面控件中是否可见。
+            返回结果:
+                如果该命令对象应在控件中可见，则为 true；否则为 false。 
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.UpdatedRowSource">
+             <summary>
+            摘要:
+                获取或设置命令结果在由 System.Data.Common.DbDataAdapter 的 Update 方法使用时如何应用于 System.Data.DataRow。
+            
+            返回结果:
+                System.Data.UpdateRowSource 值之一。 如果该命令不是自动生成的，则默认值为 Both。 否则，默认值为 None。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.Cancel">
+             <summary>
+            摘要:
+                尝试取消 XGCommand 的执行。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.CreateParameter">
+            <summary>
+            摘要:
+                在数据源上创建该命令的准备好的（或已编译的）版本。
+                该功能目前不可用
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.ExecuteNonQuery">
+             <summary>
+             摘要:
+             对连接对象执行 SQL 语句。
+             返回结果:
+             受影响的行数。
+            异常:
+               System.InValidConnectionException:
+               指定的连接无效或者尚未打开。
+               System.commandtextException:
+               CommandText不能为空
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.ExecuteReader">
+             <summary>
+             摘要:
+                 针对 System.Data.Common.DbCommand.Connection 执行 System.Data.Common.DbCommand.CommandText，并返回
+                 XGDataReader。
+            
+             返回结果:
+                 System.Data.Common.DbDataReader 对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.ExecuteReader(System.Data.CommandBehavior)">
+             <summary>
+             摘要:
+                 针对 System.Data.Common.DbCommand.Connection 执行 System.Data.Common.DbCommand.CommandText，并使用
+                 System.Data.CommandBehavior 值之一返回 System.Data.Common.DbDataReader。
+            
+             参数:
+               behavior:
+                 System.Data.CommandBehavior 值之一。
+            
+             返回结果:
+                 XGDataReader 对象。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.DbTransaction">
+             <summary>
+            摘要:
+                获取或设置将在其中执行此 System.Data.Common.DbCommand 对象的 System.Data.Common.DbCommand.DbTransaction。
+            返回结果:
+                要在其中执行 .NET Framework 数据提供程序的 Command 对象的事务。 默认值为 null 引用（在 Visual Basic
+                中为 Nothing）。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.DbConnection">
+             <summary>
+            摘要:
+                获取或设置此 System.Data.Common.DbCommand 使用的 System.Data.Common.DbConnection。
+            返回结果:
+                与数据源的连接。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGCommand.DbParameterCollection">
+             <summary>
+            摘要:
+                获取 System.Data.Common.DbParameter 对象的集合。
+            返回结果:
+                SQL 语句或存储过程的参数。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.CreateDbParameter">
+             <summary>
+            摘要:
+                创建 System.Data.Common.DbParameter 对象的新实例。
+            返回结果:
+                System.Data.Common.DbParameter 对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGCommand.ExecuteDbDataReader(System.Data.CommandBehavior)">
+             <summary>
+            摘要:
+                对连接执行命令文本。
+            参数:
+              behavior:
+                System.Data.CommandBehavior 的一个实例。
+            返回结果:
+                表示该操作的任务。
+            异常:
+              System.Data.Common.DbException:
+                执行命令文本时出现的一个错误。
+              System.ArgumentException:
+                System.Data.CommandBehavior 值无效。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.ConnectionString">
+            <summary>
+            摘要:
+                获取或设置用于打开连接的字符串。       
+            返回结果:
+                用来建立初始连接的连接字符串。该连接字符串的确切内容取决于此连接的特定数据源。默认值为空字符串。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.State">
+             <summary>
+             摘要:
+                 获取描述连接状态的字符串。
+            
+             返回结果:
+                 连接的状态。 返回的字符串的格式取决于您正在使用的连接的特定类型。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.ConnectionTimeout">
+            <summary>
+            摘要:
+                获取在建立连接时终止尝试并生成错误之前所等待的时间。
+            返回结果:
+                等待连接打开的时间（以秒为单位）。 默认值是由您正在使用的连接的特定类型确定的。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.Database">
+            <summary>
+            摘要:
+                在连接打开之后获取当前数据库的名称，或者在连接打开之前获取连接字符串中指定的数据库名。
+            返回结果:
+                当前数据库的名称或连接打开后要使用的数据库的名称。 默认值为空字符串。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.DataSource">
+            <summary>
+            摘要:
+                获取要连接的数据库服务器的名称。
+            返回结果:
+                要连接的数据库服务器的名称。 默认值为空字符串。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.ServerVersion">
+            <summary>
+            摘要:
+                获取表示对象所连接到的服务器的版本的字符串。
+            返回结果:
+                数据库的版本。 返回的字符串的格式取决于您正在使用的连接的特定类型。
+            异常:
+            System.InValidConnectionException:
+            连接尚未处于活动状态
+              System.InvalidOperationException:
+                当返回的任务尚未完成，且调用 Overload:System.Data.Common.DbConnection.OpenAsync 后连接并未打开时，将调用
+                System.Data.Common.DbConnection.ServerVersion。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.BeginTransaction">
+             <summary>
+             摘要:
+                 开始数据库事务。
+            
+             返回结果:
+                 表示新事务的对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.BeginTransaction(System.Data.IsolationLevel)">
+             <summary>
+             摘要:
+                 以指定的隔离级别启动数据库事务。
+            
+             参数:
+               isolationLevel:
+                 指定事务的隔离级别。
+            
+             返回结果:
+                 表示新事务的对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.ChangeDatabase(System.String)">
+             <summary>
+             摘要:
+                 为打开的连接更改当前数据库。
+            
+             参数:
+               databaseName:
+                 为要使用的连接指定数据库名称。
+             </summary>
+        </member>
+        <member name="E:XuguClient.XGConnection.StateChange">
+            <summary>
+            摘要:
+                当事件状态更改时发生。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.CreateCommand">
+             <summary>
+             摘要:
+                 创建并返回与当前连接关联的 System.Data.Common.DbCommand 对象。
+            
+             返回结果:
+                 System.Data.Common.DbCommand 对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.GetSchema">
+            <summary>
+            摘要:
+                返回此 System.Data.Common.DbConnection 的数据源的架构信息。
+             此版本驱动不支持此功能
+            返回结果:
+                包含架构信息的 System.Data.DataTable。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.GetSchema(System.String)">
+             <summary>
+             摘要:
+                 使用表示架构名称的指定字符串返回此 System.Data.Common.DbConnection 的数据源的架构信息。
+            
+             参数:
+               collectionName:
+                 指定要返回的架构的名称。
+            
+             返回结果:
+                 包含架构信息的 System.Data.DataTable。
+            
+             异常:
+               System.ArgumentException:
+                 collectionName 被指定为空。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.GetSchema(System.String,System.String[])">
+             <summary>
+             摘要:
+                 使用表示架构名称的指定字符串以及表示限制值的指定字符串数组返回此 System.Data.Common.DbConnection 的数据源的架构信息。
+            
+             参数:
+               collectionName:
+                 指定要返回的架构的名称。
+            
+               restrictionValues:
+                 为请求的架构指定一组限制值。
+            
+             返回结果:
+                 包含架构信息的 System.Data.DataTable。
+            
+             异常:
+               System.ArgumentException:
+                 collectionName 被指定为空。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.Open">
+            <summary>
+            摘要:
+                使用 System.Data.Common.DbConnection.ConnectionString 所指定的设置打开数据库连接。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.Close">
+             <summary>
+             摘要:
+                 关闭与数据库的连接。 此方法是关闭任何已打开连接的首选方法。
+            
+             异常:
+               System.Data.Common.DbException:
+                 在打开连接时出现连接级别的错误。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.Dispose">
+            <summary>
+            摘要:
+            释放资源
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.Close_ServerCursor(System.String)">
+             <summary>
+            关闭服务器端游标
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.BeginDbTransaction(System.Data.IsolationLevel)">
+             <summary>
+             摘要:
+                 开始数据库事务。
+            
+             参数:
+               isolationLevel:
+                 指定事务的隔离级别。
+            
+             返回结果:
+                 表示新事务的对象。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGConnection.DbProviderFactory">
+            <summary>
+            摘要:
+                获取此 System.Data.Common.DbConnection 的 System.Data.Common.DbProviderFactory。
+            返回结果:
+                一组方法的集合，这些方法用于创建提供程序对数据源类的实现的实例。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.CreateDbCommand">
+             <summary>
+             摘要:
+                 创建并返回与当前连接关联的 System.Data.Common.DbCommand 对象。
+            
+             返回结果:
+                 System.Data.Common.DbCommand 对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnection.OnStateChange(System.Data.StateChangeEventArgs)">
+             <summary>
+             摘要:
+                 引发 System.Data.Common.DbConnection.StateChange 事件。
+            
+             参数:
+               stateChange:
+                 包含事件数据的 System.Data.StateChangeEventArgs。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGConnectionStringBuilder.BrowsableConnectionString">
+            <summary>
+            如果连接字符串在设计器中可见，则为 true；否则为 false。默认值为 true。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGConnectionStringBuilder.IsFixedSize">
+             <summary>
+            DbConnectionStringBuilder 是否具有固定大小。
+             </summary>   
+        </member>
+        <member name="P:XuguClient.XGConnectionStringBuilder.IsReadOnly">
+             <summary>
+            DbConnectionStringBuilder 是否为只读。
+            </summary>   
+        </member>
+        <member name="P:XuguClient.XGConnectionStringBuilder.Keys">
+             <summary>
+            返回 一个 System.Collections.ICollection  内部包含System.Data.Common.DbConnectionStringBuilder   中的键。
+             </summary>   
+        </member>
+        <member name="P:XuguClient.XGConnectionStringBuilder.Item(System.String)">
+             <summary>
+             摘要:
+                 获取或设置与指定的键关联的值。
+            
+             参数:
+               keyword:
+                 要获取或设置的项的键。
+            
+             返回结果:
+                 与指定的键相关联的值。 如果指定键未找到，尝试让其返回空引用（在 Visual Basic 中为 Nothing），并尝试设置为使用指定键创建新的元素。
+                 传递 null 键（在 Visual Basic 中为 Nothing）将引发 System.ArgumentNullException。 分配一个删除键/值对的
+                 null 值。
+            
+             异常:
+               T:System.ArgumentNullException:
+                 keyword 为空引用（在 Visual Basic 中为 Nothing）。
+            
+               T:System.NotSupportedException:
+                 设置了该属性，但 System.Data.Common.DbConnectionStringBuilder 为只读。 - 或 - 设置了该属性，但 keyword
+                 不存在于集合中，且 System.Data.Common.DbConnectionStringBuilder 具有固定的大小。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.Add(System.String,System.Object)">
+             <summary>
+             摘要:
+                 将带有指定键和值的条目添加到 System.Data.Common.DbConnectionStringBuilder 中。
+            
+             参数:
+               keyword:
+                 要添加到 System.Data.Common.DbConnectionStringBuilder 的键。
+            
+               value:
+                 指定键的值。
+            
+             异常:
+               T:System.ArgumentNullException:
+                 keyword 为空引用（在 Visual Basic 中为 Nothing）。
+            
+               T:System.NotSupportedException:
+                 System.Data.Common.DbConnectionStringBuilder 为只读。 - 或 - System.Data.Common.DbConnectionStringBuilder
+                 具有固定的大小。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.Clear">
+             <summary>
+             摘要:
+                 清除 System.Data.Common.DbConnectionStringBuilder 实例的内容。
+            
+             异常:
+               T:System.NotSupportedException:
+                 System.Data.Common.DbConnectionStringBuilder 为只读。 
+             </summary> 
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.ClearPropertyDescriptors">
+             <summary>
+             摘要:
+                清除关联的 System.Data.Common.DbConnectionStringBuilder 上的 System.ComponentModel.PropertyDescriptor
+                 对象集合。
+            清除关联的 PropertyDescriptor 上的 DbConnectionStringBuilder 对象集合。
+            
+             注解
+             设计器使用此方法清除 DbConnectionStringBuilder上的所有关联属性说明符。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.ContainsKey(System.String)">
+             <summary>
+             摘要:
+                 确定 XGConnectionStringBuilder 是否包含特定键。
+            
+             参数:
+               keyword:
+                 要在 XGConnectionStringBuilder 中定位的键。
+            
+             返回结果:
+                 如果 XGConnectionStringBuilder 包含具有指定键的项，则为 true；否则为 false。
+            
+             异常:
+               T:System.ArgumentNullException:
+                 keyword 为空引用（在 Visual Basic 中为 Nothing）。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.EquivalentTo(System.Data.Common.DbConnectionStringBuilder)">
+             <summary>
+             摘要:
+                 将此 System.Data.Common.DbConnectionStringBuilder 对象中的连接信息与提供的对象中的连接信息进行比较。
+            
+             参数:
+               connectionStringBuilder:
+                 要与此 System.Data.Common.DbConnectionStringBuilder 对象进行比较的 System.Data.Common.DbConnectionStringBuilder。
+            
+             返回结果:
+                 如果两个 System.Data.Common.DbConnectionStringBuilder 对象中的连接信息生成等效的连接字符串，则为 true；否则为
+                 false。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.GetProperties(System.Collections.Hashtable)">
+            <summary>
+            摘要:
+            使用有关此 Hashtable 的所有属性的信息，填充提供的 DbConnectionStringBuilder。
+            
+             参数
+             propertyDescriptors
+             Hashtable
+            使用有关此 Hashtable 的信息填充的 DbConnectionStringBuilder。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.Remove(System.String)">
+             <summary>
+             摘要:
+                 从 System.Data.Common.DbConnectionStringBuilder 实例中移除具有指定的键的项。
+            
+             参数:
+               keyword:
+                 要从此 System.Data.Common.DbConnectionStringBuilder 中的连接字符串移除的键/值对中的键。
+            
+             返回结果:
+                 如果该键存在于连接字符串中并已被移除，则为 true；如果该键不存在，则为 false。
+            
+             异常:
+               T:System.ArgumentNullException:
+                 keyword 为 Null（在 Visual Basic 中为 Nothing）
+            
+               T:System.NotSupportedException:
+                 System.Data.Common.DbConnectionStringBuilder 是只读，或 System.Data.Common.DbConnectionStringBuilder
+                 具有固定的大小。
+             </summary>  
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.ShouldSerialize(System.String)">
+             <summary>
+             摘要:
+                指示此 XGConnectionStringBuilder 实例中是否存在指定的键。
+            参数
+             keyword
+            String
+            要在 XGConnectionStringBuilder 中定位的键。
+            返回
+             Boolean
+             如果 true 包含具有指定键的项，则为 XGConnectionStringBuilder；否则为 false。
+             注解
+             此方法的行为与 ContainsKey 方法完全相同。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.ToString">
+             <summary>
+             摘要:
+                 返回与此 System.Data.Common.DbConnectionStringBuilder 关联的连接字符串。
+            
+             返回结果:
+                 当前 System.Data.Common.DbConnectionStringBuilder.ConnectionString 属性。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGConnectionStringBuilder.TryGetValue(System.String,System.Object@)">
+             <summary>
+             摘要:
+                 从此 System.Data.Common.DbConnectionStringBuilder 中检索与提供的键相对应的值。
+            
+             参数:
+               keyword:
+                 要检索的项的键。
+            
+               value:
+                 与 key 对应的值。
+            
+             返回结果:
+                 如果在连接字符串中找到 keyword，则为 true，否则为 false。
+            
+             异常:
+               T:System.ArgumentNullException:
+                 keyword 包含一个 null 值（在 Visual Basic 中为 Nothing）。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataAdapter.#ctor(System.String,XuguClient.XGConnection)">
+            <summary>
+            摘要:
+              用一个 SQL SELECT 语句和一个 XuguCsConnecion初始化 XGDataAdapter 类的新实例。
+              selectCommandText:  一个字符串，表示将由 XGDataAdapter 的 XGDataAdapter.SelectCommand  属性使用的 SQL SELECT 语句或存储过程。
+              selectConnection:        表示连接的 XGConnection。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGDataAdapter.#ctor(System.String,System.String)">
+            <summary>
+            摘要:
+              使用 SQL SELECT 语句和连接字符串初始化 XGDataAdapter类的新实例。
+              selectCommandText: 一个字符串，表示将由 XGDataAdapter 的 XGDataAdapter.SelectCommand  属性使用的 SQL SELECT 语句或存储过程。
+              selectConnectionString:   连接字符串。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGDataAdapter.GetFullTableName(System.String)">
+            <summary>
+            从查询SQL中获取完整表名（模式名.表名）
+            </summary>
+            <param name="selectSQL">查询SQL</param>
+            <returns>表名 或 模式名.表名</returns>
+        </member>
+        <member name="P:XuguClient.XGDataReader.Depth">
+             <summary>
+             摘要:
+                 获取一个值，该值指示当前行的嵌套深度。
+            
+             返回结果:
+                 当前行的嵌套深度。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.FieldCount">
+             <summary>
+             摘要:
+                 获取当前行中的列数。
+            
+             返回结果:
+                 当前行中的列数。
+            
+             异常:
+               System.NotSupportedException:
+                 没有对 SQL Server 实例的当前连接。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.HasRows">
+             <summary>
+             摘要:
+                 获取一个值，它指示此 XGDataReader是否包含一个或多个行。
+            
+             返回结果:
+                 如果 XGDataReader 包含一行或多行，则为 true；否则为 false。
+               异常:
+               System.InvalidOperationException:
+                 XGDataReader  是关闭的。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.IsClosed">
+             <summary>
+             摘要:
+                 获取一个值，该值指示 XGDataReader 是否已关闭。
+            
+             返回结果:
+                 如果 XGDataReader 已关闭，则为 true；否则为 false。
+            
+             异常:
+               System.InvalidOperationException:
+                 XGDataReader  是关闭的。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.RecordsAffected">
+             <summary>
+             摘要:
+                 通过执行 SQL 语句获取更改、插入或删除的行数。
+            
+             返回结果:
+                 更改、插入或删除的行数。 对于 SELECT 语句为 -1；如果没影响任何行或该语句失败，则为 0。
+                 异常:
+               System.InvalidOperationException:
+                 XGDataReader  是关闭的。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.Item(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的作为 System.Object 的实例的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+              
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.IndexOutOfRangeException:
+                 传递的索引位于 0 至 System.Data.IDataRecord.FieldCount 的范围之外。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGDataReader.Item(System.String)">
+             <summary>
+             摘要:
+                 获取指定列的作为 System.Object 的实例的值。
+            
+             参数:
+               name:
+                 列的名称。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.IndexOutOfRangeException:
+                 未找到具有指定名称的列。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.Close">
+            <summary>
+            摘要:
+                关闭 XGDataReader 对象。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.Dispose">
+            <summary>
+            摘要:
+                释放由 XGDataReader 类的当前实例占用的所有资源。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetBoolean(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的布尔值形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetByte(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的字节形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetBytes(System.Int32,System.Int64,System.Byte[],System.Int32,System.Int32)">
+             <summary>
+             摘要:
+                 从指定列读取一个字节流（从 dataOffset 指示的位置开始），读到缓冲区中（从 bufferOffset 指示的位置开始）。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+               dataOffset:
+                 行中的索引，从其开始读取操作。
+            
+               buffer:
+                 作为数据复制目标的缓冲区。
+            
+               bufferOffset:
+                 具有作为数据复制目标的缓冲区的索引。
+            
+               length:
+                 最多读取的字符数。
+            
+             返回结果:
+                 读取的实际字节数。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetChar(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的单个字符串形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetChars(System.Int32,System.Int64,System.Char[],System.Int32,System.Int32)">
+             <summary>
+             摘要:
+                 从指定列读取一个字符流，从 dataOffset 指示的位置开始，读到缓冲区中，从 bufferOffset 指示的位置开始。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+               dataOffset:
+                 行中的索引，从其开始读取操作。
+            
+               buffer:
+                 作为数据复制目标的缓冲区。
+            
+               bufferOffset:
+                 具有作为数据复制目标的缓冲区的索引。
+            
+               length:
+                 最多读取的字符数。
+            
+             返回结果:
+                 读取的实际字符数。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetDataTypeName(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的数据类型的名称。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 表示数据类型的名称的字符串。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetDate(System.Int32)">
+             <summary>
+             摘要:
+                 返回被请求的列序号的 System.Data.Common.DbDataReader 对象。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 System.Data.Common.DbDataReader 对象。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetDateTime(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的 System.DateTime 对象形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetDecimal(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的 System.Decimal 对象形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetDouble(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的双精度浮点数形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetEnumerator">
+             <summary>
+             摘要:
+                 返回一个 System.Collections.IEnumerator，可用于循环访问数据读取器中的行。
+            
+             返回结果:
+                 一个 System.Collections.IEnumerator，可用于循环访问数据读取器中的行。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetFieldType(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的数据类型。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的数据类型。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetFloat(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的单精度浮点数形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary> 
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetGuid(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的全局唯一标识符 (GUID) 形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetInt16(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的 16 位有符号整数形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetInt32(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的 32 位有符号整数形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetInt64(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的 64 位有符号整数形式的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+                 System.IndexOutOfRangeException:
+                 指定的列序号i无效 
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetName(System.Int32)">
+             <summary>
+             摘要:
+                 给定了从零开始的列序号时，获取列的名称。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的名称。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetTableName">
+            <summary>
+            摘要:
+                获取表的名称。       
+            返回结果:
+                表的名称。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetOrdinal(System.String)">
+             <summary>
+             摘要:
+                 给定列名称时，获取列序号。
+            
+             参数:
+               name:
+                 列的名称。
+            
+             返回结果:
+                 从零开始的列序号。
+            
+             异常:
+               System.IndexOutOfRangeException:
+                 指定的名称不是有效的列名称。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetSchemaTable">
+             <summary>
+             摘要:
+                 返回一个 System.Data.DataTable，它描述 System.Data.Common.DbDataReader 的列元数据。
+            
+             返回结果:
+                 一个描述列元数据的 System.Data.DataTable。
+            
+             异常:
+               System.InvalidOperationException:
+                 XGDataReader 是关闭的。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetString(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的作为 System.String 的实例的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetXGClob(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的作为 XGClob 的实例的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetXGBlob(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的作为 XGBlob 的实例的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+            
+             异常:
+               System.InvalidCastException:
+                 指定的强制转换无效。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetValue(System.Int32)">
+             <summary>
+             摘要:
+                 获取指定列的作为 System.Object 的实例的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 指定列的值。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.GetValues(System.Object[])">
+             <summary>
+             摘要:
+                 使用当前行的列值来填充对象数组。
+            
+             参数:
+               values:
+                 要将特性列复制到其中的 System.Object 数组。
+            
+             返回结果:
+                 数组中 System.Object 的实例的数目。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.IsDBNull(System.Int32)">
+             <summary>
+             摘要:
+                 获取一个值，该值指示列中是否包含不存在的或已丢失的值。
+            
+             参数:
+               ordinal:
+                 从零开始的列序号。
+            
+             返回结果:
+                 如果指定的列与 System.DBNull 等效，则为 true；否则为 false。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.NextResult">
+             <summary>
+             摘要:
+                 读取批处理语句的结果时，使读取器前进到下一个结果。
+            
+             返回结果:
+                 如果存在多个结果集，则为 true；否则为 false。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.Read">
+             <summary>
+             摘要:
+                 将读取器XGDataReader 前进到结果集中的下一个记录。
+            
+             返回结果:
+                 如果存在多个行，则为 true；否则为 false。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGDataReader.Dispose(System.Boolean)">
+             <summary>
+             摘要:
+                 释放由 XGDataReader 使用的托管资源，还可以选择释放非托管资源。
+            
+             参数:
+               disposing:
+                 若要释放托管资源和非托管资源，则为 true；若要仅释放非托管资源，则为 false。
+             </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Empty">
+            <summary>
+            无任何值（DBTYPE_EMPTY）。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Bool">
+            <summary>
+            布尔类型，其取值为：true、false或unknown。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Char">
+            <summary>
+            固定长度字符串（SQL_CHAR）。它映射到 System.String。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.TinyInt">
+            <summary>
+            8 位带符号的整数（DBTYPE_I1）。它映射到 System.SByte。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.SmallInt">
+            <summary>
+            确切数值，其精度为 5，小数位数为 0（有符号：-32,768 &lt;= n &lt;= 32,767，没有符号：0 &lt;= n &lt;= 65,535）（SQL_SMALLINT）。它映射到 System.Int16。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Int">
+            <summary>
+            确切数值，其精度为 10 和小数位数 0（有符号：-2[31] &lt;= n &lt;= 2[31] - 1，没有符号：0 &lt;= n &lt;= 2[32] - 1）（SQL_INTEGER）。它映射到 System.Int32。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.BigInt">
+            <summary>
+            确切数值，其精度为 19（如果有符号）或 20（如果没有符号），小数位数为 0（有符号：-2[63] &lt;= n &lt;= 2[63] - 1，没有符号：0 &lt;= n &lt;= 2[64] - 1）（SQL_BIGINT）。它映射到 System.Int64。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Real">
+            <summary>
+            有符号的近似数值，其二进制精度为 24（零或绝对值为 10[-38] 到 10[38]）（SQL_REAL）。它映射到 System.Single。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Numeric">
+            <summary>
+            有符号的确切数值，其精度为 p，小数位数为 s，其中 1 &lt;= p &lt;= 15 并且 s &lt;= p （SQL_NUMERIC）。该数据类型将映射到System.Decimal。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Double">
+            <summary>
+            有符号的近似数值，其二进制精度为 53（零或绝对值为 10[-308] 到 10[308]）（SQL_DOUBLE）。它映射到 System.Double。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.DateTime">
+            <summary>
+            日期数据，存储为双精度型（DBTYPE_DATE）。整数部分是自 1899 年 12 月 30 日以来的天数，而小数部分是不足一天的部分。它映射到System.DateTime。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Date">
+            <summary>
+            格式为 yyyymmdd 的日期数据（SQL_TYPE_DATE）。它映射到 System.DateTime。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Time">
+            <summary>
+            格式为 hhmmss 的日期数据（SQL_TYPE_TIMES）。它映射到 System.DateTime。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.VarChar">
+            <summary>
+            变长流字符串（SQL_CHAR）。它映射到 System.String。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.Binary">
+            <summary>
+            二进制数据流 (SQL_BINARY)。它映射到 System.Byte 类型的 System.Array。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.VarBinary">
+            <summary>
+            变长二进制。由用户设置该最大值 (SQL_VARBINARY)。它映射到 System.Byte 类型的 System.Array。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.RefCursor">
+            <summary>
+            游标。可作为存储过程的输出参数类型和存储函数的返回值类型。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.LongVarChar">
+            <summary>
+            最大长度因数据源而定 (SQL_LONGVARCHAR)。它映射到 System.String。
+            </summary>
+        </member>
+        <member name="F:XuguClient.XGDbType.LongVarBinary">
+            <summary>
+            长的二进制值（BLOB）。它映射到 System.Byte 类型的 System.Array。
+            </summary>
+        </member>
+        <member name="M:XuguClient.Common_.DbType_to_XuguDbType(System.Data.DbType)">
+            <summary>
+            根据DbType获取对应的XGDbType。
+            </summary>
+            <param name="type">DbType</param>
+            <returns>XGDbType</returns>
+        </member>
+        <member name="M:XuguClient.Common_.XuguDbType_to_DbType(XuguClient.XGDbType)">
+            <summary>
+            根据XGDbType获取对应的DbType。
+            </summary>
+            <param name="type">XGDbType</param>
+            <returns>DbType</returns>
+        </member>
+        <member name="M:XuguClient.Common_.turn_SiglDbtype2XuguDbType(System.Type,XuguClient.XGDbType)">
+            <summary>
+            根据值的Type和指定的XGDbType共同决定以获取对应的XGDbType。
+            </summary>
+            <param name="types">值的Type</param>
+            <param name="am_type">XGDbType</param>
+            <returns>对应的XGDbType</returns>
+        </member>
+        <member name="M:XuguClient.Common_.turn_ArrayDbtype2XuguDbType(System.Type,XuguClient.XGDbType)">
+            <summary>
+            根据数组类型获取对应的XGDbType。
+            </summary>
+            <param name="types">数组的Type</param>
+            <param name="am_type">参数的Type</param>
+            <returns>对应的XGDbType</returns>
+        </member>
+        <member name="T:XuguClient.XGParameters">
+            <summary>
+            用于参数绑定的类。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.DbType">
+             <summary>
+             摘要:
+                 获取或设置参数的 System.Data.DbType。
+            
+             返回结果:
+                 System.Data.DbType 值之一。 默认值为 System.Data.DbType.String。
+            
+             异常:
+               System.ArgumentException:
+                 该属性未设置为有效的 System.Data.DbType。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.Value">
+             <summary>
+             摘要:
+                 获取或设置该参数的值。
+            
+             返回结果:
+                 一个 System.Object，它是该参数的值。 默认值为 null。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGParameters.Clone">
+            <summary>
+            创建作为当前实例副本的新对象。
+            </summary>
+            <returns>作为此实例副本的新对象。</returns>
+        </member>
+        <member name="P:XuguClient.XGParameters.Direction">
+             <summary>
+             摘要:
+                 获取或设置一个值，该值指示参数是只可输入、只可输出、双向还是存储过程返回值参数。
+            
+             返回结果:
+                 System.Data.ParameterDirection 值之一。 默认值为 Input。
+            
+             异常:
+               System.ArgumentException:
+                 该属性未设置为有效的 System.Data.ParameterDirection 值之一。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.Size">
+             <summary>
+             摘要:
+                 获取或设置列中数据的最大大小（以字节为单位）。
+            
+             返回结果:
+                 列中数据的最大大小（以字节为单位）。 默认值是从参数值推导出的。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor">
+            <summary>
+            无参的XGParameters构造方法。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor(System.String,System.Object)">
+            <summary>
+            通过参数名和参数值构造XGParameters对象。
+            </summary>
+            <param name="name">参数的名</param>
+            <param name="value">参数的值</param>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor(XuguClient.XGParameters)">
+            <summary>
+            通过XGParameters对象构造新的XGParameters副本。
+            </summary>
+            <param name="param">源XGParameters对象</param>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor(System.String,XuguClient.XGDbType)">
+            <summary>
+            通过参数名和虚谷数据库的类型构造XGParameters对象。
+            </summary>
+            <param name="name">参数的名</param>
+            <param name="xgDbType">虚谷数据库的类型</param>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor(System.String,XuguClient.XGDbType,System.Int32)">
+            <summary>
+            通过参数名、虚谷数据库的类型和参数大小构造XGParameters对象。
+            </summary>
+            <param name="name">参数的名</param>
+            <param name="xgDbType">虚谷数据库的类型</param>
+            <param name="size">参数值所占字节大小</param>
+        </member>
+        <member name="M:XuguClient.XGParameters.#ctor(System.String,XuguClient.XGDbType,System.Int32,System.Data.ParameterDirection,System.Boolean,System.Byte,System.Byte,System.String,System.Data.DataRowVersion,System.Object)">
+            <summary>
+            构造XGParameters对象。
+            </summary>
+            <param name="name">参数的名</param>
+            <param name="xgDbType">虚谷数据库的类型</param>
+            <param name="size">参数值所占字节大小</param>
+            <param name="parameterDirection">参数的方向：Input，Output，InputOutput或ReturnValue</param>
+            <param name="isNullable">无意义</param>
+            <param name="precision">无意义</param>
+            <param name="scale">无意义</param>
+            <param name="srcColumn">无意义</param>
+            <param name="srcVersion">无意义</param>
+            <param name="value">参数的值</param>
+        </member>
+        <member name="P:XuguClient.XGParameters.ParameterName">
+             <summary>
+             摘要:
+                 获取或设置 System.Data.Common.DbParameter 的名称。
+            
+             返回结果:
+                 System.Data.Common.DbParameter 的名称。 默认值为空字符串 ("")。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.SourceColumn">
+             <summary>
+             摘要:
+                 获取或设置源列的名称，该源列映射到 System.Data.DataSet 并用于加载或返回 System.Data.Common.DbParameter.Value。
+            
+             返回结果:
+                 映射到 System.Data.DataSet 的源列的名称。 默认值为空字符串。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.SourceColumnNullMapping">
+             <summary>
+             摘要:
+                 设置或获取一个值，该值指示源列是否可以为 null。 这使得 System.Data.Common.DbCommandBuilder 能够正确地为可以为
+                 null 的列生成 Update 语句。
+            
+             返回结果:
+                 如果源列可以为 null，则为 true；如果不可以为 null，则为 false。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.IsNullable">
+             <summary>
+             摘要:
+                 获取或设置一个值，该值指示参数是否接受空值。
+            
+             返回结果:
+                 如果接受 null 值，则为 true；否则为 false。 默认值为 false。
+             </summary>
+        </member>
+        <member name="P:XuguClient.XGParameters.SourceVersion">
+             <summary>
+             摘要:
+                 获取或设置在加载 System.Data.Common.DbParameter.Value 时使用的 System.Data.DataRowVersion。
+            
+             返回结果:
+                 System.Data.DataRowVersion 值之一。 默认值为 Current。
+            
+             异常:
+               System.ArgumentException:
+                 该属性未设置为 System.Data.DataRowVersion 值之一。
+             </summary>
+        </member>
+        <member name="M:XuguClient.XGParameters.ResetDbType">
+            <summary>
+            摘要:
+                将 DbType 属性重置为其原始设置。
+                 此版本驱动不支持此功能
+            </summary>
+        </member>
+        <member name="T:XuguClient.Param_IEnumerator">
+            <summary>
+            XGParameters枚举器类。
+            </summary>
+        </member>
+        <member name="P:XuguClient.Param_IEnumerator.Current">
+            <summary>
+            枚举器中的当前元素。
+            </summary>
+        </member>
+        <member name="M:XuguClient.Param_IEnumerator.#ctor(System.Collections.Generic.List{XuguClient.XGParameters})">
+            <summary>
+            构造方法。
+            </summary>
+            <param name="list">包含XGParameters的List对象</param>
+        </member>
+        <member name="M:XuguClient.Param_IEnumerator.MoveNext">
+            <summary>
+            移动到枚举器中的下一个元素。
+            </summary>
+            <returns>成功移动到下一元素返回True，否则返回False</returns>
+        </member>
+        <member name="M:XuguClient.Param_IEnumerator.Reset">
+            <summary>
+            将枚举器的位置移动到集合的第一个元素之前。
+            </summary>
+        </member>
+        <member name="M:XuguClient.Param_IEnumerator.GetEnumerator">
+            <summary>
+            获取当前枚举器
+            </summary>
+            <returns>当前的枚举器</returns>
+        </member>
+        <member name="T:XuguClient.XGParameterCollection">
+            <summary>
+            XGParameters集合类。
+            </summary>
+        </member>
+        <member name="P:XuguClient.XGParameterCollection.Count">
+            <summary>
+            集合所拥有的元素个数。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.#ctor">
+            <summary>
+            构造XGParameterCollection对象。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.Object)">
+            <summary>
+            向集合中添加XGParameters对象。
+            </summary>
+            <param name="obj">需要被添加的XGParameters对象</param>
+            <returns>被添加的元素在集合中的位置</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(XuguClient.XGParameters)">
+            <summary>
+            向集合中添加XGParameters对象。
+            </summary>
+            <param name="obj">需要被添加的XGParameters对象</param>
+            <returns>被添加成功的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,System.Object)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值为value的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="value">XGParameters对象的参数值</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,XuguClient.XGDbType)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值类型为type的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="xgDbType">XGParameters对象的参数值在虚谷数据库中的类型</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,XuguClient.XGDbType,System.Int32)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值类型为type，参数值所占大小为size的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="xgDbType">XGParameters对象的参数值在虚谷数据库中的类型</param>
+            <param name="size">XGParameters对象的参数值所占字节数</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,XuguClient.XGDbType,System.Data.ParameterDirection)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值类型为type，参数方向为direction的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="xgDbType">XGParameters对象的参数值在虚谷数据库中的类型</param>
+            <param name="direction">XGParameters对象的参数方向，其取值为：Input，Output，InputOutput或ReturnValue</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,XuguClient.XGDbType,System.Object,System.Data.ParameterDirection)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值类型为type，参数值为value，参数方向为direction的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="xgDbType">XGParameters对象的参数值在虚谷数据库中的类型</param>
+            <param name="value">XGParameters对象的参数值</param>
+            <param name="direction">XGParameters对象的参数方向，其取值为：Input，Output，InputOutput或ReturnValue</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Add(System.String,XuguClient.XGDbType,System.Int32,System.Object,System.Data.ParameterDirection)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值类型为type，参数值大小为size，参数值为value，参数方向为direction的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="xgDbType">XGParameters对象的参数值在虚谷数据库中的类型</param>
+            <param name="size">参数值所占字节大小</param>
+            <param name="value">XGParameters对象的参数值</param>
+            <param name="direction">XGParameters对象的参数方向，其取值为：Input，Output，InputOutput或ReturnValue</param>
+            <returns></returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.AddRange(System.Array)">
+            <summary>
+            将一个Array中包含的多个XGParameters对象批量添加到集合中。
+            </summary>
+            <param name="values">包含多个XGParameters对象的Array对象</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.AddWithValue(System.String,System.Object)">
+            <summary>
+            向集合中添加一个参数名为parameterName，参数值为value的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="value">XGParameters对象的参数值</param>
+            <returns>当前的XGParameters对象</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Clear">
+            <summary>
+            从集合中移除所有的XGParameters对象。
+            </summary>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Insert(System.Int32,System.Object)">
+            <summary>
+            在集合中索引为index处插入一个参数值为value的XGParameters对象。
+            </summary>
+            <param name="index">插入的位置</param>
+            <param name="value">被插入的XGParameters对象的参数值</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.RemoveAt(System.Int32)">
+            <summary>
+            从集合中移除索引为index的XGParameters对象。
+            </summary>
+            <param name="index">需要被移除的XGParameters对象的索引</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.RemoveAt(System.String)">
+            <summary>
+            从集合中移除参数名为parameterName的XGParameters对象。
+            </summary>
+            <param name="parameterName">参数名</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Contains(System.Object)">
+            <summary>
+            当前集合中是否包含参数值为value的XGParameters对象。
+            </summary>
+            <param name="value">XGParameters对象的参数值</param>
+            <returns>包含返回True，否则返回False</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Contains(System.String)">
+            <summary>
+            当前集合中是否包含参数名为parameterName的XGParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <returns>包含返回True，否则返回False</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.GetEnumerator">
+            <summary>
+            获取枚举器。
+            </summary>
+            <returns>当前集合的枚举器</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.IndexOf(System.Object)">
+            <summary>
+            获取参数值为value的XGParameters对象在集合中的索引。返回-1表示此集合中不存在参数值为value的XGParameters对象。
+            </summary>
+            <param name="value">所查找的XGParameters对象的参数值</param>
+            <returns>参数值为value的XGParameters对象在集合中的索引</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.IndexOf(System.String)">
+            <summary>
+            获取参数名为parameterName的XGParameters对象在集合中的索引。返回-1表示此集合中不存在参数名为parameterName的XGParameters对象。
+            </summary>
+            <param name="parameterName">所查找的XGParameters对象的参数名</param>
+            <returns>参数名为parameterName的XGParameters对象在集合中的索引</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.GetParameter(System.Int32)">
+            <summary>
+            根据索引从集合中获取XGParameters对象。
+            </summary>
+            <param name="index">索引值，从零开始</param>
+            <returns>该索引的元素，若需使用XGParameters需强转</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.GetParameter(System.String)">
+            <summary>
+            根据XGParameters参数名从集合中获取DbParameters对象。
+            </summary>
+            <param name="parameterName">XGParameters参数名</param>
+            <returns>目标元素，若需使用XGParameters需强转</returns>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.SetParameter(System.Int32,System.Data.Common.DbParameter)">
+            <summary>
+            修改集合中索引为index的元素。
+            </summary>
+            <param name="index">索引值，从零开始</param>
+            <param name="value">新的XGParameters对象</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.SetParameter(System.String,System.Data.Common.DbParameter)">
+            <summary>
+            修改集合中参数名为parameterName的元素。
+            </summary>
+            <param name="parameterName">XGParameters对象的参数名</param>
+            <param name="value">新的XGParameters对象</param>
+        </member>
+        <member name="M:XuguClient.XGParameterCollection.Remove(System.Object)">
+            <summary>
+            从集合中移除指定的XGParameters对象。
+            </summary>
+            <param name="value">需要被移除的XGParameters对象</param>
+        </member>
+    </members>
+</doc>
