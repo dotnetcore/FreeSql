@@ -28,8 +28,7 @@ namespace FreeSql.Internal
         public abstract string FormatSql(string sql, params object[] args);
 
         public bool IsQuoteSqlName = true;
-        public string QuoteSqlName(params string[] name)
-        {
+        public string QuoteSqlName(params string[] name) {
             if (IsQuoteSqlName) return QuoteSqlNameAdapter(name);
             if (name == null) return "";
             return string.Join(".", name);
@@ -41,10 +40,10 @@ namespace FreeSql.Internal
         {
             if (string.IsNullOrEmpty(name)) return null;
             if (name.IndexOf(leftQuote) == -1) return name.Split(new[] { '.' }, size);
-            name = Regex.Replace(name,
-                (leftQuote == '[' ? "\\" : "") +
+            name = Regex.Replace(name, 
+                (leftQuote == '[' ? "\\" : "") + 
                 leftQuote + @"([^" + (rightQuote == ']' ? "\\" : "") + rightQuote + @"]+)" +
-                (rightQuote == ']' ? "\\" : "") +
+                (rightQuote == ']' ? "\\" : "") + 
                 rightQuote, m => m.Groups[1].Value.Replace('.', '?'));
             var ret = name.Split(new[] { '.' }, size);
             for (var a = 0; a < ret.Length; a++)
@@ -146,7 +145,7 @@ namespace FreeSql.Internal
                                     AsTable = attr.AsTable
                                 }
                             };
-                            _orm.Aop.ConfigEntityHandler(_orm, aope);
+                            _orm.Aop.ConfigEntityHandler(_orm, aope); 
                             var tryattr = aope.ModifyResult;
                             if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != type.Name) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
@@ -481,25 +480,6 @@ namespace FreeSql.Internal
                 sb.Append(')');
                 return sb.ToString();
             }
-            else if (dywhere is IDictionary<string, object> iDictWhere)
-            {
-                var sb = new StringBuilder();
-                var psidx = 0;
-                foreach (var p in iDictWhere)
-                {
-                    var colName = table.Columns.Keys.FirstOrDefault(x=> x.Equals(p.Key, StringComparison.OrdinalIgnoreCase));
-                    table.Columns.TryGetValue(colName, out var trycol); 
-                    if (trycol == null) continue;
-
-                    if (psidx > 0) sb.Append(" AND ");
-                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name)).Append(" = ");
-                    sb.Append(RewriteColumn(trycol, GetNoneParamaterSqlValue(null, null, trycol, trycol.Attribute.MapType, Utils.GetDataReaderValue(trycol.Attribute.MapType,
-                        p.Value))));
-                    ++psidx;
-                }
-                if (psidx == 0) return "";
-                return sb.ToString();
-            }
             else if (dywhere is IEnumerable)
             {
                 var sb = new StringBuilder();
@@ -627,8 +607,7 @@ namespace FreeSql.Internal
 
             string GetByAttribute(object[] attrs, string attributeName)
             {
-                var dyattr = attrs?.Where(a =>
-                {
+                var dyattr = attrs?.Where(a => {
                     return ((a as Attribute)?.TypeId as Type)?.Name == attributeName;
                 }).FirstOrDefault();
                 if (dyattr == null) return null;
@@ -646,8 +625,8 @@ namespace FreeSql.Internal
                 object[] attrs = null;
                 try
                 {
-                    attrs = prop == null ?
-                        type.GetCustomAttributes(false).ToArray() :
+                    attrs = prop == null ? 
+                        type.GetCustomAttributes(false).ToArray() : 
                         prop.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
                 }
                 catch { }
