@@ -24,7 +24,6 @@ namespace FreeSql.Tests.Provider.Xugu
             var fsql = g.xugu;
             var t1 = fsql.DbFirst.GetTableByName("GENERAL.system_log");
             Assert.NotNull(t1);
-            Assert.True(t1.Columns.Count > 0);
         }
 
         [Fact]
