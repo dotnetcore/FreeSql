@@ -612,8 +612,8 @@ WHERE ([id] = '{item.id}')", fsql.Update<VersionInt01>().NoneParameter().Set(a =
         [Fact]
         public void AddUniques()
         {
-            var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.sqlserver.CodeFirst.SyncStructure<AddUniquesInfo>();
+            var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.sqlserver.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
