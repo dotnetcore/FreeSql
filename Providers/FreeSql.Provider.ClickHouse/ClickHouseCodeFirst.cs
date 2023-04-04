@@ -480,7 +480,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     using (var cmd = conn.Value.CreateCommand())
                     {
                         cmd.CommandText = sql;
-                        cmd.CommandType = CommandType.Text; 
+                        cmd.CommandType = CommandType.Text;
                         var before = new Aop.CommandBeforeEventArgs(cmd);
                         this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
                         return cmd.ExecuteScalar();

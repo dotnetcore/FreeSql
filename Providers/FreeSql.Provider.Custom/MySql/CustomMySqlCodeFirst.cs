@@ -78,7 +78,7 @@ namespace FreeSql.Custom.MySql
         {
             Object<DbConnection> conn = null;
             string database = null;
-
+            
             try
             {
                 conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
