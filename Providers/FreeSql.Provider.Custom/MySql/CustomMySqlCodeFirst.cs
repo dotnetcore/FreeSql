@@ -78,7 +78,7 @@ namespace FreeSql.Custom.MySql
         {
             Object<DbConnection> conn = null;
             string database = null;
-
+            
             try
             {
                 conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
@@ -382,8 +382,6 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                     {
                         cmd.CommandText = sql;
                         cmd.CommandType = CommandType.Text;
-                        var before = new Aop.CommandBeforeEventArgs(cmd);
-                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
                         return cmd.ExecuteScalar();
                     }
                 }
