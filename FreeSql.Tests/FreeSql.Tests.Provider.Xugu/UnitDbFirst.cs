@@ -22,15 +22,20 @@ namespace FreeSql.Tests.Provider.Xugu
         public void GetTableByName()
         {
             var fsql = g.xugu;
-            var t1 = fsql.DbFirst.GetTableByName("GENERAL.system_log");
-            Assert.NotNull(t1);
+            fsql.CodeFirst.SyncStructure(typeof(test_existstb01));
+            var t1 = fsql.DbFirst.GetTableByName("test_existstb01"); 
+            Assert.NotNull(t1); 
+            Assert.True(t1.Columns.Count > 0);  
+            var t3 = fsql.DbFirst.GetTableByName("notexists_tb");
+            Assert.Null(t3);
+            fsql.Ado.ExecuteNonQuery("drop table test_existstb01");
         }
 
         [Fact]
         public void ExistsTable()
         {
             var fsql = g.xugu;
-            Assert.False(fsql.DbFirst.ExistsTable("GENERAL.system_log"));
+            Assert.False(fsql.DbFirst.ExistsTable("test_existstb01"));
             fsql.CodeFirst.SyncStructure(typeof(test_existstb01));
             Assert.True(fsql.DbFirst.ExistsTable("test_existstb01"));
             fsql.Ado.ExecuteNonQuery("drop table test_existstb01");
