@@ -442,14 +442,15 @@ where IS_SYS=false and {loc8.ToString().Replace("a.table_name", "ns.SCHEMA_NAME 
                 {
                     sql = $@"
 select 
-schema_name || '.' || b.table_name as table_id,
-cons_name as FKId,
-cons_type,
-define
+c.schema_name || '.' || b.table_name as table_id,
+a.cons_name as FKId,
+a.cons_type,
+a.define, 
+(select c2.schema_name || '.' || b2.table_name  from all_tables as b2 left join  all_SCHEMAS as c2 on b2.SCHEMA_ID=c2.SCHEMA_ID where b2.TABLE_id=b.table_id) as ref_table_id
 from all_constraints as a
 left join all_tables as b on a.Table_ID=b.Table_ID
 left Join all_SCHEMAS AS c on b.SCHEMA_ID=c.SCHEMA_ID
-where  IS_SYS=false AND {loc8.ToString().Replace("a.table_name", "schema_name || '.' || b.table_name")}
+where  IS_SYS=false AND a.cons_type='F' AND {loc8.ToString().Replace("a.table_name", "schema_name || '.' || b.table_name")}
 ";
                     ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                     if (ds == null) return loc1;
@@ -458,15 +459,31 @@ where  IS_SYS=false AND {loc8.ToString().Replace("a.table_name", "schema_name ||
                     foreach (object[] row in ds)
                     {
                         var table_id = string.Concat(row[0]);
-                        var column = row[3] as string[];
+                        var ref_table_id = string.Concat(row[4]);
+                        //var ref_table_id = row[4] as long?;
+                        //if (!ref_table_id.HasValue || ref_table_id < 1)
+                        //    continue;
+
+                        //loc2 是所有表信息
+
+                        if (!string.IsNullOrWhiteSpace(ref_table_id) || loc2.ContainsKey(ref_table_id?.ToString()) == false) continue;
+
+
+                        var column_temps = (row[3] as string)
+                            .Replace(")(", "|")
+                            .Replace("\"","")
+                            .Replace("(", "")
+                            .Replace(")", "")
+                            .Split('|');
+                        var column = column_temps[0].Split(',');
                         var fk_id = string.Concat(row[1]);
-                        var ref_table_id = string.Concat(row[0]);
-                        var is_foreign_key = string.Concat(row[2]) == "F";
-                        var referenced_column = row[5] as string[];
+                        
+                        //var is_foreign_key = string.Concat(row[2]) == "F"; 
+                        var referenced_column = column_temps[1].Split(',');
                         //var referenced_db = string.Concat(row[6]);
                         //var referenced_table = string.Concat(row[7]);
 
-                        if (loc2.ContainsKey(ref_table_id) == false) continue;
+
 
                         Dictionary<string, DbForeignInfo> loc12 = null;
                         DbForeignInfo loc13 = null;
