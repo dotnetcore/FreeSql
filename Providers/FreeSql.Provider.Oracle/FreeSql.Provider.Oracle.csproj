@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net60;net50;net45;net40</TargetFrameworks>
@@ -26,10 +26,10 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.130" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.61" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
