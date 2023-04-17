@@ -187,6 +187,8 @@ namespace FreeSql.GBase
                     {
                         cmd.CommandText = sql;
                         cmd.CommandType = CommandType.Text;
+                        var before = new Aop.CommandBeforeEventArgs(cmd);
+                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
                         return cmd.ExecuteScalar();
                     }
                 }
