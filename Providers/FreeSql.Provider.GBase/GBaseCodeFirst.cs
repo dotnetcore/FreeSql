@@ -189,7 +189,20 @@ namespace FreeSql.GBase
                         cmd.CommandType = CommandType.Text;
                         var before = new Aop.CommandBeforeEventArgs(cmd);
                         this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
-                        return cmd.ExecuteScalar();
+                        Exception afterException = null;
+                        try
+                        {
+                            return cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            afterException = ex;
+                            throw;
+                        }
+                        finally
+                        {
+                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm, new Aop.CommandAfterEventArgs(before, afterException, null));
+                        }
                     }
                 }
                 finally

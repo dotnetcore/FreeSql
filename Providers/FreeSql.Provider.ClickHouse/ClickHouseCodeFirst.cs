@@ -482,8 +482,21 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         cmd.CommandText = sql;
                         cmd.CommandType = CommandType.Text;
                         var before = new Aop.CommandBeforeEventArgs(cmd);
-                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
-                        return cmd.ExecuteScalar();
+                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before); 
+                        Exception afterException = null;
+                        try
+                        {
+                            return cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            afterException = ex;
+                            throw;
+                        }
+                        finally
+                        {
+                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm, new Aop.CommandAfterEventArgs(before, afterException, null));
+                        }
                     }
                 }
                 finally

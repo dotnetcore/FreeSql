@@ -385,7 +385,20 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                         cmd.CommandType = CommandType.Text;
                         var before = new Aop.CommandBeforeEventArgs(cmd);
                         this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
-                        return cmd.ExecuteScalar();
+                        Exception afterException = null;
+                        try
+                        {
+                            return cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            afterException = ex;
+                            throw;
+                        }
+                        finally
+                        {
+                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm, new Aop.CommandAfterEventArgs(before, afterException, null));
+                        }
                     }
                 }
                 finally
