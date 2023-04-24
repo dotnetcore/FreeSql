@@ -12,7 +12,7 @@ namespace FreeSql.Extensions
     public static  class CodeFirstExtensions
     {
         /// <summary>
-        /// 动态创建Class Type
+        /// 动态构建Class Type
         /// </summary>
         /// <returns></returns>
         public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className, TableAttribute tableAttribute)
@@ -21,7 +21,7 @@ namespace FreeSql.Extensions
         }
 
         /// <summary>
-        /// 根据动态构建的Class生成实例并进行属性赋值
+        /// 根据动态构建的Class Type生成实例并进行属性赋值
         /// </summary>
         /// <param name="type"></param>
         /// <param name="porpertys"></param>

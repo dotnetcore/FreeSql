@@ -37,7 +37,7 @@ namespace FreeSql.Internal
         /// </summary>
         /// <param name="propertyName">属性名称</param>
         /// <param name="propertyType">属性类型</param>
-        /// <param name="attributes">属性标记的特性[Column(IsPrimary = true)]</param>
+        /// <param name="attributes">属性标记的特性-支持多个</param>
         /// <returns></returns>
         public DynamicCompileBuilder Property(string propertyName, Type propertyType, params Attribute [] attributes)
         {
