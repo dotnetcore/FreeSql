@@ -11,7 +11,7 @@ using System.Reflection.Emit;
 namespace FreeSql.Internal
 {
 #if net40 || NETSTANDARD2_0
-   
+
 #else
      public class DynamicCompileBuilder
     {
@@ -37,15 +37,15 @@ namespace FreeSql.Internal
         /// </summary>
         /// <param name="propertyName">属性名称</param>
         /// <param name="propertyType">属性类型</param>
-        /// <param name="columnAttribute">属性标记的特性[Column(IsPrimary = true)]</param>
+        /// <param name="attributes">属性标记的特性[Column(IsPrimary = true)]</param>
         /// <returns></returns>
-        public DynamicCompileBuilder SetProperty(string propertyName, Type propertyType, ColumnAttribute columnAttribute)
+        public DynamicCompileBuilder Property(string propertyName, Type propertyType, params Attribute [] attributes)
         {
             _properties.Add(new DynamicPropertyInfo()
             {
                 PropertyName = propertyName,
-                PropertyType = propertyType,
-                ColumnAttribute = columnAttribute
+                PropertyType = propertyType, 
+                Attributes = attributes
             });
             return this;
         }
@@ -103,24 +103,27 @@ namespace FreeSql.Internal
                 propertyBuilder.SetGetMethod(methodGet);
                 propertyBuilder.SetSetMethod(methodSet);
 
-                //设置特性
-                SetColumnAttribute(ref propertyBuilder, pinfo?.ColumnAttribute);
+                foreach (var pinfoAttribute in pinfo.Attributes)
+                {
+                    //设置特性
+                    SetPropertyAttribute(ref propertyBuilder, pinfoAttribute);
+                }
             }
         }
 
-        private void SetColumnAttribute(ref PropertyBuilder propertyBuilder, ColumnAttribute columnAttribute = null)
+        private void SetPropertyAttribute<T>(ref PropertyBuilder propertyBuilder, T tAttribute)
         {
-            if (columnAttribute == null)
+            if (tAttribute == null)
                 return;
 
             var propertyValues = new ArrayList();
-            foreach (var propertyInfo in columnAttribute.GetType().GetProperties().Where(p => p.CanWrite == true))
+            foreach (var propertyInfo in tAttribute.GetType().GetProperties().Where(p => p.CanWrite == true))
             {
-                propertyValues.Add(propertyInfo.GetValue(columnAttribute));
+                propertyValues.Add(propertyInfo.GetValue(tAttribute));
             }
 
-            var propertyInfos = typeof(ColumnAttribute).GetProperties().Where(p => p.CanWrite == true).ToArray();
-            var constructor = typeof(ColumnAttribute).GetConstructor(new Type[] { });
+            var propertyInfos = tAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
+            var constructor = tAttribute.GetType().GetConstructor(new Type[] { });
             var customAttributeBuilder =
                 new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
             propertyBuilder.SetCustomAttribute(customAttributeBuilder);
@@ -226,8 +229,8 @@ namespace FreeSql.Internal
     internal class DynamicPropertyInfo
     {
         public string PropertyName { get; set; } = string.Empty;
-        public Type PropertyType { get; set; } = null;
-        public ColumnAttribute ColumnAttribute { get; set; } = null;
+        public Type PropertyType { get; set; }
+        public Attribute [] Attributes { get; set; }
     }
 }
 

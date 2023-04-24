@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using FreeSql.DataAnnotations;
 using FreeSql.Internal;
 
 namespace FreeSql.Extensions
@@ -14,9 +15,9 @@ namespace FreeSql.Extensions
         /// 动态创建Class Type
         /// </summary>
         /// <returns></returns>
-        public static DynamicCompileBuilder DynamicBuilder(this ICodeFirst codeFirst)
+        public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className, TableAttribute tableAttribute)
         {
-            return new DynamicCompileBuilder();
+            return new DynamicCompileBuilder().SetClass(className, tableAttribute);
         }
 
         /// <summary>
@@ -25,7 +26,7 @@ namespace FreeSql.Extensions
         /// <param name="type"></param>
         /// <param name="porpertys"></param>
         /// <returns></returns>
-        public static object CreateObjectByType(this ICodeFirst codeFirst, Type type,
+        public static object CreateDynamicEntityInstance(this Type type,
             Dictionary<string, object> porpertys)
         {
            return DynamicCompileBuilder.CreateObjectByType(type, porpertys);
