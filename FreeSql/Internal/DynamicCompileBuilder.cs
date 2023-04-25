@@ -7,13 +7,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security.Cryptography;
+using FreeSql.Internal.Model;
+using System.Text;
 
 namespace FreeSql.Internal
 {
 #if net40 || NETSTANDARD2_0
-
 #else
-     public class DynamicCompileBuilder
+    public class DynamicCompileBuilder
     {
         private string _className = string.Empty;
         private TableAttribute _tableAttribute = null;
@@ -39,12 +41,12 @@ namespace FreeSql.Internal
         /// <param name="propertyType">属性类型</param>
         /// <param name="attributes">属性标记的特性-支持多个</param>
         /// <returns></returns>
-        public DynamicCompileBuilder Property(string propertyName, Type propertyType, params Attribute [] attributes)
+        public DynamicCompileBuilder Property(string propertyName, Type propertyType, params Attribute[] attributes)
         {
             _properties.Add(new DynamicPropertyInfo()
             {
                 PropertyName = propertyName,
-                PropertyType = propertyType, 
+                PropertyType = propertyType,
                 Attributes = attributes
             });
             return this;
@@ -140,7 +142,8 @@ namespace FreeSql.Internal
             //设置程序集的名称
             var defineDynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             //动态在程序集内创建一个模块
-            var defineDynamicModule = defineDynamicAssembly.DefineDynamicModule("FreeSql.DynamicCompileBuilder.Dynamics");
+            var defineDynamicModule =
+                defineDynamicAssembly.DefineDynamicModule("FreeSql.DynamicCompileBuilder.Dynamics");
             //动态的在模块内创建一个类
             var typeBuilder = defineDynamicModule.DefineType(_className, TypeAttributes.Public | TypeAttributes.Class);
 
@@ -158,7 +161,25 @@ namespace FreeSql.Internal
         private static ConcurrentDictionary<string, Delegate>
             _delegateCache = new ConcurrentDictionary<string, Delegate>();
 
-        //设置动态对象的属性值
+        //设置动态对象的属性值 使用FreeSql自带功能
+        public static object CreateObjectByTypeByCodeFirst(IFreeSql fsql, Type type,
+            Dictionary<string, object> porpertys)
+        {
+            if (type == null)
+                return null;
+            object istance = Activator.CreateInstance(type);
+            if (istance == null)
+                return null;
+            var table = fsql.CodeFirst.GetTableByEntity(type);
+            foreach (var kv in porpertys)
+            {
+                table.ColumnsByCs[kv.Key].SetValue(istance, kv.Value);
+            }
+
+            return istance;
+        }
+
+        //设置动态对象的属性值，使用表达式目录树
         public static object CreateObjectByType(Type type, Dictionary<string, object> porpertys)
         {
             if (type == null)
@@ -167,7 +188,8 @@ namespace FreeSql.Internal
             if (istance == null)
                 return null;
             //根据字典中的key确定缓存
-            var cacheKey = string.Join("-", porpertys.Keys.OrderBy(s => s));
+            var cacheKeyStr = string.Join("-", porpertys.Keys.OrderBy(s => s));
+            var cacheKey = Md5Encryption(cacheKeyStr);
             var dynamicDelegate = _delegateCache.GetOrAdd(cacheKey, key =>
             {
                 //表达式目录树构建委托
@@ -224,13 +246,25 @@ namespace FreeSql.Internal
             string str = input.First().ToString().ToUpper() + input.Substring(1);
             return str;
         }
+
+        private static string Md5Encryption(string inputStr)
+        {
+            var result = string.Empty;
+            //32位大写
+            using (var md5 = MD5.Create())
+            {
+                var resultBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputStr));
+                result = BitConverter.ToString(resultBytes);
+            }
+
+            return result;
+        }
     }
 #endif
     internal class DynamicPropertyInfo
     {
         public string PropertyName { get; set; } = string.Empty;
         public Type PropertyType { get; set; }
-        public Attribute [] Attributes { get; set; }
+        public Attribute[] Attributes { get; set; }
     }
 }
-
