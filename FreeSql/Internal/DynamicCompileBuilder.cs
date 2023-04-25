@@ -179,7 +179,7 @@ namespace FreeSql.Internal
             return istance;
         }
 
-        ////设置动态对象的属性值，使用表达式目录树
+        ////设置动态对象的属性值，使用表达式目录树 
         //public static object CreateObjectByType(Type type, Dictionary<string, object> porpertys)
         //{
         //    if (type == null)
