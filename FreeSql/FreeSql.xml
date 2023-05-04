@@ -4248,6 +4248,43 @@
             <param name="type"></param>
             <returns>Dict：key=属性名，value=注释</returns>
         </member>
+        <member name="M:FreeSql.Internal.DynamicCompileBuilder.#ctor(System.String,System.Attribute[])">
+            <summary>
+            配置Class
+            </summary>
+            <param name="className">类名</param>
+            <param name="attributes">类标记的特性[Table(Name = "xxx")]</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.DynamicCompileBuilder.Build">
+            <summary>
+            Emit动态创建出Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.DynamicCompileBuilder.FirstCharToLower(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.Internal.DbUpdateVersionException.Table">
             <summary>
             更新实体的元数据
@@ -5867,6 +5904,12 @@
             删除数据字典，传入 Dictionary&lt;string, object&gt; 集合
             </summary>
             <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,FreeSql.DataAnnotations.TableAttribute)">
+            <summary>
+            动态构建Class Type
+            </summary>
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">

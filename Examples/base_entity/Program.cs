@@ -577,6 +577,24 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var isusers01 = fsql.Select<Achievement>()
+             .Where(e => e.Property("项目执行情况") == "结题")
+             .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+             .ToSql(e => new
+             {
+                 e.Key.ProjectLevel,
+                 Test = e.Value.Group.Property("批准经费总额（万元）"),
+             });
+            isusers01 = fsql.Select<Achievement>()
+                     .Where(e => e.Property("项目执行情况") == "结题")
+                     .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+                     .WithTempQuery(e => new
+                     {
+                         e.Key.ProjectLevel,
+                         Test = e.Value.Group.Property("批准经费总额（万元）"),
+                     })
+            .ToSql();
+
             var bulkUsers = new[] {
                 new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
                 new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
@@ -2115,5 +2133,25 @@ namespace base_entity
         public int CategoryId { get; set; }
         public string GoodsNo { get; set; }
         public string GoodsName { get; set; }
+    }
+
+    [ExpressionCall]
+    public static class AchievementExpressionExtension
+    {
+        static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+        public static string Property(this Achievement achievement, string fieldName)
+        {
+            var ctx = context.Value;
+            var prefix = ctx.ParsedContent["achievement"];
+            prefix = prefix.Substring(0, prefix.IndexOf('.') + 1);
+            ctx.Result = prefix + $"`{fieldName}`";
+            return default;
+        }
+    }
+    [Table(DisableSyncStructure = true)]
+    public class Achievement
+    {
+        [Column(MapType = typeof(string))]
+        public Achievement Group { get; set; }
     }
 }
