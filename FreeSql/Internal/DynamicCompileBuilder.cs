@@ -18,20 +18,19 @@ namespace FreeSql.Internal
     public class DynamicCompileBuilder
     {
         private string _className = string.Empty;
-        private TableAttribute _tableAttribute = null;
+        private Attribute[] _tableAttributes = null;
         private List<DynamicPropertyInfo> _properties = new List<DynamicPropertyInfo>();
 
         /// <summary>
         /// 配置Class
         /// </summary>
         /// <param name="className">类名</param>
-        /// <param name="tableAttribute">类标记的特性[Table(Name = "xxx")]</param>
+        /// <param name="attributes">类标记的特性[Table(Name = "xxx")]</param>
         /// <returns></returns>
-        public DynamicCompileBuilder SetClass(string className, TableAttribute tableAttribute)
+        public DynamicCompileBuilder(string className, params Attribute[] attributes)
         {
             _className = className;
-            _tableAttribute = tableAttribute;
-            return this;
+            _tableAttributes = attributes;
         }
 
         /// <summary>
@@ -54,22 +53,21 @@ namespace FreeSql.Internal
 
         private void SetTableAttribute(ref TypeBuilder typeBuilder)
         {
-            var classCtorInfo = typeof(TableAttribute).GetConstructor(new Type[] { });
-            var propertyInfos = typeof(TableAttribute).GetProperties().Where(p => p.CanWrite == true).ToArray();
-            if (_tableAttribute == null)
-            {
-                return;
-            }
+            if (_tableAttributes == null) return;
 
             var propertyValues = new ArrayList();
-            foreach (var propertyInfo in _tableAttribute.GetType().GetProperties().Where(p => p.CanWrite == true))
+            foreach (var tableAttribute in _tableAttributes)
             {
-                propertyValues.Add(propertyInfo.GetValue(_tableAttribute));
-            }
+                if (tableAttribute == null) continue;
 
-            var customAttributeBuilder =
-                new CustomAttributeBuilder(classCtorInfo, new object[0], propertyInfos, propertyValues.ToArray());
-            typeBuilder.SetCustomAttribute(customAttributeBuilder);
+                var classCtorInfo = tableAttribute.GetType().GetConstructor(new Type[] { });
+                var propertyInfos = tableAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
+                foreach (var propertyInfo in propertyInfos)
+                    propertyValues.Add(propertyInfo.GetValue(tableAttribute));
+                
+                var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, new object[0], propertyInfos, propertyValues.ToArray());
+                typeBuilder.SetCustomAttribute(customAttributeBuilder);
+            }
         }
 
         private void SetPropertys(ref TypeBuilder typeBuilder)
@@ -100,8 +98,7 @@ namespace FreeSql.Internal
                 ilOfSet.Emit(OpCodes.Ret);
 
                 //设置属性
-                var propertyBuilder =
-                    typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
+                var propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
                 propertyBuilder.SetGetMethod(methodGet);
                 propertyBuilder.SetSetMethod(methodSet);
 
@@ -115,19 +112,15 @@ namespace FreeSql.Internal
 
         private void SetPropertyAttribute<T>(ref PropertyBuilder propertyBuilder, T tAttribute)
         {
-            if (tAttribute == null)
-                return;
-
-            var propertyValues = new ArrayList();
-            foreach (var propertyInfo in tAttribute.GetType().GetProperties().Where(p => p.CanWrite == true))
-            {
-                propertyValues.Add(propertyInfo.GetValue(tAttribute));
-            }
+            if (tAttribute == null) return;
 
             var propertyInfos = tAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
             var constructor = tAttribute.GetType().GetConstructor(new Type[] { });
-            var customAttributeBuilder =
-                new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
+            var propertyValues = new ArrayList();
+            foreach (var propertyInfo in propertyInfos)
+                propertyValues.Add(propertyInfo.GetValue(tAttribute));
+
+            var customAttributeBuilder = new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
             propertyBuilder.SetCustomAttribute(customAttributeBuilder);
         }
 
@@ -259,12 +252,13 @@ namespace FreeSql.Internal
 
             return result;
         }
+
+        class DynamicPropertyInfo
+        {
+            public string PropertyName { get; set; } = string.Empty;
+            public Type PropertyType { get; set; }
+            public Attribute[] Attributes { get; set; }
+        }
     }
 #endif
-    internal class DynamicPropertyInfo
-    {
-        public string PropertyName { get; set; } = string.Empty;
-        public Type PropertyType { get; set; }
-        public Attribute[] Attributes { get; set; }
-    }
 }
