@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net60;net50;net45;net40</TargetFrameworks>
@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.14.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.18.0" />
 	</ItemGroup>
 
 	<ItemGroup>
