@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FreeSql
+namespace FreeSql.Extensions.DynamicEntity
 {
     /// <summary>
     /// 动态创建实体类型
@@ -57,7 +55,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="superClass">父类类型</param>
         /// <returns></returns>
-        public DynamicCompileBuilder SuperClass(Type superClass)
+        public DynamicCompileBuilder Extend(Type superClass)
         {
             _superClass = superClass;
             return this;

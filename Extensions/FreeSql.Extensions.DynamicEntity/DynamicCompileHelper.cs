@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace FreeSql.Extensions.DynamicEntity
 {
@@ -22,8 +25,8 @@ namespace FreeSql.Extensions.DynamicEntity
         /// <summary>
         /// 委托缓存
         /// </summary>
-        private static readonly ConcurrentDictionary<string, Delegate>
-            DelegateCache = new ConcurrentDictionary<string, Delegate>();
+        private static readonly ConcurrentDictionary<string, Delegate> DelegateCache =
+            new ConcurrentDictionary<string, Delegate>();
 
         /// <summary>
         /// 设置动态对象的属性值
@@ -39,7 +42,9 @@ namespace FreeSql.Extensions.DynamicEntity
             if (istance == null)
                 return null;
             //根据key确定缓存
-            var cacheKey = $"{type.GetHashCode()}{porpertys.GetHashCode()}";
+            var cacheKeyStr = string.Join("-", porpertys.Keys.OrderBy(s => s));
+            var dicKey = Md5Encryption(cacheKeyStr);
+            var cacheKey = $"{type.GetHashCode()}-{dicKey}";
             var dynamicDelegate = DelegateCache.GetOrAdd(cacheKey, key =>
             {
                 //表达式目录树构建委托
@@ -69,6 +74,19 @@ namespace FreeSql.Extensions.DynamicEntity
             });
             var dynamicInvoke = dynamicDelegate.DynamicInvoke(istance, porpertys);
             return dynamicInvoke;
+        }
+
+        private static string Md5Encryption(string inputStr)
+        {
+            var result = string.Empty;
+            //32位大写
+            using (var md5 = MD5.Create())
+            {
+                var resultBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputStr));
+                result = BitConverter.ToString(resultBytes);
+            }
+
+            return result;
         }
     }
 }

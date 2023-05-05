@@ -4,12 +4,12 @@
         <name>FreeSql.Extensions.DynamicEntity</name>
     </assembly>
     <members>
-        <member name="T:FreeSql.DynamicCompileBuilder">
+        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
             <summary>
             动态创建实体类型
             </summary>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.Class(System.String,System.Attribute[])">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Class(System.String,System.Attribute[])">
             <summary>
             配置Class
             </summary>
@@ -17,7 +17,7 @@
             <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
             <summary>
             配置属性
             </summary>
@@ -26,27 +26,27 @@
             <param name="attributes">属性标记的特性-支持多个</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.SuperClass(System.Type)">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
             <summary>
             配置父类
             </summary>
             <param name="superClass">父类类型</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.Build">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
             <summary>
             Emit动态创建出Class - Type
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.FirstCharToLower(System.String)">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
             <summary>
             首字母小写
             </summary>
             <param name="input"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
             <summary>
             首字母大写
             </summary>
