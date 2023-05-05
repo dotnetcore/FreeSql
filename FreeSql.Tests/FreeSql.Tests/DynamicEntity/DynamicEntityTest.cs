@@ -21,14 +21,14 @@ namespace FreeSql.Tests.DynamicEntity
         {
             Type type = DynamicCompileHelper.DynamicBuilder()
                 .Class("NormalUsers")
-                .Property("Id", typeof(int))
+                .Property("Id", typeof(string))
                 .Property("Name", typeof(string))
                 .Property("Address", typeof(string))
                 .Build();
             var dict = new Dictionary<string, object>
             {
                 ["Name"] = "张三",
-                ["Id"] = 1,
+                ["Id"] = Guid.NewGuid().ToString(),
                 ["Address"] = "北京市"
             };
             var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
@@ -58,7 +58,46 @@ namespace FreeSql.Tests.DynamicEntity
             var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
             //根据Type生成表
             fsql.CodeFirst.SyncStructure(type);
+            var insertId = fsql.Insert<object>().AsType(type).AppendData(instance).ExecuteIdentity();
+            var select = fsql.Select<object>().AsType(type).ToList();
+        }
+
+        [Fact]
+        public void SuperClassTest()
+        {
+            Type type = DynamicCompileHelper.DynamicBuilder()
+                .Class("Roles", new TableAttribute() { Name = "T_Role" },
+                    new IndexAttribute("Name_Index", "Name", false))
+                .SuperClass(typeof(BaseModel))
+                .Property("Id", typeof(int),
+                    new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
+                .Property("Name", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 2 })
+                .Build();
+            var dict = new Dictionary<string, object>
+            {
+                ["Name"] = "系统管理员",
+                ["UpdateTime"] = DateTime.Now,
+                ["UpdatePerson"] = "admin"
+            };
+            var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(type);
             fsql.Insert<object>().AsType(type).AppendData(instance).ExecuteAffrows();
+        }
+    }
+    public class BaseModel
+    {
+        [Column(Position = 99)]
+        public DateTime UpdateTime
+        {
+            get; set;
+        }
+
+        [Column(Position = 100, StringLength = 20)]
+        public string UpdatePerson
+        {
+            get; set;
         }
     }
 }
