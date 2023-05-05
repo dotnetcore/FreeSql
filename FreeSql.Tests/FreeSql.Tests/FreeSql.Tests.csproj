@@ -35,6 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.DynamicEntity\FreeSql.Extensions.DynamicEntity.csproj" />
       <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
       <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.Linq\FreeSql.Extensions.Linq.csproj" />
       <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
