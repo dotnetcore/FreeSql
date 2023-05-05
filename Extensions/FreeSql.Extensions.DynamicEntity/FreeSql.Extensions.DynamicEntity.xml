@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.DynamicEntity</name>
+    </assembly>
+    <members>
+        <member name="T:FreeSql.DynamicCompileBuilder">
+            <summary>
+            动态创建实体类型
+            </summary>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.Class(System.String,System.Attribute[])">
+            <summary>
+            配置Class
+            </summary>
+            <param name="className">类名</param>
+            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.SuperClass(System.Type)">
+            <summary>
+            配置父类
+            </summary>
+            <param name="superClass">父类类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.Build">
+            <summary>
+            Emit动态创建出Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.FirstCharToLower(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileHelper">
+            <summary>
+            动态创建对象帮助类
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileHelper.DynamicBuilder">
+            <summary>
+            动态构建Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:FreeSql.Extensions.DynamicEntity.DynamicCompileHelper.DelegateCache">
+            <summary>
+            委托缓存
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileHelper.CreateObjectByType(System.Type,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            设置动态对象的属性值
+            </summary>
+            <param name="type"></param>
+            <param name="porpertys"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
