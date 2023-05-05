@@ -1,36 +1,35 @@
-﻿using FreeSql.DataAnnotations;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
-using FreeSql.Internal.Model;
 using System.Text;
 
-namespace FreeSql.Internal
+namespace FreeSql.Extensions.DynamicEntity
 {
-#if net40 || NETSTANDARD2_0
-#else
+    /// <summary>
+    /// 动态创建实体类型
+    /// </summary>
     public class DynamicCompileBuilder
     {
         private string _className = string.Empty;
         private Attribute[] _tableAttributes = null;
         private List<DynamicPropertyInfo> _properties = new List<DynamicPropertyInfo>();
+        private Type _superClass = null;
 
         /// <summary>
         /// 配置Class
         /// </summary>
         /// <param name="className">类名</param>
-        /// <param name="attributes">类标记的特性[Table(Name = "xxx")]</param>
+        /// <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
         /// <returns></returns>
-        public DynamicCompileBuilder(string className, params Attribute[] attributes)
+        public DynamicCompileBuilder Class(string className, params Attribute[] attributes)
         {
             _className = className;
             _tableAttributes = attributes;
+            return this;
         }
 
         /// <summary>
@@ -51,22 +50,48 @@ namespace FreeSql.Internal
             return this;
         }
 
+        /// <summary>
+        /// 配置父类
+        /// </summary>
+        /// <param name="superClass">父类类型</param>
+        /// <returns></returns>
+        public DynamicCompileBuilder Extend(Type superClass)
+        {
+            _superClass = superClass;
+            return this;
+        }
+
         private void SetTableAttribute(ref TypeBuilder typeBuilder)
         {
             if (_tableAttributes == null) return;
 
-            var propertyValues = new ArrayList();
             foreach (var tableAttribute in _tableAttributes)
             {
+                var propertyValues = new ArrayList();
+
                 if (tableAttribute == null) continue;
 
                 var classCtorInfo = tableAttribute.GetType().GetConstructor(new Type[] { });
+
                 var propertyInfos = tableAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
+
                 foreach (var propertyInfo in propertyInfos)
                     propertyValues.Add(propertyInfo.GetValue(tableAttribute));
-                
-                var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, new object[0], propertyInfos, propertyValues.ToArray());
-                typeBuilder.SetCustomAttribute(customAttributeBuilder);
+
+                //可能存在有参构造
+                if (classCtorInfo == null)
+                {
+                    var constructorTypes = propertyInfos.Select(p => p.PropertyType);
+                    classCtorInfo = tableAttribute.GetType().GetConstructor(constructorTypes.ToArray());
+                    var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, propertyValues.ToArray());
+                    typeBuilder.SetCustomAttribute(customAttributeBuilder);
+                }
+                else
+                {
+                    var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, new object[0], propertyInfos,
+                        propertyValues.ToArray());
+                    typeBuilder.SetCustomAttribute(customAttributeBuilder);
+                }
             }
         }
 
@@ -74,8 +99,10 @@ namespace FreeSql.Internal
         {
             foreach (var pinfo in _properties)
             {
+                if (pinfo == null)
+                    continue;
                 var propertyName = pinfo.PropertyName;
-                var propertyType = pinfo?.PropertyType ?? typeof(object);
+                var propertyType = pinfo.PropertyType;
                 //设置字段
                 var field = typeBuilder.DefineField($"_{FirstCharToLower(propertyName)}", propertyType,
                     FieldAttributes.Private);
@@ -98,7 +125,8 @@ namespace FreeSql.Internal
                 ilOfSet.Emit(OpCodes.Ret);
 
                 //设置属性
-                var propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
+                var propertyBuilder =
+                    typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
                 propertyBuilder.SetGetMethod(methodGet);
                 propertyBuilder.SetSetMethod(methodSet);
 
@@ -120,7 +148,8 @@ namespace FreeSql.Internal
             foreach (var propertyInfo in propertyInfos)
                 propertyValues.Add(propertyInfo.GetValue(tAttribute));
 
-            var customAttributeBuilder = new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
+            var customAttributeBuilder =
+                new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
             propertyBuilder.SetCustomAttribute(customAttributeBuilder);
         }
 
@@ -138,7 +167,8 @@ namespace FreeSql.Internal
             var defineDynamicModule =
                 defineDynamicAssembly.DefineDynamicModule("FreeSql.DynamicCompileBuilder.Dynamics");
             //动态的在模块内创建一个类
-            var typeBuilder = defineDynamicModule.DefineType(_className, TypeAttributes.Public | TypeAttributes.Class);
+            var typeBuilder =
+                defineDynamicModule.DefineType(_className, TypeAttributes.Public | TypeAttributes.Class, _superClass);
 
             //设置TableAttribute
             SetTableAttribute(ref typeBuilder);
@@ -149,70 +179,6 @@ namespace FreeSql.Internal
             //创建类的Type对象
             return typeBuilder.CreateType();
         }
-
-        //委托缓存
-        private static ConcurrentDictionary<string, Delegate>
-            _delegateCache = new ConcurrentDictionary<string, Delegate>();
-
-        //设置动态对象的属性值 使用FreeSql自带功能
-        public static object CreateObjectByTypeByCodeFirst(IFreeSql fsql, Type type,
-            Dictionary<string, object> porpertys)
-        {
-            if (type == null)
-                return null;
-            object istance = Activator.CreateInstance(type);
-            if (istance == null)
-                return null;
-            var table = fsql.CodeFirst.GetTableByEntity(type);
-            foreach (var kv in porpertys)
-            {
-                table.ColumnsByCs[kv.Key].SetValue(istance, kv.Value);
-            }
-
-            return istance;
-        }
-
-        ////设置动态对象的属性值，使用表达式目录树 
-        //public static object CreateObjectByType(Type type, Dictionary<string, object> porpertys)
-        //{
-        //    if (type == null)
-        //        return null;
-        //    object istance = Activator.CreateInstance(type);
-        //    if (istance == null)
-        //        return null;
-        //    //根据字典中的key确定缓存
-        //    var cacheKeyStr = string.Join("-", porpertys.Keys.OrderBy(s => s));
-        //    var cacheKey = Md5Encryption(cacheKeyStr);
-        //    var dynamicDelegate = _delegateCache.GetOrAdd(cacheKey, key =>
-        //    {
-        //        //表达式目录树构建委托
-        //        var typeParam = Expression.Parameter(type);
-        //        var dicParamType = typeof(Dictionary<string, object>);
-        //        var dicParam = Expression.Parameter(dicParamType);
-        //        var exps = new List<Expression>();
-        //        var tempRef = Expression.Variable(typeof(object));
-        //        foreach (var pinfo in porpertys)
-        //        {
-        //            var propertyInfo = type.GetProperty(pinfo.Key);
-        //            if (propertyInfo == null)
-        //                continue;
-        //            var propertyName = Expression.Constant(pinfo.Key, typeof(string));
-        //            exps.Add(Expression.Call(dicParam, dicParamType.GetMethod("TryGetValue"), propertyName, tempRef));
-        //            exps.Add(Expression.Assign(Expression.MakeMemberAccess(typeParam, propertyInfo),
-        //                Expression.Convert(tempRef, propertyInfo.PropertyType)));
-        //            exps.Add(Expression.Assign(tempRef, Expression.Default(typeof(object))));
-        //        }
-
-        //        var returnTarget = Expression.Label(type);
-        //        exps.Add(Expression.Return(returnTarget, typeParam));
-        //        exps.Add(Expression.Label(returnTarget, Expression.Default(type)));
-        //        var block = Expression.Block(new[] { tempRef }, exps);
-        //        var @delegate = Expression.Lambda(block, typeParam, dicParam).Compile();
-        //        return @delegate;
-        //    });
-        //    var dynamicInvoke = dynamicDelegate.DynamicInvoke(istance, porpertys);
-        //    return dynamicInvoke;
-        //}
 
         /// <summary>
         /// 首字母小写
@@ -260,5 +226,4 @@ namespace FreeSql.Internal
             public Attribute[] Attributes { get; set; }
         }
     }
-#endif
 }

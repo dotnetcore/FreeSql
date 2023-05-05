@@ -1301,17 +1301,4 @@ SELECT ");
     }
     #endregion
 
-    #region DynamicEntity
-#if net40 || NETSTANDARD2_0
-#else
-    /// <summary>
-    /// 动态构建Class Type
-    /// </summary>
-    /// <returns></returns>
-    public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className, TableAttribute tableAttribute)
-    {
-        return new DynamicCompileBuilder(className, tableAttribute);
-    }
-#endif
-    #endregion
 }
