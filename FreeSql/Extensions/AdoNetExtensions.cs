@@ -40,8 +40,9 @@ namespace FreeSql
                     if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Oracle"));
                     break;
                 case "SQLiteConnection":
+                case "SqliteConnection":
                     providerType = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Sqlite"));
+                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Sqlite/SqliteCore"));
                     break;
                 case "DmConnection":
                     providerType = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(connType);
