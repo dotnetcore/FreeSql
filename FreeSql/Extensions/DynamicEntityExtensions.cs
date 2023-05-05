@@ -1,4 +1,14 @@
-﻿using System;
+﻿// by: Daily
+
+#if net40 || NETSTANDARD2_0
+# else
+
+using FreeSql;
+using FreeSql.DataAnnotations;
+using FreeSql.Extensions.DynamicEntity;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +16,50 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
+
+public static class FreeSqlGlobalDynamicEntityExtensions
+{
+    /// <summary>
+    /// 动态构建Class Type
+    /// </summary>
+    /// <returns></returns>
+    public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className, params Attribute[] attributes)
+    {
+        return new DynamicCompileBuilder((codeFirst as CodeFirstProvider)._orm, className, attributes);
+    }
+
+    /// <summary>
+    /// 根据字典，创建 table 对应的实体对象
+    /// </summary>
+    /// <param name="table"></param>
+    /// <param name="dict"></param>
+    /// <returns></returns>
+    public static object CreateInstance(this TableInfo table, Dictionary<string, object> dict)
+    {
+        if (table == null || dict == null) return null;
+        var instance = table.Type.CreateInstanceGetDefaultValue();
+        foreach (var key in table.ColumnsByCs.Keys)
+        {
+            if (dict.ContainsKey(key) == false) continue;
+            table.ColumnsByCs[key].SetValue(instance, dict[key]);
+        }
+        return instance;
+    }
+    /// <summary>
+    /// 根据实体对象，创建 table 对应的字典
+    /// </summary>
+    /// <param name="table"></param>
+    /// <param name="instance"></param>
+    /// <returns></returns>
+    public static Dictionary<string, object> CreateDictionary(this TableInfo table, object instance)
+    {
+        if (table == null || instance == null) return null;
+        var dict = new Dictionary<string, object>();
+        foreach (var key in table.ColumnsByCs.Keys)
+            dict[key] = table.ColumnsByCs[key].GetValue(instance);
+        return dict;
+    }
+}
 
 namespace FreeSql.Extensions.DynamicEntity
 {
@@ -18,6 +72,7 @@ namespace FreeSql.Extensions.DynamicEntity
         private Attribute[] _tableAttributes = null;
         private List<DynamicPropertyInfo> _properties = new List<DynamicPropertyInfo>();
         private Type _superClass = null;
+        private IFreeSql _fsql = null;
 
         /// <summary>
         /// 配置Class
@@ -25,11 +80,11 @@ namespace FreeSql.Extensions.DynamicEntity
         /// <param name="className">类名</param>
         /// <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
         /// <returns></returns>
-        public DynamicCompileBuilder Class(string className, params Attribute[] attributes)
+        public DynamicCompileBuilder(IFreeSql fsql, string className, params Attribute[] attributes)
         {
+            _fsql = fsql;
             _className = className;
             _tableAttributes = attributes;
-            return this;
         }
 
         /// <summary>
@@ -157,7 +212,7 @@ namespace FreeSql.Extensions.DynamicEntity
         /// Emit动态创建出Class - Type
         /// </summary>
         /// <returns></returns>
-        public Type Build()
+        public TableInfo Build()
         {
             //初始化AssemblyName的一个实例
             var assemblyName = new AssemblyName("FreeSql.DynamicCompileBuilder");
@@ -177,7 +232,8 @@ namespace FreeSql.Extensions.DynamicEntity
             SetPropertys(ref typeBuilder);
 
             //创建类的Type对象
-            return typeBuilder.CreateType();
+            var type = typeBuilder.CreateType();
+            return _fsql.CodeFirst.GetTableByEntity(type);
         }
 
         /// <summary>
@@ -227,3 +283,4 @@ namespace FreeSql.Extensions.DynamicEntity
         }
     }
 }
+#endif

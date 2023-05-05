@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.IO;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace FreeSql.Oracle
 {
@@ -30,13 +32,14 @@ namespace FreeSql.Oracle
             this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
 #if oledb
-            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(bool)] = typeof(DbDataReader).GetMethod("GetBoolean", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(int)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(long)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(decimal)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(DateTime)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle] = new Dictionary<Type, MethodInfo>();
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(bool)] = typeof(DbDataReader).GetMethod("GetBoolean", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(int)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(long)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(decimal)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(DateTime)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.Oracle][typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) });
 
             this.Aop.CommandBefore += (_, e) =>
             {

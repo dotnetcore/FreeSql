@@ -2,8 +2,10 @@
 using FreeSql.Internal.CommonProvider;
 using FreeSql.MySql.Curd;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 
 namespace FreeSql.MySql
@@ -35,8 +37,9 @@ namespace FreeSql.MySql
                 return null;
             });
 
-            Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
-            Select0Provider._dicMethodDataReaderGetValue[typeof(DateTimeOffset)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql] = new Dictionary<Type, MethodInfo>();
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql][typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql][typeof(DateTimeOffset)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
         }
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new MySqlSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

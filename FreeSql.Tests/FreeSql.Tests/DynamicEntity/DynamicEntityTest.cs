@@ -11,15 +11,14 @@ namespace FreeSql.Tests.DynamicEntity
 {
     public class DynamicEntityTest
     {
-        private static IFreeSql fsql = new FreeSqlBuilder().UseConnectionString(DataType.PostgreSQL,
-                "Host=192.168.0.36;Port=5432;Username=postgres;Password=123; Database=test;ArrayNullabilityMode=Always;Pooling=true;Minimum Pool Size=1")
+        private static IFreeSql fsql = new FreeSqlBuilder().UseConnectionString(DataType.Sqlite,
+                "data source=:memory:")
             .UseMonitorCommand(d => Console.WriteLine(d.CommandText)).Build();
 
         [Fact]
         public void NormalTest()
         {
-            Type type = DynamicCompileHelper.DynamicBuilder()
-                .Class("NormalUsers")
+            var table = fsql.CodeFirst.DynamicEntity("NormalUsers")
                 .Property("Id", typeof(string))
                 .Property("Name", typeof(string))
                 .Property("Address", typeof(string))
@@ -30,18 +29,17 @@ namespace FreeSql.Tests.DynamicEntity
                 ["Id"] = Guid.NewGuid().ToString(),
                 ["Address"] = "北京市"
             };
-            var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
+            var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(type);
-            fsql.Insert<object>().AsType(type).AppendData(instance).ExecuteAffrows();
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
         }
 
         [Fact]
         public void AttributeTest()
         {
-            Type type = DynamicCompileHelper.DynamicBuilder()
-                .Class("AttributeUsers", new TableAttribute() { Name = "T_Attribute_User" },
-                    new IndexAttribute("Name_Index", "Name", false))
+            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers", new TableAttribute() { Name = "T_Attribute_User" },
+                    new IndexAttribute("Name_Index1", "Name", false))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
@@ -54,19 +52,18 @@ namespace FreeSql.Tests.DynamicEntity
                 ["Name"] = "张三",
                 ["Address"] = "北京市"
             };
-            var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
+            var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(type);
-            var insertId = fsql.Insert<object>().AsType(type).AppendData(instance).ExecuteIdentity();
-            var select = fsql.Select<object>().AsType(type).ToList();
+            fsql.CodeFirst.SyncStructure(table.Type);
+            var insertId = fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
+            var select = fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void SuperClassTest()
         {
-            Type type = DynamicCompileHelper.DynamicBuilder()
-                .Class("Roles", new TableAttribute() { Name = "T_Role" },
-                    new IndexAttribute("Name_Index", "Name", false))
+            var table = fsql.CodeFirst.DynamicEntity("Roles", new TableAttribute() { Name = "T_Role" },
+                    new IndexAttribute("Name_Index2", "Name", false))
                 .Extend(typeof(BaseModel))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
@@ -79,10 +76,10 @@ namespace FreeSql.Tests.DynamicEntity
                 ["UpdateTime"] = DateTime.Now,
                 ["UpdatePerson"] = "admin"
             };
-            var instance = DynamicCompileHelper.CreateObjectByType(type, dict);
+            var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(type);
-            fsql.Insert<object>().AsType(type).AppendData(instance).ExecuteAffrows();
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
         }
     }
     public class BaseModel

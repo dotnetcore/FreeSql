@@ -744,8 +744,11 @@ namespace FreeSql.Internal.CommonProvider
                             _orm.Aop.AuditDataReaderHandler == null &&
                             _dicMethodDataReaderGetValue.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drGetValueMethod))
                         {
+                            if (_dicMethodDataReaderGetValueOverride.TryGetValue(_orm.Ado.DataType, out var drDictOverride) && drDictOverride.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drDictOverrideGetValueMethod))
+                                drGetValueMethod = drDictOverrideGetValueMethod;
+
                             Expression drvalExp = Expression.Call(rowExp, drGetValueMethod, Expression.Constant(colidx));
-                            if (col.CsType.IsNullableType()) drvalExp = Expression.Convert(drvalExp, col.CsType);
+                            if (col.CsType.IsNullableType() || drGetValueMethod.ReturnType != col.CsType) drvalExp = Expression.Convert(drvalExp, col.CsType);
                             drvalExp = Expression.Condition(Expression.Call(rowExp, _MethodDataReaderIsDBNull, Expression.Constant(colidx)), Expression.Default(col.CsType), drvalExp);
 
                             if (drvalType.IsArray || drvalType.IsEnum || Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(drvalType))
