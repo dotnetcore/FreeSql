@@ -15,7 +15,6 @@ namespace FreeSql.Tests.DynamicEntity
                 "Host=192.168.0.36;Port=5432;Username=postgres;Password=123; Database=test;ArrayNullabilityMode=Always;Pooling=true;Minimum Pool Size=1")
             .UseMonitorCommand(d => Console.WriteLine(d.CommandText)).Build();
 
-
         [Fact]
         public void NormalTest()
         {
@@ -68,7 +67,7 @@ namespace FreeSql.Tests.DynamicEntity
             Type type = DynamicCompileHelper.DynamicBuilder()
                 .Class("Roles", new TableAttribute() { Name = "T_Role" },
                     new IndexAttribute("Name_Index", "Name", false))
-                .SuperClass(typeof(BaseModel))
+                .Extend(typeof(BaseModel))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
