@@ -71,7 +71,16 @@ namespace FreeSql.Internal
                     field.Append(_common.FieldAsAlias(parent.DbNestedField));
                 }
                 else if (isdiymemexp && diymemexp?.ParseExpMapResult != null)
+                {
                     parent.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
+                    if (EndsWithDbNestedField(parent.DbField, $" {parent.DbNestedField}") == false && //#1510 group by 产生的 DbField 自带 alias，因此需要此行判断
+                        string.IsNullOrEmpty(parent.CsName) == false && localIndex == ReadAnonymousFieldAsCsName)
+                    {
+                        parent.DbNestedField = GetFieldAsCsName(parent.CsName);
+                        if (EndsWithDbNestedField(parent.DbField, parent.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
+                            field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                    }
+                }
                 else if (string.IsNullOrEmpty(parent.CsName) == false)
                 {
                     parent.DbNestedField = GetFieldAsCsName(parent.CsName);
