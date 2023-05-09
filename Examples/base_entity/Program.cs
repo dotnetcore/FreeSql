@@ -483,6 +483,29 @@ namespace base_entity
             public string Name { get; set; }
         }
 
+        [Table(Name = "class_{0}")]
+        public class Class1111
+        {
+            [Column(IsPrimary = true, IsIdentity = true, IsNullable = false)]
+            public int Id { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+        }
+
+        [Table(Name = "student_{0}")]
+        public class Student2222
+        {
+            [Column(IsPrimary = true, IsIdentity = true, IsNullable = false)]
+            public int Id { get; set; }
+
+            [Column(IsPrimary = false, IsNullable = false)]
+            public int ClassId { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+        }
+
         static void Main(string[] args)
         {
             var pams = new Dictionary<string, string>();
@@ -576,6 +599,22 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+var query2222 = fsql.Select<Student2222>()
+    .AsTable((t, o) => string.Format(o, "hash2"))
+    .Where(p => p.Name.Contains("search"))
+    .GroupBy(a => new { a.ClassId })
+    .WithTempQuery(a => a.Key);
+var sql11111 = fsql.Select<Class1111>()
+    .AsTable((t, o) => string.Format(o, "hash1"))
+    .Where(s => query2222
+        .ToList(p => p.ClassId)
+        .Contains(s.Id))
+    .ToSql(s => new
+    {
+        s.Id,
+        s.Name,
+    });
 
             var isusers01 = fsql.Select<Achievement>()
              .Where(e => e.Property("项目执行情况") == "结题")
