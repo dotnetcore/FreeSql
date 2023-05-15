@@ -33,12 +33,14 @@ namespace FreeSql.Tests.DynamicEntity
             //根据Type生成表
             fsql.CodeFirst.SyncStructure(table.Type);
             fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void AttributeTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers", new TableAttribute() { Name = "T_Attribute_User" },
+            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers",
+                    new TableAttribute() { Name = "T_Attribute_User" },
                     new IndexAttribute("Name_Index1", "Name", false))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
@@ -80,9 +82,122 @@ namespace FreeSql.Tests.DynamicEntity
             //根据Type生成表
             fsql.CodeFirst.SyncStructure(table.Type);
             fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+        }
+
+        [Fact]
+        public void SuperClassVirtualOverrideTest()
+        {
+            var table = fsql.CodeFirst.DynamicEntity("Role_VirtualOverride",
+                    new TableAttribute() { Name = "T_Role_VirtualOverride" },
+                    new IndexAttribute("Name_Index2", "Name", false))
+                .Extend(typeof(BaseModelOverride))
+                .Property("Id", typeof(int),
+                    new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
+                .Property("Name", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 2 })
+                .Property("Operators", typeof(string), true) //重写 virtual 属性
+                .Build();
+            var dict = new Dictionary<string, object>
+            {
+                ["Name"] = "系统管理员",
+                ["UpdateTime"] = DateTime.Now,
+                ["UpdatePerson"] = "admin",
+                ["Operators"] = "manager"
+            };
+            var instance = table.CreateInstance(dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+        }
+
+        [Fact]
+        public void SuperClassBaseModelAbstractTest()
+        {
+            var table = fsql.CodeFirst.DynamicEntity("Role_AbstractOverride",
+                    new TableAttribute() { Name = "T_Role_AbstractOverride" },
+                    new IndexAttribute("Name_Index2", "Name", false))
+                .Extend(typeof(BaseModelOverride))
+                .Property("Id", typeof(int),
+                    new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
+                .Property("Name", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 2 })
+                .Property("Operators", typeof(string), true) //重写 abstract 属性
+                .Build();
+            var dict = new Dictionary<string, object>
+            {
+                ["Name"] = "系统管理员",
+                ["UpdateTime"] = DateTime.Now,
+                ["UpdatePerson"] = "admin",
+                ["Operators"] = "manager"
+            };
+            var instance = table.CreateInstance(dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+        }
+
+        [Fact]
+        public void SuperClassBaseModelAbstractAndVirtualTest()
+        {
+            var table = fsql.CodeFirst.DynamicEntity("Role_AbstractAndVirtualOverride",
+                    new TableAttribute() { Name = "Role_AbstractAndVirtualOverride" },
+                    new IndexAttribute("Name_Index2", "Name", false))
+                .Extend(typeof(BaseModelOverride))
+                .Property("Id", typeof(int),
+                    new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
+                .Property("Name", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 2 })
+                .Property("Operators", typeof(string), true) //重写 abstract 属性
+                .Property("Operators2", typeof(string), true) //重写 virtual 属性
+                .Build();
+            var dict = new Dictionary<string, object>
+            {
+                ["Name"] = "系统管理员",
+                ["UpdateTime"] = DateTime.Now,
+                ["UpdatePerson"] = "admin",
+                ["Operators"] = "manager",
+                ["Operators2"] = "manager2"
+            };
+            var instance = table.CreateInstance(dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
         }
     }
+
     public class BaseModel
+    {
+        [Column(Position = 99)] public DateTime UpdateTime { get; set; }
+
+        [Column(Position = 100, StringLength = 20)]
+        public string UpdatePerson { get; set; }
+    }
+
+    public class BaseModelOverride
+    {
+        [Column(Position = 99)] public DateTime UpdateTime { get; set; }
+
+        [Column(Position = 100, StringLength = 20)]
+        public string UpdatePerson { get; set; }
+
+        public virtual string Operators { get; set; }
+    }
+
+    public abstract class BaseModelAbstract
+    {
+        [Column(Position = 99)] public DateTime UpdateTime { get; set; }
+
+        [Column(Position = 100, StringLength = 20)]
+        public string UpdatePerson { get; set; }
+
+        public abstract string Operators { get; set; }
+    }
+
+    public abstract class BaseModelAbstractAndVirtual
     {
         [Column(Position = 99)]
         public DateTime UpdateTime
@@ -95,5 +210,17 @@ namespace FreeSql.Tests.DynamicEntity
         {
             get; set;
         }
+
+        public abstract string Operators
+        {
+            get; set;
+        }
+
+
+        public virtual string Operators2
+        {
+            get; set;
+        }
     }
 }
+

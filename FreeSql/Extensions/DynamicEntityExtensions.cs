@@ -1,7 +1,7 @@
 ﻿// by: Daily
 
 #if net40 || NETSTANDARD2_0
-# else
+#else
 
 using FreeSql;
 using FreeSql.DataAnnotations;
@@ -23,7 +23,8 @@ public static class FreeSqlGlobalDynamicEntityExtensions
     /// 动态构建Class Type
     /// </summary>
     /// <returns></returns>
-    public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className, params Attribute[] attributes)
+    public static DynamicCompileBuilder DynamicEntity(this ICodeFirst codeFirst, string className,
+        params Attribute[] attributes)
     {
         return new DynamicCompileBuilder((codeFirst as CodeFirstProvider)._orm, className, attributes);
     }
@@ -43,8 +44,10 @@ public static class FreeSqlGlobalDynamicEntityExtensions
             if (dict.ContainsKey(key) == false) continue;
             table.ColumnsByCs[key].SetValue(instance, dict[key]);
         }
+
         return instance;
     }
+
     /// <summary>
     /// 根据实体对象，创建 table 对应的字典
     /// </summary>
@@ -94,12 +97,59 @@ namespace FreeSql.Extensions.DynamicEntity
         /// <param name="propertyType">属性类型</param>
         /// <param name="attributes">属性标记的特性-支持多个</param>
         /// <returns></returns>
-        public DynamicCompileBuilder Property(string propertyName, Type propertyType, params Attribute[] attributes)
+        public DynamicCompileBuilder Property(string propertyName, Type propertyType,
+            params Attribute[] attributes)
         {
             _properties.Add(new DynamicPropertyInfo()
             {
                 PropertyName = propertyName,
                 PropertyType = propertyType,
+                DefaultValue = null,
+                Attributes = attributes
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// 配置属性
+        /// </summary>
+        /// <param name="propertyName">属性名称</param>
+        /// <param name="propertyType">属性类型</param>
+        /// <param name="isOverride">该属性是否重写父类属性</param>
+        /// <param name="attributes">属性标记的特性-支持多个</param>
+        /// <returns></returns>
+        public DynamicCompileBuilder Property(string propertyName, Type propertyType, bool isOverride,
+            params Attribute[] attributes)
+        {
+            _properties.Add(new DynamicPropertyInfo()
+            {
+                PropertyName = propertyName,
+                PropertyType = propertyType,
+                DefaultValue = null,
+                IsOverride = isOverride,
+                Attributes = attributes
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// 配置属性
+        /// </summary>
+        /// <param name="propertyName">属性名称</param>
+        /// <param name="propertyType">属性类型</param>
+        /// <param name="isOverride">该属性是否重写父类属性</param>
+        /// <param name="defaultValue">属性默认值</param>
+        /// <param name="attributes">属性标记的特性-支持多个</param>
+        /// <returns></returns>
+        public DynamicCompileBuilder Property(string propertyName, Type propertyType, bool isOverride,
+            object defaultValue, params Attribute[] attributes)
+        {
+            _properties.Add(new DynamicPropertyInfo()
+            {
+                PropertyName = propertyName,
+                PropertyType = propertyType,
+                DefaultValue = null,
+                IsOverride = isOverride,
                 Attributes = attributes
             });
             return this;
@@ -162,10 +212,17 @@ namespace FreeSql.Extensions.DynamicEntity
                 var field = typeBuilder.DefineField($"_{FirstCharToLower(propertyName)}", propertyType,
                     FieldAttributes.Private);
                 var firstCharToUpper = FirstCharToUpper(propertyName);
+
+                MethodAttributes maAttributes = MethodAttributes.Public;
+
+                if (pinfo.IsOverride)
+                {
+                    maAttributes = MethodAttributes.Public | MethodAttributes.Virtual;
+                }
+
                 //设置属性方法
-                var methodGet = typeBuilder.DefineMethod($"Get{firstCharToUpper}", MethodAttributes.Public,
-                    propertyType, null);
-                var methodSet = typeBuilder.DefineMethod($"Set{firstCharToUpper}", MethodAttributes.Public, null,
+                var methodGet = typeBuilder.DefineMethod($"get_{firstCharToUpper}", maAttributes, propertyType, null);
+                var methodSet = typeBuilder.DefineMethod($"set_{firstCharToUpper}", maAttributes, null,
                     new Type[] { propertyType });
 
                 var ilOfGet = methodGet.GetILGenerator();
@@ -179,11 +236,26 @@ namespace FreeSql.Extensions.DynamicEntity
                 ilOfSet.Emit(OpCodes.Stfld, field);
                 ilOfSet.Emit(OpCodes.Ret);
 
+
+                //是否重写
+                if (pinfo.IsOverride)
+                {
+                    //重写Get、Set方法
+                    OverrideProperty(ref typeBuilder, methodGet, PropertyMethodEnum.GET, pinfo.PropertyName);
+                    OverrideProperty(ref typeBuilder, methodSet, PropertyMethodEnum.SET, pinfo.PropertyName);
+                }
+
                 //设置属性
                 var propertyBuilder =
                     typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
                 propertyBuilder.SetGetMethod(methodGet);
                 propertyBuilder.SetSetMethod(methodSet);
+
+                //设置默认值
+                if (pinfo.DefaultValue != null)
+                {
+                    propertyBuilder.SetConstant(pinfo.DefaultValue);
+                }
 
                 foreach (var pinfoAttribute in pinfo.Attributes)
                 {
@@ -207,6 +279,23 @@ namespace FreeSql.Extensions.DynamicEntity
                 new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
             propertyBuilder.SetCustomAttribute(customAttributeBuilder);
         }
+
+        /// <summary>
+        /// Override属性
+        /// </summary>
+        /// <param name="typeBuilder"></param>
+        private void OverrideProperty(ref TypeBuilder typeBuilder, MethodBuilder methodBuilder,
+            PropertyMethodEnum methodEnum,
+            string propertyName)
+        {
+            //查找父类的属性信息
+            var propertyInfo = typeBuilder.BaseType.GetProperty(propertyName);
+            if (propertyInfo == null) return;
+            var pm = methodEnum == PropertyMethodEnum.GET ? propertyInfo.GetGetMethod() : propertyInfo.GetSetMethod();
+            //重写父类GET SET 方法
+            typeBuilder.DefineMethodOverride(methodBuilder, pm);
+        }
+
 
         /// <summary>
         /// Emit动态创建出Class - Type
@@ -233,6 +322,7 @@ namespace FreeSql.Extensions.DynamicEntity
 
             //创建类的Type对象
             var type = typeBuilder.CreateType();
+
             return _fsql.CodeFirst.GetTableByEntity(type);
         }
 
@@ -279,7 +369,15 @@ namespace FreeSql.Extensions.DynamicEntity
         {
             public string PropertyName { get; set; } = string.Empty;
             public Type PropertyType { get; set; }
+            public object DefaultValue { get; set; }
+            public bool IsOverride { get; set; } = false;
             public Attribute[] Attributes { get; set; }
+        }
+
+        enum PropertyMethodEnum
+        {
+            GET,
+            SET
         }
     }
 }
