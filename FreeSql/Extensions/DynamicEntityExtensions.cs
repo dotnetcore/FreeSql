@@ -11,11 +11,15 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml.Serialization;
 
 public static class FreeSqlGlobalDynamicEntityExtensions
 {
@@ -39,6 +43,12 @@ public static class FreeSqlGlobalDynamicEntityExtensions
     {
         if (table == null || dict == null) return null;
         var instance = table.Type.CreateInstanceGetDefaultValue();
+        //加载默认值
+        var defaultValueInit = table.Type.GetMethod("DefaultValueInit");
+        if (defaultValueInit != null)
+        {
+            defaultValueInit.Invoke(instance, new object[0]);
+        }
         foreach (var key in table.ColumnsByCs.Keys)
         {
             if (dict.ContainsKey(key) == false) continue;
@@ -148,7 +158,7 @@ namespace FreeSql.Extensions.DynamicEntity
             {
                 PropertyName = propertyName,
                 PropertyType = propertyType,
-                DefaultValue = null,
+                DefaultValue = defaultValue,
                 IsOverride = isOverride,
                 Attributes = attributes
             });
@@ -176,7 +186,7 @@ namespace FreeSql.Extensions.DynamicEntity
 
                 if (tableAttribute == null) continue;
 
-                var classCtorInfo = tableAttribute.GetType().GetConstructor(new Type[] { });
+                var classCtorInfo = tableAttribute.GetType().GetConstructor(Type.EmptyTypes);
 
                 var propertyInfos = tableAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
 
@@ -202,6 +212,7 @@ namespace FreeSql.Extensions.DynamicEntity
 
         private void SetPropertys(ref TypeBuilder typeBuilder)
         {
+            var defaultValues = new Dictionary<FieldBuilder, object>();
             foreach (var pinfo in _properties)
             {
                 if (pinfo == null)
@@ -210,11 +221,12 @@ namespace FreeSql.Extensions.DynamicEntity
                 var propertyType = pinfo.PropertyType;
                 //设置字段
                 var field = typeBuilder.DefineField($"_{FirstCharToLower(propertyName)}", propertyType,
-                    FieldAttributes.Private);
+                    FieldAttributes.Private | FieldAttributes.HasDefault);
                 var firstCharToUpper = FirstCharToUpper(propertyName);
 
                 MethodAttributes maAttributes = MethodAttributes.Public;
 
+                //是否重写
                 if (pinfo.IsOverride)
                 {
                     maAttributes = MethodAttributes.Public | MethodAttributes.Virtual;
@@ -251,33 +263,95 @@ namespace FreeSql.Extensions.DynamicEntity
                 propertyBuilder.SetGetMethod(methodGet);
                 propertyBuilder.SetSetMethod(methodSet);
 
-                //设置默认值
-                if (pinfo.DefaultValue != null)
-                {
-                    propertyBuilder.SetConstant(pinfo.DefaultValue);
-                }
-
                 foreach (var pinfoAttribute in pinfo.Attributes)
                 {
                     //设置特性
                     SetPropertyAttribute(ref propertyBuilder, pinfoAttribute);
                 }
+
+                if (pinfo.DefaultValue != null)
+                {
+                    defaultValues.Add(field, pinfo.DefaultValue);
+                }
+            }
+
+            //动态构建方法，设置默认值
+            var methodDefaultValue = typeBuilder.DefineMethod($"DefaultValueInit", MethodAttributes.Public, null, null);
+            var methodDefaultValueLlGenerator = methodDefaultValue.GetILGenerator();
+            foreach (var kv in defaultValues)
+            {
+                methodDefaultValueLlGenerator.Emit(OpCodes.Ldarg_0);
+                OpCodesAdapter(ref methodDefaultValueLlGenerator, kv.Key, kv.Value);
+                methodDefaultValueLlGenerator.Emit(OpCodes.Stfld, kv.Key);
+            }
+
+            methodDefaultValueLlGenerator.Emit(OpCodes.Ret);
+        }
+
+        //IL命令类型适配
+        private void OpCodesAdapter(ref ILGenerator generator, FieldInfo info, object value)
+        {
+            var fieldTypeName = info.FieldType.Name;
+            switch (fieldTypeName)
+            {
+                case "Int32":
+                    generator.Emit(OpCodes.Ldc_I4, Convert.ToInt32(value));
+                    break;
+                case "Boolean":
+                    generator.Emit(OpCodes.Ldc_I4, Convert.ToInt32(value));
+                    break;
+                case "Char":
+                    generator.Emit(OpCodes.Ldc_I4, Convert.ToChar(value));
+                    break;
+                case "String":
+                    generator.Emit(OpCodes.Ldstr, Convert.ToString(value));
+                    break;
+                case "DateTime":
+                    generator.Emit(OpCodes.Ldstr, Convert.ToString(value));
+                    generator.Emit(OpCodes.Call, typeof(DateTime).GetMethod("Parse", new[] { typeof(string) }));
+                    break;
+                case "Int64":
+                    generator.Emit(OpCodes.Ldc_I4, Convert.ToString(value));
+                    generator.Emit(OpCodes.Conv_I8);
+                    break;
+                case "Double":
+                    generator.Emit(OpCodes.Ldc_R8, Convert.ToDouble(value));
+                    break;
+                case "Single":
+                    generator.Emit(OpCodes.Ldc_R4, Convert.ToSingle(value));
+                    break;
+                case "Decimal":
+                    Console.WriteLine(Convert.ToString(value));
+                    generator.Emit(OpCodes.Ldstr, Convert.ToString(value));
+                    generator.Emit(OpCodes.Call, typeof(Decimal).GetMethod("Parse", new[] { typeof(string) }));
+                    break;
             }
         }
 
         private void SetPropertyAttribute<T>(ref PropertyBuilder propertyBuilder, T tAttribute)
         {
             if (tAttribute == null) return;
-
             var propertyInfos = tAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
-            var constructor = tAttribute.GetType().GetConstructor(new Type[] { });
+            var constructor = tAttribute.GetType().GetConstructor(Type.EmptyTypes);
             var propertyValues = new ArrayList();
             foreach (var propertyInfo in propertyInfos)
                 propertyValues.Add(propertyInfo.GetValue(tAttribute));
 
-            var customAttributeBuilder =
-                new CustomAttributeBuilder(constructor, new object[0], propertyInfos, propertyValues.ToArray());
+            //可能存在有参构造
+            //if (constructor == null)
+            //{
+            //    var constructorTypes = propertyInfos.Select(p => p.PropertyType).ToList();
+            //    constructor = tAttribute.GetType().GetConstructor(constructorTypes.ToArray());
+            //    var customAttributeBuilder = new CustomAttributeBuilder(constructor, constructorTypes.ToArray(),
+            //        propertyInfos, propertyValues.ToArray());
+            //    propertyBuilder.SetCustomAttribute(customAttributeBuilder);
+            //}
+            //else
+            //{
+            var customAttributeBuilder = new CustomAttributeBuilder(constructor, new object[0], propertyInfos,
+                propertyValues.ToArray());
             propertyBuilder.SetCustomAttribute(customAttributeBuilder);
+            // }
         }
 
         /// <summary>

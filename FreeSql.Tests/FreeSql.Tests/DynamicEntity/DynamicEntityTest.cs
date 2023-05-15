@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions.DynamicEntity;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace FreeSql.Tests.DynamicEntity
@@ -118,7 +119,7 @@ namespace FreeSql.Tests.DynamicEntity
             var table = fsql.CodeFirst.DynamicEntity("Role_AbstractOverride",
                     new TableAttribute() { Name = "T_Role_AbstractOverride" },
                     new IndexAttribute("Name_Index2", "Name", false))
-                .Extend(typeof(BaseModelOverride))
+                .Extend(typeof(BaseModelAbstract))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
@@ -145,7 +146,7 @@ namespace FreeSql.Tests.DynamicEntity
             var table = fsql.CodeFirst.DynamicEntity("Role_AbstractAndVirtualOverride",
                     new TableAttribute() { Name = "Role_AbstractAndVirtualOverride" },
                     new IndexAttribute("Name_Index2", "Name", false))
-                .Extend(typeof(BaseModelOverride))
+                .Extend(typeof(BaseModelAbstractAndVirtual))
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
@@ -160,6 +161,32 @@ namespace FreeSql.Tests.DynamicEntity
                 ["UpdatePerson"] = "admin",
                 ["Operators"] = "manager",
                 ["Operators2"] = "manager2"
+            };
+            var instance = table.CreateInstance(dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(table.Type);
+            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+        }
+
+        [Fact]
+        public void DefaultValueTest()
+        {
+            var table = fsql.CodeFirst.DynamicEntity("NormalUsers")
+                .Property("Id", typeof(string))
+                .Property("Age", typeof(int), false, 12)
+                .Property("Longs", typeof(long), false, 16666)
+                .Property("Dates", typeof(DateTime), false, "2023-05-15")
+                .Property("Name", typeof(char), false, '我')
+                .Property("Address", typeof(bool), false, false) //设置默认值
+                .Property("Money", typeof(double), false, 265421.02) //设置默认值
+                .Property("MoneyFloat", typeof(float), false, 26543.02) //设置默认值
+                .Property("MoneyDecimal", typeof(decimal), true, 2663.12560) //设置默认值
+                .Build();
+         
+            var dict = new Dictionary<string, object>
+            {
+                ["Id"] = Guid.NewGuid().ToString()
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
@@ -199,28 +226,14 @@ namespace FreeSql.Tests.DynamicEntity
 
     public abstract class BaseModelAbstractAndVirtual
     {
-        [Column(Position = 99)]
-        public DateTime UpdateTime
-        {
-            get; set;
-        }
+        [Column(Position = 99)] public DateTime UpdateTime { get; set; }
 
         [Column(Position = 100, StringLength = 20)]
-        public string UpdatePerson
-        {
-            get; set;
-        }
+        public string UpdatePerson { get; set; }
 
-        public abstract string Operators
-        {
-            get; set;
-        }
+        public abstract string Operators { get; set; }
 
 
-        public virtual string Operators2
-        {
-            get; set;
-        }
+        public virtual string Operators2 { get; set; }
     }
 }
-
