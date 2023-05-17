@@ -14,6 +14,7 @@ using Npgsql;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Data.SqlClient;
@@ -571,8 +572,8 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=5;min pool size=1")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -600,7 +601,39 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-var query2222 = fsql.Select<Student2222>()
+            fsql.Delete<OracleLongRaw1>().Where("1=1").ExecuteAffrows();
+            var longRawData = Encoding.UTF8.GetBytes(string.Join(",", Enumerable.Range(1, 2000).Select(a => "中国人")));
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(false).ExecuteAffrows();
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(true).ExecuteAffrows();
+            var longRaw1 = fsql.Select<OracleLongRaw1>().ToList();
+
+            MarketingRestrictions restrictions = new MarketingRestrictions();
+
+            if (restrictions.Id == Guid.Empty)
+            {
+                restrictions.CreatedBy = 100;
+            }
+            else
+            {
+                restrictions.UpdatedBy = 100;
+                restrictions.UpdatedTime = DateTime.Now;
+            }
+
+            int ret = fsql.InsertOrUpdate<MarketingRestrictions>()
+                .SetSource(restrictions)
+                .UpdateColumns(r => new {
+                    r.Describe,
+                    r.IsLimitUsePoints,
+                    r.Status,
+                    r.StartTime,
+                    r.EndTime,
+                    r.UpdatedBy,
+                    r.UpdatedTime
+                })
+                .ExecuteAffrows();
+
+
+            var query2222 = fsql.Select<Student2222>()
     .AsTable((t, o) => string.Format(o, "hash2"))
     .Where(p => p.Name.Contains("search"))
     .GroupBy(a => new { a.ClassId })
@@ -2192,5 +2225,101 @@ var sql11111 = fsql.Select<Class1111>()
     {
         [Column(MapType = typeof(string))]
         public Achievement Group { get; set; }
+    }
+    [Description("营销限制表")]
+    [Table(Name = "MarketingRestrictions")]
+    public class MarketingRestrictions
+    {
+        /// <summary>
+        /// 主键标识
+        /// </summary>
+        [Description("主键标识")]
+        [Column(DbType = "uniqueidentifier", IsPrimary = true)]
+        public Guid Id { get; set; }
+        /// <summary>
+        /// 商户应用Id
+        /// </summary>
+        [Description("商户应用Id")]
+        [Column(DbType = "varchar(32) not null")]
+        public string MchtAppId { get; set; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        [Description("描述")]
+        [Column(DbType = "nvarchar(500) not null")]
+        public string Describe { get; set; }
+        /// <summary>
+        /// 状态：0、关闭 1、启用
+        /// </summary>
+        [Description("状态：0、关闭 1、启用")]
+        [Column(DbType = "smallint")]
+        public sbyte Status { get; set; }
+        /// <summary>
+        /// 是否限制使用积分：0、否 1、是
+        /// </summary>
+        [Description("是否限制使用积分：0、否 1、是")]
+        [Column(DbType = "smallint")]
+        public sbyte IsLimitUsePoints { get; set; }
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        [Description("开始时间")]
+        [Column(DbType = "datetime")]
+        public DateTime StartTime { get; set; }
+        /// <summary>
+        /// 结束时间
+        /// </summary>
+        [Description("结束时间")]
+        [Column(DbType = "datetime")]
+        public DateTime EndTime { get; set; }
+        /// <summary>
+        /// 创建人Id
+        /// </summary>
+        [Description("创建人Id")]
+        [Column(DbType = "bigint")]
+        public long CreatedBy { get; set; }
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        [Description("创建时间")]
+        [Column(DbType = "datetime", ServerTime = DateTimeKind.Local, CanUpdate = false)]
+        public DateTime CreatedTime { get; set; }
+        /// <summary>
+        /// 最后编辑人Id
+        /// </summary>
+        [Description("最后编辑人Id")]
+        [Column(DbType = "bigint")]
+        public long? UpdatedBy { get; set; }
+        /// <summary>
+        /// 最后编辑时间
+        /// </summary>
+        [Description("最后编辑时间")]
+        [Column(DbType = "datetime")]
+        public DateTime? UpdatedTime { get; set; }
+        /// <summary>
+        /// 是否删除：0、否 1、是
+        /// </summary>
+        [Description("是否删除：0、否 1、是")]
+        [Column(DbType = "smallint")]
+        public sbyte Deleted { get; set; }
+        /// <summary>
+        /// 删除人Id
+        /// </summary>
+        [Description("删除人Id")]
+        [Column(DbType = "bigint")]
+        public long? DeletedBy { get; set; }
+        /// <summary>
+        /// 删除时间
+        /// </summary>
+        [Description("删除时间")]
+        [Column(DbType = "datetime")]
+        public DateTime? DeletedTime { get; set; }
+    }
+
+    class OracleLongRaw1
+    {
+        public Guid id { get; set; }
+        [Column(DbType = "long raw")]
+        public byte[] data { get; set; }
     }
 }

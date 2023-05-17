@@ -51,6 +51,10 @@ namespace FreeSql.Oracle
                     case OracleDbType.Blob:
                         ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype2, Value = value };
                         break;
+                    case OracleDbType.Raw:
+                    case OracleDbType.LongRaw:
+                        ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype2, Value = value };
+                        break;
                 }
             }
             _params?.Add(ret);

@@ -55,6 +55,10 @@ namespace FreeSql.Oracle
                         if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;
+                    case OleDbType.VarBinary:
+                    case OleDbType.LongVarBinary:
+                        ret = new OleDbParameter { ParameterName = QuoteParamterName(parameterName), OleDbType = dbtype2, Value = value };
+                        break;
                 }
             }
             _params?.Add(ret);

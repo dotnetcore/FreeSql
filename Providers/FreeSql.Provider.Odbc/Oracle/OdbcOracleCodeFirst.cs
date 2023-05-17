@@ -465,6 +465,12 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             else if (sqlType.StartsWith("NCLOB"))
             {
             }
+            else if (sqlType.StartsWith("RAW"))
+            {
+            }
+            else if (sqlType.StartsWith("LONG RAW"))
+            {
+            }
             else if (char_used.ToLower() == "c")
                 sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
             else if (char_used.ToLower() == "b")
