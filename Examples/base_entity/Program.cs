@@ -601,6 +601,10 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var sqlastable1 = fsql.Select<CurrentDetail>(101).AsTable((t, o) => "current_detail_230501").ToSql();
+            var sqlastable2 = fsql.Update<CurrentDetail>(101).AsTable("current_detail_230501").Set(t => t.StatuId, 1).ToSql();
+            var sqlastable3 = fsql.Delete<CurrentDetail>(101).AsTable("current_detail_230501").ToSql();
+
             fsql.Delete<OracleLongRaw1>().Where("1=1").ExecuteAffrows();
             var longRawData = Encoding.UTF8.GetBytes(string.Join(",", Enumerable.Range(1, 2000).Select(a => "中国人")));
             fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(false).ExecuteAffrows();
@@ -2321,5 +2325,63 @@ var sql11111 = fsql.Select<Class1111>()
         public Guid id { get; set; }
         [Column(DbType = "long raw")]
         public byte[] data { get; set; }
+    }
+
+    [Table(Name = "current_detail_{yyMM01}", AsTable = "recordDate=2022-12-01(1 month)", DisableSyncStructure = true)]
+    public class CurrentDetail
+    {
+        [Column(IsPrimary = true)]
+        public long Id { get; set; }
+
+        public DateTime CreateTime { get; set; } = DateTime.Now;
+
+        /// <summary>
+        /// 创建日期
+        /// </summary>
+        public DateTime RecordDate { get; set; }
+
+        /// <summary>
+        /// 创建小时
+        /// </summary>
+        public int RecordHour { get; set; }
+
+        /// <summary>
+        /// 根据当前分钟数规整到10分钟的倍数
+        /// 例如 21分=>20分
+        /// </summary>
+        public int RecordMinute { get; set; }
+
+
+        /// <summary>
+        /// 记录时间
+        /// </summary>
+        public DateTime RecordTime { get; set; }
+
+        /// <summary>
+        /// 设备Code
+        /// </summary>
+        public int DeviceCode { get; set; }
+
+        /// <summary>
+        /// 控制器序列号
+        /// </summary>
+        public string TerminalSequence { get; set; }
+
+        /// <summary>
+        /// 平均值
+        /// </summary>
+        public float AvgValue { get; set; }
+
+        /// <summary>
+        /// 路数
+        /// </summary>
+        public int RouteNum { get; set; }
+
+        /// <summary>
+        /// 相类型
+        /// </summary>
+        public int PhaseTypeId { get; set; }
+
+        public int StatuId { get; set; }
     }
 }

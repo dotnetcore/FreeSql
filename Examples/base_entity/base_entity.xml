@@ -250,6 +250,52 @@
             删除时间
             </summary>
         </member>
+        <member name="P:base_entity.CurrentDetail.RecordDate">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordHour">
+            <summary>
+            创建小时
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordMinute">
+            <summary>
+            根据当前分钟数规整到10分钟的倍数
+            例如 21分=>20分
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordTime">
+            <summary>
+            记录时间
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.DeviceCode">
+            <summary>
+            设备Code
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.TerminalSequence">
+            <summary>
+            控制器序列号
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.AvgValue">
+            <summary>
+            平均值
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RouteNum">
+            <summary>
+            路数
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.PhaseTypeId">
+            <summary>
+            相类型
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

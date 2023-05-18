@@ -1004,8 +1004,9 @@ namespace FreeSql.Internal.CommonProvider
             ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
-            if (_table.AsTableImpl != null)
+            if (_table.AsTableImpl != null && _tableRule != null && string.IsNullOrWhiteSpace(_tableRule(_table.DbName)) == true)
             {
+                var oldTableRule = _tableRule;
                 var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
                 foreach (var name in names)
                 {
@@ -1013,6 +1014,7 @@ namespace FreeSql.Internal.CommonProvider
                     ToSqlExtension110(sb.Clear(), true);
                     fetch(sb);
                 }
+                _tableRule = oldTableRule;
                 return;
             }
 
@@ -1036,8 +1038,9 @@ namespace FreeSql.Internal.CommonProvider
             ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
-            if (_table.AsTableImpl != null)
+            if (_table.AsTableImpl != null && _tableRule != null && string.IsNullOrWhiteSpace(_tableRule(_table.DbName)) == true)
             {
+                var oldTableRule = _tableRule;
                 var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
                 foreach (var name in names)
                 {
@@ -1045,6 +1048,7 @@ namespace FreeSql.Internal.CommonProvider
                     ToSqlExtension110(sb.Clear(), true);
                     await fetchAsync(sb);
                 }
+                _tableRule = oldTableRule;
                 return;
             }
 
