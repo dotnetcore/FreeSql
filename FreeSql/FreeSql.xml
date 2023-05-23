@@ -1377,6 +1377,14 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.EqualIsNull``1(``0)">
+            <summary>
+            value1  IS  NULL
+            </summary>
+            <typeparam name="TValue"></typeparam>
+            <param name="value1"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.SqlExt.Case">
             <summary>
             case when .. then .. end

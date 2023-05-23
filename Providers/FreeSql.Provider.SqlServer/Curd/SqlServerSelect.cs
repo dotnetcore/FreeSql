@@ -41,7 +41,7 @@ namespace FreeSql.SqlServer.Curd
                 if (_distinct) sb.Append("DISTINCT ");
                 //if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" "); //TOP 会引发 __rownum__ 无序的问题
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
-                sb.Append(field);
+                var rownum = "";
 
                 if (_limit > 0 || _skip > 0)
                 {
@@ -57,11 +57,14 @@ namespace FreeSql.SqlServer.Curd
                             _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
                     if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
-                        sb.Append(", ROW_NUMBER() OVER(").Append(_orderby.Trim('\r', '\n', ' ')).Append(") AS __rownum__");
+                        rownum = $", ROW_NUMBER() OVER({_orderby.Trim('\r', '\n', ' ')}) AS __rownum__";
                 }
-                sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
+                if (string.IsNullOrEmpty(rownum) == false && field == "*")
+                    sb.Append(tbsfrom[0].Alias).Append("."); //#1519 bug
+                sb.Append(field).Append(rownum);
+                sb.Append(" \r\nFROM ");
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
                     var alias = LocalGetTableAlias(tbsfrom[a].Table.Type, tbUnion[tbsfrom[a].Table.Type], tbsfrom[a].Alias, _aliasRule);

@@ -10,6 +10,44 @@ namespace FreeSql.Tests.SqlServer
     public class SqlServerSelectWithTempQueryTest
     {
         [Fact]
+        public void Issues1519()
+        {
+            var fsql = g.oracle;
+
+            var query = fsql.Select<Issues1510T1>()
+                     .FromQuery(fsql.Select<Issues1510T2>().WithTempQuery(e => e))
+                     .InnerJoin(t => t.t1.Id == t.t2.T1JoinId)
+                     .WithTempQuery(t => new
+                     {
+                         t.t1.Id,
+                         t.t1.Name,
+                         T2Id = t.t2.Id,
+                         T2Name = t.t1.Name,
+                     });
+            var sql = query.ToSql();
+            Assert.Equal(sql, @"SELECT * 
+FROM ( 
+    SELECT a.""ID"", a.""NAME"", htb.""ID"" ""T2ID"", a.""NAME"" ""T2NAME"" 
+    FROM ""ISSUES1510T1"" a 
+    INNER JOIN ( 
+        SELECT a.""ID"", a.""NAME"", a.""T1JOINID"" 
+        FROM ""ISSUES1510T2"" a ) htb ON a.""ID"" = htb.""T1JOINID"" ) a");
+            query.ToList();
+
+            query.Page(2, 5);
+            sql = query.ToSql();
+            Assert.Equal(sql, @"SELECT t.* FROM (SELECT a.*, ROWNUM AS ""__rownum__"" 
+FROM ( 
+    SELECT a.""ID"", a.""NAME"", htb.""ID"" ""T2ID"", a.""NAME"" ""T2NAME"" 
+    FROM ""ISSUES1510T1"" a 
+    INNER JOIN ( 
+        SELECT a.""ID"", a.""NAME"", a.""T1JOINID"" 
+        FROM ""ISSUES1510T2"" a ) htb ON a.""ID"" = htb.""T1JOINID"" ) a 
+WHERE ROWNUM < 11) t WHERE t.""__rownum__"" > 5");
+            query.ToList();
+        }
+
+        [Fact]
         public void Issues1510()
         {
             var fsql = g.mysql;
