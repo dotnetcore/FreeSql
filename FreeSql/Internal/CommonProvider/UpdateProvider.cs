@@ -894,28 +894,30 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                string valsqlOld = null;
-                var valsqlOldStats = 1; //start 1
-                var nullStats = 0;
-                var cwsb = new StringBuilder().Append(cw);
-                foreach (var d in _source)
+                var valsameIf = col.Attribute.MapType.IsNumberType() || col.Attribute.MapType == typeof(string) || col.Attribute.MapType.NullableTypeOrThis().IsEnum;
+                var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
+                if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                 {
-                    cwsb.Append(" \r\nWHEN ");
-                    ToSqlWhen(cwsb, _tempPrimarys, d);
-                    cwsb.Append(" THEN ");
-                    var val = col.GetDbValue(d);
-                    var valsql = thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val)));
-                    cwsb.Append(valsql);
-                    if (valsqlOld == null) valsqlOld = valsql;
-                    else if (valsqlOld == valsql) valsqlOldStats++;
-                    if (val == null || val == DBNull.Value) nullStats++;
+                    var val = ds.First();
+                    var colsql = thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val)));
+                    sb.Append(colsql);
                 }
-                cwsb.Append(" END");
-                if (nullStats == _source.Count) sb.Append("NULL");
-                else if (valsqlOldStats == _source.Count) sb.Append(valsqlOld);
-                else sb.Append(cwsb);
-                cwsb.Clear();
-
+                else
+                {
+                    var cwsb = new StringBuilder().Append(cw);
+                    foreach (var d in _source)
+                    {
+                        cwsb.Append(" \r\nWHEN ");
+                        ToSqlWhen(cwsb, _tempPrimarys, d);
+                        cwsb.Append(" THEN ");
+                        var val = col.GetDbValue(d);
+                        var colsql = thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val)));
+                        cwsb.Append(colsql);
+                    }
+                    cwsb.Append(" END");
+                    sb.Append(cwsb);
+                    cwsb.Clear();
+                }
                 return sb.ToString();
             }
         }
@@ -1147,30 +1149,39 @@ namespace FreeSql.Internal.CommonProvider
                             sb.Append(col.DbUpdateValue);
                         else
                         {
-                            var nulls = 0;
-                            var cwsb = new StringBuilder().Append(cw);
-                            foreach (var d in _source)
+                            var valsameIf = col.Attribute.MapType.IsNumberType() || col.Attribute.MapType == typeof(string) || col.Attribute.MapType.NullableTypeOrThis().IsEnum;
+                            var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
+                            if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                             {
-                                cwsb.Append(" \r\nWHEN ");
-                                ToSqlWhen(cwsb, _tempPrimarys, d);
-                                cwsb.Append(" THEN ");
-                                var val = col.GetDbValue(d);
-
+                                var val = ds.First();
                                 var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
                                     _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
-                                cwsb.Append(_commonUtils.RewriteColumn(col, colsql));
+                                sb.Append(_commonUtils.RewriteColumn(col, colsql));
                                 if (_noneParameter == false)
                                     _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
-                                if (val == null || val == DBNull.Value) nulls++;
                             }
-                            cwsb.Append(" END");
-                            if (nulls == _source.Count) sb.Append("NULL");
                             else
                             {
+                                var cwsb = new StringBuilder().Append(cw);
+                                foreach (var d in _source)
+                                {
+                                    cwsb.Append(" \r\nWHEN ");
+                                    ToSqlWhen(cwsb, _tempPrimarys, d);
+                                    cwsb.Append(" THEN ");
+                                    var val = col.GetDbValue(d);
+
+                                    var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
+                                        _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
+                                    colsql = _commonUtils.RewriteColumn(col, colsql);
+                                    cwsb.Append(colsql);
+                                    if (_noneParameter == false)
+                                        _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
+                                }
+                                cwsb.Append(" END");
                                 ToSqlCaseWhenEnd(cwsb, col);
                                 sb.Append(cwsb);
+                                cwsb.Clear();
                             }
-                            cwsb.Clear();
                         }
                         ++colidx;
                     }
