@@ -87,6 +87,16 @@ namespace FreeSql
         IInsertOrUpdate<T1> UpdateColumns(string[] columns);
 
         /// <summary>
+        /// 设置列的联表值，格式：<para></para>
+        /// UpdateSet((a, b) => a.Clicks == b.xxx)<para></para>
+        /// UpdateSet((a, b) => a.Clicks == a.Clicks + 1)
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> UpdateSet<TMember>(Expression<Func<T1, T1, TMember>> exp);
+
+        /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
         /// <param name="tableRule"></param>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.PostgreSQL
 {
@@ -57,11 +58,29 @@ namespace FreeSql.Odbc.PostgreSQL
                 {
                     var ocdu = new OdbcPostgreSQLOnConflictDoUpdate<T1>(insert.InsertIdentity());
                     ocdu._tempPrimarys = _tempPrimarys;
-                    var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                    var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
+                        _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                     ocdu.UpdateColumns(cols.Select(a => a.Attribute.Name).ToArray());
                     if (_doNothing == true || cols.Any() == false)
                         ocdu.DoNothing();
                     sql = ocdu.ToSql();
+
+                    if (_updateSetDict.Any())
+                    {
+                        var findregex = new Regex("(t1|t2)." + _commonUtils.QuoteSqlName("test").Replace("test", "(\\w+)"));
+                        var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+                        foreach (var usd in _updateSetDict)
+                        {
+                            var field = _commonUtils.QuoteSqlName(usd.Key);
+                            var findsql = $"{field} = EXCLUDED.{field}";
+                            var usdval = findregex.Replace(usd.Value, m =>
+                            {
+                                if (m.Groups[1].Value == "t1") return $"{tableName}.{_commonUtils.QuoteSqlName(m.Groups[2].Value)}";
+                                return $"EXCLUDED.{_commonUtils.QuoteSqlName(m.Groups[2].Value)}";
+                            });
+                            sql = sql.Replace(findsql, $"{field} = {usdval}");
+                        }
+                    }
                 }
                 if (string.IsNullOrEmpty(sql)) return null;
                 if (insert._params?.Any() == true) dbParams.AddRange(insert._params);

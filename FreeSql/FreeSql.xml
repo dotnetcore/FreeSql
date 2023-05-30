@@ -1921,6 +1921,16 @@
             <param name="columns">属性名，或者字段名</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsertOrUpdate`1.UpdateSet``1(System.Linq.Expressions.Expression{System.Func{`0,`0,``0}})">
+            <summary>
+            设置列的联表值，格式：<para></para>
+            UpdateSet((a, b) => a.Clicks == b.xxx)<para></para>
+            UpdateSet((a, b) => a.Clicks == a.Clicks + 1)
+            </summary>
+            <typeparam name="TMember"></typeparam>
+            <param name="exp"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsertOrUpdate`1.AsTable(System.Func{System.String,System.String})">
             <summary>
             设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；

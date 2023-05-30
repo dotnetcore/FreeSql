@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.MySql.Curd
 {
@@ -62,10 +63,26 @@ namespace FreeSql.MySql.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                        var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
+                            _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                         sql = new OnDuplicateKeyUpdate<T1>(insert)
                             .UpdateColumns(cols.Select(a => a.Attribute.Name).ToArray())
                             .ToSql();
+                        if (_updateSetDict.Any())
+                        {
+                            var findregex = new Regex("(t1|t2)." + _commonUtils.QuoteSqlName("test").Replace("test", "(\\w+)"));
+                            foreach (var usd in _updateSetDict)
+                            {
+                                var field = _commonUtils.QuoteSqlName(usd.Key);
+                                var findsql = $"{field} = VALUES({field})";
+                                var usdval = findregex.Replace(usd.Value, m =>
+                                {
+                                    if (m.Groups[1].Value == "t1") return _commonUtils.QuoteSqlName(m.Groups[2].Value);
+                                    return $"VALUES({_commonUtils.QuoteSqlName(m.Groups[2].Value)})";
+                                });
+                                sql = sql.Replace(findsql, $"{field} = {usdval}");
+                            }
+                        }
                     }
                     else
                     {

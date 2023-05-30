@@ -894,7 +894,9 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                var valsameIf = col.Attribute.MapType.IsNumberType() || col.Attribute.MapType == typeof(string) || col.Attribute.MapType.NullableTypeOrThis().IsEnum;
+                var valsameIf = col.Attribute.MapType.IsNumberType() ||
+                    new[] { typeof(string), typeof(DateTime), typeof(DateTime?) }.Contains(col.Attribute.MapType) ||
+                    col.Attribute.MapType.NullableTypeOrThis().IsEnum;
                 var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
                 if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                 {
@@ -1149,7 +1151,9 @@ namespace FreeSql.Internal.CommonProvider
                             sb.Append(col.DbUpdateValue);
                         else
                         {
-                            var valsameIf = col.Attribute.MapType.IsNumberType() || col.Attribute.MapType == typeof(string) || col.Attribute.MapType.NullableTypeOrThis().IsEnum;
+                            var valsameIf = col.Attribute.MapType.IsNumberType() || 
+                                new[] { typeof(string), typeof(DateTime), typeof(DateTime?) }.Contains(col.Attribute.MapType) ||
+                                col.Attribute.MapType.NullableTypeOrThis().IsEnum;
                             var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
                             if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                             {
