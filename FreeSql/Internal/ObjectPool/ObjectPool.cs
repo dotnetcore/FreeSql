@@ -50,9 +50,9 @@ namespace FreeSql.Internal.ObjectPool
     {
         public IPolicy<T> Policy { get; protected set; }
 
-        private List<Object<T>> _allObjects = new List<Object<T>>();
         private object _allObjectsLock = new object();
-        private ConcurrentStack<Object<T>> _freeObjects = new ConcurrentStack<Object<T>>();
+        internal List<Object<T>> _allObjects = new List<Object<T>>();
+        internal ConcurrentStack<Object<T>> _freeObjects = new ConcurrentStack<Object<T>>();
 
         private ConcurrentQueue<GetSyncQueueInfo> _getSyncQueue = new ConcurrentQueue<GetSyncQueueInfo>();
         private ConcurrentQueue<TaskCompletionSource<Object<T>>> _getAsyncQueue = new ConcurrentQueue<TaskCompletionSource<Object<T>>>();
@@ -112,8 +112,8 @@ namespace FreeSql.Internal.ObjectPool
                     try
                     {
                         var conn = GetFree(false);
-                        if (conn == null) throw new Exception(CoreStrings.Available_Failed_Get_Resource("CheckAvailable", this.Statistics));
-                        
+                        if (conn == null) throw new Exception($"【{Policy.Name}】Failed to get resource {this.Statistics}");
+
                         try
                         {
                             try
@@ -125,7 +125,7 @@ namespace FreeSql.Internal.ObjectPool
                             {
                                 conn.ResetValue();
                             }
-                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception(CoreStrings.Available_Thrown_Exception("CheckAvailable"));
+                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception("【{Policy.Name}】An exception needs to be thrown");
                             break;
                         }
                         finally
@@ -177,11 +177,11 @@ namespace FreeSql.Internal.ObjectPool
             try
             {
                 var conn = GetFree(false);
-                if (conn == null) throw new Exception(CoreStrings.Available_Failed_Get_Resource("LiveCheckAvailable", this.Statistics));
-              
+                if (conn == null) throw new Exception($"【{Policy.Name}】Failed to get resource {this.Statistics}");
+
                 try
                 {
-                    if (Policy.OnCheckAvailable(conn) == false) throw new Exception(CoreStrings.Available_Thrown_Exception("LiveCheckAvailable"));
+                    if (Policy.OnCheckAvailable(conn) == false) throw new Exception("【{Policy.Name}】An exception needs to be thrown");
                 }
                 finally
                 {
@@ -281,10 +281,10 @@ namespace FreeSql.Internal.ObjectPool
         {
 
             if (running == false)
-                throw new ObjectDisposedException(CoreStrings.Policy_ObjectPool_Dispose(Policy.Name));
+                throw new ObjectDisposedException($"【{Policy.Name}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079");
 
             if (checkAvailable && UnavailableException != null)
-                throw new Exception(CoreStrings.Policy_Status_NotAvailable(Policy.Name,UnavailableException?.Message), UnavailableException);
+                throw new Exception($"【{Policy.Name}】Status unavailable, waiting for recovery. {UnavailableException?.Message}", UnavailableException);
 
             if ((_freeObjects.TryPop(out var obj) == false || obj == null) && _allObjects.Count < Policy.PoolSize)
             {
@@ -335,12 +335,13 @@ namespace FreeSql.Internal.ObjectPool
                 if (obj == null) obj = queueItem.ReturnValue;
                 if (obj == null) lock (queueItem.Lock) queueItem.IsTimeout = (obj = queueItem.ReturnValue) == null;
                 if (obj == null) obj = queueItem.ReturnValue;
+                if (queueItem.Exception != null) throw queueItem.Exception;
 
                 if (obj == null)
                 {
                     Policy.OnGetTimeout();
                     if (Policy.IsThrowGetTimeoutException)
-                        throw new TimeoutException(CoreStrings.ObjectPool_Get_Timeout(Policy.Name, "Get", timeout.Value.TotalSeconds));
+                        throw new TimeoutException($"【{Policy.Name}】ObjectPool.Get() timeout {timeout.Value.TotalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081");
 
                     return null;
                 }
@@ -372,7 +373,7 @@ namespace FreeSql.Internal.ObjectPool
             if (obj == null)
             {
                 if (Policy.AsyncGetCapacity > 0 && _getAsyncQueue.Count >= Policy.AsyncGetCapacity - 1)
-                    throw new OutOfMemoryException(CoreStrings.ObjectPool_GetAsync_Queue_Long(Policy.Name, Policy.AsyncGetCapacity));
+                    throw new OutOfMemoryException($"【{Policy.Name}】ObjectPool.GetAsync() The queue is too long. Policy. AsyncGetCapacity = {Policy.AsyncGetCapacity}");
 
                 var tcs = new TaskCompletionSource<Object<T>>();
 
@@ -392,7 +393,7 @@ namespace FreeSql.Internal.ObjectPool
                 //	Policy.GetTimeout();
 
                 //	if (Policy.IsThrowGetTimeoutException)
-                //		throw new Exception($"ObjectPool.GetAsync 获取超时（{timeout.Value.TotalSeconds}秒）。");
+                //		throw new TimeoutException($"【{Policy.Name}】ObjectPool.GetAsync() timeout {timeout.Value.TotalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081");
 
                 //	return null;
                 //}
@@ -444,16 +445,26 @@ namespace FreeSql.Internal.ObjectPool
 
                         if (queueItem.ReturnValue != null)
                         {
-                            obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
-                            obj.LastReturnTime = DateTime.Now;
-
-                            try
+                            if (UnavailableException != null)
                             {
-                                queueItem.Wait.Set();
-                                isReturn = true;
+                                queueItem.Exception = new Exception($"【{Policy.Name}】Status unavailable, waiting for recovery. {UnavailableException?.Message}", UnavailableException);
+                                try
+                                {
+                                    queueItem.Wait.Set();
+                                }
+                                catch { }
                             }
-                            catch
+                            else
                             {
+                                obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
+                                obj.LastReturnTime = DateTime.Now;
+
+                                try
+                                {
+                                    queueItem.Wait.Set();
+                                    isReturn = true;
+                                }
+                                catch { }
                             }
                         }
 
@@ -464,10 +475,25 @@ namespace FreeSql.Internal.ObjectPool
                 {
                     if (_getAsyncQueue.TryDequeue(out var tcs) && tcs != null && tcs.Task.IsCanceled == false)
                     {
-                        obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
-                        obj.LastReturnTime = DateTime.Now;
+                        if (UnavailableException != null)
+                        {
+                            try
+                            {
+                                tcs.TrySetException(new Exception($"【{Policy.Name}】Status unavailable, waiting for recovery. {UnavailableException?.Message}", UnavailableException));
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            obj.LastReturnThreadId = Thread.CurrentThread.ManagedThreadId;
+                            obj.LastReturnTime = DateTime.Now;
 
-                        try { isReturn = tcs.TrySetResult(obj); } catch { }
+                            try
+                            {
+                                isReturn = tcs.TrySetResult(obj);
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
@@ -524,6 +550,7 @@ namespace FreeSql.Internal.ObjectPool
             internal Object<T> ReturnValue { get; set; }
             internal object Lock = new object();
             internal bool IsTimeout { get; set; } = false;
+            internal Exception Exception { get; set; }
 
             public void Dispose()
             {

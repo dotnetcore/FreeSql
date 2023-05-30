@@ -34,12 +34,12 @@ namespace aspnetcore_transaction.Controllers
         }
 
         [HttpGet("2")]
-        //[Transactional]
+        [Transactional]
         public async Task<object> GetAsync([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
            [FromServices] SongService serviceSong)
         {
-            await serviceSong.Test2();
-            await serviceSong.Test3();
+            await repoSong.InsertAsync(new Song());
+            await repoDetail.InsertAsync(new Detail());
             return "111";
         }
     }
