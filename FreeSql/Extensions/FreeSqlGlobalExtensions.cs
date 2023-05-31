@@ -138,8 +138,27 @@ public static partial class FreeSqlGlobalExtensions
                 .Append(string.Join(", ", genericParameters.Select(a => a.DisplayCsharp())))
                 .Append('>');
 
-        sb.Append('(').Append(string.Join(", ", method.GetParameters().Select(a => $"{a.ParameterType.DisplayCsharp()} {a.Name}"))).Append(')');
+        sb.Append("(").Append(string.Join(", ", method.GetParameters().Select(a => LocalDisplayCsharpParameter(a)))).Append(")");
         return sb.ToString();
+
+        string LocalDisplayCsharpParameter(ParameterInfo lp)
+        {
+            var pstr = "";
+            object[] pattrs = new object[0];
+            try { pattrs = lp.GetCustomAttributes(false); } catch { }
+            if (pattrs.Any(a => a is ParamArrayAttribute)) pstr = "params ";
+            pstr = $"{pstr}{lp.ParameterType.DisplayCsharp()} {lp.Name}";
+#if net40
+            if (pattrs.Any(a => a is System.Runtime.InteropServices.OptionalAttribute) == false) return pstr;
+#else
+            if (lp.HasDefaultValue == false) return pstr;
+#endif
+            if (lp.DefaultValue == null) return $"{pstr} = null";
+            if (lp.ParameterType == typeof(string)) return $"{pstr} = \"{lp.DefaultValue.ToString().Replace("\"", "\\\"").Replace("\r\n", "\\r\\n").Replace("\n", "\\n")}\"";
+            if (lp.ParameterType == typeof(bool) || lp.ParameterType == typeof(bool?)) return $"{pstr} = {lp.DefaultValue.ToString().Replace("False", "false").Replace("True", "true")}";
+            if (lp.ParameterType.IsEnum) return $"{pstr} = {lp.ParameterType.DisplayCsharp(false)}.{lp.DefaultValue}";
+            return $"{pstr} = {lp.DefaultValue}";
+        }
     }
     public static object CreateInstanceGetDefaultValue(this Type that)
     {
