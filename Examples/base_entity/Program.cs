@@ -601,112 +601,20 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            var iouSetSql01 = fsql.InsertOrUpdate<User1>()
-                .SetSource(Enumerable.Range(0, 5).Select(a => new User1 { Id = Guid.NewGuid(), Nickname = $"nickname{a}", Username = $"username{a}", Description = $"desc{a}" }).ToArray())
-                .UpdateSet((a, b) => a.Sort == b.Sort + 10)
-                .UpdateSet((a, b) => a.Nickname == "xxx")
-                .ToSql();
+
 
             var sqlastable1 = fsql.Select<CurrentDetail>(101).AsTable((t, o) => "current_detail_230501").ToSql();
             var sqlastable2 = fsql.Update<CurrentDetail>(101).AsTable("current_detail_230501").Set(t => t.StatuId, 1).ToSql();
             var sqlastable3 = fsql.Delete<CurrentDetail>(101).AsTable("current_detail_230501").ToSql();
 
-            fsql.Delete<OracleLongRaw1>().Where("1=1").ExecuteAffrows();
-            var longRawData = Encoding.UTF8.GetBytes(string.Join(",", Enumerable.Range(1, 2000).Select(a => "中国人")));
-            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(false).ExecuteAffrows();
-            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(true).ExecuteAffrows();
-            var longRaw1 = fsql.Select<OracleLongRaw1>().ToList();
-
-            MarketingRestrictions restrictions = new MarketingRestrictions();
-
-            if (restrictions.Id == Guid.Empty)
-            {
-                restrictions.CreatedBy = 100;
-            }
-            else
-            {
-                restrictions.UpdatedBy = 100;
-                restrictions.UpdatedTime = DateTime.Now;
-            }
-
-            int ret = fsql.InsertOrUpdate<MarketingRestrictions>()
-                .SetSource(restrictions)
-                .UpdateColumns(r => new {
-                    r.Describe,
-                    r.IsLimitUsePoints,
-                    r.Status,
-                    r.StartTime,
-                    r.EndTime,
-                    r.UpdatedBy,
-                    r.UpdatedTime
-                })
-                .ExecuteAffrows();
-
-
-            var query2222 = fsql.Select<Student2222>()
-    .AsTable((t, o) => string.Format(o, "hash2"))
-    .Where(p => p.Name.Contains("search"))
-    .GroupBy(a => new { a.ClassId })
-    .WithTempQuery(a => a.Key);
-var sql11111 = fsql.Select<Class1111>()
-    .AsTable((t, o) => string.Format(o, "hash1"))
-    .Where(s => query2222
-        .ToList(p => p.ClassId)
-        .Contains(s.Id))
-    .ToSql(s => new
-    {
-        s.Id,
-        s.Name,
-    });
-
-            var isusers01 = fsql.Select<Achievement>()
-             .Where(e => e.Property("项目执行情况") == "结题")
-             .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
-             .ToSql(e => new
-             {
-                 e.Key.ProjectLevel,
-                 Test = e.Value.Group.Property("批准经费总额（万元）"),
-             });
-            isusers01 = fsql.Select<Achievement>()
-                     .Where(e => e.Property("项目执行情况") == "结题")
-                     .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
-                     .WithTempQuery(e => new
-                     {
-                         e.Key.ProjectLevel,
-                         Test = e.Value.Group.Property("批准经费总额（万元）"),
-                     })
-            .ToSql();
-
-            var bulkUsers = new[] {
-                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
-                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
-                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
-
-                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
-                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
-                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
-            };
-            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
-            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
-            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
-            bulkUsers[0].Nickname += "_bulkupdate";
-            bulkUsers[1].Nickname += "_bulkupdate";
-            bulkUsers[2].Nickname += "_bulkupdate";
-            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
-
-
-            var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
-            var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
-
             var astsql = fsql.Select<AsTableLog, Sys_owner>()
                 .InnerJoin((a, b) => a.id == b.Id)
-                .OrderBy((a,b) => a.createtime)
+                .OrderBy((a, b) => a.createtime)
                 .ToSql();
 
 
             //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
             //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
-
 
             var testitems = new[]
             {
@@ -724,6 +632,10 @@ var sql11111 = fsql.Select<Class1111>()
             var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();
             var sqlatr = sqlatb.ExecuteAffrows();
+
+            //var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.click < 0);
+            //var sqlatca1 = sqlatc1.ToSql();
+            //var sqlatcr1 = sqlatc1.ExecuteAffrows();
 
             var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2022-3-8 15:00:13"));
             var sqlatca1 = sqlatc1.ToSql();
@@ -813,6 +725,101 @@ var sql11111 = fsql.Select<Class1111>()
                 min = g.Min(g.Key.click),
                 max = g.Max(g.Key.click)
             });
+
+
+            var iouSetSql01 = fsql.InsertOrUpdate<User1>()
+                .SetSource(Enumerable.Range(0, 5).Select(a => new User1 { Id = Guid.NewGuid(), Nickname = $"nickname{a}", Username = $"username{a}", Description = $"desc{a}" }).ToArray())
+                .UpdateSet((a, b) => a.Sort == b.Sort + 10)
+                .UpdateSet((a, b) => a.Nickname == "xxx")
+                .ToSql();
+
+            fsql.Delete<OracleLongRaw1>().Where("1=1").ExecuteAffrows();
+            var longRawData = Encoding.UTF8.GetBytes(string.Join(",", Enumerable.Range(1, 2000).Select(a => "中国人")));
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(false).ExecuteAffrows();
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(true).ExecuteAffrows();
+            var longRaw1 = fsql.Select<OracleLongRaw1>().ToList();
+
+            MarketingRestrictions restrictions = new MarketingRestrictions();
+
+            if (restrictions.Id == Guid.Empty)
+            {
+                restrictions.CreatedBy = 100;
+            }
+            else
+            {
+                restrictions.UpdatedBy = 100;
+                restrictions.UpdatedTime = DateTime.Now;
+            }
+
+            int ret = fsql.InsertOrUpdate<MarketingRestrictions>()
+                .SetSource(restrictions)
+                .UpdateColumns(r => new {
+                    r.Describe,
+                    r.IsLimitUsePoints,
+                    r.Status,
+                    r.StartTime,
+                    r.EndTime,
+                    r.UpdatedBy,
+                    r.UpdatedTime
+                })
+                .ExecuteAffrows();
+
+
+            var query2222 = fsql.Select<Student2222>()
+    .AsTable((t, o) => string.Format(o, "hash2"))
+    .Where(p => p.Name.Contains("search"))
+    .GroupBy(a => new { a.ClassId })
+    .WithTempQuery(a => a.Key);
+var sql11111 = fsql.Select<Class1111>()
+    .AsTable((t, o) => string.Format(o, "hash1"))
+    .Where(s => query2222
+        .ToList(p => p.ClassId)
+        .Contains(s.Id))
+    .ToSql(s => new
+    {
+        s.Id,
+        s.Name,
+    });
+
+            var isusers01 = fsql.Select<Achievement>()
+             .Where(e => e.Property("项目执行情况") == "结题")
+             .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+             .ToSql(e => new
+             {
+                 e.Key.ProjectLevel,
+                 Test = e.Value.Group.Property("批准经费总额（万元）"),
+             });
+            isusers01 = fsql.Select<Achievement>()
+                     .Where(e => e.Property("项目执行情况") == "结题")
+                     .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+                     .WithTempQuery(e => new
+                     {
+                         e.Key.ProjectLevel,
+                         Test = e.Value.Group.Property("批准经费总额（万元）"),
+                     })
+            .ToSql();
+
+            var bulkUsers = new[] {
+                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
+                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
+                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
+
+                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
+                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
+                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
+            };
+            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
+            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
+            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
+            bulkUsers[0].Nickname += "_bulkupdate";
+            bulkUsers[1].Nickname += "_bulkupdate";
+            bulkUsers[2].Nickname += "_bulkupdate";
+            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
+
+
+            var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
+            var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
+
 
 
             var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();

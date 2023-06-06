@@ -1008,7 +1008,7 @@ namespace FreeSql.Internal.CommonProvider
             ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
-            if (_table.AsTableImpl != null && _tableRule != null && string.IsNullOrWhiteSpace(_tableRule(_table.DbName)) == true)
+            if (_table.AsTableImpl != null && string.IsNullOrWhiteSpace(_tableRule?.Invoke(_table.DbName)) == true)
             {
                 var oldTableRule = _tableRule;
                 var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
@@ -1042,7 +1042,7 @@ namespace FreeSql.Internal.CommonProvider
             ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
-            if (_table.AsTableImpl != null && _tableRule != null && string.IsNullOrWhiteSpace(_tableRule(_table.DbName)) == true)
+            if (_table.AsTableImpl != null && string.IsNullOrWhiteSpace(_tableRule?.Invoke(_table.DbName)) == true)
             {
                 var oldTableRule = _tableRule;
                 var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
