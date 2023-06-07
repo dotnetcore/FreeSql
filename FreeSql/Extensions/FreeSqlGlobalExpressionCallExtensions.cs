@@ -188,6 +188,17 @@ namespace FreeSql
             expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} <= {expContext.Value.ParsedContent["value2"]}";
             return false;
         }
+        /// <summary>
+        /// value1  IS  NULL
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value1"></param>
+        /// <returns></returns>
+        public static bool EqualIsNull<TValue>(TValue value1)
+        {
+            expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]}  IS  NULL";
+            return false;
+        }
         #endregion
 
         /// <summary>

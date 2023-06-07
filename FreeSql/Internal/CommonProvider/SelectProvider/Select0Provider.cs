@@ -342,6 +342,7 @@ namespace FreeSql.Internal.CommonProvider
             [typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) }),
             //[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) }) 有些驱动不兼容
         };
+        public static Dictionary<DataType, Dictionary<Type, MethodInfo>> _dicMethodDataReaderGetValueOverride = new Dictionary<DataType, Dictionary<Type, MethodInfo>>();
 
         public static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
         public static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });

@@ -38,6 +38,7 @@ namespace FreeSql
                     if (context.Exception == null) _uow.Commit();
                     else _uow.Rollback();
                 }
+                catch { }
                 finally
                 {
                     _uow.Dispose();

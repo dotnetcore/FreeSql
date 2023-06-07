@@ -466,6 +466,12 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             else if (sqlType.StartsWith("NCLOB"))
             {
             }
+            else if (sqlType.StartsWith("RAW"))
+            {
+            }
+            else if (sqlType.StartsWith("LONG RAW"))
+            {
+            }
             else if (sqlType.StartsWith("TEXT"))
             {
             }

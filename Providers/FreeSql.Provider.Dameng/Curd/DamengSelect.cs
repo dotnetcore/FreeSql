@@ -32,11 +32,14 @@ namespace FreeSql.Dameng.Curd
 
                 sbunion.Append(_select);
                 if (_distinct) sbunion.Append("DISTINCT ");
-                sbunion.Append(field);
-                if (string.IsNullOrEmpty(_orderby) && _skip > 0) sbunion.Append(", ROWNUM AS \"__rownum__\"");
-                sbunion.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
+
+                var isRownum = string.IsNullOrEmpty(_orderby) && _skip > 0;
+                if (isRownum && field == "*") sbunion.Append(tbsfrom[0].Alias).Append("."); //#1519 bug
+                sbunion.Append(field);
+                if (isRownum) sbunion.Append(", ROWNUM AS \"__rownum__\"");
+                sbunion.Append(" \r\nFROM ");
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
                     sbunion.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);

@@ -14,6 +14,7 @@ using Npgsql;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Data.SqlClient;
@@ -483,6 +484,29 @@ namespace base_entity
             public string Name { get; set; }
         }
 
+        [Table(Name = "class_{0}")]
+        public class Class1111
+        {
+            [Column(IsPrimary = true, IsIdentity = true, IsNullable = false)]
+            public int Id { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+        }
+
+        [Table(Name = "student_{0}")]
+        public class Student2222
+        {
+            [Column(IsPrimary = true, IsIdentity = true, IsNullable = false)]
+            public int Id { get; set; }
+
+            [Column(IsPrimary = false, IsNullable = false)]
+            public int ClassId { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+        }
+
         static void Main(string[] args)
         {
             var pams = new Dictionary<string, string>();
@@ -542,11 +566,11 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=2;AllowLoadLocalInfile=true")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -577,36 +601,20 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            var bulkUsers = new[] {
-                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
-                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
-                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
-
-                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
-                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
-                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
-            };
-            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
-            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
-            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
-            bulkUsers[0].Nickname += "_bulkupdate";
-            bulkUsers[1].Nickname += "_bulkupdate";
-            bulkUsers[2].Nickname += "_bulkupdate";
-            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
 
 
-            var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
-            var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
+            var sqlastable1 = fsql.Select<CurrentDetail>(101).AsTable((t, o) => "current_detail_230501").ToSql();
+            var sqlastable2 = fsql.Update<CurrentDetail>(101).AsTable("current_detail_230501").Set(t => t.StatuId, 1).ToSql();
+            var sqlastable3 = fsql.Delete<CurrentDetail>(101).AsTable("current_detail_230501").ToSql();
 
             var astsql = fsql.Select<AsTableLog, Sys_owner>()
                 .InnerJoin((a, b) => a.id == b.Id)
-                .OrderBy((a,b) => a.createtime)
+                .OrderBy((a, b) => a.createtime)
                 .ToSql();
 
 
             //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
             //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
-
 
             var testitems = new[]
             {
@@ -624,6 +632,10 @@ namespace base_entity
             var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();
             var sqlatr = sqlatb.ExecuteAffrows();
+
+            //var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.click < 0);
+            //var sqlatca1 = sqlatc1.ToSql();
+            //var sqlatcr1 = sqlatc1.ExecuteAffrows();
 
             var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2022-3-8 15:00:13"));
             var sqlatca1 = sqlatc1.ToSql();
@@ -713,6 +725,101 @@ namespace base_entity
                 min = g.Min(g.Key.click),
                 max = g.Max(g.Key.click)
             });
+
+
+            var iouSetSql01 = fsql.InsertOrUpdate<User1>()
+                .SetSource(Enumerable.Range(0, 5).Select(a => new User1 { Id = Guid.NewGuid(), Nickname = $"nickname{a}", Username = $"username{a}", Description = $"desc{a}" }).ToArray())
+                .UpdateSet((a, b) => a.Sort == b.Sort + 10)
+                .UpdateSet((a, b) => a.Nickname == "xxx")
+                .ToSql();
+
+            fsql.Delete<OracleLongRaw1>().Where("1=1").ExecuteAffrows();
+            var longRawData = Encoding.UTF8.GetBytes(string.Join(",", Enumerable.Range(1, 2000).Select(a => "中国人")));
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(false).ExecuteAffrows();
+            fsql.Insert(new OracleLongRaw1 { data = longRawData }).NoneParameter(true).ExecuteAffrows();
+            var longRaw1 = fsql.Select<OracleLongRaw1>().ToList();
+
+            MarketingRestrictions restrictions = new MarketingRestrictions();
+
+            if (restrictions.Id == Guid.Empty)
+            {
+                restrictions.CreatedBy = 100;
+            }
+            else
+            {
+                restrictions.UpdatedBy = 100;
+                restrictions.UpdatedTime = DateTime.Now;
+            }
+
+            int ret = fsql.InsertOrUpdate<MarketingRestrictions>()
+                .SetSource(restrictions)
+                .UpdateColumns(r => new {
+                    r.Describe,
+                    r.IsLimitUsePoints,
+                    r.Status,
+                    r.StartTime,
+                    r.EndTime,
+                    r.UpdatedBy,
+                    r.UpdatedTime
+                })
+                .ExecuteAffrows();
+
+
+            var query2222 = fsql.Select<Student2222>()
+    .AsTable((t, o) => string.Format(o, "hash2"))
+    .Where(p => p.Name.Contains("search"))
+    .GroupBy(a => new { a.ClassId })
+    .WithTempQuery(a => a.Key);
+var sql11111 = fsql.Select<Class1111>()
+    .AsTable((t, o) => string.Format(o, "hash1"))
+    .Where(s => query2222
+        .ToList(p => p.ClassId)
+        .Contains(s.Id))
+    .ToSql(s => new
+    {
+        s.Id,
+        s.Name,
+    });
+
+            var isusers01 = fsql.Select<Achievement>()
+             .Where(e => e.Property("项目执行情况") == "结题")
+             .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+             .ToSql(e => new
+             {
+                 e.Key.ProjectLevel,
+                 Test = e.Value.Group.Property("批准经费总额（万元）"),
+             });
+            isusers01 = fsql.Select<Achievement>()
+                     .Where(e => e.Property("项目执行情况") == "结题")
+                     .GroupBy(e => new { ProjectLevel = e.Property("项目级别") })
+                     .WithTempQuery(e => new
+                     {
+                         e.Key.ProjectLevel,
+                         Test = e.Value.Group.Property("批准经费总额（万元）"),
+                     })
+            .ToSql();
+
+            var bulkUsers = new[] {
+                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
+                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
+                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
+
+                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
+                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
+                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
+            };
+            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
+            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
+            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
+            bulkUsers[0].Nickname += "_bulkupdate";
+            bulkUsers[1].Nickname += "_bulkupdate";
+            bulkUsers[2].Nickname += "_bulkupdate";
+            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
+
+
+            var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
+            var objtsql2 = fsql.Select<object>().WithSql("select * from user1").ToList<User1>();
+
 
 
             var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
@@ -2115,5 +2222,179 @@ namespace base_entity
         public int CategoryId { get; set; }
         public string GoodsNo { get; set; }
         public string GoodsName { get; set; }
+    }
+
+    [ExpressionCall]
+    public static class AchievementExpressionExtension
+    {
+        static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+        public static string Property(this Achievement achievement, string fieldName)
+        {
+            var ctx = context.Value;
+            var prefix = ctx.ParsedContent["achievement"];
+            prefix = prefix.Substring(0, prefix.IndexOf('.') + 1);
+            ctx.Result = prefix + $"`{fieldName}`";
+            return default;
+        }
+    }
+    [Table(DisableSyncStructure = true)]
+    public class Achievement
+    {
+        [Column(MapType = typeof(string))]
+        public Achievement Group { get; set; }
+    }
+    [Description("营销限制表")]
+    [Table(Name = "MarketingRestrictions")]
+    public class MarketingRestrictions
+    {
+        /// <summary>
+        /// 主键标识
+        /// </summary>
+        [Description("主键标识")]
+        [Column(DbType = "uniqueidentifier", IsPrimary = true)]
+        public Guid Id { get; set; }
+        /// <summary>
+        /// 商户应用Id
+        /// </summary>
+        [Description("商户应用Id")]
+        [Column(DbType = "varchar(32) not null")]
+        public string MchtAppId { get; set; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        [Description("描述")]
+        [Column(DbType = "nvarchar(500) not null")]
+        public string Describe { get; set; }
+        /// <summary>
+        /// 状态：0、关闭 1、启用
+        /// </summary>
+        [Description("状态：0、关闭 1、启用")]
+        [Column(DbType = "smallint")]
+        public sbyte Status { get; set; }
+        /// <summary>
+        /// 是否限制使用积分：0、否 1、是
+        /// </summary>
+        [Description("是否限制使用积分：0、否 1、是")]
+        [Column(DbType = "smallint")]
+        public sbyte IsLimitUsePoints { get; set; }
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        [Description("开始时间")]
+        [Column(DbType = "datetime")]
+        public DateTime StartTime { get; set; }
+        /// <summary>
+        /// 结束时间
+        /// </summary>
+        [Description("结束时间")]
+        [Column(DbType = "datetime")]
+        public DateTime EndTime { get; set; }
+        /// <summary>
+        /// 创建人Id
+        /// </summary>
+        [Description("创建人Id")]
+        [Column(DbType = "bigint")]
+        public long CreatedBy { get; set; }
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        [Description("创建时间")]
+        [Column(DbType = "datetime", ServerTime = DateTimeKind.Local, CanUpdate = false)]
+        public DateTime CreatedTime { get; set; }
+        /// <summary>
+        /// 最后编辑人Id
+        /// </summary>
+        [Description("最后编辑人Id")]
+        [Column(DbType = "bigint")]
+        public long? UpdatedBy { get; set; }
+        /// <summary>
+        /// 最后编辑时间
+        /// </summary>
+        [Description("最后编辑时间")]
+        [Column(DbType = "datetime")]
+        public DateTime? UpdatedTime { get; set; }
+        /// <summary>
+        /// 是否删除：0、否 1、是
+        /// </summary>
+        [Description("是否删除：0、否 1、是")]
+        [Column(DbType = "smallint")]
+        public sbyte Deleted { get; set; }
+        /// <summary>
+        /// 删除人Id
+        /// </summary>
+        [Description("删除人Id")]
+        [Column(DbType = "bigint")]
+        public long? DeletedBy { get; set; }
+        /// <summary>
+        /// 删除时间
+        /// </summary>
+        [Description("删除时间")]
+        [Column(DbType = "datetime")]
+        public DateTime? DeletedTime { get; set; }
+    }
+
+    class OracleLongRaw1
+    {
+        public Guid id { get; set; }
+        [Column(DbType = "long raw")]
+        public byte[] data { get; set; }
+    }
+
+    [Table(Name = "current_detail_{yyMM01}", AsTable = "recordDate=2022-12-01(1 month)", DisableSyncStructure = true)]
+    public class CurrentDetail
+    {
+        [Column(IsPrimary = true)]
+        public long Id { get; set; }
+
+        public DateTime CreateTime { get; set; } = DateTime.Now;
+
+        /// <summary>
+        /// 创建日期
+        /// </summary>
+        public DateTime RecordDate { get; set; }
+
+        /// <summary>
+        /// 创建小时
+        /// </summary>
+        public int RecordHour { get; set; }
+
+        /// <summary>
+        /// 根据当前分钟数规整到10分钟的倍数
+        /// 例如 21分=>20分
+        /// </summary>
+        public int RecordMinute { get; set; }
+
+
+        /// <summary>
+        /// 记录时间
+        /// </summary>
+        public DateTime RecordTime { get; set; }
+
+        /// <summary>
+        /// 设备Code
+        /// </summary>
+        public int DeviceCode { get; set; }
+
+        /// <summary>
+        /// 控制器序列号
+        /// </summary>
+        public string TerminalSequence { get; set; }
+
+        /// <summary>
+        /// 平均值
+        /// </summary>
+        public float AvgValue { get; set; }
+
+        /// <summary>
+        /// 路数
+        /// </summary>
+        public int RouteNum { get; set; }
+
+        /// <summary>
+        /// 相类型
+        /// </summary>
+        public int PhaseTypeId { get; set; }
+
+        public int StatuId { get; set; }
     }
 }

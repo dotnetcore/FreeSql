@@ -461,6 +461,12 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             else if (sqlType.StartsWith("BLOB"))
             {
             }
+            else if (sqlType.StartsWith("RAW"))
+            {
+            }
+            else if (sqlType.StartsWith("LONG RAW"))
+            {
+            }
             else if (sqlType == "REAL" || sqlType == "DOUBLE" || sqlType == "FLOAT")
             { 
             }

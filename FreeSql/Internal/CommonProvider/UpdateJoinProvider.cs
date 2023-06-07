@@ -174,7 +174,7 @@ namespace FreeSql.Internal.CommonProvider
             if (equalBinaryExp.Right.IsParameter())
             {
                 _query2Provider._groupby = null;
-                var valueExp = Expression.Lambda<Func<T1, T2, object>>(equalBinaryExp.Right, exp.Parameters);
+                var valueExp = Expression.Lambda<Func<T1, T2, object>>(Expression.Convert(equalBinaryExp.Right, typeof(object)), exp.Parameters);
                 _query2.GroupBy(valueExp);
                 valueSql = _query2Provider._groupby?.Remove(0, " \r\nGROUP BY ".Length);
             }

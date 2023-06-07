@@ -39,14 +39,18 @@ namespace FreeSql.Oracle.Curd
                 WriteSourceSelectUnionAll(data, sb, dbParams);
                 sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _tempPrimarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
 
-                var cols = _table.Columns.Values.Where(a => _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
+                var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
+                    _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>
-                            a.Attribute.IsVersion && a.Attribute.MapType != typeof(byte[]) ?
-                            $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} + 1" :
-                            $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"
-                            ))).Append(" \r\n");
+                        {
+                            if (_updateSetDict.TryGetValue(a.Attribute.Name, out var valsql))
+                                return $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = {valsql}";
+                            return a.Attribute.IsVersion && a.Attribute.MapType != typeof(byte[]) ?
+                                $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} + 1" :
+                                $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}";
+                        }))).Append(" \r\n");
 
                 cols = _table.Columns.Values.Where(a => a.Attribute.CanInsert == true);
                 if (tempPrimaryIsIdentity == false) cols = cols.Where(a => a.Attribute.IsIdentity == false || string.IsNullOrEmpty(a.DbInsertValue) == false);

@@ -19,7 +19,7 @@
 		<SignAssembly>False</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.2.694-preview20230331</Version>
+		<Version>3.2.697</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,7 +32,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="ClickHouse.Client">
-			<Version>4.0.1.462</Version>
+			<Version>6.6.0</Version>
 		</PackageReference>
 	</ItemGroup>
 

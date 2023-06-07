@@ -106,7 +106,7 @@ namespace FreeSql.Oracle
                     return OleDbType.VarBinary;
                 case "long raw":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
-                    return OleDbType.VarBinary;
+                    return OleDbType.LongVarBinary;
                 case "binary_float":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(63)"]);
                     return OleDbType.Single;

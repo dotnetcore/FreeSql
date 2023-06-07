@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using aspnetcore_transaction.Controllers;
 using FreeSql;
 using Microsoft.AspNetCore.Builder;
@@ -17,14 +18,18 @@ namespace aspnetcore_transaction
         {
             Configuration = configuration;
             Fsql = new FreeSqlBuilder()
-                 .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\test_trans.db")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=50;TrustServerCertificate=true")
                  .UseAutoSyncStructure(true)
-                 .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
+                 //.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
                  .UseNoneCommandParameter(true)
                  .Build();
 
-            Fsql.Aop.TraceBefore += (_, e) => Trace.WriteLine($"----TraceBefore---{e.Identifier} {e.Operation}");
-            Fsql.Aop.TraceAfter += (_, e) => Trace.WriteLine($"----TraceAfter---{e.Identifier} {e.Operation} {e.Remark} {e.Exception?.Message} {e.ElapsedMilliseconds}ms\r\n");
+            //Fsql.Aop.TraceBefore += (_, e) => Trace.WriteLine($"----TraceBefore---{e.Identifier} {e.Operation}");
+            Fsql.Aop.TraceAfter += (_, e) =>
+            {
+                //Trace.WriteLine($"----TraceAfter---{e.Identifier} {e.Operation} {e.Remark} {e.Exception?.Message} {e.ElapsedMilliseconds}ms\r\n");
+                if (e.Exception != null && e.Exception.Message.StartsWith("【主库】状态不可用，等待后台检查程序恢复方可使用。") == false) Console.WriteLine(e.Exception.Message + "    ===   " + Fsql.Ado.MasterPool.Statistics);
+            };
         }
 
         public IConfiguration Configuration { get; }
@@ -32,6 +37,8 @@ namespace aspnetcore_transaction
 
         public void ConfigureServices(IServiceCollection services)
         {
+            ThreadPool.SetMinThreads(1000, 1000);
+            
             services.AddControllersWithViews();
 
             services.AddSingleton<IFreeSql>(Fsql);

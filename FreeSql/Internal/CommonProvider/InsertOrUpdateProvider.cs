@@ -23,6 +23,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool _doNothing = false;
         public Dictionary<string, bool> _updateIgnore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, string> _updateSetDict = new Dictionary<string, string>();
         public TableInfo _table;
         public ColumnInfo[] _tempPrimarys;
         public Func<string, string> _tableRule;
@@ -84,6 +85,55 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in _table.Columns.Values)
                 if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false)
                     _updateIgnore.Add(col.Attribute.Name, true);
+            return this;
+        }
+
+        public IInsertOrUpdate<T1> UpdateSet<TMember>(Expression<Func<T1, T1, TMember>> exp)
+        {
+            var body = exp?.Body;
+            var nodeType = body?.NodeType;
+            if (nodeType == ExpressionType.Convert)
+            {
+                body = (body as UnaryExpression)?.Operand;
+                nodeType = body?.NodeType;
+            }
+            switch (nodeType)
+            {
+                case ExpressionType.Equal:
+                    break;
+                default:
+                    throw new Exception("格式错了，请使用 .Set((a,b) => a.name == b.xname)");
+            }
+
+            var equalBinaryExp = body as BinaryExpression;
+            var cols = new List<SelectColumnInfo>();
+            _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, equalBinaryExp.Left, true, null);
+            if (cols.Count != 1) return this;
+            var col = cols[0].Column;
+            var valueSql = "";
+
+            if (equalBinaryExp.Right.IsParameter())
+            {
+                var tmpQuery = _orm.Select<T1, T1>();
+                var tmpQueryProvider = tmpQuery as Select0Provider;
+                tmpQueryProvider._tables[0].Alias = "t1";
+                tmpQueryProvider._tables[0].Parameter = exp.Parameters[0];
+                tmpQueryProvider._tables[1].Alias = "t2";
+                tmpQueryProvider._tables[1].Parameter = exp.Parameters[1];
+                var valueExp = Expression.Lambda<Func<T1, T1, object>>(Expression.Convert(equalBinaryExp.Right, typeof(object)), exp.Parameters);
+                tmpQuery.GroupBy(valueExp);
+                valueSql = tmpQueryProvider._groupby?.Remove(0, " \r\nGROUP BY ".Length);
+            }
+            else
+            {
+                valueSql = _commonExpression.ExpressionLambdaToSql(equalBinaryExp.Right, new CommonExpression.ExpTSC
+                {
+                    isQuoteName = true,
+                    mapType = equalBinaryExp.Right is BinaryExpression ? null : col.Attribute.MapType
+                });
+            }
+            if (string.IsNullOrEmpty(valueSql)) return this;
+            _updateSetDict[col.Attribute.Name] = valueSql;
             return this;
         }
 
