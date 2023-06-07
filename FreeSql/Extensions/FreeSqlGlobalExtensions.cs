@@ -1202,9 +1202,9 @@ SELECT ");
             _insertOrUpdateProvider._tempPrimarys = _insertOrUpdateProvider._table.Primarys;
             return this;
         }
-        public InsertOrUpdateDictImpl WhereIdentityPrimary(params string[] primarys)
+        public InsertOrUpdateDictImpl WherePrimary(bool isIdentity, params string[] primarys)
         {
-            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, true, primarys);
+            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, isIdentity, primarys);
             _insertOrUpdateProvider._tempPrimarys = _insertOrUpdateProvider._table.Primarys;
             return this;
         }
