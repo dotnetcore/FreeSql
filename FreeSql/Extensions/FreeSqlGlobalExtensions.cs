@@ -1109,13 +1109,17 @@ SELECT ");
 
         public static void SetTablePrimary(TableInfo table, bool isIdenity, params string[] primarys)
         {
+            var isFirst = true;
             foreach (var primary in primarys)
             {
                 if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col))
                 {
                     col.Attribute.IsPrimary = true;
-                    if (isIdenity)
+                    if (isFirst && isIdenity)
+                    {
+                        isFirst = false;
                         col.Attribute.IsIdentity = true;
+                    }
                 }
                 else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
