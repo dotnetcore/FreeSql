@@ -1106,11 +1106,17 @@ SELECT ");
             }
             return pks.ToArray();
         }
-        public static void SetTablePrimary(TableInfo table, params string[] primarys)
+
+        public static void SetTablePrimary(TableInfo table, bool isIdenity, params string[] primarys)
         {
             foreach (var primary in primarys)
             {
-                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) col.Attribute.IsPrimary = true;
+                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col))
+                {
+                    col.Attribute.IsPrimary = true;
+                    if (isIdenity)
+                        col.Attribute.IsIdentity = true;
+                }
                 else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
             table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
@@ -1192,7 +1198,13 @@ SELECT ");
 
         public InsertOrUpdateDictImpl WherePrimary(params string[] primarys)
         {
-            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, primarys);
+            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, false, primarys);
+            _insertOrUpdateProvider._tempPrimarys = _insertOrUpdateProvider._table.Primarys;
+            return this;
+        }
+        public InsertOrUpdateDictImpl WhereIdentityPrimary(params string[] primarys)
+        {
+            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, true, primarys);
             _insertOrUpdateProvider._tempPrimarys = _insertOrUpdateProvider._table.Primarys;
             return this;
         }
