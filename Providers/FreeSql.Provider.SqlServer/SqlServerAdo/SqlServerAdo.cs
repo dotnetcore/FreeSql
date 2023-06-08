@@ -10,8 +10,8 @@ using Microsoft.Data.SqlClient;
 using System.Data.SqlClient;
 #endif
 using System.Linq;
-using System.Text;
 using System.Threading;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.SqlServer
 {
@@ -29,16 +29,21 @@ namespace FreeSql.SqlServer
                 _CreateCommandConnection = pool.TestConnection;
                 return;
             }
+
+            var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
+            if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new SqlServerConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
-            if (slaveConnectionStrings != null)
+                MasterPool = isAdoPool ? 
+                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => new SqlConnection(masterConnectionString)) as IObjectPool<DbConnection> :  
+                    new SqlServerConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+
+            slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                foreach (var slaveConnectionString in slaveConnectionStrings)
-                {
-                    var slavePool = new SqlServerConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-                    SlavePools.Add(slavePool);
-                }
-            }
+                var slavePool = isAdoPool ?
+                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new SqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                        new SqlServerConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                SlavePools.Add(slavePool);
+            });
         }
         
         static DateTime dt1970 = new DateTime(1970, 1, 1);

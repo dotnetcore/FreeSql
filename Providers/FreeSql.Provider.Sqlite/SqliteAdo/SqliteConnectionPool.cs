@@ -1,7 +1,5 @@
 ﻿using FreeSql.Internal.ObjectPool;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 #if MicrosoftData
@@ -51,6 +49,16 @@ namespace FreeSql.Sqlite
         }
 
         internal SqliteConnectionPoolPolicy policy;
+
+        public static DbConnection CreateConnection(string connectionString)
+        {
+#if MicrosoftData
+            var conn = new SqliteConnection(connectionString);
+#else
+            var conn = new SQLiteConnection(connectionString);
+#endif
+            return conn;
+        }
     }
 
     class SqliteConnectionPoolPolicy : IPolicy<DbConnection>
@@ -137,15 +145,7 @@ namespace FreeSql.Sqlite
             return obj.Value.Ping(true);
         }
 
-        public DbConnection OnCreate()
-        {
-#if MicrosoftData
-            var conn = new SqliteConnection(_connectionString);
-#else
-            var conn = new SQLiteConnection(_connectionString);
-#endif
-            return conn;
-        }
+        public DbConnection OnCreate() => SqliteConnectionPool.CreateConnection(_connectionString);
 
         public void OnDestroy(DbConnection obj)
         {

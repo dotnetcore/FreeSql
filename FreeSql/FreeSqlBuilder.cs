@@ -24,6 +24,7 @@ namespace FreeSql
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
         bool _isQuoteSqlName = true;
+        bool _isAdoConnectionPool = false;
         MappingPriorityType[] _mappingPriorityTypes;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -43,6 +44,22 @@ namespace FreeSql
             _dataType = dataType;
             _masterConnectionString = connectionString;
             _providerType = providerType;
+            return this;
+        }
+        /// <summary>
+        /// 使用原始连接池（ado.net、odbc、oledb）<para></para>
+        /// 默认：false<para></para>
+        /// UseConnectionString 默认使用 FreeSql 连接池，有以下特点：<para></para>
+        /// - 状态不可用，断熔机制直到后台检测恢复<para></para>
+        /// - 读写分离，从库不可用，会切换其他可用从库<para></para>
+        /// - 监测连接池使用情况，fsql.Ado.Statistics<para></para>
+        /// 有部分使用者不喜欢【断熔机制】，可使用此设置
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseAdoConnectionPool(bool value)
+        {
+            _isAdoConnectionPool = true;
             return this;
         }
         /// <summary>
@@ -353,7 +370,12 @@ namespace FreeSql
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
-            ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString, _connectionFactory }) as IFreeSql<TMark>;
+            ret = Activator.CreateInstance(type, new object[] 
+            {
+                _isAdoConnectionPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString, 
+                _slaveConnectionString, 
+                _connectionFactory 
+            }) as IFreeSql<TMark>;
             if (ret != null)
             {
                 ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;

@@ -552,7 +552,7 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
                 .UseNameConvert(NameConvertType.ToLower)
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
-
+                .UseAdoConnectionPool(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
                 .UseConnectionString(DataType.Sqlite, "data source=C:\\Users\\28810\\Desktop\\github\\FreeSql\\Examples\\base_entity\\AspNetRoleClaims\\ids_api.db")
@@ -568,9 +568,9 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
-                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)

@@ -1,8 +1,9 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
+using FreeSql.Internal.ObjectPool;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,16 +27,21 @@ namespace FreeSql.PostgreSQL
                 MasterPool = pool;
                 return;
             }
+
+            var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
+            if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new PostgreSQLConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
-            if (slaveConnectionStrings != null)
+                MasterPool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => new NpgsqlConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new PostgreSQLConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+
+            slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                foreach (var slaveConnectionString in slaveConnectionStrings)
-                {
-                    var slavePool = new PostgreSQLConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-                    SlavePools.Add(slavePool);
-                }
-            }
+                var slavePool = isAdoPool ?
+                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new NpgsqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                        new PostgreSQLConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                SlavePools.Add(slavePool);
+            });
         }
 
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)

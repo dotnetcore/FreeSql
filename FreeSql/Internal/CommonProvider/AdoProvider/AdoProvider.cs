@@ -37,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
         {
+            if (connectionString?.StartsWith("AdoConnectionPool,") == true) connectionString = connectionString.Substring("AdoConnectionPool,".Length);
             this.DataType = dataType;
             this.ConnectionString = connectionString;
             this.SlaveConnectionStrings = slaveConnectionStrings;

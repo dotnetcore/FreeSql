@@ -3,7 +3,6 @@ using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
-using System.Data;
 using System.Data.Common;
 #if MicrosoftData
 using Microsoft.Data.Sqlite;
@@ -12,6 +11,8 @@ using System.Data.SQLite;
 #endif
 using System.Text;
 using System.Threading;
+using System.Linq;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.Sqlite
 {
@@ -29,16 +30,21 @@ namespace FreeSql.Sqlite
                 _CreateCommandConnection = pool.TestConnection;
                 return;
             }
+
+            var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
+            if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new SqliteConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
-            if (slaveConnectionStrings != null)
+                MasterPool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => SqliteConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new SqliteConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+
+            slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                foreach (var slaveConnectionString in slaveConnectionStrings)
-                {
-                    var slavePool = new SqliteConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-                    SlavePools.Add(slavePool);
-                }
-            }
+                var slavePool = isAdoPool ?
+                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => SqliteConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                        new SqliteConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                SlavePools.Add(slavePool);
+            });
         }
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {

@@ -54,6 +54,12 @@ namespace FreeSql.Oracle
             }
             base.Return(obj, isRecreate);
         }
+
+        public static DbConnection CreateConnection(string connectionString)
+        {
+            var conn = new OracleConnection(connectionString);
+            return conn;
+        }
     }
 
     class OracleConnectionPoolPolicy : IPolicy<DbConnection>
@@ -116,11 +122,7 @@ namespace FreeSql.Oracle
             return obj.Value.Ping(true);
         }
 
-        public DbConnection OnCreate()
-        {
-            var conn = new OracleConnection(_connectionString);
-            return conn;
-        }
+        public DbConnection OnCreate() => OracleConnectionPool.CreateConnection(_connectionString);
 
         public void OnDestroy(DbConnection obj)
         {
