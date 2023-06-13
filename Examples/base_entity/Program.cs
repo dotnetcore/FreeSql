@@ -6,6 +6,7 @@ using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
+using MessagePack;
 using Microsoft.Data.SqlClient;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -601,7 +602,18 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.CodeFirst.GetTableByEntity(typeof(MFUser)).GetTableRef(nameof(MFUser.ExtInfo), true);
+            fsql.Delete<MFUser>().Where(a => true).ExecuteAffrows();
+            fsql.Delete<MFUserExt>().Where(a => true).ExecuteAffrows();
+            fsql.Delete<MFToken>().Where(a => true).ExecuteAffrows();
+            fsql.Insert(new MFUser { Id = "1", Name = "user1", Pd = "pd1" }).ExecuteAffrows();
+            fsql.Insert(new MFUserExt { MFUserId = "1", Addr = "addr1", Phone = "phone1" }).ExecuteAffrows();
+            fsql.Insert(new MFToken { MFUserId = "1", EndTime = DateTime.Now.AddDays(1), Source = "source1", Token = "token1" }).ExecuteAffrows();
 
+            var user = fsql.Select<MFUser>()
+                .Include(a => a.ExtInfo)
+                .InnerJoin<MFToken>((a, b) => a.Id == b.MFUserId)
+                .First();
 
             var sqlastable1 = fsql.Select<CurrentDetail>(101).AsTable((t, o) => "current_detail_230501").ToSql();
             var sqlastable2 = fsql.Update<CurrentDetail>(101).AsTable("current_detail_230501").Set(t => t.StatuId, 1).ToSql();
@@ -2396,5 +2408,42 @@ var sql11111 = fsql.Select<Class1111>()
         public int PhaseTypeId { get; set; }
 
         public int StatuId { get; set; }
+    }
+
+    [Table(DisableSyncStructure = true)]
+    public abstract class BaseEntity22<TKey>
+    {
+        [Column(Position = 1, IsPrimary = true)]
+        public TKey Id { get; set; }
+    }
+
+    [Index("uk_name", "Name", true)]
+    public class MFUser : BaseEntity22<string>
+    {
+        public string Name { get; set; }
+        public string Pd { get; set; }
+
+        [Navigate(nameof(Id))]
+        public MFUserExt ExtInfo { get; set; }
+    }
+    [Index("uk_id", "MFUserId", true)]
+    public class MFUserExt
+    {
+        [Column(IsPrimary = true)]
+        public string MFUserId { get; set; }
+        [Navigate(nameof(MFUserId))]
+        public MFUser User { get; set; }
+
+        public string Phone { get; set; }
+        public string Addr { get; set; }
+    }
+    [Index("index_name", "MFUserId")]
+    [Index("index_token", "Token")]
+    public class MFToken : BaseEntity22<string>
+    {
+        public string MFUserId { get; set; }
+        public string Token { get; set; }
+        public string? Source { get; set; }
+        public DateTime EndTime { get; set; }
     }
 }

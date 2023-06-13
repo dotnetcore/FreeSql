@@ -202,6 +202,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.CustomOracle:
                 case DataType.Dameng:
                 case DataType.OdbcDameng: //Oracle、Dameng 分组时，嵌套分页
                 case DataType.GBase:

@@ -39,8 +39,10 @@ namespace FreeSql
                 {
                     case DataType.SqlServer:
                     case DataType.OdbcSqlServer:
+                    case DataType.CustomSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
+                    case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
@@ -109,8 +111,10 @@ namespace FreeSql
                 {
                     case DataType.SqlServer:
                     case DataType.OdbcSqlServer:
+                    case DataType.CustomSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
+                    case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:

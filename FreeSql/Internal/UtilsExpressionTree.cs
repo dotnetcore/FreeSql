@@ -248,6 +248,7 @@ namespace FreeSql.Internal
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql: //处理毫秒
+                        case DataType.CustomMySql:
                             var timeLength = 0;
                             var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
                             if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
@@ -276,17 +277,20 @@ namespace FreeSql.Internal
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
+                        case DataType.CustomMySql:
                             if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
                             else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
                         case DataType.OdbcSqlServer:
+                        case DataType.CustomSqlServer:
                             if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(MAX)");
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
+                        case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
@@ -294,6 +298,7 @@ namespace FreeSql.Internal
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Oracle:
+                        case DataType.CustomOracle:
                             if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
@@ -337,23 +342,27 @@ namespace FreeSql.Internal
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
+                        case DataType.CustomMySql:
                             if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
                             else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
                         case DataType.OdbcSqlServer:
+                        case DataType.CustomSqlServer:
                             if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1(MAX)");
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
+                        case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
                             colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
                             break;
                         case DataType.Oracle:
+                        case DataType.CustomOracle:
                             colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.Dameng:
@@ -1667,6 +1676,7 @@ namespace FreeSql.Internal
                     if (dr.IsDBNull(index)) return null;
                     break;
                 case DataType.MySql:
+                case DataType.CustomMySql:
                     if (dr.GetFieldType(index).FullName == "MySqlConnector.MySqlDateTime")
                     {
                         if (dr.IsDBNull(index)) return null;

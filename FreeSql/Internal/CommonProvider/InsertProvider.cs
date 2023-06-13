@@ -723,6 +723,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         case DataType.SqlServer:
                         case DataType.OdbcSqlServer:
+                        case DataType.CustomSqlServer:
                             if (val?.Equals(DateTime.MinValue) == true) val = new DateTime(1970, 1, 1);
                             break;
                     }

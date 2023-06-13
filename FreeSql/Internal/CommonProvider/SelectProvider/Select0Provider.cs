@@ -736,6 +736,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.CustomOracle:
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
@@ -792,6 +793,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.CustomOracle:
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
@@ -826,6 +828,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.CustomOracle:
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
@@ -1208,20 +1211,24 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case DataType.MySql:
                 case DataType.OdbcMySql:
+                case DataType.CustomMySql:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
+                case DataType.CustomSqlServer:
                     _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")})";
                     break;
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
+                case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.CustomOracle:
                 case DataType.Dameng:
                 case DataType.OdbcDameng:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";

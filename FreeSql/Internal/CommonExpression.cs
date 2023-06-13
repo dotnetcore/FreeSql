@@ -56,6 +56,7 @@ namespace FreeSql.Internal
             {
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
+                case DataType.CustomSqlServer:
                     return dbField.EndsWith(dbNestedField, StringComparison.CurrentCultureIgnoreCase);
             }
             return dbField.EndsWith(dbNestedField);
@@ -1081,6 +1082,7 @@ namespace FreeSql.Internal
                                     {
                                         case DataType.MySql:
                                         case DataType.OdbcMySql:
+                                        case DataType.CustomMySql:
                                             exp3CsValue = exp3CsValue.Replace("\\\\", "\\");
                                             break;
                                     }
@@ -1286,6 +1288,7 @@ namespace FreeSql.Internal
                                                 {
                                                     case DataType.Oracle:
                                                     case DataType.OdbcOracle:
+                                                    case DataType.CustomOracle:
                                                     case DataType.Dameng:
                                                     case DataType.OdbcDameng:
                                                     case DataType.GBase:
@@ -1675,6 +1678,7 @@ namespace FreeSql.Internal
                                                     {
                                                         case DataType.MySql:
                                                         case DataType.OdbcMySql:
+                                                        case DataType.CustomMySql:
                                                         case DataType.GBase:
                                                             if (exp3.Method.Name == "ToList")
                                                                 return $"( SELECT * FROM ({sqlFirst.Replace(" \r\n", " \r\n    ")}) ftblmt50 )";
@@ -2654,6 +2658,7 @@ namespace FreeSql.Internal
                         {
                             case DataType.Oracle:
                             case DataType.OdbcOracle:
+                            case DataType.CustomOracle:
                             case DataType.Dameng:
                             case DataType.OdbcDameng:
                             case DataType.GBase:
@@ -2775,6 +2780,7 @@ namespace FreeSql.Internal
                             {
                                 case DataType.Oracle:
                                 case DataType.OdbcOracle:
+                                case DataType.CustomOracle:
                                 case DataType.Dameng:
                                 case DataType.OdbcDameng:
                                 case DataType.GBase:

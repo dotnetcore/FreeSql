@@ -671,6 +671,7 @@ public static partial class FreeSqlGlobalExtensions
                 return select;
             case DataType.MySql: //MySql5.6
             case DataType.OdbcMySql:
+            case DataType.CustomMySql:
                 var mysqlConnectionString = select._orm.Ado?.ConnectionString ?? select._connection?.ConnectionString ?? "";
                 if (_dicMySqlVersion.TryGetValue(mysqlConnectionString, out var mysqlVersion) == false)
                 {
@@ -738,11 +739,13 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             {
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
+                case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.OdbcKingbaseES:
                 case DataType.ShenTong: //神通测试未通过
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
+                case DataType.CustomSqlServer:
                 case DataType.Firebird:
                 case DataType.ClickHouse:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
@@ -815,11 +818,13 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
         {
             case DataType.PostgreSQL:
             case DataType.OdbcPostgreSQL:
+            case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
             case DataType.OdbcKingbaseES:
             case DataType.ShenTong: //神通测试未通过
             case DataType.MySql:
             case DataType.OdbcMySql:
+            case DataType.CustomMySql:
             case DataType.Firebird:
                 nsselsb.Append("RECURSIVE ");
                 break;
@@ -829,6 +834,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
         {
             case DataType.Oracle: //[Err] ORA-32039: recursive WITH clause must have column alias list
             case DataType.OdbcOracle:
+            case DataType.CustomOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
             case DataType.OdbcDameng:
             case DataType.GBase:
@@ -861,20 +867,24 @@ SELECT ");
         {
             case DataType.MySql:
             case DataType.OdbcMySql:
+            case DataType.CustomMySql:
             case DataType.ClickHouse:
                 return that.OrderBy("rand()");
             case DataType.SqlServer:
             case DataType.OdbcSqlServer:
+            case DataType.CustomSqlServer:
                 return that.OrderBy("newid()");
             case DataType.PostgreSQL:
             case DataType.OdbcPostgreSQL:
+            case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
             case DataType.OdbcKingbaseES:
             case DataType.ShenTong:
                 return that.OrderBy("random()");
             case DataType.Oracle:
-            case DataType.Dameng:
             case DataType.OdbcOracle:
+            case DataType.CustomOracle:
+            case DataType.Dameng:
             case DataType.OdbcDameng:
                 return that.OrderBy("dbms_random.value");
             case DataType.Sqlite:
@@ -1322,6 +1332,7 @@ SELECT ");
         {
             case DataType.Oracle:
             case DataType.OdbcOracle:
+            case DataType.CustomOracle:
             case DataType.GBase:
                 sql = $" SELECT {af.field} FROM dual";
                 break;

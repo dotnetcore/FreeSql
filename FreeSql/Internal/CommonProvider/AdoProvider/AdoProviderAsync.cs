@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     case DataType.Oracle:
                     case DataType.OdbcOracle:
+                    case DataType.CustomOracle:
                     case DataType.GBase:
                         await ExecuteNonQueryAsync(null, null, CommandType.Text, " SELECT 1 FROM dual", commandTimeout, null, cancellationToken);
                         return true;
