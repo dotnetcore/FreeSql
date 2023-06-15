@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.PostgreSQL.Curd;
 using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -173,7 +174,21 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             using (var writer = conn.BeginBinaryImport(copyFromCommand.ToString()))
             {
                 foreach (DataRow item in dt.Rows)
-                    writer.WriteRow(item.ItemArray);
+                {
+                    writer.StartRow();
+                    foreach (DataColumn col in dt.Columns)
+                    {
+                        NpgsqlDbType? npgsqlDbType = null;
+                        var trycol = insert._table.Columns[col.ColumnName];
+                        var tp = insert._orm.CodeFirst.GetDbInfo(trycol.Attribute.MapType)?.type;
+                        if (tp != null) npgsqlDbType = (NpgsqlDbType)tp.Value;
+                        if (npgsqlDbType.HasValue && npgsqlDbType != NpgsqlDbType.Unknown)
+                            writer.Write(item[col.ColumnName], npgsqlDbType.Value);
+                        else
+                            writer.Write(item[col.ColumnName]);
+                    }
+                    //writer.WriteRow(item.ItemArray); #1532
+                }
                 writer.Complete();
             }
             copyFromCommand.Clear();
@@ -258,8 +273,22 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             using (var writer = conn.BeginBinaryImport(copyFromCommand.ToString()))
             {
                 foreach (DataRow item in dt.Rows)
-                    await writer.WriteRowAsync(cancellationToken, item.ItemArray);
-                writer.Complete();
+                {
+                    await writer.StartRowAsync(cancellationToken);
+                    foreach (DataColumn col in dt.Columns)
+                    {
+                        NpgsqlDbType? npgsqlDbType = null;
+                        var trycol = insert._table.Columns[col.ColumnName];
+                        var tp = insert._orm.CodeFirst.GetDbInfo(trycol.Attribute.MapType)?.type;
+                        if (tp != null) npgsqlDbType = (NpgsqlDbType)tp.Value;
+                        if (npgsqlDbType.HasValue && npgsqlDbType != NpgsqlDbType.Unknown)
+                            await writer.WriteAsync(item[col.ColumnName], npgsqlDbType.Value, cancellationToken);
+                        else
+                            await writer.WriteAsync(item[col.ColumnName], cancellationToken);
+                    }
+                    //await writer.WriteRowAsync(cancellationToken, item.ItemArray); #1532
+                }
+                await writer.CompleteAsync(cancellationToken);
             }
             copyFromCommand.Clear();
         };

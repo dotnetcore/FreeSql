@@ -569,9 +569,9 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -601,6 +601,14 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Insert(new[]
+            {
+                new pgjson_copy001{ json = JObject.FromObject(new {x=1,y=2 })},
+                new pgjson_copy001{ json = JObject.FromObject(new {x=1,y=2 })},
+                new pgjson_copy001{ json = JObject.FromObject(new {x=1,y=2 })},
+                new pgjson_copy001{ json = JObject.FromObject(new {x=1,y=2 })},
+            }).ExecutePgCopy();
 
             fsql.CodeFirst.GetTableByEntity(typeof(MFUser)).GetTableRef(nameof(MFUser.ExtInfo), true);
             fsql.Delete<MFUser>().Where(a => true).ExecuteAffrows();
@@ -2445,5 +2453,11 @@ var sql11111 = fsql.Select<Class1111>()
         public string Token { get; set; }
         public string? Source { get; set; }
         public DateTime EndTime { get; set; }
+    }
+
+    class pgjson_copy001
+    {
+        public Guid id { get; set; }
+        public JObject json { get; set; }
     }
 }
