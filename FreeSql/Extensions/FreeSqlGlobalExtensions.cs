@@ -1095,6 +1095,16 @@ SELECT ");
             _updateProvider._tempPrimarys = GetPrimarys(_updateProvider._table, primarys);
             return this;
         }
+        public UpdateDictImpl WhereIdentityPrimary(params string[] primarys)
+        {
+            _updateProvider._tempPrimarys = GetPrimarys(_updateProvider._table, primarys);
+            foreach (var item in _updateProvider._tempPrimarys)
+            {
+                item.Attribute.IsIdentity = true;
+            }
+            return this;
+        }
+
         public static ColumnInfo[] GetPrimarys(TableInfo table, params string[] primarys)
         {
             if (primarys?.Any() != true) throw new ArgumentException(nameof(primarys));
