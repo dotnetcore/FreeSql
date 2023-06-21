@@ -96,6 +96,7 @@ namespace FreeSql
         public Task AddAsync(TEntity data, CancellationToken cancellationToken = default) => AddPrivAsync(data, true, cancellationToken);
         async public Task AddRangeAsync(IEnumerable<TEntity> data, CancellationToken cancellationToken = default)
         {
+            if (data is List<TEntity> == false) data = data?.ToList();
             if (CanAdd(data, true) == false) return;
             if (data.ElementAtOrDefault(1) == default(TEntity))
             {
@@ -444,6 +445,7 @@ namespace FreeSql
         public Task UpdateRangeAsync(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) => UpdateRangePrivAsync(data, true, cancellationToken);
         async Task UpdateRangePrivAsync(IEnumerable<TEntity> data, bool isCheck, CancellationToken cancellationToken)
         {
+            if (data is List<TEntity> == false) data = data?.ToList();
             if (CanUpdate(data, true) == false) return;
             foreach (var item in data)
             {

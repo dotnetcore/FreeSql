@@ -98,6 +98,7 @@ namespace FreeSql
         public void Add(TEntity data) => AddPriv(data, true);
         public void AddRange(IEnumerable<TEntity> data)
         {
+            if (data is List<TEntity> == false) data = data?.ToList();
             if (CanAdd(data, true) == false) return;
             if (data.ElementAtOrDefault(1) == default(TEntity))
             {
@@ -484,6 +485,7 @@ namespace FreeSql
         public void UpdateRange(IEnumerable<TEntity> data) => UpdateRangePriv(data, true);
         void UpdateRangePriv(IEnumerable<TEntity> data, bool isCheck)
         {
+            if (data is List<TEntity> == false) data = data?.ToList();
             if (CanUpdate(data, true) == false) return;
             foreach (var item in data)
             {
