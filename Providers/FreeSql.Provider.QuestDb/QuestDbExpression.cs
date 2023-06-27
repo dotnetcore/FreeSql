@@ -356,7 +356,7 @@ namespace FreeSql.QuestDb
                 {
                     case "Now": return _common.Now;
                     case "UtcNow": return _common.NowUtc;
-                    case "Today": return "current_date";
+                    case "Today": return $"date_trunc('day',{_common.NowUtc})";
                     case "MinValue": return "'0001/1/1 0:00:00'::timestamp";
                     case "MaxValue": return "'9999/12/31 23:59:59'::timestamp";
                 }

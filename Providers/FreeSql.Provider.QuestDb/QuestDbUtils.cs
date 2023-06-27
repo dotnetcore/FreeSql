@@ -267,8 +267,8 @@ namespace FreeSql.QuestDb
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
-        public override string Now => "current_timestamp";
-        public override string NowUtc => "(current_timestamp at time zone 'UTC')";
+        public override string Now => "sysdate";
+        public override string NowUtc => "systimestamp";
 
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
