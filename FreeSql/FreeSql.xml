@@ -1073,6 +1073,82 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
+            <summary>
+            动态创建实体类型
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.#ctor(IFreeSql,System.String,System.Attribute[])">
+            <summary>
+            配置Class
+            </summary>
+            <param name="className">类名</param>
+            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Object,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="defaultValue">属性默认值</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
+            <summary>
+            配置父类
+            </summary>
+            <param name="superClass">父类类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.OverrideProperty(System.Reflection.Emit.TypeBuilder@,System.Reflection.Emit.MethodBuilder,FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.PropertyMethodEnum,System.String)">
+            <summary>
+            Override属性
+            </summary>
+            <param name="typeBuilder"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
+            <summary>
+            Emit动态创建出Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
@@ -2084,89 +2160,6 @@
             </summary>
             <param name="field">指定字段</param>
             <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.Any">
-            <summary>
-            执行SQL查询，是否有记录
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.Count">
-            <summary>
-            查询的记录数量
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.Count(System.Int64@)">
-            <summary>
-            查询的记录数量，以参数out形式返回
-            </summary>
-            <param name="count">返回的变量</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.Master">
-            <summary>
-            指定从主库查询（默认查询从库）
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.LeftJoin(System.Linq.Expressions.Expression{System.Func{`1,System.Boolean}})">
-            <summary>
-            左联查询，使用导航属性自动生成SQL
-            </summary>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.InnerJoin(System.Linq.Expressions.Expression{System.Func{`1,System.Boolean}})">
-            <summary>
-            联接查询，使用导航属性自动生成SQL
-            </summary>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.RightJoin(System.Linq.Expressions.Expression{System.Func{`1,System.Boolean}})">
-            <summary>
-            右联查询，使用导航属性自动生成SQL
-            </summary>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.LeftJoin``1(System.Linq.Expressions.Expression{System.Func{`1,``0,System.Boolean}})">
-            <summary>
-            左联查询，指定关联的实体类型
-            </summary>
-            <typeparam name="T2">关联的实体类型</typeparam>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.InnerJoin``1(System.Linq.Expressions.Expression{System.Func{`1,``0,System.Boolean}})">
-            <summary>
-            联接查询，指定关联的实体类型
-            </summary>
-            <typeparam name="T2">关联的实体类型</typeparam>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.RightJoin``1(System.Linq.Expressions.Expression{System.Func{`1,``0,System.Boolean}})">
-            <summary>
-            右联查询，指定关联的实体类型
-            </summary>
-            <typeparam name="T2">关联的实体类型</typeparam>
-            <param name="exp">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.LeftJoin(System.String,System.Object)">
-            <summary>
-            左联查询，使用原生sql语法，LeftJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="sql">sql语法条件</param>
-            <param name="parms">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.InnerJoin(System.String,System.Object)">
-            <summary>
-            联�urns>
         </member>
         <member name="M:FreeSql.ISelect0`2.Any">
             <summary>
