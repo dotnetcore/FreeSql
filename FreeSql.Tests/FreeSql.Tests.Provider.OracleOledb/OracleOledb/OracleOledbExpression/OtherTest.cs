@@ -129,7 +129,6 @@ namespace FreeSql.Tests.OracleOledbExpression
             public double Double { get; set; }
             public float Float { get; set; }
             public decimal Decimal { get; set; }
-            public TimeSpan TimeSpan { get; set; }
             public DateTime DateTime { get; set; }
             public DateTime DateTimeOffSet { get; set; }
             public byte[] Bytes { get; set; }
@@ -148,7 +147,6 @@ namespace FreeSql.Tests.OracleOledbExpression
             public double? DoubleNullable { get; set; }
             public float? FloatNullable { get; set; }
             public decimal? DecimalNullable { get; set; }
-            public TimeSpan? TimeSpanNullable { get; set; }
             public DateTime? DateTimeNullable { get; set; }
             public DateTime? DateTimeOffSetNullable { get; set; }
             public Guid? GuidNullable { get; set; }

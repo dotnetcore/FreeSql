@@ -1953,6 +1953,13 @@ namespace FreeSql.Internal
                                 continue;
                             }
                             var readType = trycol?.Attribute.MapType ?? prop.PropertyType;
+                            if (trycol != null && trycol.Attribute.MapType != trycol.CsType) //#1549
+                            {
+                                var returnTarget86 = Expression.Label(typeof(object));
+                                var valueExp86 = Expression.Constant("", typeof(string));
+                                if (GetDataReaderValueBlockExpressionSwitchTypeFullName.Any(a => a(returnTarget86, valueExp86, trycol.CsType) != null))
+                                    readType = trycol.CsType;
+                            }
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
                             Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp }));
@@ -2006,7 +2013,7 @@ namespace FreeSql.Internal
                                 }
                             }
 
-                            if (trycol != null && trycol.Attribute.MapType != prop.PropertyType)
+                            if (trycol != null && readType != prop.PropertyType)
                                 ispkExp.Add(Expression.Assign(readExpValue, GetDataReaderValueBlockExpression(prop.PropertyType, readExpValue)));
 
                             ispkExp.Add(

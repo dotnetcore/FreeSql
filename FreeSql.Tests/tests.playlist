@@ -24,7 +24,6 @@
             <Property Name="Namespace" Value="FreeSql.Tests.FirebirdExpression" />
             <Property Name="Namespace" Value="FreeSql.Tests.FirebirdMapType" />
             <Property Name="Namespace" Value="FreeSql.Tests.Internal" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Issues" />
             <Property Name="Namespace" Value="FreeSql.Tests.Linq" />
             <Property Name="Namespace" Value="FreeSql.Tests.MsAccess" />
             <Property Name="Namespace" Value="FreeSql.Tests.MsAccessExpression" />
@@ -46,6 +45,7 @@
             <Property Name="Namespace" Value="FreeSql.Tests.SqlServer" />
             <Property Name="Namespace" Value="FreeSql.Tests.SqlServerExpression" />
             <Property Name="Namespace" Value="FreeSql.Tests.SqlServerMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Issues" />
           </Rule>
         </Rule>
         <Property Name="Project" Value="FreeSql.Tests.DbContext" />
