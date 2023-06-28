@@ -171,7 +171,7 @@ public static partial class QuestDbGlobalExtensions
         {
             var client = QuestDbContainer.GetService<IHttpClientFactory>().CreateClient();
             var boundary = "---------------" + DateTime.Now.Ticks.ToString("x");
-            var name = typeof(T).Name;
+            var name = insert.InternalTable.DbName;  //获取表名
             var list = new List<Hashtable>();
             var insert = that as QuestDbInsert<T>;
             insert.InternalOrm.DbFirst.GetTableByName(name).Columns.ForEach(d =>
