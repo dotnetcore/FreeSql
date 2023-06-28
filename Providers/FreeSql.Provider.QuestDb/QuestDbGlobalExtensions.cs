@@ -171,9 +171,9 @@ public static partial class QuestDbGlobalExtensions
         {
             var client = QuestDbContainer.GetService<IHttpClientFactory>().CreateClient();
             var boundary = "---------------" + DateTime.Now.Ticks.ToString("x");
-            var name = insert.InternalTable.DbName;  //获取表名
             var list = new List<Hashtable>();
             var insert = that as QuestDbInsert<T>;
+            var name = insert.InternalTable.DbName;  //获取表名
             insert.InternalOrm.DbFirst.GetTableByName(name).Columns.ForEach(d =>
             {
                 if (d.DbTypeText == "TIMESTAMP")
@@ -215,7 +215,7 @@ public static partial class QuestDbGlobalExtensions
                 await client.PostAsync($"{RestAPIExtension.BaseUrl}/imp?name={name}", httpContent);
             var readAsStringAsync = await httpResponseMessage.Content.ReadAsStringAsync();
             var splitByLine = SplitByLine(readAsStringAsync);
-            Console.WriteLine(readAsStringAsync);
+            //Console.WriteLine(readAsStringAsync);
             foreach (var s in splitByLine)
             {
                 if (s.Contains("Rows"))
@@ -252,7 +252,7 @@ public static partial class QuestDbGlobalExtensions
     /// <returns></returns>
     public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
     {
-        return ExecuteBulkCopyAsync(insert).GetAwaiter().GetResult();
+        return ExecuteBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }
 
