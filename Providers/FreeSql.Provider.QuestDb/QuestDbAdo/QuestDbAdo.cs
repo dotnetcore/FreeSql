@@ -52,9 +52,11 @@ namespace FreeSql.QuestDb
 
             bool isdic;
             if (param is bool || param is bool?)
-                return (bool)param;
+                return (bool)param ? "true" : "false";
             else if (param is string)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+            else if (param is Guid || param is Guid?)
+                return ((Guid)param).ToString("n");
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
@@ -64,7 +66,7 @@ namespace FreeSql.QuestDb
             else if (param is DateTime || param is DateTime?)
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).Ticks / 10;
+                return (long)((TimeSpan)param).TotalSeconds;
             else if (param is byte[])
                 return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is JToken || param is JObject || param is JArray)

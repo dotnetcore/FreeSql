@@ -44,62 +44,29 @@ namespace FreeSql.QuestDb
             { typeof(ushort?).FullName, CsToDb.New(NpgsqlDbType.Integer, "short", "short", false, true, null) },
             { typeof(uint).FullName, CsToDb.New(NpgsqlDbType.Bigint, "int", "int NOT NULL", false, false, 0) },
             { typeof(uint?).FullName, CsToDb.New(NpgsqlDbType.Bigint, "int", "int", false, true, null) },
-            {
-                typeof(ulong).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long", "long NOT NULL", false, false, 0)
-            },
-            {
-                typeof(ulong?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long", "long", false, true, null)
-            },
+            { typeof(ulong).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long", "long NOT NULL", false, false, 0) },
+            { typeof(ulong?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long", "long", false, true, null) },
 
             { typeof(float).FullName, CsToDb.New(NpgsqlDbType.Real, "float", "float NOT NULL", false, false, 0) },
             { typeof(float?).FullName, CsToDb.New(NpgsqlDbType.Real, "float", "float", false, true, null) },
             { typeof(double).FullName, CsToDb.New(NpgsqlDbType.Double, "double", "double NOT NULL", false, false, 0) },
             { typeof(double?).FullName, CsToDb.New(NpgsqlDbType.Double, "double", "double", false, true, null) },
-            {
-                typeof(decimal).FullName,
-                CsToDb.New(NpgsqlDbType.Numeric, "double", "double NOT NULL", false, false, 0)
-            },
-            {
-                typeof(decimal?).FullName,
-                CsToDb.New(NpgsqlDbType.Numeric, "double", "double", false, true, null)
-            },
+            { typeof(decimal).FullName, CsToDb.New(NpgsqlDbType.Numeric, "double", "double NOT NULL", false, false, 0) },
+            { typeof(decimal?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "double", "double", false, true, null) },
 
             { typeof(string).FullName, CsToDb.New(NpgsqlDbType.Varchar, "string", "string", false, null, "") },
-            { typeof(char).FullName, CsToDb.New(NpgsqlDbType.Char, "char", "char)", false, null, '\0') },
+            { typeof(char).FullName, CsToDb.New(NpgsqlDbType.Char, "char", "char", false, null, '\0') },
+            { typeof(Guid).FullName, CsToDb.New(NpgsqlDbType.Char, "symbol", "symbol NOT NULL", false, null, Guid.Empty) },
+            { typeof(Guid?).FullName, CsToDb.New(NpgsqlDbType.Char, "symbol", "symbol", false, true, null) },
 
-            {
-                typeof(TimeSpan).FullName,
-                CsToDb.New(NpgsqlDbType.Time, "timestamp", "timestamp NOT NULL", false, false, 0)
-            },
-            { typeof(TimeSpan?).FullName, CsToDb.New(NpgsqlDbType.Time, "timestamp", "timestamp", false, true, null) },
-            {
-                typeof(DateTime).FullName,
-                CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false,
-                    new DateTime(1970, 1, 1))
-            },
-            {
-                typeof(DateTime?).FullName,
-                CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null)
-            },
+            { typeof(DateTime).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970, 1, 1)) },
+            { typeof(DateTime?).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
-            {
-                typeof(bool).FullName,
-                CsToDb.New(NpgsqlDbType.Boolean, "boolean", "boolean NOT NULL", null, false, false)
-            },
+            { typeof(bool).FullName, CsToDb.New(NpgsqlDbType.Boolean, "boolean", "boolean NOT NULL", null, false, false) },
             { typeof(bool?).FullName, CsToDb.New(NpgsqlDbType.Boolean, "boolean", "boolean", null, true, null) },
-            //{ typeof(Byte[]).FullName, CsToDb.New(NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
-            //{
-            //    typeof(BitArray).FullName,
-            //    CsToDb.New(NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64]))
-            //},
-            {
-                typeof(BigInteger).FullName,
-                CsToDb.New(NpgsqlDbType.Numeric, "long", "long NOT NULL", false, false, 0)
-            },
-            {
-                typeof(BigInteger?).FullName,
-                CsToDb.New(NpgsqlDbType.Numeric, "long", "long", false, true, null)
-            }
+            { typeof(Byte[]).FullName, CsToDb.New(NpgsqlDbType.Bytea, "binary", "binary", false, null, new byte[0]) },
+            { typeof(BigInteger).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long256", "long256 NOT NULL", false, false, 0) },
+            { typeof(BigInteger?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "long256", "long256", false, true, null) }
         };
 
         public override DbInfoResult GetDbInfo(Type type)

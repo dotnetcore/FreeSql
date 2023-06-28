@@ -526,8 +526,12 @@ namespace FreeSql.Internal
             {
                 col.Attribute.IsNullable = false;
                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-                if (common._orm.Ado.DataType == DataType.Sqlite)
-                    col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
+                switch(common._orm.Ado.DataType)
+                {
+                    case DataType.Sqlite:
+                        col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
+                        break;
+                }
             }
             foreach (var col in trytb.Columns.Values)
             {

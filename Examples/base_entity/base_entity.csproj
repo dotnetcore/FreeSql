@@ -31,6 +31,7 @@
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.QuestDb\FreeSql.Provider.QuestDb.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
 	</ItemGroup>

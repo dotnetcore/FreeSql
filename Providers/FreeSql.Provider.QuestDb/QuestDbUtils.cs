@@ -28,8 +28,16 @@ namespace FreeSql.QuestDb
 {
     class QuestDbUtils : CommonUtils
     {
+        string now_to_timezone;
         public QuestDbUtils(IFreeSql orm) : base(orm)
         {
+            var timeOffset = (int)TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalMinutes;
+            if (timeOffset == 0) now_to_timezone = "systimestamp()";
+            else
+            {
+                var absTimeOffset = Math.Abs(timeOffset);
+                now_to_timezone = $"to_timezone(systimestamp(),'{(timeOffset > 0 ? '+' : '-')}{(absTimeOffset / 60).ToString().PadLeft(2, '0')}:{(absTimeOffset % 60).ToString().PadLeft(2, '0')}')";
+            }
         }
 
         static Array getParamterArrayValue(Type arrayType, object value, object defaultValue)
@@ -267,8 +275,8 @@ namespace FreeSql.QuestDb
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
-        public override string Now => "sysdate";
-        public override string NowUtc => "systimestamp";
+        public override string Now => now_to_timezone;
+        public override string NowUtc => "systimestamp()";
 
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
@@ -281,57 +289,12 @@ namespace FreeSql.QuestDb
             value = getParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
-            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
-            }
-            else if (value is Array)
-            {
-                var valueArr = value as Array;
-                var eleType = type2.GetElementType();
-                var len = valueArr.GetLength(0);
-                var sb = new StringBuilder().Append("ARRAY[");
-                for (var a = 0; a < len; a++)
-                {
-                    var item = valueArr.GetValue(a);
-                    if (a > 0) sb.Append(",");
-                    sb.Append(GetNoneParamaterSqlValue(specialParams, specialParamFlag, col, eleType, item));
-                }
-
-                sb.Append("]");
-                var dbinfo = _orm.CodeFirst.GetDbInfo(type);
-                if (dbinfo != null) sb.Append("::").Append(dbinfo.dbtype);
-                return sb.ToString();
-            }
-            else if (type2 == typeof(BitArray))
-            {
-                return $"'{To1010(value as BitArray)}'";
-            }
-            else if (type2 == typeof(NpgsqlLine) || type2 == typeof(NpgsqlLine?))
-            {
-                var line = value.ToString();
-                return line == "{0,0,0}" ? "'{0,-1,-1}'" : $"'{line}'";
-            }
-            else if (type2 == typeof((IPAddress Address, int Subnet)) ||
-                     type2 == typeof((IPAddress Address, int Subnet)?))
-            {
-                var cidr = ((IPAddress Address, int Subnet))value;
-                return $"'{cidr.Address}/{cidr.Subnet}'";
-            }
             else if (dicGetParamterValue.ContainsKey(type2.FullName))
             {
                 value = string.Concat(value);
             }
 
             return FormatSql("{0}", value, 1);
-        }
-
-        string To1010(BitArray ba)
-        {
-            char[] ret = new char[ba.Length];
-            for (int a = 0; a < ba.Length; a++) ret[a] = ba[a] ? '1' : '0';
-            return new string(ret);
         }
     }
 }

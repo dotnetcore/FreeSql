@@ -590,7 +590,7 @@ namespace base_entity
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
-
+                .UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
                 .UseMonitorCommand(cmd =>
                 {
                     Console.WriteLine(cmd.CommandText + "\r\n");
@@ -601,6 +601,27 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var qr1 = fsql.SelectLongSequence(10, () => new
+                {
+                    rndstr = QuestFunc.rnd_str(10, 5, 10, 0),
+                    rnddate = QuestFunc.rnd_date(QuestFunc.to_date("2020", "yyyy"), QuestFunc.to_date("2023", "yyyy"))
+                })
+                .From<User1>()
+                .InnerJoin((a, b) => a.rndstr == b.Username).ToList();
+
+
+            var now_to_timezone = "";
+            var timeOffset = (int)TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalMinutes;
+            if (timeOffset == 0) now_to_timezone = "systimestamp()";
+            else
+            {
+                var absTimeOffset = Math.Abs(timeOffset);
+                now_to_timezone = $"to_timezone(systimestamp(),'{(timeOffset > 0 ? '+' : '-')}{(absTimeOffset / 60).ToString().PadLeft(2, '0')}:{(absTimeOffset % 60).ToString().PadLeft(2, '0')}')";
+            }
+            if (now_to_timezone != "to_timezone(systimestamp(),'+08:00')") throw new Exception("questdb DateTime.Now 时差计算错误");
+
+
 
             fsql.Insert(new[]
             {
@@ -996,7 +1017,12 @@ var sql11111 = fsql.Select<Class1111>()
                         var arguments = callExp.Arguments;
                         var Function = new Func<string, Expression[], Type, string>((dbfunc, args, returnType) =>
                         {
-                            return $"{dbfunc}({string.Join(", ", args.Select(a => e.FreeParse(a)))})";
+                            var inputArgs = string.Join(", ", args.Select(a =>
+                            {
+                                //var testParse = fsql.Aop.ParseExpressionHandler(fsql, new FreeSql.Aop.ParseExpressionEventArgs(a, e.FreeParse, e.Tables));
+                                return e.FreeParse(a);
+                            }));
+                            return $"{dbfunc}({inputArgs})";
                         });
                         e.Result = callExp.Method.Name switch
                         {
