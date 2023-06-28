@@ -937,9 +937,12 @@ namespace FreeSql.Internal
         {
             if (exp == null) return "";
             if (tsc.dbParams != null && tsc.mapColumnTmp != null && tsc.mapColumnTmp.CsType.NullableTypeOrThis() != exp.Type) tsc.SetMapColumnTmp(null);
-            if (tsc.isDisableDiyParse == false)
+            if (tsc.isDisableDiyParse == false && tsc.parseDepth < 20)
             {
-                var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(ukexp, tsc.CloneDisableDiyParse()), tsc._tables);
+                var aopTsc = tsc.CloneDisableDiyParse();
+                aopTsc.parseDepth = tsc.parseDepth + 1;
+                aopTsc.isDisableDiyParse = false; //用深度控制
+                var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(ukexp, aopTsc), tsc._tables);
                 if (_common._orm.Aop.ParseExpressionHandler != null)
                 {
                     _common._orm.Aop.ParseExpressionHandler(this, args);
@@ -2276,6 +2279,7 @@ namespace FreeSql.Internal
             public List<GlobalFilter.Item> whereGlobalFilter { get; set; }
             public List<DbParameter> dbParams { get; set; }
             public string alias001 { get; set; } //单表字段的表别名
+            public int parseDepth { get; set; } //Aop 解析深度，防止死循环
 
             public ExpTSC SetMapColumnTmp(ColumnInfo col)
             {
