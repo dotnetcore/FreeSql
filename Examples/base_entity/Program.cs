@@ -590,7 +590,7 @@ namespace base_entity
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
-                //.UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
+                .UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
                 .UseMonitorCommand(cmd =>
                 {
                     Console.WriteLine(cmd.CommandText + "\r\n");
@@ -602,6 +602,16 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var qr1 = fsql.SelectLongSequence(10, () => new
+            {
+                rndstr = QuestFunc.rnd_str(10, 5, 10, 0),
+                rnddate = QuestFunc.rnd_date(QuestFunc.to_date("2020", "yyyy"), QuestFunc.to_date("2023", "yyyy")),
+                test1 = TaskStatus.Canceled.ToString()
+            })
+                .From<User1>()
+                .InnerJoin((a, b) => a.rndstr == b.Username).ToList();
+
+            ;
 
             fsql.Aop.ParseExpression += (_, e) =>
             {
@@ -668,14 +678,6 @@ namespace base_entity
                 var xxx = fsql.Select<City>()
                     .Where(a => geo.GetGeometryN(0).Distance(a.Center) < 100).ToSql();
             }
-
-            var qr1 = fsql.SelectLongSequence(10, () => new
-                {
-                    rndstr = QuestFunc.rnd_str(10, 5, 10, 0),
-                    rnddate = QuestFunc.rnd_date(QuestFunc.to_date("2020", "yyyy"), QuestFunc.to_date("2023", "yyyy"))
-                })
-                .From<User1>()
-                .InnerJoin((a, b) => a.rndstr == b.Username).ToList();
 
 
             var now_to_timezone = "";

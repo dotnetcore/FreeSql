@@ -93,10 +93,21 @@ namespace FreeSql.Custom.SqlServer
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             return null;
                         case "ToString":
-                            var gentype2 = callExp.Object.Type.NullableTypeOrThis();
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
+                            if (callExp.Object != null)
+                            {
+                                var gentype2 = callExp.Object.Type.NullableTypeOrThis();
+                                if (gentype2.IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+                                }
+                                return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
                                     $"cast({getExp(callExp.Object)} as varchar(36))" :
                                     $"cast({getExp(callExp.Object)} as nvarchar{(gentype2.IsNumberType() || gentype2.IsEnum ? "(100)" : "(max)")})") : null;
+                            }
                             return null;
                     }
 

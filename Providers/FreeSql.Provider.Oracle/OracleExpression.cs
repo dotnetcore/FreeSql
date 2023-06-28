@@ -90,7 +90,18 @@ namespace FreeSql.Oracle
                             if (callExp.Method.DeclaringType.IsNumberType()) return "dbms_random.value";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+                                }
+                                return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
+                            }
                             return null;
                     }
 

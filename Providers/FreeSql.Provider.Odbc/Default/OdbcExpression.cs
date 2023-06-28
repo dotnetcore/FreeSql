@@ -90,7 +90,18 @@ namespace FreeSql.Odbc.Default
                             if (callExp.Method.DeclaringType.IsNumberType()) return _utils.Adapter.LambdaRandom_NextDouble;
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? _utils.Adapter.LambdaConvert_ToString(callExp.Object.Type, getExp(callExp.Object)) : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+                                }
+                                return callExp.Arguments.Count == 0 ? _utils.Adapter.LambdaConvert_ToString(callExp.Object.Type, getExp(callExp.Object)) : null;
+                            }
                             return null;
                     }
 

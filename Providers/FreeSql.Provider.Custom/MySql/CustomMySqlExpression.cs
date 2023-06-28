@@ -86,7 +86,18 @@ namespace FreeSql.Custom.MySql
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+                                }
+                                return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
+                            }
                             return null;
                     }
 
