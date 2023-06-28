@@ -301,41 +301,15 @@ namespace FreeSql.QuestDb
 
 namespace FreeSql
 {
-    public enum SampleUnits
+    public enum SampleUnit
     {
-        /// <summary>
-        /// 微秒
-        /// </summary>
-        U,
-
-        /// <summary>
-        /// 毫秒
-        /// </summary>
-        T,
-
-        /// <summary>
-        /// 秒
-        /// </summary>
-        s,
-
-        /// <summary>
-        /// 分钟
-        /// </summary>
-        m,
-
-        /// <summary>
-        /// 时
-        /// </summary>
-        h,
-
-        /// <summary>
-        /// 天
-        /// </summary>
-        d,
-
-        /// <summary>
-        /// 月
-        /// </summary>
-        M
+        microsecond = 'U',
+        millisecond = 'T',
+        second = 's',
+        minute = 'm',
+        hour = 'h',
+        day = 'd',
+        month = 'M',
+        year = 'y',
     }
 }

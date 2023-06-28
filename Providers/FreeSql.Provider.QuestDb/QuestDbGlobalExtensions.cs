@@ -113,15 +113,13 @@ public static partial class QuestDbGlobalExtensions
     /// <param name="unit">单位</param>
     /// <param name="alignToCalendar">对准日历</param>
     /// <returns></returns>
-    public static ISelect<T> SampleBy<T>(this ISelect<T> select, double time, SampleUnits unit, bool alignToCalendar = false)
+    public static ISelect<T> SampleBy<T>(this ISelect<T> select, double time, SampleUnit unit, bool alignToCalendar = false)
     {
-        var _unit = Enum.GetName(typeof(SampleUnits), unit);
         SampleByExtension.IsExistence.Value = true;
         var samoleByTemple = $"{Environment.NewLine}SAMPLE BY {{0}}{{1}} {{2}}";
         string alignToCalendarTemple = "";
-        if (alignToCalendar)
-            alignToCalendarTemple = "ALIGN TO CALENDAR ";
-        SampleByExtension.SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), _unit, alignToCalendarTemple);
+        if (alignToCalendar) alignToCalendarTemple = "ALIGN TO CALENDAR ";
+        SampleByExtension.SamoleByString.Value = string.Format(samoleByTemple, time.ToString(), (char)unit, alignToCalendarTemple);
         return select;
     }
 
