@@ -386,7 +386,7 @@ namespace FreeSql.Internal
                                 if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                                 {
                                     if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
                                 }
                         }
                         break;
@@ -397,7 +397,7 @@ namespace FreeSql.Internal
                                 if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                                 {
                                     if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
                                 }
                         }
                         break;
@@ -410,7 +410,7 @@ namespace FreeSql.Internal
                             if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                             {
                                 if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
                             }
                         }
                         break;

@@ -11,6 +11,7 @@ namespace FreeSql.Internal.Model
         public string Name { get; set; }
         public IndexColumnInfo[] Columns { get; set; }
         public bool IsUnique { get; set; }
+        public IndexMethod IndexMethod { get; set; }
     }
 
     public class IndexColumnInfo

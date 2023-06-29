@@ -19,7 +19,6 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Data.SqlClient;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -35,7 +34,7 @@ using System.Threading.Tasks;
 
 namespace base_entity
 {
-    static class Program
+    static partial class Program
     {
         class TestConfig
         {
@@ -61,11 +60,6 @@ namespace base_entity
         }
 
         static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
-
-        public class TestEnumCls
-        {
-            public CollationTypeEnum val { get; set; } = CollationTypeEnum.Binary;
-        }
 
         class Sys_reg_user
         {
@@ -590,17 +584,32 @@ namespace base_entity
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
-                .UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
+                //.UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
                 .UseMonitorCommand(cmd =>
                 {
                     Console.WriteLine(cmd.CommandText + "\r\n");
                     //cmd.CommandText = null; //不执行
+
+                    //if (cmd.CommandText.StartsWith(""))
                 })
                 .UseLazyLoading(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            test_pgsql(fsql);
+
+            var sqliteConnection = new Microsoft.Data.Sqlite.SqliteConnection("data source=123.db");
+            using(var sqliteSql = new FreeSqlBuilder()
+                .UseConnectionFactory(DataType.Sqlite,() => sqliteConnection)
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText))
+                .Build())
+            {
+                sqliteSql.Insert(new User1 { Avatar = "xxxavatar" }).ExecuteAffrows();
+                var xkdkd = sqliteSql.Select<User1>().ToList();
+            }
 
             var qr1 = fsql.SelectLongSequence(10, () => new
             {

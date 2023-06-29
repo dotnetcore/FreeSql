@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;
@@ -210,7 +211,9 @@ namespace FreeSql.PostgreSQL
                             if (uk.IsUnique) sb.Append("UNIQUE ");
                             sb.Append("INDEX ");
                             if (isPg95) sb.Append("IF NOT EXISTS ");
-                            sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName).Append("(");
+                            sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName);
+                            if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                            sb.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -403,7 +406,9 @@ where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", 
                             if (uk.IsUnique) sbalter.Append("UNIQUE ");
                             sbalter.Append("INDEX ");
                             if (isPg95) sbalter.Append("IF NOT EXISTS ");
-                            sbalter.Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append("(");
+                            sbalter.Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}"));
+                            if (uk.IndexMethod != IndexMethod.B_Tree) sbalter.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                            sbalter.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -500,7 +505,9 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                     if (uk.IsUnique) sb.Append("UNIQUE ");
                     sb.Append("INDEX ");
                     if (isPg95) sb.Append("IF NOT EXISTS ");
-                    sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                    sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename);
+                    if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                    sb.Append("(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));

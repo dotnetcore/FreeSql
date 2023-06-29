@@ -458,7 +458,8 @@ namespace FreeSql.Internal
                                 {
                                     Name = dbidx.Key,
                                     Columns = indexColumns.ToArray(),
-                                    IsUnique = dbidx.Value.IsUnique
+                                    IsUnique = dbidx.Value.IsUnique,
+                                    IndexMethod = IndexMethod.B_Tree
                                 });
                             }
                         }
@@ -493,7 +494,8 @@ namespace FreeSql.Internal
                 {
                     Name = indexName,
                     Columns = indexColumns.ToArray(),
-                    IsUnique = index.IsUnique
+                    IsUnique = index.IsUnique,
+                    IndexMethod = index.IndexMethod
                 });
             }
             trytb.Indexes = indexesDict.Values.ToArray();
