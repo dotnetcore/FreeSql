@@ -1018,6 +1018,8 @@ namespace FreeSql.Internal
                         return conditionalSql;
                     }
                 case ExpressionType.Call:
+                    //提前直接解析 内存表达式
+                    if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
                     if (exp3.Object == null && (
@@ -1699,7 +1701,6 @@ namespace FreeSql.Internal
                     }
                     other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
-                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     if (exp3.Method.DeclaringType == typeof(Enumerable)) throw new Exception(CoreStrings.Not_Implemented_Expression_UseAsSelect(exp3, exp3.Method.Name, (exp3.Arguments.Count > 1 ? "..." : "")));
                     throw new Exception(CoreStrings.Not_Implemented_Expression(exp3));
                 case ExpressionType.Parameter:
