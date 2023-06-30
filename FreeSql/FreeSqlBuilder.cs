@@ -59,7 +59,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseAdoConnectionPool(bool value)
         {
-            _isAdoConnectionPool = true;
+            _isAdoConnectionPool = value ;
             return this;
         }
         /// <summary>

@@ -125,7 +125,7 @@ namespace FreeSql.Internal.ObjectPool
                             {
                                 conn.ResetValue();
                             }
-                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception("【{Policy.Name}】An exception needs to be thrown");
+                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception($"【{Policy.Name}】An exception needs to be thrown");
                             break;
                         }
                         finally
@@ -373,7 +373,7 @@ namespace FreeSql.Internal.ObjectPool
             if (obj == null)
             {
                 if (Policy.AsyncGetCapacity > 0 && _getAsyncQueue.Count >= Policy.AsyncGetCapacity - 1)
-                    throw new OutOfMemoryException($"【{Policy.Name}】ObjectPool.GetAsync() The queue is too long. Policy. AsyncGetCapacity = {Policy.AsyncGetCapacity}");
+                    throw new OutOfMemoryException($"【{Policy.Name}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {Policy.AsyncGetCapacity}");
 
                 var tcs = new TaskCompletionSource<Object<T>>();
 
