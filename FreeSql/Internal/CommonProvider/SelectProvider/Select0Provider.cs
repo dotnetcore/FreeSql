@@ -781,7 +781,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables[0].Table.Type != typeof(T1)) del.AsType(_tables[0].Table.Type);
             if (_params.Any()) del._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) del._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
-            del.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
+            del.WithConnection(_connection).WithTransaction(_transaction ?? _orm.Ado.TransactionCurrentThread ?? _resolveHookTransaction?.Invoke()).CommandTimeout(_commandTimeout);
             if (_is_AsTreeCte == false)
             {
                 var trytbname = "";
@@ -816,7 +816,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables[0].Table.Type != typeof(T1)) upd.AsType(_tables[0].Table.Type);
             if (_params.Any()) upd._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) upd._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
-            upd.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
+            upd.WithConnection(_connection).WithTransaction(_transaction ?? _orm.Ado.TransactionCurrentThread ?? _resolveHookTransaction?.Invoke()).CommandTimeout(_commandTimeout);
             if (_is_AsTreeCte == false)
             {
                 var trytbname = "";
