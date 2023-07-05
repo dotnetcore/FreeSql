@@ -56,7 +56,7 @@ namespace FreeSql.QuestDb
 
             { typeof(string).FullName, CsToDb.New(NpgsqlDbType.Varchar, "string", "string", false, null, "") },
             { typeof(char).FullName, CsToDb.New(NpgsqlDbType.Char, "char", "char", false, null, '\0') },
-            { typeof(Guid).FullName, CsToDb.New(NpgsqlDbType.Char, "symbol", "symbol NOT NULL", false, null, Guid.Empty) },
+            { typeof(Guid).FullName, CsToDb.New(NpgsqlDbType.Char, "symbol", "symbol", false, null, Guid.Empty) },
             { typeof(Guid?).FullName, CsToDb.New(NpgsqlDbType.Char, "symbol", "symbol", false, true, null) },
 
             { typeof(DateTime).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970, 1, 1)) },
