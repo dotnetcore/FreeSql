@@ -56,7 +56,7 @@ namespace FreeSql.QuestDb
             else if (param is string)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
             else if (param is Guid || param is Guid?)
-                return ((Guid)param).ToString("n");
+                return string.Concat("'", ((Guid)param).ToString("n"), "'");
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
