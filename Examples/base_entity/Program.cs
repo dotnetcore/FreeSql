@@ -566,10 +566,10 @@ namespace base_entity
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                .UseConnectionString(FreeSql.DataType.Oracle, "user=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
-                //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=5;min pool size=1")
+                //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user=2user;password=123456789;database=2user;poolsize=5;")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.OdbcMySql, "Driver={MySQL ODBC 8.0 Unicode Driver};Server=127.0.0.1;Persist Security Info=False;Trusted_Connection=Yes;UID=root;PWD=root;DATABASE=cccddd_odbc;Charset=utf8;SslMode=none;Max pool size=2")

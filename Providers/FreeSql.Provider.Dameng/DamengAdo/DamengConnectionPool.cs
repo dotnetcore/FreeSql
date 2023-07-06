@@ -34,8 +34,8 @@ namespace FreeSql.Dameng
 
         public static string GetUserId(string connectionString)
         {
-            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
-            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid|User)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid|User)\s*=\s*([^;]+)");
             return userIdMatch.Groups[2].Value.Trim().ToUpper();
         }
 
