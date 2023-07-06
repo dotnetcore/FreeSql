@@ -24,7 +24,13 @@ public static class FreeSqlGlobalExpressionCallExtensions
     {
         if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
             return that >= between && that <= and;
-        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {expContext.Value.ParsedContent["between"]} and {expContext.Value.ParsedContent["and"]}";
+        var time1 = expContext.Value.RawExpression["between"].IsParameter() == false ?
+            expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["between"]).Compile().DynamicInvoke()) :
+            expContext.Value.ParsedContent["between"];
+        var time2 = expContext.Value.RawExpression["and"].IsParameter() == false ?
+            expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["and"]).Compile().DynamicInvoke()) :
+            expContext.Value.ParsedContent["and"];
+        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {time1} and {time2}";
         return false;
     }
 
@@ -41,7 +47,13 @@ public static class FreeSqlGlobalExpressionCallExtensions
     {
         if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
             return that >= start && that < end;
-        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} >= {expContext.Value.ParsedContent["start"]} and {expContext.Value.ParsedContent["that"]} < {expContext.Value.ParsedContent["end"]}";
+        var time1 = expContext.Value.RawExpression["start"].IsParameter() == false ?
+            expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["start"]).Compile().DynamicInvoke()) :
+            expContext.Value.ParsedContent["start"];
+        var time2 = expContext.Value.RawExpression["end"].IsParameter() == false ?
+            expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["end"]).Compile().DynamicInvoke()) :
+            expContext.Value.ParsedContent["end"];
+        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} >= {time1} and {expContext.Value.ParsedContent["that"]} < {time2}";
         return false;
     }
 }

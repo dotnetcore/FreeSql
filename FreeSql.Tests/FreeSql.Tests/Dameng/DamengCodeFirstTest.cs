@@ -60,6 +60,14 @@ namespace FreeSql.Tests.Dameng
         [Fact]
         public void StringLength36()
         {
+            var repo = g.dameng.GetRepository<TS_SL361, long>();
+
+            var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
+            repo.Insert(item1);
+            var item2 = repo.Get(item1.Id);
+
+            Assert.Equal(item1.CreatorId, item2.CreatorId);
+
             using (var conn = g.dameng.Ado.MasterPool.Get())
             {
                 var cmd = conn.Value.CreateCommand();
@@ -78,14 +86,6 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
                     }
                 }
             }
-
-            //var repo = g.dameng.GetRepository<TS_SL361, long>();
-
-            //var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
-            //repo.Insert(item1);
-            //var item2 = repo.Get(item1.Id);
-
-            //Assert.Equal(item1.CreatorId, item2.CreatorId);
         }
         class TS_SL361
         {

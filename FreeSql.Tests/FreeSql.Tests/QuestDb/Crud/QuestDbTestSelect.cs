@@ -135,7 +135,7 @@ WHERE (a.""IsCompra"" = True)", sql);
         public void TestSampleBy()
         {
             var selectSql = fsql.Select<QuestDb_Model_Test01>()
-                .SampleBy(1, SampleUnits.d)
+                .SampleBy(1, SampleUnit.day)
                 .WithTempQuery(q => new { q.Id, q.Activos, count = SqlExt.Count(q.Id).ToValue() })
                 .Where(q => q.Id != "1")
                 .ToSql();

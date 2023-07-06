@@ -843,7 +843,10 @@ namespace FreeSql.Internal
             var isRightMapType = false;
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
 
-            var right = ExpressionLambdaToSql(rightExp, tsc);
+            var right = (leftMapColumn != null && 
+                (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.IsParameter() == false)) ? //自动分表
+                formatSql(Expression.Lambda(rightExp).Compile().DynamicInvoke(), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams) :
+                ExpressionLambdaToSql(rightExp, tsc);
             if (right != "NULL" && isLeftMapType &&
                 //判断参数化后的bug
                 !(right.Contains('@') || right.Contains('?') || right.Contains(':')) &&
@@ -866,7 +869,10 @@ namespace FreeSql.Internal
                 if (isRightMapType)
                 {
                     oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
-                    left = ExpressionLambdaToSql(leftExp, tsc);
+                    left = (rightMapColumn != null && 
+                        (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.IsParameter() == false)) ? //自动分表
+                        formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) : 
+                        ExpressionLambdaToSql(leftExp, tsc);
                     if (left != "NULL" && isRightMapType &&
                         //判断参数化后的bug
                         !(left.Contains('@') || left.Contains('?') || left.Contains(':')) &&
@@ -1018,8 +1024,6 @@ namespace FreeSql.Internal
                         return conditionalSql;
                     }
                 case ExpressionType.Call:
-                    //提前直接解析 内存表达式
-                    if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
                     if (exp3.Object == null && (
@@ -1701,6 +1705,7 @@ namespace FreeSql.Internal
                     }
                     other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
+                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     if (exp3.Method.DeclaringType == typeof(Enumerable)) throw new Exception(CoreStrings.Not_Implemented_Expression_UseAsSelect(exp3, exp3.Method.Name, (exp3.Arguments.Count > 1 ? "..." : "")));
                     throw new Exception(CoreStrings.Not_Implemented_Expression(exp3));
                 case ExpressionType.Parameter:

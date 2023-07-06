@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,21 +59,22 @@ namespace FreeSql.Tests.SqliteExpression
                 .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddSeconds(a)));
             foreach (var dt in dts)
             {
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), select.First(a => dt.ToString()));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
-                Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
-                Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select.First(a => dt.ToString("yyyyMMddHHmmss")));
-                Assert.Equal(dt.ToString("yyyyMMddHHmm"), select.First(a => dt.ToString("yyyyMMddHHmm")));
-                Assert.Equal(dt.ToString("yyyyMMddHH"), select.First(a => dt.ToString("yyyyMMddHH")));
-                Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
-                Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
-                Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
-                Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
-                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
-                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("ÉÏÎç", "AM").Replace("ÏÂÎç", "PM").Replace("ÉÏ", "A").Replace("ÏÂ", "P"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
+                var select2 = select.WithSql($"select '{dt.ToString("yyyy-MM-dd HH:mm:ss")}' as CreateTime");
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), select2.First(a => a.CreateTime.ToString()));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select2.First(a => a.CreateTime.ToString("yyyy-MM-dd HH:mm:ss")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm"), select2.First(a => a.CreateTime.ToString("yyyy-MM-dd HH:mm")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select2.First(a => a.CreateTime.ToString("yyyy-MM-dd HH")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd"), select2.First(a => a.CreateTime.ToString("yyyy-MM-dd")));
+                Assert.Equal(dt.ToString("yyyy-MM"), select2.First(a => a.CreateTime.ToString("yyyy-MM")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select2.First(a => a.CreateTime.ToString("yyyyMMddHHmmss")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmm"), select2.First(a => a.CreateTime.ToString("yyyyMMddHHmm")));
+                Assert.Equal(dt.ToString("yyyyMMddHH"), select2.First(a => a.CreateTime.ToString("yyyyMMddHH")));
+                Assert.Equal(dt.ToString("yyyyMMdd"), select2.First(a => a.CreateTime.ToString("yyyyMMdd")));
+                Assert.Equal(dt.ToString("yyyyMM"), select2.First(a => a.CreateTime.ToString("yyyyMM")));
+                Assert.Equal(dt.ToString("yyyy"), select2.First(a => a.CreateTime.ToString("yyyy")));
+                Assert.Equal(dt.ToString("HH:mm:ss"), select2.First(a => a.CreateTime.ToString("HH:mm:ss")));
+                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select2.First(a => a.CreateTime.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
+                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("ä¸Šåˆ", "AM").Replace("ä¸‹åˆ", "PM").Replace("ä¸Š", "A").Replace("ä¸‹", "P"), select2.First(a => a.CreateTime.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
             }
         }
         [Fact]
@@ -565,7 +566,7 @@ namespace FreeSql.Tests.SqliteExpression
             //WHERE (datetime(a__Type__Parent."Time2",(-((1)*86400))||' seconds') > a."CreateTime")
         }
         [Fact]
-        public void Á½¸öÈÕÆÚÏà¼õ_Ğ§¹ûÍ¬Subtract()
+        public void ä¸¤ä¸ªæ—¥æœŸç›¸å‡_æ•ˆæœåŒSubtract()
         {
             var data = new List<object>();
             data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());
