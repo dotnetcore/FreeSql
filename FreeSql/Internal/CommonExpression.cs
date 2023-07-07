@@ -2361,7 +2361,7 @@ namespace FreeSql.Internal
         }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicGetWhereCascadeSqlError = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
-        public string GetWhereCascadeSql(SelectTableInfo tb, List<GlobalFilter.Item> filters, bool isMultitb)
+        public string GetWhereCascadeSql(SelectTableInfo tb, IEnumerable<GlobalFilter.Item> filters, bool isMultitb)
         {
             if (filters.Any())
             {

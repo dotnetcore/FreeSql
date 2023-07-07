@@ -19,7 +19,10 @@ namespace FreeSql.GBase.Curd
 
             if (_whereGlobalFilter.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
-                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter, true);
+                {
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == false), true);
+                    tb.CascadeBefore = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == true), true);
+                }
 
             var sb = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;
@@ -50,22 +53,22 @@ namespace FreeSql.GBase.Curd
                         {
                             sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
 
-                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
-                            else
-                            {
-                                var onSql = tbsfrom[b].NavigateCondition ?? tbsfrom[b].On;
-                                sb.Append(" ON ").Append(onSql);
-                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false)
+                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) &&
+                                string.IsNullOrEmpty(tbsfrom[b].On) &&
+                                string.IsNullOrEmpty(tbsfrom[b].Cascade) &&
+                                string.IsNullOrEmpty(tbsfrom[b].CascadeBefore)) sb.Append(" ON 1 = 1");
+                            else sb.Append(" ON ").Append(string.Join(" AND ", new[]
                                 {
-                                    if (string.IsNullOrEmpty(onSql)) sb.Append(tbsfrom[b].Cascade);
-                                    else sb.Append(" AND ").Append(tbsfrom[b].Cascade);
-                                }
-                            }
+                                    tbsfrom[b].CascadeBefore,
+                                    tbsfrom[b].NavigateCondition ?? tbsfrom[b].On,
+                                    tbsfrom[b].Cascade
+                                }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                         }
                         break;
                     }
                     else
                     {
+                        if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].CascadeBefore)) sbnav.Append(" AND ").Append(tbsfrom[a].CascadeBefore);
                         if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
                         if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
                         if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND ").Append(tbsfrom[a].Cascade);
@@ -89,15 +92,20 @@ namespace FreeSql.GBase.Curd
                             sb.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
-                    if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias)
+                        .Append(" ON ").Append(string.Join(" AND ", new[]
+                        {
+                            tb.CascadeBefore,
+                            tb.On ?? tb.NavigateCondition,
+                            tb.Cascade
+                        }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
                 if (_join.Length > 0) sb.Append(_join);
 
+                if (!string.IsNullOrEmpty(_tables[0].CascadeBefore)) sbnav.Append(" AND ").Append(_tables[0].CascadeBefore);
                 sbnav.Append(_where);
-                if (!string.IsNullOrEmpty(_tables[0].Cascade))
-                    sbnav.Append(" AND ").Append(_tables[0].Cascade);
+                if (!string.IsNullOrEmpty(_tables[0].Cascade)) sbnav.Append(" AND ").Append(_tables[0].Cascade);
 
                 if (sbnav.Length > 0)
                 {

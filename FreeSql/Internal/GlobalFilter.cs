@@ -19,6 +19,7 @@ namespace FreeSql.Internal
             internal Func<bool> Condition { get; set; }
             public LambdaExpression Where { get; internal set; }
             public bool Only { get; internal set; }
+            public bool Before { get; internal set; }
         }
         /// <summary>
         /// 创建一个过滤器<para></para>
@@ -27,8 +28,9 @@ namespace FreeSql.Internal
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="name">名字</param>
         /// <param name="where">表达式</param>
+        /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter Apply<TEntity>(string name, Expression<Func<TEntity, bool>> where) => Apply(false, name, () => true, where);
+        public GlobalFilter Apply<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(false, name, () => true, where, before);
         /// <summary>
         /// 创建一个动态过滤器，当 condition 返回值为 true 时才生效<para></para>
         /// 场景：当登陆身份是管理员，则过滤条件不生效<para></para>
@@ -38,8 +40,9 @@ namespace FreeSql.Internal
         /// <param name="name">名字</param>
         /// <param name="condition">委托，返回值为 true 时才生效</param>
         /// <param name="where">表达式</param>
+        /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where) => Apply(false, name, condition, where);
+        public GlobalFilter ApplyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(false, name, condition, where, before);
 
         /// <summary>
         /// 创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
@@ -48,8 +51,9 @@ namespace FreeSql.Internal
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="name">名字</param>
         /// <param name="where">表达式</param>
+        /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyOnly<TEntity>(string name, Expression<Func<TEntity, bool>> where) => Apply(true, name, () => true, where);
+        public GlobalFilter ApplyOnly<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(true, name, () => true, where, before);
         /// <summary>
         /// 创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
         /// 场景：当登陆身份是管理员，则过滤条件不生效<para></para>
@@ -59,10 +63,11 @@ namespace FreeSql.Internal
         /// <param name="name">名字</param>
         /// <param name="condition">委托，返回值为 true 时才生效</param>
         /// <param name="where">表达式</param>
+        /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyOnlyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where) => Apply(true, name, condition, where);
+        public GlobalFilter ApplyOnlyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(true, name, condition, where, before);
 
-        GlobalFilter Apply<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where)
+        GlobalFilter Apply<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (where == null) return this;
@@ -78,6 +83,7 @@ namespace FreeSql.Internal
             item.Where = newlambda;
             item.Condition = condition;
             item.Only = only;
+            item.Before = before;
             _filters.AddOrUpdate(name, item, (_, __) => item);
             return this;
         }
