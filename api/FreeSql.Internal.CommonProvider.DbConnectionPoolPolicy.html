@@ -1,0 +1,751 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DbConnectionPoolPolicy
+   | FreeSql API Docs </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DbConnectionPoolPolicy
+   | FreeSql API Docs ">
+    <meta name="generator" content="docfx 2.59.4.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src=".././images/logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy">
+  
+  
+  <h1 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy" class="text-break">Class DbConnectionPoolPolicy
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">DbConnectionPoolPolicy</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="FreeSql.Internal.ObjectPool.IPolicy-1.html">IPolicy</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="FreeSql.Internal.CommonProvider.html">FreeSql.Internal.CommonProvider</a></h6>
+  <h6><strong>Assembly</strong>: FreeSql.dll</h6>
+  <h5 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DbConnectionPoolPolicy : IPolicy&lt;DbConnection&gt;</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy__ctor_System_String_System_Func_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.%23ctor(System.String%2CSystem.Func%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L158">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy__ctor_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.#ctor*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy__ctor_System_String_System_Func_System_Data_Common_DbConnection__" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.#ctor(System.String,System.Func{System.Data.Common.DbConnection})">DbConnectionPoolPolicy(String, Func&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DbConnectionPoolPolicy(string name, Func&lt;DbConnection&gt; connectionFactory)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">connectionFactory</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_AsyncGetCapacity.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.AsyncGetCapacity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L168">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_AsyncGetCapacity_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.AsyncGetCapacity*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_AsyncGetCapacity" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.AsyncGetCapacity">AsyncGetCapacity</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int AsyncGetCapacity { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_CheckAvailableInterval.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.CheckAvailableInterval%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L171">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_CheckAvailableInterval_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.CheckAvailableInterval*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_CheckAvailableInterval" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.CheckAvailableInterval">CheckAvailableInterval</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CheckAvailableInterval { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IdleTimeout.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IdleTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L167">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IdleTimeout_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IdleTimeout*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IdleTimeout" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IdleTimeout">IdleTimeout</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TimeSpan IdleTimeout { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsAutoDisposeWithSystem.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsAutoDisposeWithSystem%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L170">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsAutoDisposeWithSystem_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsAutoDisposeWithSystem*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsAutoDisposeWithSystem" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsAutoDisposeWithSystem">IsAutoDisposeWithSystem</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsAutoDisposeWithSystem { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsThrowGetTimeoutException.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsThrowGetTimeoutException%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L169">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsThrowGetTimeoutException_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsThrowGetTimeoutException*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_IsThrowGetTimeoutException" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.IsThrowGetTimeoutException">IsThrowGetTimeoutException</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsThrowGetTimeoutException { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Name.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L164">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Name_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Name*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Name" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Name">Name</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Name { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_PoolSize.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.PoolSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L165">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_PoolSize_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.PoolSize*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_PoolSize" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.PoolSize">PoolSize</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int PoolSize { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_SyncGetTimeout.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.SyncGetTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L166">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_SyncGetTimeout_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.SyncGetTimeout*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_SyncGetTimeout" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.SyncGetTimeout">SyncGetTimeout</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TimeSpan SyncGetTimeout { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Weight.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Weight%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L172">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Weight_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Weight*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_Weight" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.Weight">Weight</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Weight { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnAvailable.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnAvailable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L217">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnAvailable_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnAvailable*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnAvailable" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnAvailable">OnAvailable()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnAvailable()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCheckAvailable_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCheckAvailable(FreeSql.Internal.ObjectPool.Object%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L212">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCheckAvailable_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCheckAvailable*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCheckAvailable_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCheckAvailable(FreeSql.Internal.ObjectPool.Object{System.Data.Common.DbConnection})">OnCheckAvailable(Object&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool OnCheckAvailable(Object&lt;DbConnection&gt; obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.ObjectPool.Object-1.html">Object</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCreate.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCreate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L174">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCreate_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCreate*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnCreate" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnCreate">OnCreate()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DbConnection OnCreate()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbConnection</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnDestroy_System_Data_Common_DbConnection_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnDestroy(System.Data.Common.DbConnection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L182">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnDestroy_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnDestroy*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnDestroy_System_Data_Common_DbConnection_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnDestroy(System.Data.Common.DbConnection)">OnDestroy(DbConnection)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnDestroy(DbConnection obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbConnection</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGet_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGet(FreeSql.Internal.ObjectPool.Object%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L192">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGet_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGet*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGet_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGet(FreeSql.Internal.ObjectPool.Object{System.Data.Common.DbConnection})">OnGet(Object&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnGet(Object&lt;DbConnection&gt; obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.ObjectPool.Object-1.html">Object</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetAsync_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetAsync(FreeSql.Internal.ObjectPool.Object%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L198">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetAsync_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetAsync_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetAsync(FreeSql.Internal.ObjectPool.Object{System.Data.Common.DbConnection})">OnGetAsync(Object&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task OnGetAsync(Object&lt;DbConnection&gt; obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.ObjectPool.Object-1.html">Object</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetTimeout.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetTimeout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L204">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetTimeout_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetTimeout*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnGetTimeout" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnGetTimeout">OnGetTimeout()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnGetTimeout()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnReturn_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnReturn(FreeSql.Internal.ObjectPool.Object%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L208">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnReturn_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnReturn*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnReturn_FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnReturn(FreeSql.Internal.ObjectPool.Object{System.Data.Common.DbConnection})">OnReturn(Object&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnReturn(Object&lt;DbConnection&gt; obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.ObjectPool.Object-1.html">Object</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnUnavailable.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnUnavailable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L221">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnUnavailable_" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnUnavailable*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy_OnUnavailable" data-uid="FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy.OnUnavailable">OnUnavailable()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnUnavailable()</code></pre>
+  </div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="FreeSql.Internal.ObjectPool.IPolicy-1.html">IPolicy&lt;T&gt;</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_DbConnectionPoolPolicy.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.DbConnectionPoolPolicy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/AdoProvider/DbConnectionPool.cs/#L155" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

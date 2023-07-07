@@ -1,0 +1,934 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class CustomMySqlAdo
+   | FreeSql API Docs </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class CustomMySqlAdo
+   | FreeSql API Docs ">
+    <meta name="generator" content="docfx 2.59.4.0">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../.././images/logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo">
+  
+  
+  <h1 id="FreeSql_Custom_MySql_CustomMySqlAdo" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo" class="text-break">Class CustomMySqlAdo
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html">AdoProvider</a></div>
+    <div class="level2"><span class="xref">CustomMySqlAdo</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="../../api/FreeSql.IAdo.html">IAdo</a></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_GetDbParamtersByObject_System_Object_">AdoProvider.GetDbParamtersByObject(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_IsTracePerformance">AdoProvider.IsTracePerformance</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_MasterPool">AdoProvider.MasterPool</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_SlavePools">AdoProvider.SlavePools</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_DataType">AdoProvider.DataType</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ConnectionString">AdoProvider.ConnectionString</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_SlaveConnectionStrings">AdoProvider.SlaveConnectionStrings</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Identifier">AdoProvider.Identifier</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider__util">AdoProvider._util</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_slaveUnavailables">AdoProvider.slaveUnavailables</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ResolveTransaction">AdoProvider.ResolveTransaction</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_CommandFluent_System_String_System_Object_">AdoProvider.CommandFluent(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteConnectTest_System_Int32_">AdoProvider.ExecuteConnectTest(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QuerySingle__1_System_String_System_Object_">AdoProvider.QuerySingle&lt;T&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QuerySingle__1_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.QuerySingle&lt;T&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_String_System_Object_">AdoProvider.Query&lt;T&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T&gt;(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T&gt;(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T&gt;(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__1_System_Type_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T&gt;(Type, DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_String_System_Object_">AdoProvider.Query&lt;T1, T2&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2&gt;(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2&gt;(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2&gt;(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__2_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3&gt;(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3&gt;(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3&gt;(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__3_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__4_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Query__5_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.Query&lt;T1, T2, T3, T4, T5&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_String_System_Object_">AdoProvider.ExecuteReader(Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Data_Common_DbTransaction_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_String_System_Object_">AdoProvider.ExecuteReader(DbTransaction, Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_String_System_Object_">AdoProvider.ExecuteReader(DbConnection, DbTransaction, Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteReader(Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Data_Common_DbTransaction_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteReader(DbTransaction, Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReader_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader___System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteReader(DbConnection, DbTransaction, Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;&gt;, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderMultiple_System_Int32_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Action_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Int32__System_Action_System_Data_Common_DbDataReader_System_Int32__System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteReaderMultiple(Int32, DbConnection, DbTransaction, Action&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Int32&gt;, Action&lt;DbDataReader, Int32&gt;, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_String_System_Object_">AdoProvider.ExecuteArray(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteArray(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteArray(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteArray(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteArray(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArray_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteArray(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_String_System_Object_">AdoProvider.ExecuteDataSet(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteDataSet(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteDataSet(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataSet(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataSet(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSet_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataSet(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_String_System_Object_">AdoProvider.ExecuteDataTable(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteDataTable(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteDataTable(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataTable(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataTable(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTable_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteDataTable(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_String_System_Object_">AdoProvider.ExecuteNonQuery(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteNonQuery(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteNonQuery(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteNonQuery(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteNonQuery(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteNonQuery(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQuery_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Action_System_Data_Common_DbCommand__System_Data_Common_DbParameter___">AdoProvider.ExecuteNonQuery(DbConnection, DbTransaction, CommandType, String, Int32, Action&lt;DbCommand&gt;, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_String_System_Object_">AdoProvider.ExecuteScalar(String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteScalar(DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_">AdoProvider.ExecuteScalar(DbConnection, DbTransaction, String, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteScalar(CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___">AdoProvider.ExecuteScalar(DbTransaction, CommandType, String, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalar_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___">AdoProvider.ExecuteScalar(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteConnectTestAsync_System_Int32_System_Threading_CancellationToken_">AdoProvider.ExecuteConnectTestAsync(Int32, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QuerySingleAsync__1_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QuerySingleAsync&lt;T&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QuerySingleAsync__1_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QuerySingleAsync&lt;T&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__1_System_Type_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T&gt;(Type, DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__2_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__3_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__4_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_QueryAsync__5_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.QueryAsync&lt;T1, T2, T3, T4, T5&gt;(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Data_Common_DbTransaction_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(DbTransaction, Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(DbConnection, DbTransaction, Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Data_Common_DbTransaction_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(DbTransaction, Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Threading_Tasks_Task__System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteReaderAsync(DbConnection, DbTransaction, Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Task&gt;, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteReaderMultipleAsync_System_Int32_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Func_FreeSql_Internal_Model_FetchCallbackArgs_System_Data_Common_DbDataReader__System_Int32_System_Threading_Tasks_Task__System_Action_System_Data_Common_DbDataReader_System_Int32__System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteReaderMultipleAsync(Int32, DbConnection, DbTransaction, Func&lt;FetchCallbackArgs&lt;DbDataReader&gt;, Int32, Task&gt;, Action&lt;DbDataReader, Int32&gt;, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteArrayAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteArrayAsync(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataSetAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataSetAsync(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteDataTableAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteDataTableAsync(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteNonQueryAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Func_System_Data_Common_DbCommand_System_Threading_Tasks_Task__System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteNonQueryAsync(DbConnection, DbTransaction, CommandType, String, Int32, Func&lt;DbCommand, Task&gt;, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_String_System_Object_System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(DbConnection, DbTransaction, String, Object, CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(DbTransaction, CommandType, String, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ExecuteScalarAsync_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_System_Data_CommandType_System_String_System_Int32_System_Data_Common_DbParameter___System_Threading_CancellationToken_">AdoProvider.ExecuteScalarAsync(DbConnection, DbTransaction, CommandType, String, Int32, DbParameter[], CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_TransactionCurrentThread">AdoProvider.TransactionCurrentThread</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_TransactionCurrentThreadAopBefore">AdoProvider.TransactionCurrentThreadAopBefore</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_BeginTransaction_System_Nullable_System_Data_IsolationLevel__">AdoProvider.BeginTransaction(Nullable&lt;IsolationLevel&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_CommitTransaction">AdoProvider.CommitTransaction()</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_RollbackTransaction_System_Exception_">AdoProvider.RollbackTransaction(Exception)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Transaction_System_Action_">AdoProvider.Transaction(Action)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Transaction_System_Data_IsolationLevel_System_Action_">AdoProvider.Transaction(IsolationLevel, Action)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Dispose">AdoProvider.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_Addslashes_System_String_System_Object___">AdoProvider.Addslashes(String, Object[])</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_AddslashesIEnumerable_System_Object_System_Type_FreeSql_Internal_Model_ColumnInfo_">AdoProvider.AddslashesIEnumerable(Object, Type, ColumnInfo)</a>
+    </div>
+    <div>
+      <a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_IsFromSlave_System_String_">AdoProvider.IsFromSlave(String)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="FreeSql.Custom.MySql.html">FreeSql.Custom.MySql</a></h6>
+  <h6><strong>Assembly</strong>: FreeSql.Provider.Custom.dll</h6>
+  <h5 id="FreeSql_Custom_MySql_CustomMySqlAdo_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CustomMySqlAdo : AdoProvider, IAdo, IDisposable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo__ctor.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L16">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo__ctor_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.#ctor*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo__ctor" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.#ctor">CustomMySqlAdo()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CustomMySqlAdo()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo__ctor_FreeSql_Internal_CommonUtils_System_String_System_String___System_Func_System_Data_Common_DbConnection__.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.%23ctor(FreeSql.Internal.CommonUtils%2CSystem.String%2CSystem.String%5B%5D%2CSystem.Func%7BSystem.Data.Common.DbConnection%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L17">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo__ctor_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.#ctor*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo__ctor_FreeSql_Internal_CommonUtils_System_String_System_String___System_Func_System_Data_Common_DbConnection__" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.#ctor(FreeSql.Internal.CommonUtils,System.String,System.String[],System.Func{System.Data.Common.DbConnection})">CustomMySqlAdo(CommonUtils, String, String[], Func&lt;DbConnection&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CustomMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func&lt;DbConnection&gt; connectionFactory)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="../../api/FreeSql.Internal.CommonUtils.html">CommonUtils</a></td>
+        <td><span class="parametername">util</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">masterConnectionString</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><span class="parametername">slaveConnectionStrings</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">connectionFactory</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo_AddslashesProcessParam_System_Object_System_Type_FreeSql_Internal_Model_ColumnInfo_.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.AddslashesProcessParam(System.Object%2CSystem.Type%2CFreeSql.Internal.Model.ColumnInfo)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L29">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo_AddslashesProcessParam_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.AddslashesProcessParam*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo_AddslashesProcessParam_System_Object_System_Type_FreeSql_Internal_Model_ColumnInfo_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.AddslashesProcessParam(System.Object,System.Type,FreeSql.Internal.Model.ColumnInfo)">AddslashesProcessParam(Object, Type, ColumnInfo)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">param</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">mapType</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="../../api/FreeSql.Internal.Model.ColumnInfo.html">ColumnInfo</a></td>
+        <td><span class="parametername">mapColumn</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_AddslashesProcessParam_System_Object_System_Type_FreeSql_Internal_Model_ColumnInfo_">AdoProvider.AddslashesProcessParam(Object, Type, ColumnInfo)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo_CreateCommand.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.CreateCommand%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L57">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo_CreateCommand_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.CreateCommand*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo_CreateCommand" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.CreateCommand">CreateCommand()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override DbCommand CreateCommand()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbCommand</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_CreateCommand">AdoProvider.CreateCommand()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo_GetDbParamtersByObject_System_String_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.GetDbParamtersByObject(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L67">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo_GetDbParamtersByObject_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.GetDbParamtersByObject*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo_GetDbParamtersByObject_System_String_System_Object_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.GetDbParamtersByObject(System.String,System.Object)">GetDbParamtersByObject(String, Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override DbParameter[] GetDbParamtersByObject(string sql, object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">sql</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbParameter</span>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_GetDbParamtersByObject_System_String_System_Object_">AdoProvider.GetDbParamtersByObject(String, Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo_ReturnConnection_FreeSql_Internal_ObjectPool_IObjectPool_System_Data_Common_DbConnection__FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__System_Exception_.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo.ReturnConnection(FreeSql.Internal.ObjectPool.IObjectPool%7BSystem.Data.Common.DbConnection%7D%2CFreeSql.Internal.ObjectPool.Object%7BSystem.Data.Common.DbConnection%7D%2CSystem.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L62">View Source</a>
+  </span>
+  <a id="FreeSql_Custom_MySql_CustomMySqlAdo_ReturnConnection_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.ReturnConnection*"></a>
+  <h4 id="FreeSql_Custom_MySql_CustomMySqlAdo_ReturnConnection_FreeSql_Internal_ObjectPool_IObjectPool_System_Data_Common_DbConnection__FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__System_Exception_" data-uid="FreeSql.Custom.MySql.CustomMySqlAdo.ReturnConnection(FreeSql.Internal.ObjectPool.IObjectPool{System.Data.Common.DbConnection},FreeSql.Internal.ObjectPool.Object{System.Data.Common.DbConnection},System.Exception)">ReturnConnection(IObjectPool&lt;DbConnection&gt;, Object&lt;DbConnection&gt;, Exception)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReturnConnection(IObjectPool&lt;DbConnection&gt; pool, Object&lt;DbConnection&gt; conn, Exception ex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="../../api/FreeSql.Internal.ObjectPool.IObjectPool-1.html">IObjectPool</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">pool</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="../../api/FreeSql.Internal.ObjectPool.Object-1.html">Object</a>&lt;<span class="xref">System.Data.Common.DbConnection</span>&gt;</td>
+        <td><span class="parametername">conn</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">ex</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="../../api/FreeSql.Internal.CommonProvider.AdoProvider.html#FreeSql_Internal_CommonProvider_AdoProvider_ReturnConnection_FreeSql_Internal_ObjectPool_IObjectPool_System_Data_Common_DbConnection__FreeSql_Internal_ObjectPool_Object_System_Data_Common_DbConnection__System_Exception_">AdoProvider.ReturnConnection(IObjectPool&lt;DbConnection&gt;, Object&lt;DbConnection&gt;, Exception)</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="../../api/FreeSql.IAdo.html">IAdo</a>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Custom_MySql_CustomMySqlAdo.md&amp;value=---%0Auid%3A%20FreeSql.Custom.MySql.CustomMySqlAdo%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/dotnetcore/FreeSql/blob/master/Providers/FreeSql.Provider.Custom/MySql/CustomMySqlAdo/CustomMySqlAdo.cs/#L12" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

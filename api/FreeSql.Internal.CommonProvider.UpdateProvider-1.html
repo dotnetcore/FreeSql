@@ -1,0 +1,3301 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class UpdateProvider&lt;T1&gt;
+   | FreeSql API Docs </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class UpdateProvider&lt;T1&gt;
+   | FreeSql API Docs ">
+    <meta name="generator" content="docfx 2.59.4.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src=".././images/logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1">
+  
+  
+  <h1 id="FreeSql_Internal_CommonProvider_UpdateProvider_1" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1" class="text-break">Class UpdateProvider&lt;T1&gt;
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html">UpdateProvider</a></div>
+    <div class="level2"><span class="xref">UpdateProvider&lt;T1&gt;</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__orm">UpdateProvider._orm</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__commonUtils">UpdateProvider._commonUtils</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__commonExpression">UpdateProvider._commonExpression</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__ignore">UpdateProvider._ignore</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__auditValueChangedDict">UpdateProvider._auditValueChangedDict</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__table">UpdateProvider._table</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__tempPrimarys">UpdateProvider._tempPrimarys</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__versionColumn">UpdateProvider._versionColumn</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__ignoreVersion">UpdateProvider._ignoreVersion</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__tableRule">UpdateProvider._tableRule</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__where">UpdateProvider._where</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__whereGlobalFilter">UpdateProvider._whereGlobalFilter</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__set">UpdateProvider._set</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__setIncr">UpdateProvider._setIncr</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__params">UpdateProvider._params</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__paramsSource">UpdateProvider._paramsSource</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__noneParameter">UpdateProvider._noneParameter</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__batchRowsLimit">UpdateProvider._batchRowsLimit</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__batchParameterLimit">UpdateProvider._batchParameterLimit</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__batchAutoTransaction">UpdateProvider._batchAutoTransaction</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__transaction">UpdateProvider._transaction</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__connection">UpdateProvider._connection</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__commandTimeout">UpdateProvider._commandTimeout</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__interceptSql">UpdateProvider._interceptSql</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__updateVersionValue">UpdateProvider._updateVersionValue</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider__isAutoSyncStructure">UpdateProvider._isAutoSyncStructure</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkUpdate__1_FreeSql_Internal_CommonProvider_UpdateProvider___0__FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Action_FreeSql_IInsert___0___">UpdateProvider.ExecuteBulkUpdate&lt;T1&gt;(UpdateProvider&lt;T1&gt;, NativeTuple&lt;String, String, String, String, String[]&gt;, Action&lt;IInsert&lt;T1&gt;&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkUpsert__1_FreeSql_Internal_CommonProvider_InsertOrUpdateProvider___0__FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Action_FreeSql_IInsert___0___">UpdateProvider.ExecuteBulkUpsert&lt;T1&gt;(InsertOrUpdateProvider&lt;T1&gt;, NativeTuple&lt;String, String, String, String, String[]&gt;, Action&lt;IInsert&lt;T1&gt;&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkCommand__1_System_Collections_Generic_List___0__FreeSql_Internal_Model_ColumnInfo___IFreeSql_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_FreeSql_Internal_Model_TableInfo_FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Action_FreeSql_IInsert___0___">UpdateProvider.ExecuteBulkCommand&lt;T1&gt;(List&lt;T1&gt;, ColumnInfo[], IFreeSql, DbConnection, DbTransaction, TableInfo, NativeTuple&lt;String, String, String, String, String[]&gt;, Action&lt;IInsert&lt;T1&gt;&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkUpdateAsync__1_FreeSql_Internal_CommonProvider_UpdateProvider___0__FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Func_FreeSql_IInsert___0__System_Threading_Tasks_Task__">UpdateProvider.ExecuteBulkUpdateAsync&lt;T1&gt;(UpdateProvider&lt;T1&gt;, NativeTuple&lt;String, String, String, String, String[]&gt;, Func&lt;IInsert&lt;T1&gt;, Task&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkUpsertAsync__1_FreeSql_Internal_CommonProvider_InsertOrUpdateProvider___0__FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Func_FreeSql_IInsert___0__System_Threading_Tasks_Task__">UpdateProvider.ExecuteBulkUpsertAsync&lt;T1&gt;(InsertOrUpdateProvider&lt;T1&gt;, NativeTuple&lt;String, String, String, String, String[]&gt;, Func&lt;IInsert&lt;T1&gt;, Task&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="FreeSql.Internal.CommonProvider.UpdateProvider.html#FreeSql_Internal_CommonProvider_UpdateProvider_ExecuteBulkCommandAsync__1_System_Collections_Generic_List___0__FreeSql_Internal_Model_ColumnInfo___IFreeSql_System_Data_Common_DbConnection_System_Data_Common_DbTransaction_FreeSql_Internal_Model_TableInfo_FreeSql_Internal_Model_NativeTuple_System_String_System_String_System_String_System_String_System_String____System_Func_FreeSql_IInsert___0__System_Threading_Tasks_Task__">UpdateProvider.ExecuteBulkCommandAsync&lt;T1&gt;(List&lt;T1&gt;, ColumnInfo[], IFreeSql, DbConnection, DbTransaction, TableInfo, NativeTuple&lt;String, String, String, String, String[]&gt;, Func&lt;IInsert&lt;T1&gt;, Task&gt;)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="FreeSql.Internal.CommonProvider.html">FreeSql.Internal.CommonProvider</a></h6>
+  <h6><strong>Assembly</strong>: FreeSql.dll</h6>
+  <h5 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class UpdateProvider&lt;T1&gt; : UpdateProvider, IUpdate&lt;T1&gt;</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T1</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1__ctor_IFreeSql_FreeSql_Internal_CommonUtils_FreeSql_Internal_CommonExpression_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.%23ctor(IFreeSql%2CFreeSql.Internal.CommonUtils%2CFreeSql.Internal.CommonExpression%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L173">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1__ctor_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.#ctor*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1__ctor_IFreeSql_FreeSql_Internal_CommonUtils_FreeSql_Internal_CommonExpression_System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.#ctor(IFreeSql,FreeSql.Internal.CommonUtils,FreeSql.Internal.CommonExpression,System.Object)">UpdateProvider(IFreeSql, CommonUtils, CommonExpression, Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IFreeSql</span></td>
+        <td><span class="parametername">orm</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.CommonUtils.html">CommonUtils</a></td>
+        <td><span class="parametername">commonUtils</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.CommonExpression.html">CommonExpression</a></td>
+        <td><span class="parametername">commonExpression</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">dywhere</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1__batchProgress.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601._batchProgress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L171">View Source</a>
+  </span>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1__batchProgress" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1._batchProgress">_batchProgress</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Action&lt;BatchProgressStatus&lt;T1&gt;&gt; _batchProgress</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="FreeSql.Internal.Model.BatchProgressStatus-1.html">BatchProgressStatus</a>&lt;T1&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1__source.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601._source%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L169">View Source</a>
+  </span>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1__source" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1._source">_source</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;T1&gt; _source</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1__sourceOld.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601._sourceOld%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L170">View Source</a>
+  </span>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1__sourceOld" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1._sourceOld">_sourceOld</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;T1&gt; _sourceOld</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_System_Func_System_String_System_String__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.AsTable(System.Func%7BSystem.String%2CSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L953">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsTable*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_System_Func_System_String_System_String__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsTable(System.Func{System.String,System.String})">AsTable(Func&lt;String, String&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; AsTable(Func&lt;string, string&gt; tableRule)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.String</span>&gt;</td>
+        <td><span class="parametername">tableRule</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_System_String_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.AsTable(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L958">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsTable*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsTable_System_String_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsTable(System.String)">AsTable(String)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; AsTable(string tableName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">tableName</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_AsType_System_Type_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.AsType(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L963">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsType_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsType*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AsType_System_Type_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AsType(System.Type)">AsType(Type)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; AsType(Type entityType)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">entityType</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_System_Object__0_IFreeSql_FreeSql_Internal_Model_TableInfo_System_Collections_Generic_Dictionary_System_String_System_Boolean__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.AuditDataValue(System.Object%2C%600%2CIFreeSql%2CFreeSql.Internal.Model.TableInfo%2CSystem.Collections.Generic.Dictionary%7BSystem.String%2CSystem.Boolean%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L585">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AuditDataValue*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_System_Object__0_IFreeSql_FreeSql_Internal_Model_TableInfo_System_Collections_Generic_Dictionary_System_String_System_Boolean__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AuditDataValue(System.Object,`0,IFreeSql,FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Boolean})">AuditDataValue(Object, T1, IFreeSql, TableInfo, Dictionary&lt;String, Boolean&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary&lt;string, bool&gt; changedDict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">T1</span></td>
+        <td><span class="parametername">data</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IFreeSql</span></td>
+        <td><span class="parametername">orm</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.TableInfo.html">TableInfo</a></td>
+        <td><span class="parametername">table</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.Dictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Boolean</span>&gt;</td>
+        <td><span class="parametername">changedDict</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_System_Object_System_Collections_Generic_IEnumerable__0__IFreeSql_FreeSql_Internal_Model_TableInfo_System_Collections_Generic_Dictionary_System_String_System_Boolean__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.AuditDataValue(System.Object%2CSystem.Collections.Generic.IEnumerable%7B%600%7D%2CIFreeSql%2CFreeSql.Internal.Model.TableInfo%2CSystem.Collections.Generic.Dictionary%7BSystem.String%2CSystem.Boolean%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L560">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AuditDataValue*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_AuditDataValue_System_Object_System_Collections_Generic_IEnumerable__0__IFreeSql_FreeSql_Internal_Model_TableInfo_System_Collections_Generic_Dictionary_System_String_System_Boolean__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.AuditDataValue(System.Object,System.Collections.Generic.IEnumerable{`0},IFreeSql,FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Boolean})">AuditDataValue(Object, IEnumerable&lt;T1&gt;, IFreeSql, TableInfo, Dictionary&lt;String, Boolean&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void AuditDataValue(object sender, IEnumerable&lt;T1&gt; data, IFreeSql orm, TableInfo table, Dictionary&lt;string, bool&gt; changedDict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">sender</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;T1&gt;</td>
+        <td><span class="parametername">data</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IFreeSql</span></td>
+        <td><span class="parametername">orm</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.TableInfo.html">TableInfo</a></td>
+        <td><span class="parametername">table</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.Dictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Boolean</span>&gt;</td>
+        <td><span class="parametername">changedDict</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchOptions_System_Int32_System_Int32_System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.BatchOptions(System.Int32%2CSystem.Int32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L254">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchOptions_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.BatchOptions*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchOptions_System_Int32_System_Int32_System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">BatchOptions(Int32, Int32, Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IUpdate&lt;T1&gt; BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">rowsLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">autoTransaction</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchProgress_System_Action_FreeSql_Internal_Model_BatchProgressStatus__0___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.BatchProgress(System.Action%7BFreeSql.Internal.Model.BatchProgressStatus%7B%600%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L262">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchProgress_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.BatchProgress*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_BatchProgress_System_Action_FreeSql_Internal_Model_BatchProgressStatus__0___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.BatchProgress(System.Action{FreeSql.Internal.Model.BatchProgressStatus{`0}})">BatchProgress(Action&lt;BatchProgressStatus&lt;T1&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; BatchProgress(Action&lt;BatchProgressStatus&lt;T1&gt;&gt; callback)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="FreeSql.Internal.Model.BatchProgressStatus-1.html">BatchProgressStatus</a>&lt;T1&gt;&gt;</td>
+        <td><span class="parametername">callback</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ClearData.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ClearData%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L200">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ClearData_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ClearData*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ClearData" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ClearData">ClearData()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void ClearData()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_CommandTimeout_System_Int32_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.CommandTimeout(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L242">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_CommandTimeout_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.CommandTimeout*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_CommandTimeout_System_Int32_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.CommandTimeout(System.Int32)">CommandTimeout(Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; CommandTimeout(int timeout)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">timeout</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_DisableGlobalFilter_System_String___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.DisableGlobalFilter(System.String%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L849">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_DisableGlobalFilter_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.DisableGlobalFilter*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_DisableGlobalFilter_System_String___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.DisableGlobalFilter(System.String[])">DisableGlobalFilter(String[])</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; DisableGlobalFilter(params string[] name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><span class="parametername">name</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrows.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ExecuteAffrows%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L534">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrows_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteAffrows*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrows" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteAffrows">ExecuteAffrows()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract int ExecuteAffrows()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrowsAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ExecuteAffrowsAsync(System.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L201">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrowsAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteAffrowsAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteAffrowsAsync_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteAffrowsAsync(System.Threading.CancellationToken)">ExecuteAffrowsAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract Task&lt;int&gt; ExecuteAffrowsAsync(CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdated.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ExecuteUpdated%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L535">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdated_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteUpdated*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdated" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteUpdated">ExecuteUpdated()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract List&lt;T1&gt; ExecuteUpdated()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdatedAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ExecuteUpdatedAsync(System.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L202">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdatedAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteUpdatedAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ExecuteUpdatedAsync_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ExecuteUpdatedAsync(System.Threading.CancellationToken)">ExecuteUpdatedAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract Task&lt;List&lt;T1&gt;&gt; ExecuteUpdatedAsync(CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo__0_IFreeSql_FreeSql_Internal_Model_TableInfo__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.GetDictionaryTableInfo(%600%2CIFreeSql%2CFreeSql.Internal.Model.TableInfo%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L625">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.GetDictionaryTableInfo*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo__0_IFreeSql_FreeSql_Internal_Model_TableInfo__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.GetDictionaryTableInfo(`0,IFreeSql,FreeSql.Internal.Model.TableInfo@)">GetDictionaryTableInfo(T1, IFreeSql, ref TableInfo)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void GetDictionaryTableInfo(T1 source, IFreeSql orm, ref TableInfo table)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T1</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IFreeSql</span></td>
+        <td><span class="parametername">orm</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.TableInfo.html">TableInfo</a></td>
+        <td><span class="parametername">table</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo_System_Collections_Generic_IEnumerable__0__IFreeSql_FreeSql_Internal_Model_TableInfo__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.GetDictionaryTableInfo(System.Collections.Generic.IEnumerable%7B%600%7D%2CIFreeSql%2CFreeSql.Internal.Model.TableInfo%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L609">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.GetDictionaryTableInfo*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_GetDictionaryTableInfo_System_Collections_Generic_IEnumerable__0__IFreeSql_FreeSql_Internal_Model_TableInfo__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.GetDictionaryTableInfo(System.Collections.Generic.IEnumerable{`0},IFreeSql,FreeSql.Internal.Model.TableInfo@)">GetDictionaryTableInfo(IEnumerable&lt;T1&gt;, IFreeSql, ref TableInfo)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void GetDictionaryTableInfo(IEnumerable&lt;T1&gt; source, IFreeSql orm, ref TableInfo table)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;T1&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">IFreeSql</span></td>
+        <td><span class="parametername">orm</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.TableInfo.html">TableInfo</a></td>
+        <td><span class="parametername">table</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreCanUpdate.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.IgnoreCanUpdate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L193">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreCanUpdate_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreCanUpdate" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">IgnoreCanUpdate()</h4>
+  <div class="markdown level1 summary"><p>AsType, Ctor, ClearData 三处地方需要重新加载</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void IgnoreCanUpdate()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_System_Linq_Expressions_Expression_System_Func__0_System_Object___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.IgnoreColumns(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2CSystem.Object%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L537">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreColumns*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_System_Linq_Expressions_Expression_System_Func__0_System_Object___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">IgnoreColumns(Expression&lt;Func&lt;T1, Object&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; IgnoreColumns(Expression&lt;Func&lt;T1, object&gt;&gt; columns)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, <span class="xref">System.Object</span>&gt;&gt;</td>
+        <td><span class="parametername">columns</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_System_String___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.IgnoreColumns(System.String%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L540">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreColumns*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_IgnoreColumns_System_String___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreColumns(System.String[])">IgnoreColumns(String[])</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; IgnoreColumns(string[] columns)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><span class="parametername">columns</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Join__1_FreeSql_ISelect___0__System_Linq_Expressions_Expression_System_Func__0___0_System_Boolean___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Join%60%601(FreeSql.ISelect%7B%60%600%7D%2CSystem.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%2CSystem.Boolean%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L222">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Join_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Join*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Join__1_FreeSql_ISelect___0__System_Linq_Expressions_Expression_System_Func__0___0_System_Boolean___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Join``1(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}})">Join&lt;T2&gt;(ISelect&lt;T2&gt;, Expression&lt;Func&lt;T1, T2, Boolean&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdateJoin&lt;T1, T2&gt; Join&lt;T2&gt;(ISelect&lt;T2&gt; query, Expression&lt;Func&lt;T1, T2, bool&gt;&gt; on)
+    where T2 : class</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.ISelect-1.html">ISelect</a>&lt;T2&gt;</td>
+        <td><span class="parametername">query</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, T2, <span class="xref">System.Boolean</span>&gt;&gt;</td>
+        <td><span class="parametername">on</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdateJoin-2.html">IUpdateJoin</a>&lt;T1, T2&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T2</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Join__1_System_Linq_Expressions_Expression_System_Func__0___0_System_Boolean___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Join%60%601(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%2CSystem.Boolean%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L221">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Join_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Join*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Join__1_System_Linq_Expressions_Expression_System_Func__0___0_System_Boolean___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Join``1(System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}})">Join&lt;T2&gt;(Expression&lt;Func&lt;T1, T2, Boolean&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdateJoin&lt;T1, T2&gt; Join&lt;T2&gt;(Expression&lt;Func&lt;T1, T2, bool&gt;&gt; on)
+    where T2 : class</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, T2, <span class="xref">System.Boolean</span>&gt;&gt;</td>
+        <td><span class="parametername">on</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdateJoin-2.html">IUpdateJoin</a>&lt;T1, T2&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T2</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_NoneParameter_System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.NoneParameter(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L248">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_NoneParameter_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.NoneParameter*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_NoneParameter_System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.NoneParameter(System.Boolean)">NoneParameter(Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; NoneParameter(bool isNotCommandParameter = true)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isNotCommandParameter</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrows.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.RawExecuteAffrows%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L500">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrows_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteAffrows*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrows" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteAffrows">RawExecuteAffrows()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int RawExecuteAffrows()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrowsAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.RawExecuteAffrowsAsync(System.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L168">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrowsAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteAffrowsAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteAffrowsAsync_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteAffrowsAsync(System.Threading.CancellationToken)">RawExecuteAffrowsAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected async Task&lt;int&gt; RawExecuteAffrowsAsync(CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdated.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.RawExecuteUpdated%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L532">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdated_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteUpdated*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdated" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteUpdated">RawExecuteUpdated()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract List&lt;T1&gt; RawExecuteUpdated()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdatedAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.RawExecuteUpdatedAsync(System.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L199">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdatedAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteUpdatedAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_RawExecuteUpdatedAsync_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.RawExecuteUpdatedAsync(System.Threading.CancellationToken)">RawExecuteUpdatedAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract Task&lt;List&lt;T1&gt;&gt; RawExecuteUpdatedAsync(CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Set__1_System_Linq_Expressions_Expression_System_Func__0___0___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Set%60%601(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L718">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Set_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Set*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Set__1_System_Linq_Expressions_Expression_System_Func__0___0___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">Set&lt;TMember&gt;(Expression&lt;Func&lt;T1, TMember&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Set&lt;TMember&gt;(Expression&lt;Func&lt;T1, TMember&gt;&gt; exp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, TMember&gt;&gt;</td>
+        <td><span class="parametername">exp</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TMember</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Set__1_System_Linq_Expressions_Expression_System_Func__0___0_____0_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Set%60%601(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%7D%7D%2C%60%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L709">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Set_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Set*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Set__1_System_Linq_Expressions_Expression_System_Func__0___0_____0_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0)">Set&lt;TMember&gt;(Expression&lt;Func&lt;T1, TMember&gt;&gt;, TMember)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Set&lt;TMember&gt;(Expression&lt;Func&lt;T1, TMember&gt;&gt; column, TMember value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, TMember&gt;&gt;</td>
+        <td><span class="parametername">column</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">TMember</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TMember</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetDto_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetDto(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L806">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetDto_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetDto*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetDto_System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetDto(System.Object)">SetDto(Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetDto(object dto)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">dto</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf__1_System_Boolean_System_Linq_Expressions_Expression_System_Func__0___0___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetIf%60%601(System.Boolean%2CSystem.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L797">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetIf*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf__1_System_Boolean_System_Linq_Expressions_Expression_System_Func__0___0___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetIf``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}})">SetIf&lt;TMember&gt;(Boolean, Expression&lt;Func&lt;T1, TMember&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetIf&lt;TMember&gt;(bool condition, Expression&lt;Func&lt;T1, TMember&gt;&gt; exp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">condition</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, TMember&gt;&gt;</td>
+        <td><span class="parametername">exp</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TMember</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf__1_System_Boolean_System_Linq_Expressions_Expression_System_Func__0___0_____0_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetIf%60%601(System.Boolean%2CSystem.Linq.Expressions.Expression%7BSystem.Func%7B%600%2C%60%600%7D%7D%2C%60%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L717">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetIf*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetIf__1_System_Boolean_System_Linq_Expressions_Expression_System_Func__0___0_____0_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetIf``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},``0)">SetIf&lt;TMember&gt;(Boolean, Expression&lt;Func&lt;T1, TMember&gt;&gt;, TMember)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetIf&lt;TMember&gt;(bool condition, Expression&lt;Func&lt;T1, TMember&gt;&gt; column, TMember value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">condition</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, TMember&gt;&gt;</td>
+        <td><span class="parametername">column</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">TMember</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TMember</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetPriv_FreeSql_Internal_Model_ColumnInfo_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetPriv(FreeSql.Internal.Model.ColumnInfo%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L696">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetPriv_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetPriv*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetPriv_FreeSql_Internal_Model_ColumnInfo_System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetPriv(FreeSql.Internal.Model.ColumnInfo,System.Object)">SetPriv(ColumnInfo, Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void SetPriv(ColumnInfo col, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.ColumnInfo.html">ColumnInfo</a></td>
+        <td><span class="parametername">col</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetRaw_System_String_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetRaw(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L798">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetRaw_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetRaw*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetRaw_System_String_System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetRaw(System.String,System.Object)">SetRaw(String, Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetRaw(string sql, object parms = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">sql</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">parms</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource__0_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetSource(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L668">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSource*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource__0_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSource(`0)">SetSource(T1)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetSource(T1 source)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T1</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource_System_Collections_Generic_IEnumerable__0__System_Linq_Expressions_Expression_System_Func__0_System_Object___System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetSource(System.Collections.Generic.IEnumerable%7B%600%7D%2CSystem.Linq.Expressions.Expression%7BSystem.Func%7B%600%2CSystem.Object%7D%7D%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L669">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSource*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSource_System_Collections_Generic_IEnumerable__0__System_Linq_Expressions_Expression_System_Func__0_System_Object___System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSource(System.Collections.Generic.IEnumerable{`0},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Boolean)">SetSource(IEnumerable&lt;T1&gt;, Expression&lt;Func&lt;T1, Object&gt;&gt;, Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetSource(IEnumerable&lt;T1&gt; source, Expression&lt;Func&lt;T1, object&gt;&gt; tempPrimarys = null, bool ignoreVersion = false)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;T1&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, <span class="xref">System.Object</span>&gt;&gt;</td>
+        <td><span class="parametername">tempPrimarys</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ignoreVersion</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSourceIgnore__0_System_Func_System_Object_System_Boolean__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SetSourceIgnore(%600%2CSystem.Func%7BSystem.Object%2CSystem.Boolean%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L685">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSourceIgnore_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSourceIgnore*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SetSourceIgnore__0_System_Func_System_Object_System_Boolean__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SetSourceIgnore(`0,System.Func{System.Object,System.Boolean})">SetSourceIgnore(T1, Func&lt;Object, Boolean&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; SetSourceIgnore(T1 source, Func&lt;object, bool&gt; ignore)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T1</span></td>
+        <td><span class="parametername">source</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Object</span>, <span class="xref">System.Boolean</span>&gt;</td>
+        <td><span class="parametername">ignore</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrows_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SplitExecuteAffrows(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L351">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrows_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteAffrows*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrows_System_Int32_System_Int32_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteAffrows(System.Int32,System.Int32)">SplitExecuteAffrows(Int32, Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">valuesLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrowsAsync_System_Int32_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SplitExecuteAffrowsAsync(System.Int32%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L21">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrowsAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteAffrowsAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteAffrowsAsync_System_Int32_System_Int32_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteAffrowsAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">SplitExecuteAffrowsAsync(Int32, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual async Task&lt;int&gt; SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">valuesLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdated_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SplitExecuteUpdated(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L425">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdated_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteUpdated*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdated_System_Int32_System_Int32_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteUpdated(System.Int32,System.Int32)">SplitExecuteUpdated(Int32, Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual List&lt;T1&gt; SplitExecuteUpdated(int valuesLimit, int parameterLimit)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">valuesLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdatedAsync_System_Int32_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SplitExecuteUpdatedAsync(System.Int32%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L94">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdatedAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteUpdatedAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitExecuteUpdatedAsync_System_Int32_System_Int32_System_Threading_CancellationToken_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitExecuteUpdatedAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">SplitExecuteUpdatedAsync(Int32, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual async Task&lt;List&lt;T1&gt;&gt; SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">valuesLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitSource_System_Int32_System_Int32_System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.SplitSource(System.Int32%2CSystem.Int32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L304">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitSource_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitSource*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_SplitSource_System_Int32_System_Int32_System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.SplitSource(System.Int32,System.Int32,System.Boolean)">SplitSource(Int32, Int32, Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected List&lt;T1&gt;[] SplitSource(int valuesLimit, int parameterLimit, bool isAsTableSplited = false)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">valuesLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">parameterLimit</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isAsTableSplited</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.List</span>&lt;T1&gt;[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_TableRuleInvoke.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.TableRuleInvoke%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L931">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_TableRuleInvoke_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.TableRuleInvoke*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_TableRuleInvoke" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.TableRuleInvoke">TableRuleInvoke()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected string TableRuleInvoke()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSql.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSql%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L976">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSql_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSql*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSql" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSql">ToSql()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string ToSql()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCase_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlCase(System.Text.StringBuilder%2CFreeSql.Internal.Model.ColumnInfo%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L927">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCase_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlCase*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCase_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlCase(System.Text.StringBuilder,FreeSql.Internal.Model.ColumnInfo[])">ToSqlCase(StringBuilder, ColumnInfo[])</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">caseWhen</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.ColumnInfo.html">ColumnInfo</a>[]</td>
+        <td><span class="parametername">primarys</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCaseWhenEnd_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlCaseWhenEnd(System.Text.StringBuilder%2CFreeSql.Internal.Model.ColumnInfo)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L929">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCaseWhenEnd_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlCaseWhenEnd*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlCaseWhenEnd_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlCaseWhenEnd(System.Text.StringBuilder,FreeSql.Internal.Model.ColumnInfo)">ToSqlCaseWhenEnd(StringBuilder, ColumnInfo)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">sb</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.ColumnInfo.html">ColumnInfo</a></td>
+        <td><span class="parametername">col</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlExtension110_System_Text_StringBuilder_System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlExtension110(System.Text.StringBuilder%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L1064">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlExtension110_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlExtension110*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlExtension110_System_Text_StringBuilder_System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlExtension110(System.Text.StringBuilder,System.Boolean)">ToSqlExtension110(StringBuilder, Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">sb</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isAsTableSplited</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetch_System_Action_System_Text_StringBuilder__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlFetch(System.Action%7BSystem.Text.StringBuilder%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L997">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetch_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlFetch*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetch_System_Action_System_Text_StringBuilder__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlFetch(System.Action{System.Text.StringBuilder})">ToSqlFetch(Action&lt;StringBuilder&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ToSqlFetch(Action&lt;StringBuilder&gt; fetch)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<span class="xref">System.Text.StringBuilder</span>&gt;</td>
+        <td><span class="parametername">fetch</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetchAsync_System_Func_System_Text_StringBuilder_System_Threading_Tasks_Task__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlFetchAsync(System.Func%7BSystem.Text.StringBuilder%2CSystem.Threading.Tasks.Task%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L1030">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetchAsync_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlFetchAsync*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlFetchAsync_System_Func_System_Text_StringBuilder_System_Threading_Tasks_Task__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlFetchAsync(System.Func{System.Text.StringBuilder,System.Threading.Tasks.Task})">ToSqlFetchAsync(Func&lt;StringBuilder, Task&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public async Task ToSqlFetchAsync(Func&lt;StringBuilder, Task&gt; fetchAsync)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Text.StringBuilder</span>, <span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td><span class="parametername">fetchAsync</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhen_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo___System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlWhen(System.Text.StringBuilder%2CFreeSql.Internal.Model.ColumnInfo%5B%5D%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L928">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhen_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlWhen*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhen_System_Text_StringBuilder_FreeSql_Internal_Model_ColumnInfo___System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlWhen(System.Text.StringBuilder,FreeSql.Internal.Model.ColumnInfo[],System.Object)">ToSqlWhen(StringBuilder, ColumnInfo[], Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">sb</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="FreeSql.Internal.Model.ColumnInfo.html">ColumnInfo</a>[]</td>
+        <td><span class="parametername">primarys</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">d</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhere_System_Text_StringBuilder_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ToSqlWhere(System.Text.StringBuilder)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L1235">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhere_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlWhere*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ToSqlWhere_System_Text_StringBuilder_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ToSqlWhere(System.Text.StringBuilder)">ToSqlWhere(StringBuilder)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ToSqlWhere(StringBuilder sb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">sb</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_System_Linq_Expressions_Expression_System_Func__0_System_Object___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.UpdateColumns(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2CSystem.Object%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L538">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.UpdateColumns*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_System_Linq_Expressions_Expression_System_Func__0_System_Object___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.UpdateColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">UpdateColumns(Expression&lt;Func&lt;T1, Object&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; UpdateColumns(Expression&lt;Func&lt;T1, object&gt;&gt; columns)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, <span class="xref">System.Object</span>&gt;&gt;</td>
+        <td><span class="parametername">columns</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_System_String___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.UpdateColumns(System.String%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L550">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.UpdateColumns*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_UpdateColumns_System_String___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.UpdateColumns(System.String[])">UpdateColumns(String[])</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; UpdateColumns(string[] columns)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span>[]</td>
+        <td><span class="parametername">columns</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_ValidateVersionAndThrow_System_Int32_System_String_System_Data_Common_DbParameter___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.ValidateVersionAndThrow(System.Int32%2CSystem.String%2CSystem.Data.Common.DbParameter%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L268">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ValidateVersionAndThrow_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ValidateVersionAndThrow*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_ValidateVersionAndThrow_System_Int32_System_String_System_Data_Common_DbParameter___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.ValidateVersionAndThrow(System.Int32,System.String,System.Data.Common.DbParameter[])">ValidateVersionAndThrow(Int32, String, DbParameter[])</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void ValidateVersionAndThrow(int affrows, string sql, DbParameter[] dbParms)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">affrows</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">sql</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbParameter</span>[]</td>
+        <td><span class="parametername">dbParms</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Where__0_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Where(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L843">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where__0_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where(`0)">Where(T1)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Where(T1 item)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T1</span></td>
+        <td><span class="parametername">item</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_Collections_Generic_IEnumerable__0__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Where(System.Collections.Generic.IEnumerable%7B%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L844">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_Collections_Generic_IEnumerable__0__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where(System.Collections.Generic.IEnumerable{`0})">Where(IEnumerable&lt;T1&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Where(IEnumerable&lt;T1&gt; items)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;T1&gt;</td>
+        <td><span class="parametername">items</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_Linq_Expressions_Expression_System_Func__0_System_Boolean___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Where(System.Linq.Expressions.Expression%7BSystem.Func%7B%600%2CSystem.Boolean%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L830">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_Linq_Expressions_Expression_System_Func__0_System_Boolean___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">Where(Expression&lt;Func&lt;T1, Boolean&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Where(Expression&lt;Func&lt;T1, bool&gt;&gt; exp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, <span class="xref">System.Boolean</span>&gt;&gt;</td>
+        <td><span class="parametername">exp</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_String_System_Object_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.Where(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L836">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_Where_System_String_System_Object_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.Where(System.String,System.Object)">Where(String, Object)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; Where(string sql, object parms = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">sql</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">parms</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereCaseSource_System_String_System_Func_System_String_System_String__.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.WhereCaseSource(System.String%2CSystem.Func%7BSystem.String%2CSystem.String%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L867">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereCaseSource_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereCaseSource*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereCaseSource_System_String_System_Func_System_String_System_String__" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereCaseSource(System.String,System.Func{System.String,System.String})">WhereCaseSource(String, Func&lt;String, String&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected string WhereCaseSource(string CsName, Func&lt;string, string&gt; thenValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">CsName</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.String</span>&gt;</td>
+        <td><span class="parametername">thenValue</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereDynamic_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.WhereDynamic(System.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L845">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereDynamic_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereDynamic*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereDynamic_System_Object_System_Boolean_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereDynamic(System.Object,System.Boolean)">WhereDynamic(Object, Boolean)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; WhereDynamic(object dywhere, bool not = false)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">dywhere</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">not</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereIf_System_Boolean_System_Linq_Expressions_Expression_System_Func__0_System_Boolean___.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.WhereIf(System.Boolean%2CSystem.Linq.Expressions.Expression%7BSystem.Func%7B%600%2CSystem.Boolean%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L831">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereIf_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereIf*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WhereIf_System_Boolean_System_Linq_Expressions_Expression_System_Func__0_System_Boolean___" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WhereIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">WhereIf(Boolean, Expression&lt;Func&lt;T1, Boolean&gt;&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; WhereIf(bool condition, Expression&lt;Func&lt;T1, bool&gt;&gt; exp)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">condition</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Linq.Expressions.Expression</span>&lt;<span class="xref">System.Func</span>&lt;T1, <span class="xref">System.Boolean</span>&gt;&gt;</td>
+        <td><span class="parametername">exp</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_WithConnection_System_Data_Common_DbConnection_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.WithConnection(System.Data.Common.DbConnection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L236">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WithConnection_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WithConnection*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WithConnection_System_Data_Common_DbConnection_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WithConnection(System.Data.Common.DbConnection)">WithConnection(DbConnection)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; WithConnection(DbConnection connection)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbConnection</span></td>
+        <td><span class="parametername">connection</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1_WithTransaction_System_Data_Common_DbTransaction_.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601.WithTransaction(System.Data.Common.DbTransaction)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProvider.cs/#L230">View Source</a>
+  </span>
+  <a id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WithTransaction_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WithTransaction*"></a>
+  <h4 id="FreeSql_Internal_CommonProvider_UpdateProvider_1_WithTransaction_System_Data_Common_DbTransaction_" data-uid="FreeSql.Internal.CommonProvider.UpdateProvider`1.WithTransaction(System.Data.Common.DbTransaction)">WithTransaction(DbTransaction)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUpdate&lt;T1&gt; WithTransaction(DbTransaction transaction)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Data.Common.DbTransaction</span></td>
+        <td><span class="parametername">transaction</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="FreeSql.IUpdate-1.html">IUpdate</a>&lt;T1&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="FreeSql.IUpdate-1.html">IUpdate&lt;T1&gt;</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/dotnetcore/freesql/new/master/apiSpec/new?filename=FreeSql_Internal_CommonProvider_UpdateProvider_1.md&amp;value=---%0Auid%3A%20FreeSql.Internal.CommonProvider.UpdateProvider%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/dotnetcore/FreeSql/blob/master/FreeSql/Internal/CommonProvider/UpdateProviderAsync.cs/#L17" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
