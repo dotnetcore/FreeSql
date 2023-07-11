@@ -31,6 +31,10 @@ This article will introduce a very simple CRUD operation method of BaseEntity.
 
 > dotnet add package FreeSql.Provider.Sqlite
 
+```csharp
+BaseEntity.Initialization(fsql, null);
+```
+
 1. Define an auto-increment primary key of type `int`. When the `TKey` of `BaseEntity` is specified as `int/long`, the primary key will be considered as auto-increment;
 
 ```csharp
