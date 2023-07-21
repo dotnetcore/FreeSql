@@ -54,7 +54,8 @@ namespace FreeSql.Custom.SqlServer
                         {
                             var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
                             if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                            else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else if (_tables.FirstOrDefault()?.Table?.Columns?.Any() == true) _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else _orderby = " \r\nORDER BY getdate()";
                         }
                         else
                             _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
@@ -277,7 +278,8 @@ namespace FreeSql.Custom.SqlServer
                         {
                             var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
                             if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                            else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else if (_tables.FirstOrDefault()?.Table?.Columns?.Any() == true) _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else _orderby = " \r\nORDER BY getdate()";
                         }
                         else
                             _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");

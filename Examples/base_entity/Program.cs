@@ -560,7 +560,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -598,6 +598,9 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var cccsql1 = fsql.Select<CCC>().Page(1, 10).ToSql();
+            var cccsql2 = fsql.Select<CCC>().Page(2, 10).ToSql();
 
             new Products
             {
