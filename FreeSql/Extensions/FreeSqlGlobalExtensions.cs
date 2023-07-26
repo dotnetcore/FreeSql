@@ -208,6 +208,7 @@ public static partial class FreeSqlGlobalExtensions
                 if (existsProp.DeclaringType != prop.DeclaringType) dict[prop.Name] = prop;
                 continue;
             }
+            if (prop.GetGetMethod() == null) continue;
             dict.Add(prop.Name, prop);
         }
         return dict;

@@ -1,4 +1,5 @@
-﻿using Densen.Models.ids;
+﻿using Confluent.Kafka;
+using Densen.Models.ids;
 using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
@@ -566,8 +567,8 @@ namespace base_entity
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                //.UseConnectionString(FreeSql.DataType.Oracle, "user=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user=2user;password=123456789;database=2user;poolsize=5;")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -598,6 +599,18 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var lstKafka = fsql.Ado.Query<ProducerModel_Kafka>("SELECT 123 AS ID,'10.0.0.0' AS IP FROM dual ");
+
+
+
+
+
+
+
+            var subsql01 = fsql.Select<User1>().Where(a =>
+                fsql.Select<UserGroup>().Where(b => b.Id == a.GroupId).Max(b => b.CreateTime) > DateTime.Now)
+                .ToSql();
 
             var cccsql1 = fsql.Select<CCC>().Page(1, 10).ToSql();
             var cccsql2 = fsql.Select<CCC>().Page(2, 10).ToSql();
@@ -2524,5 +2537,25 @@ var sql11111 = fsql.Select<Class1111>()
     {
         public Guid id { get; set; }
         public JObject json { get; set; }
+    }
+    public class ProducerModel_Kafka
+    {
+        /// <summary>
+        /// 这个可以
+        /// </summary>
+        public IProducer<string, string> Sender { get; set; }
+        /// <summary>
+        /// ID
+        /// </summary>
+        public long ID { get; set; }
+        /// <summary>
+        /// IP
+        /// </summary>
+        public string IP { get; set; }
+
+        /// <summary>
+        /// 这个不行
+        /// </summary>
+        public ProducerConfig PConfig { get; set; }
     }
 }

@@ -296,6 +296,26 @@
             相类型
             </summary>
         </member>
+        <member name="P:base_entity.ProducerModel_Kafka.Sender">
+            <summary>
+            这个可以
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.ID">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.IP">
+            <summary>
+            IP
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.PConfig">
+            <summary>
+            这个不行
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表
