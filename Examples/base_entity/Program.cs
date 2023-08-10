@@ -559,16 +559,16 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
                 //.UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user=2user;password=123456789;database=2user;poolsize=5;")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -599,6 +599,15 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var xxxc1 = User1.Select.ToSql(a => new
+            {
+                count = User1.Where(b => b.Id == a.Id).Count()
+            });
+
+            var tididentity = fsql.CodeFirst.GetTableByEntity(typeof(TestIdAndIdentity));
+
+            var tididDDL = fsql.CodeFirst.GetComparisonDDLStatements(typeof(TestIdAndIdentity));
 
             var lstKafka = fsql.Ado.Query<ProducerModel_Kafka>("SELECT 123 AS ID,'10.0.0.0' AS IP FROM dual ");
 
@@ -2557,5 +2566,13 @@ var sql11111 = fsql.Select<Class1111>()
         /// 这个不行
         /// </summary>
         public ProducerConfig PConfig { get; set; }
+    }
+
+    class TestIdAndIdentity
+    {
+        [Column(IsPrimary = true)]
+        public int Id { get; set; }
+        [Column(IsIdentity = true)]
+        public int IdentityId { get; set; }
     }
 }
