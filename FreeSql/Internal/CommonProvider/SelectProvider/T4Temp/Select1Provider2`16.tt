@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
     var whereStr = "";
     var ISelectGroupingAggregate = new List<string>();
     var WithSql = new List<string>();
+    var Alias = new List<string>();
 
     List<string> SyncStructure = new List<string>();
     StringBuilder _tables = new StringBuilder();
@@ -53,6 +54,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             ISelectGroupingAggregate.Add($"ISelectGroupingAggregate<T{i}>");
             WithSql.Add($"string sqlT{i}");
+            Alias.Add($"if (string.IsNullOrEmpty(aliasT" + i + ") == false) _tables[" + (i-1) + "].Alias = aliasT" + i + ";");
             GetToListDtoSelector.Add("Expression.Parameter(typeof(T" + i + "), \"" + (abc[i - 1]) + "\")");
             
             AsTable.Append("if (type == _tables[" + (i - 1) + "].Table?.Type && string.IsNullOrEmpty(sqlT" + i +
@@ -80,6 +82,12 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"<#=string.Join(";\\r\\n", GetDbParamtersByObject) #>", parms));
+            return this;
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.As(<#=string.Join(",", WithSql).Replace("string sqlT", "string aliasT") #>)
+        {
+            <#=string.Join("\r\n            ", Alias) #>
             return this;
         }
 

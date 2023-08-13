@@ -90,6 +90,7 @@ namespace FreeSql
         ISelect<T1, T2> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, TMember>> column, bool descending = false);
 
         ISelect<T1, T2> WithSql(string sqlT1, string sqlT2, object parms = null);
+        ISelect<T1, T2> As(string aliasT1, string aliasT2);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, TDto>> selector);
 
@@ -206,6 +207,7 @@ namespace FreeSql
         ISelect<T1, T2, T3> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3> WithSql(string sqlT1, string sqlT2, string sqlT3, object parms = null);
+        ISelect<T1, T2, T3> As(string aliasT1, string aliasT2, string aliasT3);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, TDto>> selector);
 
@@ -322,6 +324,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, object parms = null);
+        ISelect<T1, T2, T3, T4> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, TDto>> selector);
 
@@ -438,6 +441,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, object parms = null);
+        ISelect<T1, T2, T3, T4, T5> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, TDto>> selector);
 
@@ -554,6 +558,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, TDto>> selector);
 
@@ -670,6 +675,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TDto>> selector);
 
@@ -786,6 +792,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>> selector);
 
@@ -902,6 +909,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TDto>> selector);
 
@@ -1018,6 +1026,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TDto>> selector);
 
@@ -1134,6 +1143,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TDto>> selector);
 
@@ -1250,6 +1260,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TDto>> selector);
 
@@ -1366,6 +1377,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TDto>> selector);
 
@@ -1482,6 +1494,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TDto>> selector);
 
@@ -1598,6 +1611,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TDto>> selector);
 
@@ -1714,6 +1728,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, string sqlT16, object parms = null);
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15, string aliasT16);
 
         ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TDto>> selector);
 

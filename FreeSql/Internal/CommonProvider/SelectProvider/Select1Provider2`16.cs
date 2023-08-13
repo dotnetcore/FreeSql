@@ -35,6 +35,13 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.As(string aliasT1, string aliasT2)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2>.WithTempQuery<TDto>(Expression<Func<T1, T2, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -498,6 +505,14 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.As(string aliasT1, string aliasT2, string aliasT3)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
             return this;
         }
 
@@ -966,6 +981,15 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
             return this;
         }
 
@@ -1439,6 +1463,16 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -1908,6 +1942,17 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
             return this;
         }
 
@@ -2385,6 +2430,18 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -2858,6 +2915,19 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
             return this;
         }
 
@@ -3339,6 +3409,20 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -3816,6 +3900,21 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9};\r\n{sqlT10}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
             return this;
         }
 
@@ -4301,6 +4400,22 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -4782,6 +4897,23 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9};\r\n{sqlT10};\r\n{sqlT11};\r\n{sqlT12}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            if (string.IsNullOrEmpty(aliasT12) == false) _tables[11].Alias = aliasT12;
             return this;
         }
 
@@ -5271,6 +5403,24 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            if (string.IsNullOrEmpty(aliasT12) == false) _tables[11].Alias = aliasT12;
+            if (string.IsNullOrEmpty(aliasT13) == false) _tables[12].Alias = aliasT13;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -5756,6 +5906,25 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9};\r\n{sqlT10};\r\n{sqlT11};\r\n{sqlT12};\r\n{sqlT13};\r\n{sqlT14}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            if (string.IsNullOrEmpty(aliasT12) == false) _tables[11].Alias = aliasT12;
+            if (string.IsNullOrEmpty(aliasT13) == false) _tables[12].Alias = aliasT13;
+            if (string.IsNullOrEmpty(aliasT14) == false) _tables[13].Alias = aliasT14;
             return this;
         }
 
@@ -6249,6 +6418,26 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            if (string.IsNullOrEmpty(aliasT12) == false) _tables[11].Alias = aliasT12;
+            if (string.IsNullOrEmpty(aliasT13) == false) _tables[12].Alias = aliasT13;
+            if (string.IsNullOrEmpty(aliasT14) == false) _tables[13].Alias = aliasT14;
+            if (string.IsNullOrEmpty(aliasT15) == false) _tables[14].Alias = aliasT15;
+            return this;
+        }
+
         ISelect<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.WithTempQuery<TDto>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TDto>> selector)
         {
             for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
@@ -6738,6 +6927,27 @@ namespace FreeSql.Internal.CommonProvider
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9};\r\n{sqlT10};\r\n{sqlT11};\r\n{sqlT12};\r\n{sqlT13};\r\n{sqlT14};\r\n{sqlT15};\r\n{sqlT16}", parms));
+            return this;
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15, string aliasT16)
+        {
+            if (string.IsNullOrEmpty(aliasT1) == false) _tables[0].Alias = aliasT1;
+            if (string.IsNullOrEmpty(aliasT2) == false) _tables[1].Alias = aliasT2;
+            if (string.IsNullOrEmpty(aliasT3) == false) _tables[2].Alias = aliasT3;
+            if (string.IsNullOrEmpty(aliasT4) == false) _tables[3].Alias = aliasT4;
+            if (string.IsNullOrEmpty(aliasT5) == false) _tables[4].Alias = aliasT5;
+            if (string.IsNullOrEmpty(aliasT6) == false) _tables[5].Alias = aliasT6;
+            if (string.IsNullOrEmpty(aliasT7) == false) _tables[6].Alias = aliasT7;
+            if (string.IsNullOrEmpty(aliasT8) == false) _tables[7].Alias = aliasT8;
+            if (string.IsNullOrEmpty(aliasT9) == false) _tables[8].Alias = aliasT9;
+            if (string.IsNullOrEmpty(aliasT10) == false) _tables[9].Alias = aliasT10;
+            if (string.IsNullOrEmpty(aliasT11) == false) _tables[10].Alias = aliasT11;
+            if (string.IsNullOrEmpty(aliasT12) == false) _tables[11].Alias = aliasT12;
+            if (string.IsNullOrEmpty(aliasT13) == false) _tables[12].Alias = aliasT13;
+            if (string.IsNullOrEmpty(aliasT14) == false) _tables[13].Alias = aliasT14;
+            if (string.IsNullOrEmpty(aliasT15) == false) _tables[14].Alias = aliasT15;
+            if (string.IsNullOrEmpty(aliasT16) == false) _tables[15].Alias = aliasT16;
             return this;
         }
 
