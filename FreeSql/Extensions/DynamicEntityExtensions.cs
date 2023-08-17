@@ -49,6 +49,7 @@ public static class FreeSqlGlobalDynamicEntityExtensions
         {
             defaultValueInit.Invoke(instance, new object[0]);
         }
+
         foreach (var key in table.ColumnsByCs.Keys)
         {
             if (dict.ContainsKey(key) == false) continue;
@@ -187,22 +188,32 @@ namespace FreeSql.Extensions.DynamicEntity
                 if (tableAttribute == null) continue;
 
                 var classCtorInfo = tableAttribute.GetType().GetConstructor(Type.EmptyTypes);
-
+                var classCtorInfos = tableAttribute.GetType().GetConstructors();
                 var propertyInfos = tableAttribute.GetType().GetProperties().Where(p => p.CanWrite == true).ToArray();
-
                 foreach (var propertyInfo in propertyInfos)
                     propertyValues.Add(propertyInfo.GetValue(tableAttribute));
-
-                //可能存在有参构造
-                if (classCtorInfo == null)
+                //是否存在有参构造函数
+                var existConstructorArguments = classCtorInfos.Any(c => c.GetParameters().Length > 0);
+                if (existConstructorArguments)
                 {
-                    var constructorTypes = propertyInfos.Select(p => p.PropertyType);
-                    classCtorInfo = tableAttribute.GetType().GetConstructor(constructorTypes.ToArray());
-                    var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, propertyValues.ToArray());
+                    var defaultParamsCtor = classCtorInfos.Where(c => c.GetParameters().Length > 0)
+                        .OrderBy(c => c.GetParameters().Length).First();
+                    //获取参数默认值
+                    var defaultParams = new List<object>();
+                    foreach (var parameterInfo in defaultParamsCtor.GetParameters())
+                    {
+                        defaultParams.Add(parameterInfo.ParameterType.CreateInstanceGetDefaultValue());
+                    }
+
+                    //思路：先通过构造函数的默认值实例化对象，然后通过属性的方式赋值
+                    var customAttributeBuilder = new CustomAttributeBuilder(defaultParamsCtor, defaultParams.ToArray(),
+                        propertyInfos,
+                        propertyValues.ToArray());
                     typeBuilder.SetCustomAttribute(customAttributeBuilder);
                 }
                 else
                 {
+                    //不存在构造函数赋值直接属性赋值
                     var customAttributeBuilder = new CustomAttributeBuilder(classCtorInfo, new object[0], propertyInfos,
                         propertyValues.ToArray());
                     typeBuilder.SetCustomAttribute(customAttributeBuilder);

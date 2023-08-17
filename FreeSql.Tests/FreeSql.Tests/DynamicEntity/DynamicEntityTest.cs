@@ -194,7 +194,50 @@ namespace FreeSql.Tests.DynamicEntity
             fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
             var objects = fsql.Select<object>().AsType(table.Type).ToList();
         }
+
+        [Fact]
+        public void Issue1591Test()
+        {
+            var backupTableName = "test";
+            var newTableName = "new_test";
+            var key = "index_key";
+            var columns = new List<string>()
+            {
+                "Name",
+                "Tid"
+            };
+            var attributes = new List<Attribute>();
+            attributes.Add(new TableAttribute() { Name = newTableName });
+
+            var indexName = key.ToUpper().Replace(backupTableName.ToUpper(), newTableName.ToUpper());
+            var indexFields = string.Join(",", columns.Select(c => c));
+            var indexAttribute = new IndexAttribute(indexName, indexFields
+                , false);
+            attributes.Add(indexAttribute);
+
+            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers", attributes.ToArray())
+                .Property("Id", typeof(int),
+                    new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
+                .Property("Name", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 2 })
+                .Property("Tid", typeof(string),
+                    new ColumnAttribute() { StringLength = 20, Position = 4 })
+                .Property("Address", typeof(string),
+                    new ColumnAttribute() { StringLength = 150, Position = 3 })
+                .Build();
+            var dict = new Dictionary<string, object>
+            {
+                ["Name"] = "张三",
+                ["Address"] = "北京市"
+            };
+            var instance = table.CreateInstance(dict);
+            //根据Type生成表
+            fsql.CodeFirst.SyncStructure(table.Type);
+            var insertId = fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
+            var select = fsql.Select<object>().AsType(table.Type).ToList();
+        }
     }
+
 
     public class BaseModel
     {
