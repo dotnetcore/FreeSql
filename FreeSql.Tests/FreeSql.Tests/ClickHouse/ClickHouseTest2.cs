@@ -23,5 +23,126 @@ namespace FreeSql.Tests.ClickHouse
         {
             fsql.CodeFirst.SyncStructure(typeof(CollectDataEntityUpdate01));
         }
+
+        [Fact]
+        public void Issuse1587Test()
+        {
+            fsql.CodeFirst.SyncStructure(typeof(PositionInfoModel));
+        }
+        [Fact]
+        public void Issuse1587TestOnePrimary()
+        {
+            fsql.CodeFirst.SyncStructure(typeof(PositionInfoModel2));
+        }
+    }
+
+    [Table(Name = "table_1")]
+    [Index("stcd_index", "STCD", false)]
+    [Index("tm_index", "TM", false)]
+    [Index("type_index", "TYPE", false)]
+    public class PositionInfoModel
+    {
+        [Column(IsPrimary = true)]
+        public string STCD
+        {
+            set; get;
+        }
+
+        [Column(IsPrimary = true)]
+        public DateTime TM
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public decimal LON
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public decimal LAT
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public int TYPE
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public decimal SPD
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public decimal COG
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public DateTime? UT
+        {
+            set; get;
+        }
+    }
+
+
+    [Table(Name = "table_2")]
+    [Index("stcd_index", "STCD", false)]
+    [Index("tm_index", "TM", false)]
+    [Index("type_index", "TYPE", false)]
+    public class PositionInfoModel2
+    {
+        public string STCD
+        {
+            set; get;
+        }
+
+        [Column(IsPrimary = true)]
+        public DateTime TM
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public decimal LON
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public decimal LAT
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = false)]
+        public int TYPE
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public decimal SPD
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public decimal COG
+        {
+            set; get;
+        }
+
+        [Column(IsNullable = true)]
+        public DateTime? UT
+        {
+            set; get;
+        }
     }
 }

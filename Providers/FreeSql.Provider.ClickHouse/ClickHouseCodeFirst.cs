@@ -199,7 +199,7 @@ namespace FreeSql.ClickHouse
                                 sb.Remove(sb.Length - 2, 2);
                                 sb.Append(" )");
                                 sb.Append(" \r\nPRIMARY KEY ");
-                                sb.Append(ls);
+                                sb.Append($"({ls})   ");
                                 sb.Remove(sb.Length - 2, 2).Append(",");
                             }
 
@@ -415,7 +415,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         sb.Remove(sb.Length - 2, 2);
                         sb.Append(" )");
                         sb.Append(" \r\nPRIMARY KEY ");
-                        sb.Append(ls);
+                        sb.Append($"({ls})   ");
                         sb.Remove(sb.Length - 2, 2).Append(",");
                     }
 
@@ -455,7 +455,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         .Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(";\r\n");
                 }
 
-                return sb.Length == 0 ? null : sb.ToString();
+                var res = sb.Length == 0 ? null : sb.ToString();
+                return res;
             }
             finally
             {
@@ -514,9 +515,14 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
             }
             string CkNullableAdapter(string dbType, bool isPrimary)
             {
-                return isPrimary
-                    ? dbType.Replace("Nullable(", "").Replace(")","").Replace(" NOT NULL", "")
-                    : dbType.Replace(" NOT NULL", "");
+                return isPrimary switch
+                {
+                    true when dbType.Contains("Nullable") => dbType.Replace("Nullable(", "")
+                        .Replace(")", "")
+                        .Replace(" NOT NULL", ""),
+                    true => dbType,
+                    _ => dbType.Replace(" NOT NULL", "")
+                };
             }
 
 
