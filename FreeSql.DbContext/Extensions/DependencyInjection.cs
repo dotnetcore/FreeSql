@@ -27,6 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     var builder = new DbContextOptionsBuilder();
                     options(builder);
+                    if (builder._fsql == null)
+                    {
+                        builder._fsql = sp.GetService<IFreeSql>();
+                    }
                     ctx._ormScoped = DbContextScopedFreeSql.Create(builder._fsql, () => ctx, () => ctx.UnitOfWork);
                     ctx._optionsPriv = builder._options;
 
@@ -40,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddFreeDbContext<TDbContext>(this IServiceCollection services, Action<DbContextOptionsBuilder> options) where TDbContext : DbContext => 
+        public static IServiceCollection AddFreeDbContext<TDbContext>(this IServiceCollection services, Action<DbContextOptionsBuilder> options) where TDbContext : DbContext =>
             AddFreeDbContext(services, typeof(TDbContext), options);
 
         public static IServiceCollection AddFreeDbContext(this IServiceCollection services, Action<DbContextOptionsBuilder> options, Assembly[] assemblies)
