@@ -97,6 +97,16 @@ namespace FreeSql
         IInsertOrUpdate<T1> UpdateSet<TMember>(Expression<Func<T1, T1, TMember>> exp);
 
         /// <summary>
+        /// 批量执行选项设置，一般不需要使用该方法<para></para>
+        /// 各数据库 rows 限制不一样，默认设置：200<para></para>
+        /// 若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+        /// </summary>
+        /// <param name="rowsLimit">指定根据 rows 上限数量拆分执行</param>
+        /// <param name="autoTransaction">是否自动开启事务</param>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> BatchOptions(int rowsLimit, bool autoTransaction = true);
+
+        /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
         /// <param name="tableRule"></param>
