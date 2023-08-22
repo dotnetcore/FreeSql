@@ -56,6 +56,15 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     static TReturn LocalWithLock<TReturn>(TReturn query, SqlServerLock lockType, Dictionary<Type, bool> rule)
     {
         var selectProvider = query as Select0Provider;
+        switch (selectProvider._orm.Ado.DataType)
+        {
+            case DataType.SqlServer:
+            case DataType.OdbcSqlServer:
+            case DataType.CustomSqlServer:
+                break;
+            default:
+                return query;
+        }
         var oldalias = selectProvider._aliasRule;
         selectProvider._aliasRule = (type, old) =>
         {
@@ -93,6 +102,15 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     {
         if (string.IsNullOrWhiteSpace(indexName)) return query;
         var selectProvider = query as Select0Provider;
+        switch (selectProvider._orm.Ado.DataType)
+        {
+            case DataType.SqlServer:
+            case DataType.OdbcSqlServer:
+            case DataType.CustomSqlServer:
+                break;
+            default:
+                return query;
+        }
         var oldalias = selectProvider._aliasRule;
         selectProvider._aliasRule = (type, old) =>
         {
