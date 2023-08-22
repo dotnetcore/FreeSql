@@ -1230,6 +1230,12 @@ SELECT ");
             return this;
         }
 
+        public InsertOrUpdateDictImpl BatchOptions(int rowsLimit, bool autoTransaction = true)
+        {
+            _insertOrUpdateProvider.BatchOptions(rowsLimit, autoTransaction);
+            return this;
+        }
+
         public InsertOrUpdateDictImpl CommandTimeout(int timeout)
         {
             _insertOrUpdateProvider.CommandTimeout(timeout);
