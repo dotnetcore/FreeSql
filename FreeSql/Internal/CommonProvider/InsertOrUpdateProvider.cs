@@ -360,6 +360,29 @@ namespace FreeSql.Internal.CommonProvider
             if (_sourceSql != null) return this.RawExecuteAffrows();
             var affrows = 0;
             var ss = SplitSourceByIdentityValueIsNull(_source);
+
+            void ExecuteBatchOptions(List<T1>[] splitedSource)
+            {
+                foreach (var tmpsource in splitedSource)
+                {
+                    if (_batchValuesLimit > 0)
+                    {
+                        var pageTotal = (int)Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
+                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
+                        {
+                            _source = pageNumber > 1 ?
+                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
+                                tmpsource.Take(_batchValuesLimit).ToList();
+                            affrows += this.RawExecuteAffrows();
+                        }
+                    }
+                    else
+                    {
+                        _source = tmpsource;
+                        affrows += this.RawExecuteAffrows();
+                    }
+                }
+            }
             try
             {
                 if (_transaction == null)
@@ -371,29 +394,9 @@ namespace FreeSql.Internal.CommonProvider
                 if (_transaction != null || _orm.Ado.MasterPool == null || _batchAutoTransaction == false)
                 {
                     _SplitSourceByIdentityValueIsNullFlag = 1;
-                    foreach (var tmpsource in ss.Item1)
-                    {
-                        var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                        {
-                            _source = pageNumber > 1 ?
-                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                tmpsource.Take(_batchValuesLimit).ToList();
-                            affrows += this.RawExecuteAffrows();
-                        }
-                    }
+                    ExecuteBatchOptions(ss.Item1);
                     _SplitSourceByIdentityValueIsNullFlag = 2;
-                    foreach (var tmpsource in ss.Item2)
-                    {
-                        var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                        {
-                            _source = pageNumber > 1 ?
-                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                tmpsource.Take(_batchValuesLimit).ToList();
-                            affrows += this.RawExecuteAffrows();
-                        }
-                    }
+                    ExecuteBatchOptions(ss.Item2);
                 }
                 else
                 {
@@ -405,29 +408,9 @@ namespace FreeSql.Internal.CommonProvider
                         try
                         {
                             _SplitSourceByIdentityValueIsNullFlag = 1;
-                            foreach (var tmpsource in ss.Item1)
-                            {
-                                var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                                for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                                {
-                                    _source = pageNumber > 1 ?
-                                        tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                        tmpsource.Take(_batchValuesLimit).ToList();
-                                    affrows += this.RawExecuteAffrows();
-                                }
-                            }
+                            ExecuteBatchOptions(ss.Item1);
                             _SplitSourceByIdentityValueIsNullFlag = 2;
-                            foreach (var tmpsource in ss.Item2)
-                            {
-                                var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                                for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                                {
-                                    _source = pageNumber > 1 ?
-                                        tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                        tmpsource.Take(_batchValuesLimit).ToList();
-                                    affrows += this.RawExecuteAffrows();
-                                }
-                            }
+                            ExecuteBatchOptions(ss.Item2);
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
@@ -503,6 +486,29 @@ namespace FreeSql.Internal.CommonProvider
             if (_sourceSql != null) return await this.RawExecuteAffrowsAsync(cancellationToken);
             var affrows = 0;
             var ss = SplitSourceByIdentityValueIsNull(_source);
+
+            async Task ExecuteBatchOptions(List<T1>[] splitedSource)
+            {
+                foreach (var tmpsource in splitedSource)
+                {
+                    if (_batchValuesLimit > 0)
+                    {
+                        var pageTotal = (int)Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
+                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
+                        {
+                            _source = pageNumber > 1 ?
+                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
+                                tmpsource.Take(_batchValuesLimit).ToList();
+                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                        }
+                    }
+                    else
+                    {
+                        _source = tmpsource; 
+                        affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    }
+                }
+            }
             try
             {
                 if (_transaction == null)
@@ -514,29 +520,9 @@ namespace FreeSql.Internal.CommonProvider
                 if (_transaction != null || _orm.Ado.MasterPool == null || _batchAutoTransaction == false)
                 {
                     _SplitSourceByIdentityValueIsNullFlag = 1;
-                    foreach (var tmpsource in ss.Item1)
-                    {
-                        var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                        {
-                            _source = pageNumber > 1 ? 
-                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                tmpsource.Take(_batchValuesLimit).ToList();
-                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                        }
-                    }
-                    _SplitSourceByIdentityValueIsNullFlag = 2;
-                    foreach (var tmpsource in ss.Item2)
-                    {
-                        var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                        for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                        {
-                            _source = pageNumber > 1 ?
-                                tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                tmpsource.Take(_batchValuesLimit).ToList();
-                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                        }
-                    }
+                    await ExecuteBatchOptions(ss.Item1);
+                     _SplitSourceByIdentityValueIsNullFlag = 2;
+                    await ExecuteBatchOptions(ss.Item2);
                 }
                 else
                 {
@@ -548,29 +534,9 @@ namespace FreeSql.Internal.CommonProvider
                         try
                         {
                             _SplitSourceByIdentityValueIsNullFlag = 1;
-                            foreach (var tmpsource in ss.Item1)
-                            {
-                                var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                                for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                                {
-                                    _source = pageNumber > 1 ?
-                                        tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                        tmpsource.Take(_batchValuesLimit).ToList();
-                                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                                }
-                            }
+                            await ExecuteBatchOptions(ss.Item1);
                             _SplitSourceByIdentityValueIsNullFlag = 2;
-                            foreach (var tmpsource in ss.Item2)
-                            {
-                                var pageTotal = Math.Ceiling(tmpsource.Count * 1.0 / _batchValuesLimit);
-                                for (var pageNumber = 1; pageNumber <= pageTotal; pageNumber++)
-                                {
-                                    _source = pageNumber > 1 ?
-                                        tmpsource.Skip((pageNumber - 1) * _batchValuesLimit).Take(_batchValuesLimit).ToList() :
-                                        tmpsource.Take(_batchValuesLimit).ToList();
-                                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                                }
-                            }
+                            await ExecuteBatchOptions(ss.Item2);
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
