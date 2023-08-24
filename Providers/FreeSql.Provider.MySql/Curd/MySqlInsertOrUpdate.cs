@@ -87,19 +87,22 @@ namespace FreeSql.MySql.Curd
                     else
                     {
                         if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
-                        sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
-                        {
-                            sb.Append(" \r\n FROM dual WHERE NOT EXISTS(");
-                            if (typeof(T1) == typeof(Dictionary<string, object>) && rowd is T1 dict)
-                                sb.Append($"SELECT 1 FROM {_commonUtils.QuoteSqlName(_tableRule(null))} WHERE {_commonUtils.WhereItems<T1>(_tempPrimarys, "", new T1[] { dict })})");
-                            else
-                                sb.Append(
-                                    _orm.Select<T1>()
-                                    .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
-                                    .DisableGlobalFilter()
-                                    .WhereDynamic(rowd)
-                                    .Limit(1).ToSql("1").Replace(" \r\n", " \r\n    ")).Append(")");
-                        });
+                        sql = insert.ToSqlValuesOrSelectUnionAll();
+                        if (sql?.StartsWith("INSERT INTO ") == true)
+                            sql = $"INSERT IGNORE INTO {sql.Substring(12)}";
+                        //sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
+                        //{
+                        //    sb.Append(" \r\n FROM dual WHERE NOT EXISTS(");
+                        //    if (typeof(T1) == typeof(Dictionary<string, object>) && rowd is T1 dict)
+                        //        sb.Append($"SELECT 1 FROM {_commonUtils.QuoteSqlName(_tableRule(null))} WHERE {_commonUtils.WhereItems<T1>(_tempPrimarys, "", new T1[] { dict })})");
+                        //    else
+                        //        sb.Append(
+                        //            _orm.Select<T1>()
+                        //            .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
+                        //            .DisableGlobalFilter()
+                        //            .WhereDynamic(rowd)
+                        //            .Limit(1).ToSql("1").Replace(" \r\n", " \r\n    ")).Append(")");
+                        //});
                     }
                 }
                 if (string.IsNullOrEmpty(sql)) return null;

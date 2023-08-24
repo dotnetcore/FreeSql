@@ -559,7 +559,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
@@ -602,8 +602,8 @@ namespace base_entity
 
             var dict = new List<Dictionary<string, object>>();
             Dictionary<string, object> d = new Dictionary<string, object>();
-            d.Add("id", 1);
-            d.Add("name", "name1");
+            d.Add("id", 2);
+            d.Add("name", "name2");
             dict.Add(d);
             var testx01 = fsql.InsertOrUpdateDict(dict).AsTable("table222zzz").WherePrimary("id").IfExistsDoNothing().ToSql();
             fsql.InsertOrUpdateDict(dict).AsTable("table222zzz").WherePrimary("id").IfExistsDoNothing().ExecuteAffrows();
