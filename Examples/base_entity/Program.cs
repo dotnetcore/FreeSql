@@ -600,6 +600,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var testr1 = fsql.Ado.ExecuteConnectTest();
+
             var dict = new List<Dictionary<string, object>>();
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("id", 2);
