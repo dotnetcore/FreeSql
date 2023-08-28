@@ -581,14 +581,17 @@ namespace FreeSql
             {
                 FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type2) =>
                 {
-                    if (FreeSql.Internal.Utils.TypeHandlers.TryGetValue(type2, out var typeHandler)) return Expression.IfThenElse(
-                        Expression.TypeIs(valueExp, type2),
-                        Expression.Return(returnTarget, valueExp),
-                        Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(
+                    if (FreeSql.Internal.Utils.TypeHandlers.TryGetValue(type2, out var typeHandler)) {
+                        var valueExpRet = Expression.Call(
                             Expression.Constant(typeHandler, typeof(ITypeHandler)),
                             typeof(ITypeHandler).GetMethod(nameof(typeHandler.Deserialize)),
-                            Expression.Convert(valueExp, typeof(object))), type2))
+                            Expression.Convert(valueExp, typeof(object)));
+                        return Expression.IfThenElse(
+                            Expression.TypeIs(valueExp, type2),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.Return(returnTarget, Expression.Convert(valueExpRet, type2))
                     );
+                    }
                     return null;
                 });
             }
