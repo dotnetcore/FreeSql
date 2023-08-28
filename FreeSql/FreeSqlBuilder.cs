@@ -28,7 +28,7 @@ namespace FreeSql
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
         bool _isQuoteSqlName = true;
-        bool? _isAdoConnectionPool = null;
+        bool _isAdoConnectionPool = false;
         MappingPriorityType[] _mappingPriorityTypes;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -374,13 +374,9 @@ namespace FreeSql
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
-            var isAdoPool = false;
-            if (_isAdoConnectionPool != null) isAdoPool = _isAdoConnectionPool.Value;
-            else if (_dataType == DataType.Sqlite) isAdoPool = true; //sqlite 默认使用 Ado Pool
-            else isAdoPool = false;
             ret = Activator.CreateInstance(type, new object[]
             {
-                isAdoPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString,
+                _isAdoConnectionPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString,
                 _slaveConnectionString,
                 _connectionFactory
             }) as IFreeSql<TMark>;
