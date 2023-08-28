@@ -585,7 +585,7 @@ namespace FreeSql
                         return Expression.IfThenElse(
                             Expression.TypeIs(valueExp, type2),
                             Expression.Return(returnTarget, valueExp),
-                            Expression.Return(returnTarget, Expression.Convert(valueExpRet, type2))
+                            Expression.Return(returnTarget, Expression.Convert(valueExpRet, typeof(object)))
                     );
                     }
                     return null;
