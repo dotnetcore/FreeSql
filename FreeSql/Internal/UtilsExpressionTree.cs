@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
+using FreeSql.Internal.Model.Interface;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -2170,6 +2171,8 @@ namespace FreeSql.Internal
         static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
         static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
+
+        public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = new ConcurrentDictionary<Type, ITypeHandler>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToBytesIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
@@ -2562,7 +2565,9 @@ namespace FreeSql.Internal
         {
             //if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
             if (type == null) return value;
-            var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value?.GetType() ?? type, valueType =>
+            var valueType = value?.GetType() ?? type;
+            if (TypeHandlers.TryGetValue(valueType, out var typeHandler)) return typeHandler.Serialize(value);
+            var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(valueType, valueType2 =>
             {
                 var parmExp = Expression.Parameter(typeof(object), "value");
                 var exp = GetDataReaderValueBlockExpression(type, parmExp);

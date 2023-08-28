@@ -7,6 +7,10 @@ using System.Reflection;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
+using System.Linq.Expressions;
+using System.Runtime;
+using FreeSql.Internal.Model.Interface;
+using System.Threading;
 
 namespace FreeSql
 {
@@ -285,7 +289,7 @@ namespace FreeSql
                         type = Type.GetType("FreeSql.Odbc.Default.OdbcProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Default.OdbcProvider<>");
                         break;
-                  
+
                     case DataType.OdbcDameng:
                         type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Dameng.OdbcDamengProvider<>");
@@ -366,7 +370,7 @@ namespace FreeSql
                         type = Type.GetType("FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider<>");
                         break;
-                     
+
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
@@ -374,11 +378,11 @@ namespace FreeSql
             if (_isAdoConnectionPool != null) isAdoPool = _isAdoConnectionPool.Value;
             else if (_dataType == DataType.Sqlite) isAdoPool = true; //sqlite 默认使用 Ado Pool
             else isAdoPool = false;
-            ret = Activator.CreateInstance(type, new object[] 
+            ret = Activator.CreateInstance(type, new object[]
             {
-                isAdoPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString, 
-                _slaveConnectionString, 
-                _connectionFactory 
+                isAdoPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString,
+                _slaveConnectionString,
+                _connectionFactory
             }) as IFreeSql<TMark>;
             if (ret != null)
             {
@@ -445,7 +449,8 @@ namespace FreeSql
                     }
                     catch { }
 
-                    var dyattr = attrs?.Where(a => {
+                    var dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.Name == "MaxLengthAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -457,7 +462,8 @@ namespace FreeSql
                         }
                     }
 
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.RequiredAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -465,7 +471,8 @@ namespace FreeSql
                         e.ModifyResult.IsNullable = false;
                     }
 
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -473,7 +480,8 @@ namespace FreeSql
                         e.ModifyResult.IsIgnore = true;
                     }
 
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -490,7 +498,8 @@ namespace FreeSql
                             e.ModifyResult.DbType = typeName;
                     }
 
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.KeyAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -498,7 +507,8 @@ namespace FreeSql
                         e.ModifyResult.IsPrimary = true;
                     }
 
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.StringLengthAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -512,12 +522,13 @@ namespace FreeSql
                     }
 
                     //https://github.com/dotnetcore/FreeSql/issues/378
-                    dyattr = attrs?.Where(a => {
+                    dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
                     {
-                        switch(string.Concat(dyattr.GetType().GetProperty("DatabaseGeneratedOption")?.GetValue(dyattr, null)))
+                        switch (string.Concat(dyattr.GetType().GetProperty("DatabaseGeneratedOption")?.GetValue(dyattr, null)))
                         {
                             case "Identity":
                             case "1":
@@ -540,7 +551,8 @@ namespace FreeSql
                     }
                     catch { }
 
-                    var dyattr = attrs?.Where(a => {
+                    var dyattr = attrs?.Where(a =>
+                    {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.TableAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -565,7 +577,59 @@ namespace FreeSql
                 (ret.Select<object>() as Select0Provider)._commonUtils.IsQuoteSqlName = _isQuoteSqlName;
             }
 
+            if (Interlocked.CompareExchange(ref _isTypeHandlered, 1, 0) == 0)
+            {
+                FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type2) =>
+                {
+                    if (FreeSql.Internal.Utils.TypeHandlers.TryGetValue(type2, out var typeHandler)) return Expression.IfThenElse(
+                        Expression.TypeIs(valueExp, type2),
+                        Expression.Return(returnTarget, valueExp),
+                        Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(
+                            Expression.Constant(typeHandler, typeof(ITypeHandler)),
+                            typeof(ITypeHandler).GetMethod(nameof(typeHandler.Deserialize)),
+                            Expression.Convert(valueExp, typeof(object))), type2))
+                    );
+                    return null;
+                });
+            }
+
+            ret.Aop.ConfigEntityProperty += (s, e) =>
+            {
+                foreach (var typeHandler in FreeSql.Internal.Utils.TypeHandlers.Values)
+                {
+                    if (e.Property.PropertyType == typeHandler.Type)
+                    {
+                        if (_dicTypeHandlerTypes.ContainsKey(e.Property.PropertyType) == false &&
+                            FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
+                            return; //基础类型无效
+
+                        if (_dicTypeHandlerTypes.TryAdd(e.Property.PropertyType, true))
+                        {
+                            lock (_concurrentObj)
+                            {
+                                FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple[e.Property.PropertyType] = true;
+                                FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type2) =>
+                                {
+                                    return Expression.IfThenElse(
+                                        Expression.TypeIs(valueExp, e.Property.PropertyType),
+                                        Expression.Return(returnTarget, Expression.Call(
+                                            Expression.Constant(typeHandler, typeof(ITypeHandler)),
+                                            typeof(ITypeHandler).GetMethod(nameof(typeHandler.Serialize)),
+                                            Expression.Convert(valueExp, typeof(object))
+                                            ), typeof(object)),
+                                        elseExp);
+                                });
+                            }
+                        }
+                        break;
+                    }
+                }
+            };
+
             return ret;
         }
+        static int _isTypeHandlered = 0;
+        ConcurrentDictionary<Type, bool> _dicTypeHandlerTypes = new ConcurrentDictionary<Type, bool>();
+        object _concurrentObj = new object();
     }
 }

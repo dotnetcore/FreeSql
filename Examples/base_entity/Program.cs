@@ -600,6 +600,12 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
+            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 101, IdentityId = 10101 } }).ExecuteAffrows();
+            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 102, IdentityId = 10202 } }).ExecuteAffrows();
+
+            var th01s = fsql.Select<TypeHandler01>().ToList();
+
             var testr1 = fsql.Ado.ExecuteConnectTest();
 
             var dict = new List<Dictionary<string, object>>();
@@ -2578,11 +2584,29 @@ var sql11111 = fsql.Select<Class1111>()
         public ProducerConfig PConfig { get; set; }
     }
 
-    class TestIdAndIdentity
+class TestIdAndIdentity
+{
+    [Column(IsPrimary = true)]
+    public int Id { get; set; }
+    [Column(IsIdentity = true)]
+    public int IdentityId { get; set; }
+}
+
+class TypeHandler01
+{
+    public Guid id { get; set; }
+    [Column(MapType = typeof(string), StringLength = -1)]
+    public TestIdAndIdentity json { get; set; }
+}
+class String_TestIdAndIdentity : TypeHandler<TestIdAndIdentity>
+{
+    public override object Serialize(TestIdAndIdentity value)
     {
-        [Column(IsPrimary = true)]
-        public int Id { get; set; }
-        [Column(IsIdentity = true)]
-        public int IdentityId { get; set; }
+        return JsonConvert.SerializeObject(value);
     }
+    public override TestIdAndIdentity Deserialize(object value)
+    {
+        return JsonConvert.DeserializeObject<TestIdAndIdentity>((string)value);
+    }
+}
 }

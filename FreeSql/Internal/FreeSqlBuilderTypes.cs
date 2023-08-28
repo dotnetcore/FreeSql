@@ -78,5 +78,4 @@ namespace FreeSql.Internal
         /// </summary>
         ToLower
     }
-
 }
