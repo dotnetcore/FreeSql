@@ -160,7 +160,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var _table = upsert._table;
         var _commonUtils = upsert._commonUtils;
         var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
-        var tempTableName = $"#Temp_{updateTableName}";
+        var tempTableName = $"#Temp_{Guid.NewGuid().ToString("N")}";
         if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
         if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
@@ -201,7 +201,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var _table = update._table;
         var _commonUtils = update._commonUtils;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
-        var tempTableName = $"#Temp_{updateTableName}";
+        var tempTableName = $"#Temp_{Guid.NewGuid().ToString("N")}";
         if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
         if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)

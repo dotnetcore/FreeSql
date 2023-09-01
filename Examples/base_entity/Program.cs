@@ -561,7 +561,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -599,6 +599,24 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+
+            var bulkUsers = new[] {
+                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
+                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
+                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
+
+                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
+                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
+                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
+            };
+            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
+            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
+            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
+            bulkUsers[0].Nickname += "_bulkupdate";
+            bulkUsers[1].Nickname += "_bulkupdate";
+            bulkUsers[2].Nickname += "_bulkupdate";
+            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
 
             FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
             fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 101, IdentityId = 10101 } }).ExecuteAffrows();
@@ -982,22 +1000,6 @@ var sql11111 = fsql.Select<Class1111>()
                      })
             .ToSql();
 
-            var bulkUsers = new[] {
-                new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
-                new IdentityUser1 { Nickname = "nickname12", Username = "username12" },
-                new IdentityUser1 { Nickname = "nickname13", Username = "username13" },
-
-                new IdentityUser1 { Nickname = "nickname21", Username = "username21" },
-                new IdentityUser1 { Nickname = "nickname22", Username = "username22" },
-                new IdentityUser1 { Nickname = "nickname23", Username = "username23" }
-            };
-            fsql.Insert(bulkUsers).NoneParameter().ExecuteAffrows();
-            fsql.Insert(bulkUsers).IgnoreInsertValueSql(a => a.Nickname).NoneParameter().ExecuteAffrows();
-            bulkUsers = fsql.Select<IdentityUser1>().OrderByDescending(a => a.Id).Limit(3).ToList().ToArray();
-            bulkUsers[0].Nickname += "_bulkupdate";
-            bulkUsers[1].Nickname += "_bulkupdate";
-            bulkUsers[2].Nickname += "_bulkupdate";
-            fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
 
 
             var objtsql1 = fsql.Select<object>().WithSql("select * from user1").ToList();
