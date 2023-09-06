@@ -48,6 +48,7 @@ namespace FreeSql.KingbaseES
                 case "varchar": ret = KdbndpDbType.Varchar; break;
                 case "text": ret = KdbndpDbType.Text; break;
 
+                case "datetime": ret = KdbndpDbType.Timestamp; break;
                 case "timestamp": ret = KdbndpDbType.Timestamp; break;
                 case "timestamptz": ret = KdbndpDbType.Timestamp; break;
                 case "date": ret = KdbndpDbType.Date; break;

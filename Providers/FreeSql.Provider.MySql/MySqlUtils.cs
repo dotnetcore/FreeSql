@@ -100,7 +100,7 @@ namespace FreeSql.MySql
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} div {right}";
         public override string Now => "now()";
-        public override string NowUtc => "utc_timestamp()";
+        public override string NowUtc => "current_timestamp()";
 
         public override string QuoteWriteParamterAdapter(Type type, string paramterName)
         {
