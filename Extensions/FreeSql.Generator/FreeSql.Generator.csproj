@@ -33,6 +33,11 @@
 			<HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
 		</Reference>
 	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Kdbndp">
+			<HintPath>..\..\Providers\FreeSql.Provider.KingbaseES\lib\Kdbndp.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
