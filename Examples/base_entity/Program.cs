@@ -559,9 +559,9 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -600,6 +600,23 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Delete<TypeHandler01>().Where("1=1").ExecuteAffrows();
+            FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
+            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 101, IdentityId = 10101 } }).ExecuteAffrows();
+            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 102, IdentityId = 10202 } }).ExecuteAffrows();
+
+            var th01s = fsql.Select<TypeHandler01>().ToList();
+
+            th01s[0].json = new TestIdAndIdentity { Id = 101, IdentityId = 101011111 };
+            fsql.Update<TypeHandler01>().SetSource(th01s[0]).ExecuteAffrows();
+            var th01s2 = fsql.Select<TypeHandler01>().ToList();
+
+            var th01s1json = new TestIdAndIdentity { Id = 101, IdentityId = 33333333 };
+            fsql.Update<TypeHandler01>().Set(a => new
+            {
+                json = th01s1json
+            }).Where(a => a.id == th01s[0].id).ExecuteAffrows();
+            var th01s3 = fsql.Select<TypeHandler01>().ToList();
 
             var bulkUsers = new[] {
                 new IdentityUser1 { Nickname = "nickname11", Username = "username11" },
@@ -618,11 +635,6 @@ namespace base_entity
             bulkUsers[2].Nickname += "_bulkupdate";
             fsql.Update<IdentityUser1>().SetSource(bulkUsers).ExecuteSqlBulkCopy();
 
-            FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
-            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 101, IdentityId = 10101 } }).ExecuteAffrows();
-            fsql.Insert(new TypeHandler01 { id = Guid.NewGuid(), json = new TestIdAndIdentity { Id = 102, IdentityId = 10202 } }).ExecuteAffrows();
-
-            var th01s = fsql.Select<TypeHandler01>().ToList();
 
             var testr1 = fsql.Ado.ExecuteConnectTest();
 

@@ -154,6 +154,8 @@ namespace FreeSql.Internal.ObjectPool
                 {
                     if (UnavailableException != null)
                     {
+                        lock (_allObjectsLock)
+                            _allObjects.ForEach(a => a.LastGetTime = a.LastReturnTime = new DateTime(2000, 1, 1));
                         UnavailableException = null;
                         UnavailableTime = null;
                         AvailableTime = DateTime.Now;
@@ -164,9 +166,6 @@ namespace FreeSql.Internal.ObjectPool
 
             if (isRestored)
             {
-                lock (_allObjectsLock)
-                    _allObjects.ForEach(a => a.LastGetTime = a.LastReturnTime = new DateTime(2000, 1, 1));
-
                 Policy.OnAvailable();
                 TestTrace.WriteLine($"【{Policy.Name}】Recovered", ConsoleColor.DarkGreen);
             }
