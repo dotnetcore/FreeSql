@@ -14,9 +14,6 @@
             <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.OracleConnectionExtensions" />
             <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.SqlConnectionExtensions" />
             <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.SQLiteConnectionExtensions" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Dameng" />
-            <Property Name="Namespace" Value="FreeSql.Tests.DamengExpression" />
-            <Property Name="Namespace" Value="FreeSql.Tests.DamengMapType" />
             <Property Name="Namespace" Value="FreeSql.Tests.DataAnnotations" />
             <Property Name="Namespace" Value="FreeSql.Tests.DynamicEntity" />
             <Property Name="Namespace" Value="FreeSql.Tests.Extensions" />
@@ -57,9 +54,6 @@
           <Property Name="Project" Value="FreeSql.Tests.Provider.Odbc" />
           <Rule Match="Any">
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.Dameng" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DamengExpression" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DamengMapType" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.Default" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DefaultExpression" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DefaultMapType" />
