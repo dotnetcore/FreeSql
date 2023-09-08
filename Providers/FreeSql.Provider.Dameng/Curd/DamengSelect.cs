@@ -56,8 +56,8 @@ namespace FreeSql.Dameng.Curd
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) &&
                                 string.IsNullOrEmpty(tbsfrom[b].On) &&
                                 string.IsNullOrEmpty(tbsfrom[b].Cascade) &&
-                                string.IsNullOrEmpty(tbsfrom[b].CascadeBefore)) sb.Append(" ON 1 = 1");
-                            else sb.Append(" ON ").Append(string.Join(" AND ", new[]
+                                string.IsNullOrEmpty(tbsfrom[b].CascadeBefore)) sbunion.Append(" ON 1 = 1");
+                            else sbunion.Append(" ON ").Append(string.Join(" AND ", new[]
                                 {
                                     tbsfrom[b].CascadeBefore,
                                     tbsfrom[b].NavigateCondition ?? tbsfrom[b].On,
