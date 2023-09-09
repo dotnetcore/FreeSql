@@ -198,7 +198,8 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.ShenTong:
                     break;
                 default:
-                    columnSql = $"{_query2Provider._tables[0].Alias}.{columnSql}";  //set a.name = b.name
+                    var tbalias = _query2Provider._tables.Where(tb => tb.Table == col.Table).FirstOrDefault()?.Alias ?? _query2Provider._tables[0].Alias;
+                    columnSql = $"{tbalias}.{columnSql}";  //set a.name = b.name
                     break;
             }
 
