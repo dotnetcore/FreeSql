@@ -600,12 +600,16 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            fsql.GlobalFilter.Apply<User1>("test01", a => a.IsDeleted == false);
-
-            var updatejoin031sql = fsql.Update<User1>()
-                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
-                .Set((a, b) => b.GroupName == a.Username + "b.groupname")
-                .ToSql();
+            var list0x1sql = fsql.Select<OrderLine22x, Product22x>()
+.InnerJoin((l, p) => l.ProductId == p.ID)
+.GroupBy((l, p) => new { p.ID, l.ShopType })
+.WithTempQuery(a => new {
+    a.Key.ID,
+    Money2 = a.Key.ShopType,
+    Money = a.Key.ShopType == 1 ? a.Value.Item1.Price * a.Value.Item1.Amount : a.Value.Item1.Price * a.Value.Item1.Amount * 1.1m
+})
+.ToSql();
+            Console.WriteLine(list0x1sql);
 
             fsql.Delete<TypeHandler01>().Where("1=1").ExecuteAffrows();
             FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
@@ -2630,4 +2634,25 @@ class String_TestIdAndIdentity : TypeHandler<TestIdAndIdentity>
         return JsonConvert.DeserializeObject<TestIdAndIdentity>((string)value);
     }
 }
+}
+public partial class OrderLine22x
+{
+
+    public string Id { get; set; }
+    public string OrderId { get; set; }
+
+    public string ShopId { get; set; }
+    [JsonProperty, Column(Name = "Shop_Type")]
+    public int? ShopType { get; set; }
+    public string ProductId { get; set; }
+    public decimal Price { get; set; }
+    public decimal Amount { get; set; }
+}
+[JsonObject(MemberSerialization.OptIn), Table(Name = "T_Product22x", DisableSyncStructure = true)]
+
+public partial class Product22x
+{
+    public string ID { get; set; }
+    public string Name { get; set; }
+    public string Model { get; set; }
 }

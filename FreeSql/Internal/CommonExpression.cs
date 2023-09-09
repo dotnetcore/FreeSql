@@ -89,6 +89,19 @@ namespace FreeSql.Internal
                         field.Append(_common.FieldAsAlias(parent.DbNestedField));
                 }
             }
+            var isGroupAddField = true;
+            var isGroupAddFieldProvider = diymemexp as SelectGroupingProvider;
+            if (isGroupAddFieldProvider?._addFieldAlias == true)
+            {
+                switch (exp.NodeType)
+                {
+                    case ExpressionType.Conditional:
+                    case ExpressionType.Call:
+                        isGroupAddField = false;
+                        isGroupAddFieldProvider._addFieldAlias = false;
+                        break;
+                }
+            }
 
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter, dbParams = select?._params }; //#462 添加 DbParams 解决
             switch (exp.NodeType)
@@ -542,6 +555,7 @@ namespace FreeSql.Internal
             field.Append(", ").Append(parent.DbField);
             LocalSetFieldAlias(ref index, false);
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
+            if (isGroupAddField == false && isGroupAddFieldProvider != null) isGroupAddFieldProvider._addFieldAlias = true;
             return false;
         }
         public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue, int rowIndex,
