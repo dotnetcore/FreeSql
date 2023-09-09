@@ -600,6 +600,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.GlobalFilter.Apply<User1>("test01", a => a.IsDeleted == false);
+
             var updatejoin031sql = fsql.Update<User1>()
                 .Join<UserGroup>((a, b) => a.GroupId == b.Id)
                 .Set((a, b) => b.GroupName == a.Username + "b.groupname")

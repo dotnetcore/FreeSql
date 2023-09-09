@@ -279,6 +279,7 @@ namespace FreeSql.Internal.CommonProvider
         public string ToSql()
         {
             _updateProvider._interceptSql = InterceptSql;
+            _updateProvider._tableAlias = _query2Provider._tables[0].Alias;
             try
             {
                 return _update.ToSql();
@@ -286,11 +287,13 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 _updateProvider._interceptSql = null;
+                _updateProvider._tableAlias = null;
             }
         }
         public int ExecuteAffrows()
         {
             _updateProvider._interceptSql = InterceptSql;
+            _updateProvider._tableAlias = _query2Provider._tables[0].Alias;
             try
             {
                 return _update.ExecuteAffrows();
@@ -298,6 +301,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 _updateProvider._interceptSql = null;
+                _updateProvider._tableAlias = null;
             }
         }
 #if net40
@@ -305,6 +309,7 @@ namespace FreeSql.Internal.CommonProvider
         async public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             _updateProvider._interceptSql = InterceptSql;
+            _updateProvider._tableAlias = _query2Provider._tables[0].Alias;
             try
             {
                 return await _update.ExecuteAffrowsAsync(cancellationToken);
@@ -312,6 +317,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 _updateProvider._interceptSql = null;
+                _updateProvider._tableAlias = null;
             }
         }
 #endif

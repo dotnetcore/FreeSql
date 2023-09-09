@@ -37,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
+        public string _tableAlias;
         public object _updateVersionValue;
         public bool _isAutoSyncStructure;
 
@@ -214,6 +215,7 @@ namespace FreeSql.Internal.CommonProvider
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
             _batchProgress = null;
             _interceptSql = null;
+            _tableAlias = null;
             _versionColumn = _table?.VersionColumn;
             _ignoreVersion = false;
         }
@@ -1234,21 +1236,41 @@ namespace FreeSql.Internal.CommonProvider
 
         public virtual void ToSqlWhere(StringBuilder sb)
         {
+            var andTimes = 0;
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
             {
                 if (_tempPrimarys.Any() == false) throw new ArgumentException(CoreStrings.NoPrimaryKey_UseSetDto(_table.Type.DisplayCsharp()));
                 sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
+                andTimes++;
             }
-
-            if (_where.Length > 0)
-                sb.Append(_source.Any() ? _where.ToString() : _where.ToString().Substring(5));
 
             if (_whereGlobalFilter.Any())
             {
-                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter, false);
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table, Alias = _tableAlias }, _whereGlobalFilter.Where(a => a.Before == true), false);
                 if (string.IsNullOrEmpty(globalFilterCondi) == false)
-                    sb.Append(" AND ").Append(globalFilterCondi);
+                {
+                    if (andTimes > 0) sb.Append(" AND ");
+                    sb.Append(globalFilterCondi);
+                    andTimes++;
+                }
+            }
+
+            if (_where.Length > 0)
+            {
+                sb.Append(andTimes > 0 ? _where.ToString() : _where.ToString().Substring(5));
+                andTimes++;
+            }
+
+            if (_whereGlobalFilter.Any())
+            {
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table, Alias = _tableAlias }, _whereGlobalFilter.Where(a => a.Before == false), false);
+                if (string.IsNullOrEmpty(globalFilterCondi) == false)
+                {
+                    if (andTimes > 0) sb.Append(" AND ");
+                    sb.Append(globalFilterCondi);
+                    andTimes++;
+                }
             }
 
             if (_versionColumn != null)
