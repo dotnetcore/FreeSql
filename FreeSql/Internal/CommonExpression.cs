@@ -842,10 +842,16 @@ namespace FreeSql.Internal
                             (int)(rightExp as ConstantExpression).Value == 0)
                             return ExpressionBinary(oper, leftExpCall.Arguments[0], leftExpCall.Arguments[1], tsc);
                     }
-                    var exptb = _common.GetTableByEntity(leftExp.Type);
-                    if (exptb?.Properties.Any() == true) leftExp = Expression.MakeMemberAccess(leftExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value)?.CsName]);
-                    exptb = _common.GetTableByEntity(leftExp.Type);
-                    if (exptb?.Properties.Any() == true) rightExp = Expression.MakeMemberAccess(rightExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value).CsName]);
+                    if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(leftExp.Type) == false && Utils.TypeHandlers.ContainsKey(leftExp.Type) == false)
+                    {
+                        var exptb = _common.GetTableByEntity(leftExp.Type);
+                        if (exptb?.Properties.Any() == true) leftExp = Expression.MakeMemberAccess(leftExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value)?.CsName]);
+                    }
+                    if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(rightExp.Type) == false && Utils.TypeHandlers.ContainsKey(rightExp.Type) == false)
+                    {
+                        var exptb = _common.GetTableByEntity(rightExp.Type);
+                        if (exptb?.Properties.Any() == true) rightExp = Expression.MakeMemberAccess(rightExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value).CsName]);
+                    }
                     break;
             }
 
