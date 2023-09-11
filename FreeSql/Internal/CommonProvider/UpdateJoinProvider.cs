@@ -45,9 +45,20 @@ namespace FreeSql.Internal.CommonProvider
             _query2Provider = _query2 as Select2Provider<T1, T2>;
 
             _query2Provider._where.Clear();
+
+            var t2globalFilterBefore = _commonExpression.GetWhereCascadeSql(_query2Provider._tables[1], _updateProvider._whereGlobalFilter.Where(a => a.Before == true), true);
+            if (string.IsNullOrWhiteSpace(t2globalFilterBefore) == false)
+                _query2Provider._where.Append(" AND ").Append(t2globalFilterBefore);
+
             _query2.Where(on);
+
+            var t2globalFilter = _commonExpression.GetWhereCascadeSql(_query2Provider._tables[1], _updateProvider._whereGlobalFilter.Where(a => a.Before == false), true);
+            if (string.IsNullOrWhiteSpace(t2globalFilter) == false)
+                _query2Provider._where.Append(" AND ").Append(t2globalFilter);
+
             _joinOn = _query2Provider._where.ToString();
             if (_joinOn.StartsWith(" AND ")) _joinOn = _joinOn.Substring(5);
+            _query2Provider._where.Clear();
 
             _updateProvider.Where("1=1");
         }
