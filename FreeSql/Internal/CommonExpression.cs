@@ -947,6 +947,7 @@ namespace FreeSql.Internal
                 case "OR":
                     if (leftMapColumn != null) left = $"{left} = {formatSql(true, null, null, null)}";
                     else left = GetBoolString(left);
+                    if (rightMapColumn == null) rightMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, right);
                     if (rightMapColumn != null) right = $"{right} = {formatSql(true, null, null, null)}";
                     else right = GetBoolString(right);
                     break;
