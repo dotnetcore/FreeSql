@@ -824,6 +824,7 @@ namespace FreeSql.Internal
                         var rightBool = ExpressionLambdaToSql(rightExp, tsc);
                         if (SearchColumnByField(tsc._tables, tsc.currentTable, rightBool) != null) rightBool = $"{rightBool} = {formatSql(true, null, null, null)}";
                         else rightBool = GetBoolString(rightBool);
+                        if (_common._orm?.Ado?.DataType == DataType.QuestDb) return $"(({leftBool}) {oper} ({rightBool}))";
                         return $"({leftBool} {oper} {rightBool})";
                     }
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
