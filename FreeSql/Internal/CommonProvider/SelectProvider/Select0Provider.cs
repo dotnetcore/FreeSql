@@ -694,7 +694,11 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect OrderBy(bool condition, string sql, object parms = null)
         {
             if (condition == false) return this as TSelect;
-            if (string.IsNullOrEmpty(sql)) _orderby = null;
+            if (string.IsNullOrEmpty(sql))
+            {
+                _orderby = null;
+                return this as TSelect;
+            }
             var isnull = string.IsNullOrEmpty(_orderby);
             _orderby = string.Concat(isnull ? " \r\nORDER BY " : "", _orderby, isnull ? "" : ", ", sql);
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
@@ -1264,6 +1268,11 @@ namespace FreeSql.Internal.CommonProvider
                     _tables[a].Parameter = lambdaExp.Parameters[a];
             }
             var parser = new WithTempQueryParser(this, null, selector, ret._tables[0]);
+            if (this._select.StartsWith("WITH "))
+            {
+                ret._select = this._select;
+                this._select = "SELECT ";
+            }
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
