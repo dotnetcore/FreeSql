@@ -91,14 +91,17 @@ namespace FreeSql.QuestDb
                 if (tb == null) throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.entityType.FullName));
                 if (tb.Columns.Any() == false)
                     throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.entityType.FullName));
-                var tbnameArray = _commonUtils.SplitTableName(tb.DbName);
-                var tbname = string.Empty;
-                if (tbnameArray?.Length == 1) tbname = tbnameArray.FirstOrDefault();
-
-                var tboldnameArray = _commonUtils.SplitTableName(tb.DbOldName);
-                var tboldname = string.Empty;
-                if (tboldnameArray?.Length == 1)
-                    tboldname = tboldnameArray.FirstOrDefault();
+                var tbname = tb.DbName;
+                var tboldname = tb.DbOldName;
+                if (string.IsNullOrEmpty(obj.tableName) == false)
+                {
+                    var tbtmpname = obj.tableName;
+                    if (tbname != tbtmpname)
+                    {
+                        tbname = tbtmpname;
+                        tboldname = null;
+                    }
+                }
 
                 var sbalter = new StringBuilder();
                 var allTable = _orm.Ado.Query<string>(CommandType.Text,
