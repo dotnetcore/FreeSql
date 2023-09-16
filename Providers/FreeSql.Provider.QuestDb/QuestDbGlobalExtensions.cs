@@ -171,7 +171,7 @@ public static partial class QuestDbGlobalExtensions
             var boundary = "---------------" + DateTime.Now.Ticks.ToString("x");
             var list = new List<Hashtable>();
             var insert = that as QuestDbInsert<T>;
-            var name = insert.InternalTable.DbName;  //获取表名
+            var name = insert.InternalTableRuleInvoke();  //获取表名
             insert.InternalOrm.DbFirst.GetTableByName(name).Columns.ForEach(d =>
             {
                 if (d.DbTypeText == "TIMESTAMP")

@@ -30,6 +30,7 @@ namespace FreeSql.QuestDb.Curd
         internal List<T1> InternalSource => _source;
         internal Dictionary<string, bool> InternalIgnore => _ignore;
         internal void InternalClearData() => ClearData();
+        internal string InternalTableRuleInvoke() => TableRuleInvoke();
 
         private int InternelExecuteAffrows()
         {
