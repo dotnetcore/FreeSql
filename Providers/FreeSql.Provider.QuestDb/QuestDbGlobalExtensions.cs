@@ -197,7 +197,7 @@ public static partial class QuestDbGlobalExtensions
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.CurrentCulture))
             {
-                csv.WriteRecords(insert._source);
+                await csv.WriteRecordsAsync(insert._source);
             }
 
             var httpContent = new MultipartFormDataContent(boundary);
