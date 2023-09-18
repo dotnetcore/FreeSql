@@ -154,8 +154,9 @@ public static partial class QuestDbGlobalExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="that"></param>
+    /// <param name="dateFormat">导入时，时间格式 默认:yyyy/M/d H:mm:ss</param>
     /// <returns></returns>
-    public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that) where T : class
+    public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that,string dateFormat = "yyyy/M/d H:mm:ss") where T : class
     {
         //思路：通过提供的RestAPI imp，实现快速复制
         if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
@@ -180,7 +181,7 @@ public static partial class QuestDbGlobalExtensions
                     {
                         { "name", d.Name },
                         { "type", d.DbTypeText },
-                        { "pattern", "yyyy/M/d H:mm:ss" }
+                        { "pattern", dateFormat}
                     });
                 }
                 else
@@ -249,10 +250,11 @@ public static partial class QuestDbGlobalExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="insert"></param>
+    /// <param name="dateFormat">导入时，时间格式 默认:yyyy/M/d H:mm:ss</param>
     /// <returns></returns>
-    public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
+    public static int ExecuteBulkCopy<T>(this IInsert<T> insert,string dateFormat = "yyyy/M/d H:mm:ss") where T : class
     {
-        return ExecuteBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
+        return ExecuteBulkCopyAsync(insert,dateFormat).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }
 
