@@ -213,7 +213,6 @@ public static partial class QuestDbGlobalExtensions
                 await client.PostAsync($"{RestAPIExtension.BaseUrl}/imp?name={name}", httpContent);
             var readAsStringAsync = await httpResponseMessage.Content.ReadAsStringAsync();
             var splitByLine = SplitByLine(readAsStringAsync);
-            //Console.WriteLine(readAsStringAsync);
             foreach (var s in splitByLine)
             {
                 if (s.Contains("Rows"))
@@ -236,7 +235,10 @@ public static partial class QuestDbGlobalExtensions
             {
                 File.Delete(filePath);
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
         }
 
         return result;
@@ -246,7 +248,7 @@ public static partial class QuestDbGlobalExtensions
     /// 批量快速插入
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="that"></param>
+    /// <param name="insert"></param>
     /// <returns></returns>
     public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
     {
@@ -340,7 +342,7 @@ static class RestAPIExtension
             var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
             authorization = $"Basic {base64}";
         }
-        //RESTAPI需要无参数
+        //RestApi需要无参数
         buider.UseNoneCommandParameter(true);
         return buider;
     }
