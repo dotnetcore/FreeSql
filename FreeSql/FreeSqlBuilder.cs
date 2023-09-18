@@ -194,7 +194,7 @@ namespace FreeSql
         }
 
         /// <summary>
-        /// 指定映射优先级<para></para>
+        /// 指定映射优先级（从小到大）<para></para>
         /// 例如表名：实体类名 &lt; Aop &lt; FluentApi &lt; Attribute &lt; AsTable<para></para>
         /// 事件 Aop -------> fsql.Aop.ConfigEntity/fsql.Aop.ConfigEntityProperty<para></para>
         /// 方法 FluentApi -> fsql.CodeFirst.ConfigEntity/fsql.CodeFirst.Entity<para></para>
