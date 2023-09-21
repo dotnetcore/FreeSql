@@ -258,9 +258,14 @@ namespace FreeSql.Internal
                                 commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
                                 commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
                             }
+                            //https://github.com/dotnetcore/FreeSql/issues/1604 mysql 不支持默认值 utc_timestamp DDL
+                            if (colattr.ServerTime == DateTimeKind.Local)
+                                col.DbDefaultValue = commonNow;
+                            break;
+                        default:
+                            col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                             break;
                     }
-                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                     col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                 }
