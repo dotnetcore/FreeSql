@@ -28,7 +28,6 @@ namespace FreeSql.Internal
         {
             get
             {
-
                 if (ChacheTableEntityFactory != null)
                 {
                     return ChacheTableEntityFactory.Invoke();
