@@ -23,7 +23,7 @@ namespace FreeSql.Internal
         /// 用于解决多实例情况下的静态集合缓存问题
         /// </summary>
         public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
-        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity;
+        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
         public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity
         {
             get
@@ -32,7 +32,6 @@ namespace FreeSql.Internal
                 {
                     return ChacheTableEntityFactory.Invoke();
                 }
-                __cacheGetTableByEntity ??= new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
                 return __cacheGetTableByEntity;
             }
         }
