@@ -19,8 +19,10 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
-
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity
+        {
+            get; set;
+        } = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
@@ -534,7 +536,7 @@ namespace FreeSql.Internal
             {
                 col.Attribute.IsNullable = false;
                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-                switch(common._orm.Ado.DataType)
+                switch (common._orm.Ado.DataType)
                 {
                     case DataType.Sqlite:
                         col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
