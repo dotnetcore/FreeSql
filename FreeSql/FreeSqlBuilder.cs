@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using System.Runtime;
 using FreeSql.Internal.Model.Interface;
 using System.Threading;
+using FreeSql.Internal.Model;
 
 namespace FreeSql
 {
@@ -50,6 +51,18 @@ namespace FreeSql
             _providerType = providerType;
             return this;
         }
+
+        /// <summary>
+        /// 用于指定自定义实现TableEntiy 的缓存集合
+        /// 解决多实例下相同类型映射到不同表的问题
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseCustomTableEntityCacheFactory(Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> factory)
+        {
+            Utils.ChacheTableEntityFactory = factory;
+            return this;
+        }
         /// <summary>
         /// 使用原始连接池（ado.net、odbc、oledb）<para></para>
         /// 默认：false<para></para>
@@ -63,7 +76,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseAdoConnectionPool(bool value)
         {
-            _isAdoConnectionPool = value ;
+            _isAdoConnectionPool = value;
             return this;
         }
         /// <summary>
@@ -577,7 +590,8 @@ namespace FreeSql
             {
                 FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type2) =>
                 {
-                    if (FreeSql.Internal.Utils.TypeHandlers.TryGetValue(type2, out var typeHandler)) {
+                    if (FreeSql.Internal.Utils.TypeHandlers.TryGetValue(type2, out var typeHandler))
+                    {
                         var valueExpRet = Expression.Call(
                             Expression.Constant(typeHandler, typeof(ITypeHandler)),
                             typeof(ITypeHandler).GetMethod(nameof(typeHandler.Deserialize)),
