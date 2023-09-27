@@ -24,17 +24,7 @@ namespace FreeSql.Internal
         /// </summary>
         public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
         private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
-        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity
-        {
-            get
-            {
-                if (ChacheTableEntityFactory != null)
-                {
-                    return ChacheTableEntityFactory.Invoke();
-                }
-                return __cacheGetTableByEntity;
-            }
-        }
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity => ChacheTableEntityFactory?.Invoke() ?? __cacheGetTableByEntity;
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
