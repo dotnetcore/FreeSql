@@ -19,8 +19,22 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
-
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        /// <summary>
+        /// 用于解决多实例情况下的静态集合缓存问题
+        /// </summary>
+        public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
+        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity
+        {
+            get
+            {
+                if (ChacheTableEntityFactory != null)
+                {
+                    return ChacheTableEntityFactory.Invoke();
+                }
+                return __cacheGetTableByEntity;
+            }
+        }
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
@@ -534,7 +548,7 @@ namespace FreeSql.Internal
             {
                 col.Attribute.IsNullable = false;
                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-                switch(common._orm.Ado.DataType)
+                switch (common._orm.Ado.DataType)
                 {
                     case DataType.Sqlite:
                         col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
@@ -1780,16 +1794,16 @@ namespace FreeSql.Internal
                                         Expression.IfThenElse(Expression.Equal(read2ExpValue, Expression.Constant(null)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Default(field.FieldType)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Convert(read2ExpValue, field.FieldType)))
-								    //), 
-								    //Expression.Catch(typeof(Exception), Expression.Block(
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
-								    //	)
-								    //))
-							    });
+                                    //), 
+                                    //Expression.Catch(typeof(Exception), Expression.Block(
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
+                                    //	)
+                                    //))
+                                });
                             }
                             block2Exp.AddRange(new Expression[] {
                                 Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, Expression.Convert(ret2Exp, typeof(object)), dataIndexExp)),
