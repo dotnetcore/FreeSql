@@ -438,7 +438,7 @@ namespace FreeSql
 
             if (data?.Count > 0)
             {
-                if (cuig.Length == _table.Columns.Count - _table.Primarys.Length)
+                if (cuig.Length >= _table.Columns.Count - _table.Primarys.Length)
                     return ups.Length == data.Count ? -998 : -997;
 
                 var update = this.OrmUpdate(data.Select(a => a.Value)).IgnoreColumns(cuig);
