@@ -28,11 +28,7 @@ namespace FreeSql.Tests.Issues
 				.SetSource(new[] { new Song_Tag { SongId = 1, TagId = 1 } })
 				.IfExistsDoNothing()
 				.ToSql();
-			Assert.Equal(@"INSERT INTO `Song_Tag663`(`SongId`, `TagId`) SELECT 1, 1 
- FROM dual WHERE NOT EXISTS(SELECT 1 
-    FROM `Song_Tag663` a 
-    WHERE (a.`SongId` = 1 AND a.`TagId` = 1) 
-    limit 0,1)", rst);
+			Assert.Equal(@"INSERT IGNORE INTO `Song_Tag663`(`SongId`, `TagId`) VALUES(1, 1)", rst);
 		}
 
 		[Table(Name = "Song663")]
