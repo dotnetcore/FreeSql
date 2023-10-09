@@ -509,10 +509,6 @@ namespace FreeSql.Internal
                 });
             }
             trytb.Indexes = indexesDict.Values.ToArray();
-            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
-                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
-                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
-            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
 
             trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
             if (trytb.Primarys.Any() == false)
@@ -547,6 +543,7 @@ namespace FreeSql.Internal
             }
             foreach (var col in trytb.Columns.Values)
             {
+                if (col.Attribute.IsPrimary == false && col.Attribute.IsIdentity) col.Attribute.CanUpdate = false;
                 var ltp = @"\(([^\)]+)\)";
                 col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
                 var m = Regex.Match(col.Attribute.DbType, ltp);
@@ -582,6 +579,10 @@ namespace FreeSql.Internal
                 }
             }
             trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
+            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
+                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
+                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
