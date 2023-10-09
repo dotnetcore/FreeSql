@@ -2447,6 +2447,14 @@ namespace FreeSql.Internal
                            );
                         break;
                     case "System.DateTime":
+                        if (TypeHandlers.ContainsKey(type))
+                        {
+                            foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
+                            {
+                                var switchFuncRet = switchFunc(returnTarget, valueExp, type);
+                                if (switchFuncRet != null) return switchFuncRet;
+                            }
+                        }
                         tryparseExp = Expression.Block(
                               new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
                                new Expression[] {

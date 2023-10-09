@@ -612,9 +612,10 @@ namespace FreeSql
                 {
                     if (e.Property.PropertyType == typeHandler.Type)
                     {
-                        if (_dicTypeHandlerTypes.ContainsKey(e.Property.PropertyType) == false &&
+                        if (_dicTypeHandlerTypes.ContainsKey(e.Property.PropertyType)) return;
+                        if (e.Property.PropertyType.NullableTypeOrThis() != typeof(DateTime) &&
                             FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
-                            return; //基础类型无效
+                            return; //基础类型无效，DateTime 除外
 
                         if (_dicTypeHandlerTypes.TryAdd(e.Property.PropertyType, true))
                         {
