@@ -29,7 +29,8 @@ namespace FreeSql
                     break;
                 case "SqlConnection":
                     providerType = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("SqlServer"));
+                    if (providerType == null) providerType = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServerForSystem")?.MakeGenericType(connType);
+                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("SqlServer/SqlServerForSystem"));
                     break;
                 case "NpgsqlConnection":
                     providerType = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(connType);
@@ -42,6 +43,7 @@ namespace FreeSql
                 case "SQLiteConnection":
                 case "SqliteConnection":
                     providerType = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(connType);
+                    if (providerType == null) providerType = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.SqliteCore")?.MakeGenericType(connType); //Microsoft.Data.Sqlite.Core.dll
                     if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Sqlite/SqliteCore"));
                     break;
                 case "DmConnection":
