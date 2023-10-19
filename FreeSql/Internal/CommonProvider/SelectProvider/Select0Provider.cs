@@ -40,7 +40,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         public List<Func<object, CancellationToken, Task>> _includeToListAsync = new List<Func<object, CancellationToken, Task>>();
 #endif
-        public Dictionary<string, MemberExpression[]> _includeInfo = new Dictionary<string, MemberExpression[]>();
+        public Dictionary<string, NativeTuple<MemberExpression[], TableRef>> _includeInfo = new Dictionary<string, NativeTuple<MemberExpression[], TableRef>>();
         public bool _distinct;
         public Expression _selectExpression;
         public List<GlobalFilter.Item> _whereGlobalFilter;
