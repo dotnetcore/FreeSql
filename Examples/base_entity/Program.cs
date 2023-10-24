@@ -601,8 +601,8 @@ namespace base_entity
             #endregion
 
             var updatejoin031sql = fsql.Update<User1>()
-                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
-                .AsTable("t1", "t2")
+                .Join<UserGroup>(fsql.Select<UserGroup>().Where(a => a.GroupName == "xxx"), (a, b) => a.GroupId == b.Id)
+                .AsTable("t1", null)
                 .Set((a, b) => b.GroupName == a.Username + "b.groupname")
                 .ToSql();
 
