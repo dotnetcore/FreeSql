@@ -3412,11 +3412,12 @@
             <param name="name">零个或多个过滤器名字</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IUpdateJoin`2.AsTable(System.String)">
+        <member name="M:FreeSql.IUpdateJoin`2.AsTable(System.String,System.String)">
             <summary>
             设置表名
             </summary>
             <param name="tableName"></param>
+            <param name="joinTableName"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdateJoin`2.ToSql">

@@ -98,9 +98,15 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         #region proxy IUpdate
-        public IUpdateJoin<T1, T2> AsTable(string tableName)
+        public IUpdateJoin<T1, T2> AsTable(string tableName, string joinTableName)
         {
             _update.AsTable(tableName);
+            _query2Provider._tableRules.Clear();
+            _query2Provider._tableRules.Add((t, old) =>
+            {
+                if (t == typeof(T2)) return joinTableName;
+                return old;
+            });
             return this;
         }
         public IUpdateJoin<T1, T2> WithConnection(DbConnection connection)
