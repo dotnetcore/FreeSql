@@ -92,7 +92,7 @@ namespace FreeSql.Xugu
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value != null) value = getParamterValue(type, value);
-            var ret = new XGParameters { ParameterName = QuoteParamterName(parameterName), Value = value };
+            var ret = new XGParameters { ParameterName = parameterName, Value = value };
       
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type; 
             if (col != null)
@@ -112,7 +112,7 @@ namespace FreeSql.Xugu
             Utils.GetDbParamtersByObject<XGParameters>(sql, obj, ":", (name, type, value) =>
             {
                 if (value != null) value = getParamterValue(type, value);
-                var ret = new XGParameters { ParameterName = $":{name}", Value = value };
+                var ret = new XGParameters { ParameterName = name, Value = value };
              
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                
