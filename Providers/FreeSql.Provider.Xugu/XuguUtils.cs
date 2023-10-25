@@ -109,10 +109,10 @@ namespace FreeSql.Xugu
         }
 
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
-            Utils.GetDbParamtersByObject<XGParameters>(sql, obj, "@", (name, type, value) =>
+            Utils.GetDbParamtersByObject<XGParameters>(sql, obj, ":", (name, type, value) =>
             {
                 if (value != null) value = getParamterValue(type, value);
-                var ret = new XGParameters { ParameterName = $"@{name}", Value = value };
+                var ret = new XGParameters { ParameterName = $":{name}", Value = value };
              
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                
