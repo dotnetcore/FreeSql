@@ -169,6 +169,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdateJoin<T1, T2> Set(Expression<Func<T1, T2, bool>> exp) => SetIf(true, exp);
         public IUpdateJoin<T1, T2> SetIf(bool condition, Expression<Func<T1, T2, bool>> exp)
         {
+            if (condition == false) return this;
             var body = exp?.Body;
             var nodeType = body?.NodeType;
             if (nodeType == ExpressionType.Convert)
