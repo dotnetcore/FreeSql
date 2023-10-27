@@ -600,7 +600,7 @@ namespace FreeSql.Internal.CommonProvider
                                 var name = dr.GetName(a);
                                 //expando[name] = row2.GetValue(a);
                                 if (expandodic.ContainsKey(name)) continue;
-                                expandodic.Add(name, Utils.InternalDataReaderGetValue(_commonUtils, dr, a));
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(_commonUtils, dr, a, null));
                             }
                             //expando = expandodic;
                             return (T1)((object)expandodic);
@@ -682,8 +682,7 @@ namespace FreeSql.Internal.CommonProvider
                     var propGetSetMethod = prop.GetSetMethod(true);
                     Expression readExpAssign = null; //加速缓存
                     if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp })),
-                        //Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) })),
                         Expression.Add(dataIndexExp, Expression.Constant(1))
                     );
                     else
@@ -692,8 +691,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
                         if (proptypeGeneric.IsEnum ||
                             Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp })),
-                                //Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) })),
                                 Expression.Add(dataIndexExp, Expression.Constant(1))
                         );
                         else
@@ -739,7 +737,8 @@ namespace FreeSql.Internal.CommonProvider
                     foreach (var col in tb.Table.Columns.Values)
                     {
                         var drvalType = col.Attribute.MapType.NullableTypeOrThis();
-                        var propGetSetMethod = tb.Table.Properties[col.CsName].GetSetMethod(true);
+                        var colprop = tb.Table.Properties[col.CsName];
+                        var propGetSetMethod = colprop.GetSetMethod(true);
                         if (col.CsType == col.Attribute.MapType &&
                             _orm.Aop.AuditDataReaderHandler == null &&
                             _dicMethodDataReaderGetValue.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drGetValueMethod))
@@ -755,7 +754,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var drvalExpCatch = Utils.GetDataReaderValueBlockExpression(
                                     col.CsType,
-                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx) })
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) })
                                 );
                                 blockExp.Add(Expression.TryCatch(
                                     Expression.Call(retExp, propGetSetMethod, drvalExp),
@@ -780,7 +779,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var drvalExp = Utils.GetDataReaderValueBlockExpression(
                                     col.CsType,
-                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx) })
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) })
                                 );
                                 blockExp.Add(Expression.Call(retExp, propGetSetMethod, Expression.Convert(drvalExp, col.CsType)));
                             }

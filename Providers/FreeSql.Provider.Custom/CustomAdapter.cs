@@ -51,6 +51,9 @@ namespace FreeSql.Custom
         {
             if (value == null) return "NULL";
             if (value.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+
+            if (value is DateTime && Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(value)?.ToString();
+            if (value is DateTime? && Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler2)) return typeHandler2.Serialize(value)?.ToString();
             return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");
         }
         public virtual string TimeSpanRawSql(object value) => value == null ? "NULL" : ((TimeSpan)value).TotalSeconds.ToString();

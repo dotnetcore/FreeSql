@@ -70,7 +70,7 @@ namespace FreeSql.Xugu
                 case "VARCHAR": ret = XGDbType.VarChar; break;
                 case "CLOB": ret = XGDbType.LongVarChar; break;
 
-                //case "timestamp": ret = XGDbType.DateTime; break;
+                case "DATETIME": ret = XGDbType.DateTime; break;
                 //case "timestamptz": ret = XGDbType.DateTime; break;
                 //case "date": ret = XGDbType.Date; break;
                 //case "time": ret = XGDbType.Time; break;
@@ -78,7 +78,7 @@ namespace FreeSql.Xugu
                 //case "interval": ret = XGDbType.Interval; break;
 
                 case "BOOLEAN": ret = XGDbType.Bool; break;
-                //case "bytea": ret = XGDbType.Bytea; break;
+                case "BLOB": ret = XGDbType.LongVarBinary; break;
                 //case "bit": ret = XGDbType.Bool; break;
                 //case "varbit": ret = XGDbType.Varbit; break;
 

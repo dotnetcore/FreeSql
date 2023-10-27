@@ -100,8 +100,16 @@ namespace FreeSql.GBase
                 var ts = (TimeSpan)value;
                 return $"interval({ts.Days} {ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}) day(9) to fraction";
             }
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(DateTime))
             {
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(value)?.ToString();
+                if (col?.DbPrecision > 0)
+                    return string.Concat("'", ((DateTime)value).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(col.DbPrecision, 'f')}"), "'");
+                return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+            }
+            if (type == typeof(DateTime?))
+            {
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(value)?.ToString();
                 if (col?.DbPrecision > 0)
                     return string.Concat("'", ((DateTime)value).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(col.DbPrecision, 'f')}"), "'");
                 return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");

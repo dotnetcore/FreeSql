@@ -49,11 +49,20 @@ namespace FreeSql.Custom.SqlServer
                 return ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
-            else if (param is DateTime || param is DateTime?)
+
+            else if (param is DateTime)
             {
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(param);
                 if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
             }
+            else if (param is DateTime?)
+            {
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(param);
+                if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
+                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
+            }
+
             else if (param is DateTimeOffset || param is DateTimeOffset?)
             {
                 if (param.Equals(DateTimeOffset.MinValue) == true) param = new DateTimeOffset(new DateTime(1970, 1, 1), TimeSpan.Zero);

@@ -22,39 +22,35 @@ namespace FreeSql.Xugu
         }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, CsToDb<XGDbType>> _dicCsToDb = new Dictionary<string, CsToDb<XGDbType>>() {
+        static Dictionary<Type, CsToDb<XGDbType>> _dicCsToDb = new Dictionary<Type, CsToDb<XGDbType>>() {
 
-                { 
-                    typeof(byte).FullName, 
-                    CsToDb.New(XGDbType.SmallInt, "TINYINT","TINYINT NOT NULL", false, false, 0) 
-                },
-
-                { typeof(byte?).FullName, CsToDb.New(XGDbType.SmallInt, "TINYINT", "TINYINT", false, true, null) },
-                { typeof(short).FullName, CsToDb.New(XGDbType.SmallInt, "SMALLINT","SMALLINT NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(XGDbType.SmallInt, "SMALLINT", "SMALLINT", false, true, null) },
-                { typeof(int).FullName, CsToDb.New(XGDbType.Int, "INTEGER","INTEGER NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(XGDbType.Int, "INTEGER", "INTEGER", false, true, null) },
-                { typeof(long).FullName, CsToDb.New(XGDbType.BigInt, "BIGINT","BIGINT NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(XGDbType.BigInt, "BIGINT", "BIGINT", false, true, null) },
+                { typeof(byte), CsToDb.New(XGDbType.SmallInt, "TINYINT","TINYINT NOT NULL", false, false, 0) },
+                { typeof(byte?), CsToDb.New(XGDbType.SmallInt, "TINYINT", "TINYINT", false, true, null) },
+                { typeof(short), CsToDb.New(XGDbType.SmallInt, "SMALLINT","SMALLINT NOT NULL", false, false, 0) },{ typeof(short?), CsToDb.New(XGDbType.SmallInt, "SMALLINT", "SMALLINT", false, true, null) },
+                { typeof(int), CsToDb.New(XGDbType.Int, "INTEGER","INTEGER NOT NULL", false, false, 0) },{ typeof(int?), CsToDb.New(XGDbType.Int, "INTEGER", "INTEGER", false, true, null) },
+                { typeof(long), CsToDb.New(XGDbType.BigInt, "BIGINT","BIGINT NOT NULL", false, false, 0) },{ typeof(long?), CsToDb.New(XGDbType.BigInt, "BIGINT", "BIGINT", false, true, null) },
 
                  
-                { typeof(ushort).FullName, CsToDb.New(XGDbType.Int, "INT","INT NOT NULL", false, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(XGDbType.Int, "INT", "INT", false, true, null) },
-                { typeof(uint).FullName, CsToDb.New(XGDbType.BigInt, "BIGINT","BIGINT NOT NULL", false, false, 0) },{ typeof(uint?).FullName, CsToDb.New(XGDbType.BigInt, "BIGINT", "BIGINT", false, true, null) },
-                { typeof(ulong).FullName, CsToDb.New(XGDbType.Numeric, "NUMERIC","NUMERIC(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(20,0)", false, true, null) },
+                { typeof(ushort), CsToDb.New(XGDbType.Int, "INT","INT NOT NULL", false, false, 0) },{ typeof(ushort?), CsToDb.New(XGDbType.Int, "INT", "INT", false, true, null) },
+                { typeof(uint), CsToDb.New(XGDbType.BigInt, "BIGINT","BIGINT NOT NULL", false, false, 0) },{ typeof(uint?), CsToDb.New(XGDbType.BigInt, "BIGINT", "BIGINT", false, true, null) },
+                { typeof(ulong), CsToDb.New(XGDbType.Numeric, "NUMERIC","NUMERIC(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?), CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(20,0)", false, true, null) },
 
-                { typeof(float).FullName, CsToDb.New(XGDbType.Real, "FLOAT","FLOAT NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(XGDbType.Real, "FLOAT", "FLOAT", false, true, null) },
-                { typeof(double).FullName, CsToDb.New(XGDbType.Double, "DOUBLE","DOUBLE NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(XGDbType.Double, "DOUBLE", "DOUBLE", false, true, null) },
-                { typeof(decimal).FullName, CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(10,2)", false, true, null) },
+                { typeof(float), CsToDb.New(XGDbType.Real, "FLOAT","FLOAT NOT NULL", false, false, 0) },{ typeof(float?), CsToDb.New(XGDbType.Real, "FLOAT", "FLOAT", false, true, null) },
+                { typeof(double), CsToDb.New(XGDbType.Double, "DOUBLE","DOUBLE NOT NULL", false, false, 0) },{ typeof(double?), CsToDb.New(XGDbType.Double, "DOUBLE", "DOUBLE", false, true, null) },
+                { typeof(decimal), CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?), CsToDb.New(XGDbType.Numeric, "NUMERIC", "NUMERIC(10,2)", false, true, null) },
 
-                { typeof(string).FullName, CsToDb.New(XGDbType.VarChar, "VARCHAR", "VARCHAR(255)", false, null, "") },
+                { typeof(string), CsToDb.New(XGDbType.VarChar, "VARCHAR", "VARCHAR(255)", false, null, "") },
                
-                { typeof(char).FullName, CsToDb.New(XGDbType.Char, "CHAR", "CHAR(1)", false, null, '\0') },
+                { typeof(char), CsToDb.New(XGDbType.Char, "CHAR", "CHAR(1)", false, null, '\0') },
 
-                //{ typeof(TimeSpan).FullName, CsToDb.New(XGDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(XGDbType.Time, "time", "time",false, true, null) },
-                { typeof(DateTime).FullName, CsToDb.New(XGDbType.DateTime, "DATETIME", "DATETIME NOT NULL", false, false, new DateTime(1970,1,1)) },
-                { typeof(DateTime?).FullName, CsToDb.New(XGDbType.DateTime, "DATETIME", "DATETIME", false, true, null) },
+                //{ typeof(TimeSpan), CsToDb.New(XGDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?), CsToDb.New(XGDbType.Time, "time", "time",false, true, null) },
+                { typeof(DateTime), CsToDb.New(XGDbType.DateTime, "DATETIME", "DATETIME NOT NULL", false, false, new DateTime(1970,1,1)) },
+                { typeof(DateTime?), CsToDb.New(XGDbType.DateTime, "DATETIME", "DATETIME", false, true, null) },
 
-                { typeof(bool).FullName, CsToDb.New(XGDbType.Bool, "BOOLEAN","BOOLEAN NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(XGDbType.Bool, "BOOLEAN","BOOLEAN", null, true, null) },
+                { typeof(bool), CsToDb.New(XGDbType.Bool, "BOOLEAN","BOOLEAN NOT NULL", null, false, false) },{ typeof(bool?), CsToDb.New(XGDbType.Bool, "BOOLEAN","BOOLEAN", null, true, null) },
 
-                { typeof(byte[]).FullName, CsToDb.New(XGDbType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
-                 { typeof(Guid).FullName, CsToDb.New(XGDbType.Char, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(XGDbType.Char, "char", "char(36) NULL", false, true, null) },
+                { typeof(byte[]), CsToDb.New(XGDbType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
+                 { typeof(Guid), CsToDb.New(XGDbType.Char, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?), CsToDb.New(XGDbType.Char, "char", "char(36) NULL", false, true, null) },
 
                
 
@@ -65,9 +61,30 @@ namespace FreeSql.Xugu
 
         public override DbInfoResult GetDbInfo(Type type)
         {
-            _dicCsToDb.TryGetValue(type.FullName, out var info);
-            if (info == null) return null;
-            return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
+            if (_dicCsToDb.TryGetValue(type, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
+            if (type.IsArray) return null;
+            var enumType = type.IsEnum ? type : null;
+            if (enumType == null && type.IsNullableType())
+            {
+                var genericTypes = type.GetGenericArguments();
+                if (genericTypes.Length == 1 && genericTypes.First().IsEnum) enumType = genericTypes.First();
+            }
+            if (enumType != null)
+            {
+                var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
+                    CsToDb.New(_dicCsToDb[typeof(int)].type, "INT", $"INT{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(_dicCsToDb[typeof(long)].type, "BIGINT", $"BIGINT{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                if (_dicCsToDb.ContainsKey(type) == false)
+                {
+                    lock (_dicCsToDbLock)
+                    {
+                        if (_dicCsToDb.ContainsKey(type) == false)
+                            _dicCsToDb.Add(type, newItem);
+                    }
+                }
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
+            }
+            return null;
         }
         internal static string GetXuguSqlTypeFullName(object[] row)
         {

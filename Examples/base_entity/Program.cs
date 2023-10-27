@@ -600,14 +600,29 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var updatejoin031sql = fsql.Update<User1>()
+                .Join<UserGroup>(fsql.Select<UserGroup>().Where(a => a.GroupName == "xxx"), (a, b) => a.GroupId == b.Id)
+                .AsTable("t1", null)
+                .Set((a, b) => b.GroupName == a.Username + "b.groupname")
+                .ToSql();
+
+            fsql.CodeFirst.Entity<B11>(e =>
+            {
+                e.Help().Navigate(b => b.a, nameof(B11.Id));
+            });
+            fsql.CodeFirst.Entity<A11>(e => { });
+
+            var a11sql01 = fsql.Select<B11>().Where(a => a.Id == 1).ToSql(a => new { a.Name, AName = a.a.Name });
+
+            var risWorkListRepo = fsql.GetRepository<EBH_RisWorkList>();
+            risWorkListRepo.InsertOrUpdate(new EBH_RisWorkList
+            {
+                 RequisitionID = "xxx"
+            });
+
             var tqq01 = fsql.Select<User1>().Where(a => a.IsDeleted || a.IsDeleted || a.IsDeleted).ToSql();
 
             fsql.GlobalFilter.Apply<User1>("test01", a => a.IsDeleted == false);
-
-            var updatejoin031sql = fsql.Update<User1>()
-                .Join<UserGroup>((a, b) => a.GroupId == b.Id)
-                .Set((a, b) => b.GroupName == a.Username + "b.groupname")
-                .ToSql();
 
             fsql.UseJsonMap();
             fsql.Select<MiDevice>().Where(a => a.FormLocking == null).Count();
@@ -2678,4 +2693,261 @@ class FormLocking
 {
     public string Value { get; set; }
     public string Text { get; set; }
+}
+[JsonObject(MemberSerialization.OptIn), Table(Name = "RIS_WORKLIST")]
+public class EBH_RisWorkList
+{
+    [JsonProperty, Column(DbType = "varchar(64)", IsPrimary = true)]
+    public string RequisitionID { get; set; }
+
+    [JsonProperty, Column(Name = "accession_number", DbType = "varchar(32)")]
+    public string Accession_number { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string Address { get; set; }
+
+    [JsonProperty]
+    public int? AFCID { get; set; }
+
+    [JsonProperty, Column(IsIdentity = true)]
+    public int AutoIndex { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string Birthday { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(8)")]
+    public string BirthTime { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string CertificateID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(512)")]
+    public string CheckSTDescribed { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(2048)")]
+    public string ClinicDiagnose { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ClinicID { get; set; }
+
+    [JsonProperty]
+    public int? Confidentiality { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string CustomCheckNumber { get; set; }
+
+    [JsonProperty]
+    public int DepartmentID { get; set; }
+
+    [JsonProperty]
+    public int EmergencyID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string EndoscopyType { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string ExamBodyPart { get; set; }
+
+    [JsonProperty]
+    public int? ExamBodyPartNum { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ExamDate { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string ExamMethod { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ExamParameter { get; set; }
+
+    [JsonProperty, Column(Name = "exampath", DbType = "varchar(50)")]
+    public string Exampath { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ExamTime { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string FamilyTelephe { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(64)")]
+    public string FeeTypeName { get; set; }
+
+    [JsonProperty]
+    public int? FollowFlag { get; set; }
+
+    [JsonProperty]
+    public int? HaveImage { get; set; }
+
+    [JsonProperty]
+    public int? HaveRemark { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(50)")]
+    public string HospitalAreaName { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string HospitalID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ImageName { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string ImagePath { get; set; }
+
+    [JsonProperty, Column(Name = "imagequality", DbType = "varchar(32)")]
+    public string Imagequality { get; set; }
+
+    [JsonProperty]
+    public int? InAdvanceQueue { get; set; }
+
+    [JsonProperty]
+    public int? InDeedQueue { get; set; }
+
+    [JsonProperty, Column(Name = "isAddPatient", DbType = "varchar(2)")]
+    public string IsAddPatient { get; set; }
+
+    [JsonProperty, Column(Name = "isChangeDate", DbType = "varchar(2)")]
+    public string IsChangeDate { get; set; }
+
+    [JsonProperty, Column(Name = "isIBD", DbType = "varchar(2)")]
+    public string IsIBD { get; set; }
+
+    [JsonProperty]
+    public int? IsNotCallNumber { get; set; }
+
+    [JsonProperty]
+    public int? IsNotNOScreen { get; set; }
+
+    [JsonProperty, Column(Name = "isOverTime", DbType = "varchar(2)")]
+    public string IsOverTime { get; set; }
+
+    [JsonProperty]
+    public int? IsPaSSNumber { get; set; }
+
+    [JsonProperty, Column(Name = "isSEZCJ", DbType = "varchar(2)")]
+    public string IsSEZCJ { get; set; }
+
+    [JsonProperty]
+    public int IsSpePatientSign { get; set; }
+
+    [JsonProperty]
+    public int? IsTexu { get; set; }
+
+    [JsonProperty, Column(Name = "isZhiLiao", DbType = "varchar(2)")]
+    public string IsZhiLiao { get; set; }
+
+    [JsonProperty]
+    public DateTime? LastTryForImage { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string MedicalCardNumber { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(4096)")]
+    public string MedicalHistory { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string MIcardNumber { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ModalityAE { get; set; }
+
+    [JsonProperty]
+    public int? ModalityID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ModalityName { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ModalityRemark { get; set; }
+
+    [JsonProperty]
+    public int? ModalityRoomID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ModalityType { get; set; }
+
+    [JsonProperty]
+    public int? NurseStationFlag { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string PathologicID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string PatientID { get; set; }
+
+    [JsonProperty]
+    public int PatientTypeID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string PhysicalExamID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string PhysicianRequirements { get; set; }
+
+    [JsonProperty]
+    public int PrintFlag { get; set; }
+
+    [JsonProperty]
+    public int? PrintNoticeFlag { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string PTN_NAME { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string PY { get; set; }
+
+    [JsonProperty]
+    public int QueueStateID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(2048)")]
+    public string Remarks { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ReqDepartment { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ReqHospital { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string ReqPhysician { get; set; }
+
+    [JsonProperty]
+    public int? ResourceID { get; set; }
+
+    [JsonProperty]
+    public int? SendRepFlag { get; set; }
+
+    [JsonProperty, Column(Name = "SEX", DbType = "varchar(32)")]
+    public string Sex { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(50)")]
+    public string SickbedID { get; set; }
+
+    [JsonProperty]
+    public int? StateID { get; set; }
+
+    [JsonProperty]
+    public int? StationID { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(32)")]
+    public string Telephone { get; set; }
+
+    [JsonProperty]
+    public double? Weight { get; set; }
+
+    [JsonProperty, Column(DbType = "varchar(128)")]
+    public string WorkStationAddress { get; set; }
+
+
+}
+public class A11
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class B11
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public A11 a { get; set; }
 }

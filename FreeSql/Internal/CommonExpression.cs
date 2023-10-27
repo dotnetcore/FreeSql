@@ -570,7 +570,7 @@ namespace FreeSql.Internal
                         return Utils.GetDataReaderValue(parent.Property.PropertyType, null);
                     return Utils.GetDataReaderValue(parent.CsType, null);
                 }
-                object objval = Utils.InternalDataReaderGetValue(_common, dr, ++index); // dr.GetValue(++index);
+                object objval = Utils.InternalDataReaderGetValue(_common, dr, ++index, parent.Property); // dr.GetValue(++index);
                 if (dbValue != null) dbValue.DbValue = objval == DBNull.Value ? null : objval;
                 if (parent.CsType != parent.MapType)
                     objval = Utils.GetDataReaderValue(parent.MapType, objval);

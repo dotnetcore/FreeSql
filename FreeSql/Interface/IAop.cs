@@ -360,10 +360,11 @@ namespace FreeSql.Aop
     #region AuditDataReader
     public class AuditDataReaderEventArgs : EventArgs
     {
-        public AuditDataReaderEventArgs(DbDataReader dataReader, int index)
+        public AuditDataReaderEventArgs(DbDataReader dataReader, int index, PropertyInfo property)
         {
             this.DataReader = dataReader;
             this.Index = index;
+            this.Property = property;
         }
 
         /// <summary>
@@ -374,6 +375,10 @@ namespace FreeSql.Aop
         /// DataReader 对应的 Index 位置
         /// </summary>
         public int Index { get; }
+        /// <summary>
+        /// DataReader 对应的 PropertyInfo
+        /// </summary>
+        public PropertyInfo Property { get; }
         /// <summary>
         /// 获取 Index 对应的值，也可以设置拦截的新值
         /// </summary>

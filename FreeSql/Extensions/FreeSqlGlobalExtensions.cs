@@ -733,6 +733,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
         }
 
         var sql1ctePath = "";
+        string wct2ctePath = null;
         if (pathSelector != null)
         {
             select._tables[0].Parameter = pathSelector?.Parameters[0];
@@ -750,6 +751,13 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.Firebird:
                 case DataType.ClickHouse:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
+                    break;
+                case DataType.MySql:
+                case DataType.OdbcMySql:
+                case DataType.CustomMySql:
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
+                    sql1ctePath = $"CAST({sql1ctePath} as char(2000))";
+                    wct2ctePath = sql1ctePath;
                     break;
                 default:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
@@ -770,7 +778,8 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
         if (pathSelector != null)
         {
             select._tables[0].Parameter = pathSelector?.Parameters[0];
-            var wct2ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
+            if (wct2ctePath == null)
+                wct2ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
             sql2ctePath = select._commonUtils.StringConcat(
                 new string[] {
                     up == false ? "wct1.cte_path" : wct2ctePath,

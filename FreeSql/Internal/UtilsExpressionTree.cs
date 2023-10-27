@@ -19,8 +19,12 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
-
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        /// <summary>
+        /// 用于解决多实例情况下的静态集合缓存问题
+        /// </summary>
+        public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
+        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity => ChacheTableEntityFactory?.Invoke() ?? __cacheGetTableByEntity;
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
@@ -258,9 +262,14 @@ namespace FreeSql.Internal
                                 commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
                                 commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
                             }
+                            //https://github.com/dotnetcore/FreeSql/issues/1604 mysql 不支持默认值 utc_timestamp DDL
+                            if (colattr.ServerTime == DateTimeKind.Local)
+                                col.DbDefaultValue = commonNow;
+                            break;
+                        default:
+                            col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                             break;
                     }
-                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                     col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                 }
@@ -500,10 +509,6 @@ namespace FreeSql.Internal
                 });
             }
             trytb.Indexes = indexesDict.Values.ToArray();
-            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
-                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
-                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
-            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
 
             trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
             if (trytb.Primarys.Any() == false)
@@ -529,7 +534,7 @@ namespace FreeSql.Internal
             {
                 col.Attribute.IsNullable = false;
                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-                switch(common._orm.Ado.DataType)
+                switch (common._orm.Ado.DataType)
                 {
                     case DataType.Sqlite:
                         col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
@@ -538,6 +543,7 @@ namespace FreeSql.Internal
             }
             foreach (var col in trytb.Columns.Values)
             {
+                if (col.Attribute.IsPrimary == false && col.Attribute.IsIdentity) col.Attribute.CanUpdate = false;
                 var ltp = @"\(([^\)]+)\)";
                 col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
                 var m = Regex.Match(col.Attribute.DbType, ltp);
@@ -573,6 +579,10 @@ namespace FreeSql.Internal
                 }
             }
             trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
+            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
+                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
+                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
@@ -1673,12 +1683,12 @@ namespace FreeSql.Internal
         }
         internal static MethodInfo MethodDataReaderGetValue = typeof(Utils).GetMethod("InternalDataReaderGetValue", BindingFlags.Static | BindingFlags.NonPublic);
         internal static PropertyInfo PropertyDataReaderFieldCount = typeof(DbDataReader).GetProperty("FieldCount");
-        internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index)
+        internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index, PropertyInfo property)
         {
             var orm = commonUtil._orm;
             if (orm.Aop.AuditDataReaderHandler != null)
             {
-                var args = new Aop.AuditDataReaderEventArgs(dr, index);
+                var args = new Aop.AuditDataReaderEventArgs(dr, index, property);
                 orm.Aop.AuditDataReaderHandler(orm, args);
                 return args.Value;
             }
@@ -1715,8 +1725,7 @@ namespace FreeSql.Internal
 
                     if (type.IsArray) return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1726,8 +1735,7 @@ namespace FreeSql.Internal
                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
                         return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1747,8 +1755,7 @@ namespace FreeSql.Internal
                             {
                                 Expression read2ExpAssign = null; //加速缓存
                                 if (field.FieldType.IsArray) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                    //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                     Expression.Add(dataIndexExp, Expression.Constant(1))
                                 );
                                 else
@@ -1757,8 +1764,7 @@ namespace FreeSql.Internal
                                     if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GetGenericArguments().First();
                                     if (fieldtypeGeneric.IsEnum ||
                                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(fieldtypeGeneric)) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                             Expression.Add(dataIndexExp, Expression.Constant(1))
                                     );
                                     else
@@ -1775,16 +1781,16 @@ namespace FreeSql.Internal
                                         Expression.IfThenElse(Expression.Equal(read2ExpValue, Expression.Constant(null)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Default(field.FieldType)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Convert(read2ExpValue, field.FieldType)))
-								    //), 
-								    //Expression.Catch(typeof(Exception), Expression.Block(
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
-								    //	)
-								    //))
-							    });
+                                    //), 
+                                    //Expression.Catch(typeof(Exception), Expression.Block(
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
+                                    //	)
+                                    //))
+                                });
                             }
                             block2Exp.AddRange(new Expression[] {
                                 Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, Expression.Convert(ret2Exp, typeof(object)), dataIndexExp)),
@@ -1799,8 +1805,7 @@ namespace FreeSql.Internal
                                 Expression.IfThen(
                                     Expression.LessThan(dataIndexExp, rowLenExp),
                                     Expression.Return(returnTarget, Expression.New(RowInfo.Constructor,
-                                        GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                        //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                        GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                         Expression.Add(dataIndexExp, Expression.Constant(1))))
                                 ),
                                 Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
@@ -1819,7 +1824,7 @@ namespace FreeSql.Internal
                                 var name = row2.GetName(a);
                                 //expando[name] = row2.GetValue(a);
                                 if (expandodic.ContainsKey(name)) continue;
-                                expandodic.Add(name, Utils.InternalDataReaderGetValue(commonUtils2, row2, a));
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(commonUtils2, row2, a, null));
                             }
                             //expando = expandodic;
                             return new RowInfo(expandodic, fc);
@@ -1854,9 +1859,10 @@ namespace FreeSql.Internal
                         {
                             if (typetb.ColumnsByCsIgnore.ContainsKey(ctorParm.Name)) continue;
                             var readType = typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) ? trycol.Attribute.MapType : ctorParm.ParameterType;
+                            var colprop = trycol != null ? typetb.Table.Properties[trycol.CsName] : null;
 
                             var ispkExp = new List<Expression>();
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(colprop) }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1872,7 +1878,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(colprop) })));
                                     if (trycol?.Attribute.IsPrimary == true)
                                     {
                                         ispkExp.Add(
@@ -1975,7 +1981,7 @@ namespace FreeSql.Internal
                             }
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp }));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp, Expression.Constant(prop) }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1991,7 +1997,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(prop) })));
                                     if (flagStr.StartsWith("adoQuery") == false && //Ado.Query 的时候不作此判断
                                         trycol?.Attribute.IsPrimary == true) //若主键值为 null，则整行读取出来的对象为 null
                                     {
@@ -2078,7 +2084,7 @@ namespace FreeSql.Internal
                 indexes2 = ctor.GetParameters().Select(c => row2.GetOrdinal(c.Name)).ToArray();
 
             for (var c = 0; c < ctorParms.Length; c++)
-                ctorParms[c] = Utils.InternalDataReaderGetValue(commonUtils2, row2, indexes2[c]);
+                ctorParms[c] = Utils.InternalDataReaderGetValue(commonUtils2, row2, indexes2[c], null);
             return new RowInfo(ctor.Invoke(ctorParms), ctorParms.Length);
         }
 
@@ -2438,6 +2444,14 @@ namespace FreeSql.Internal
                            );
                         break;
                     case "System.DateTime":
+                        if (TypeHandlers.ContainsKey(type))
+                        {
+                            foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
+                            {
+                                var switchFuncRet = switchFunc(returnTarget, valueExp, type);
+                                if (switchFuncRet != null) return switchFuncRet;
+                            }
+                        }
                         tryparseExp = Expression.Block(
                               new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
                                new Expression[] {

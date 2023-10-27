@@ -1445,6 +1445,14 @@
             <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场<para></para>例如：typeof(FreeSql.SqlServer.SqlServerProvider&lt;&gt;)</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseCustomTableEntityCacheFactory(System.Func{System.Collections.Concurrent.ConcurrentDictionary{FreeSql.DataType,System.Collections.Concurrent.ConcurrentDictionary{System.Type,FreeSql.Internal.Model.TableInfo}}})">
+            <summary>
+            用于指定自定义实现TableEntiy 的缓存集合
+            解决多实例下相同类型映射到不同表的问题
+            </summary>
+            <param name="factory"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseAdoConnectionPool(System.Boolean)">
             <summary>
             使用原始连接池（ado.net、odbc、oledb）<para></para>
@@ -1543,7 +1551,7 @@
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseMappingPriority(FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType,FreeSql.Internal.MappingPriorityType)">
             <summary>
-            指定映射优先级<para></para>
+            指定映射优先级（从小到大）<para></para>
             例如表名：实体类名 &lt; Aop &lt; FluentApi &lt; Attribute &lt; AsTable<para></para>
             事件 Aop -------> fsql.Aop.ConfigEntity/fsql.Aop.ConfigEntityProperty<para></para>
             方法 FluentApi -> fsql.CodeFirst.ConfigEntity/fsql.CodeFirst.Entity<para></para>
@@ -3404,11 +3412,12 @@
             <param name="name">零个或多个过滤器名字</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IUpdateJoin`2.AsTable(System.String)">
+        <member name="M:FreeSql.IUpdateJoin`2.AsTable(System.String,System.String)">
             <summary>
             设置表名
             </summary>
             <param name="tableName"></param>
+            <param name="joinTableName"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdateJoin`2.ToSql">
@@ -4058,6 +4067,11 @@
         <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Index">
             <summary>
             DataReader 对应的 Index 位置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Property">
+            <summary>
+            DataReader 对应的 PropertyInfo
             </summary>
         </member>
         <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Value">
@@ -5001,6 +5015,11 @@
             获取可用资源，或创建资源
             </summary>
             <returns></returns>
+        </member>
+        <member name="F:FreeSql.Internal.Utils.ChacheTableEntityFactory">
+            <summary>
+            用于解决多实例情况下的静态集合缓存问题
+            </summary>
         </member>
         <member name="T:FreeSql.CoreStrings">
             <summary>

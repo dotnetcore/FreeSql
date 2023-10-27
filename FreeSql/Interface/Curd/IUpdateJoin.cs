@@ -106,8 +106,9 @@ namespace FreeSql
         /// 设置表名
         /// </summary>
         /// <param name="tableName"></param>
+        /// <param name="joinTableName"></param>
         /// <returns></returns>
-        IUpdateJoin<T1, T2> AsTable(string tableName);
+        IUpdateJoin<T1, T2> AsTable(string tableName, string joinTableName);
         /// <summary>
         /// 返回即将执行的SQL语句
         /// </summary>

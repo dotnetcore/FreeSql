@@ -40,7 +40,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         public List<Func<object, CancellationToken, Task>> _includeToListAsync = new List<Func<object, CancellationToken, Task>>();
 #endif
-        public Dictionary<string, MemberExpression[]> _includeInfo = new Dictionary<string, MemberExpression[]>();
+        public Dictionary<string, NativeTuple<MemberExpression[], TableRef>> _includeInfo = new Dictionary<string, NativeTuple<MemberExpression[], TableRef>>();
         public bool _distinct;
         public Expression _selectExpression;
         public List<GlobalFilter.Item> _whereGlobalFilter;
@@ -672,9 +672,12 @@ namespace FreeSql.Internal.CommonProvider
             _join.Append(" \r\n").Append(sql);
 
             //fsql.Select<User1, UserGroup>().RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId").ToSql((a, b) => new { user = a, group = b });
-            foreach (var tb in _tables)
+            for (var a = 1; a < _tables.Count; a++)
+            {
+                var tb = _tables[a];
                 if (sql.Contains($" {tb.Table.DbName} ") || sql.Contains($" {_commonUtils.QuoteSqlName(tb.Table.DbName)} "))
                     tb.Type = SelectTableInfoType.RawJoin;
+            }
             return this as TSelect;
         }
 

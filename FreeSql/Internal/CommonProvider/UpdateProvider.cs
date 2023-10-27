@@ -1216,6 +1216,24 @@ namespace FreeSql.Internal.CommonProvider
             if (_versionColumn != null && _versionColumn.Attribute.CanUpdate)
             {
                 var vcname = _commonUtils.QuoteSqlName(_versionColumn.Attribute.Name);
+                var vcvalue = vcname;
+                if (string.IsNullOrWhiteSpace(_tableAlias) == false)
+                {
+                    switch (_orm.Ado.DataType)
+                    {
+                        case DataType.PostgreSQL:
+                        case DataType.OdbcPostgreSQL:
+                        case DataType.CustomPostgreSQL:
+                        case DataType.KingbaseES:
+                        case DataType.OdbcKingbaseES:
+                        case DataType.ShenTong:
+                            vcvalue = $"{_tableAlias}.{vcname}";  //set name = b.name
+                            break;
+                        default:
+                            vcname = vcvalue = $"{_tableAlias}.{vcname}";  //set a.name = b.name
+                            break;
+                    }
+                }
                 if (_versionColumn.Attribute.MapType == typeof(byte[]))
                 {
                     _updateVersionValue = Utils.GuidToBytes(Guid.NewGuid());
@@ -1227,7 +1245,7 @@ namespace FreeSql.Internal.CommonProvider
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _versionColumn, _versionColumn.Attribute.MapType, _updateVersionValue));
                 }
                 else
-                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcvalue, 0)).Append(" + 1");
             }
             ToSqlWhere(sb);
             _interceptSql?.Invoke(sb);
