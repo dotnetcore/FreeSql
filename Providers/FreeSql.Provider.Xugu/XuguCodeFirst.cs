@@ -61,10 +61,6 @@ namespace FreeSql.Xugu
 
         public override DbInfoResult GetDbInfo(Type type)
         {
-            _dicCsToDb.TryGetValue(type, out var info);
-            if (info == null) return null;
-            return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
-
             if (_dicCsToDb.TryGetValue(type, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
