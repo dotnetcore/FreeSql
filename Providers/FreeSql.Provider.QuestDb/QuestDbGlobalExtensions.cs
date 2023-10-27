@@ -154,8 +154,9 @@ public static partial class QuestDbGlobalExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="that"></param>
+    /// <param name="dateFormat">导入时，时间格式 默认:yyyy/M/d H:mm:ss</param>
     /// <returns></returns>
-    public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that) where T : class
+    public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that,string dateFormat = "yyyy/M/d H:mm:ss") where T : class
     {
         //思路：通过提供的RestAPI imp，实现快速复制
         if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
@@ -180,7 +181,7 @@ public static partial class QuestDbGlobalExtensions
                     {
                         { "name", d.Name },
                         { "type", d.DbTypeText },
-                        { "pattern", "yyyy/M/d H:mm:ss" }
+                        { "pattern", dateFormat}
                     });
                 }
                 else
@@ -197,7 +198,7 @@ public static partial class QuestDbGlobalExtensions
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.CurrentCulture))
             {
-                csv.WriteRecords(insert._source);
+                await csv.WriteRecordsAsync(insert._source);
             }
 
             var httpContent = new MultipartFormDataContent(boundary);
@@ -213,7 +214,6 @@ public static partial class QuestDbGlobalExtensions
                 await client.PostAsync($"{RestAPIExtension.BaseUrl}/imp?name={name}", httpContent);
             var readAsStringAsync = await httpResponseMessage.Content.ReadAsStringAsync();
             var splitByLine = SplitByLine(readAsStringAsync);
-            //Console.WriteLine(readAsStringAsync);
             foreach (var s in splitByLine)
             {
                 if (s.Contains("Rows"))
@@ -236,7 +236,10 @@ public static partial class QuestDbGlobalExtensions
             {
                 File.Delete(filePath);
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
         }
 
         return result;
@@ -246,11 +249,12 @@ public static partial class QuestDbGlobalExtensions
     /// 批量快速插入
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="that"></param>
+    /// <param name="insert"></param>
+    /// <param name="dateFormat">导入时，时间格式 默认:yyyy/M/d H:mm:ss</param>
     /// <returns></returns>
-    public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
+    public static int ExecuteBulkCopy<T>(this IInsert<T> insert,string dateFormat = "yyyy/M/d H:mm:ss") where T : class
     {
-        return ExecuteBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
+        return ExecuteBulkCopyAsync(insert,dateFormat).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }
 
@@ -340,7 +344,7 @@ static class RestAPIExtension
             var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
             authorization = $"Basic {base64}";
         }
-        //RESTAPI需要无参数
+        //RestApi需要无参数
         buider.UseNoneCommandParameter(true);
         return buider;
     }
