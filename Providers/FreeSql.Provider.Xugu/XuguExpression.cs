@@ -260,8 +260,8 @@ namespace FreeSql.Xugu
             var left = ExpressionLambdaToSql(exp.Expression, tsc);
             switch (exp.Member.Name)
             {
-                case "Date": return $"convert(char(10),{left},120)";
-                case "TimeOfDay": return $"datediff(second, convert(char(10),{left},120), {left})";
+                case "Date": return $"cast(date_format({left},'%Y-%m-%d') as datetime)";
+                case "TimeOfDay": return $"datediff(second, date_format({left},'%Y-%m-%d'), {left})";
                 case "DayOfWeek": return $"(datepart(weekday, {left})-1)";
                 case "Day": return $"datepart(day, {left})";
                 case "DayOfYear": return $"datepart(dayofyear, {left})";
@@ -482,15 +482,15 @@ namespace FreeSql.Xugu
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"dateadd(second, {args1}, {left})";
-                    case "AddDays": return $"dateadd(day, {args1}, {left})";
-                    case "AddHours": return $"dateadd(hour, {args1}, {left})";
-                    case "AddMilliseconds": return $"dateadd(second, ({args1})/1000, {left})";
-                    case "AddMinutes": return $"dateadd(minute, {args1}, {left})";
-                    case "AddMonths": return $"dateadd(month, {args1}, {left})";
-                    case "AddSeconds": return $"dateadd(second, {args1}, {left})";
-                    case "AddTicks": return $"dateadd(second, ({args1})/10000000, {left})";
-                    case "AddYears": return $"dateadd(year, {args1}, {left})";
+                    case "Add": return $"date_add({left}, interval '{args1}' microsecond)";
+                    case "AddDays": return $"date_add({left}, interval '{args1}' day)";
+                    case "AddHours": return $"date_add({left}, interval '{args1}' hour)";
+                    case "AddMilliseconds": return $"date_add({left}, interval '{args1}'*1000 microsecond)";
+                    case "AddMinutes": return $"date_add({left}, interval '{args1}' minute)";
+                    case "AddMonths": return $"date_add({left}, interval '{args1}' month)";
+                    case "AddSeconds": return $"date_add({left}, interval '{args1}' second)";
+                    case "AddTicks": return $"date_add({left}, interval '{args1}'/10 microsecond)";
+                    case "AddYears": return $"date_add({left}, interval '{args1}' year)";
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
@@ -501,51 +501,61 @@ namespace FreeSql.Xugu
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff(second,{args1},{left})";
                     case "ToString":
-                        if (left.EndsWith(" as datetime)") == false) left = $"cast({left} as datetime)";
-                        if (exp.Arguments.Count == 0) return $"convert(varchar, {left}, 121)";
-                        switch (args1.TrimStart('N'))
+                        if (exp.Arguments.Count == 0) return $"date_format({left},'%Y-%m-%d %H:%i:%s.%f')";
+                        switch (args1)
                         {
-                            case "'yyyy-MM-dd HH:mm:ss'": return $"convert(char(19), {left}, 120)";
-                            case "'yyyy-MM-dd HH:mm'": return $"substring(convert(char(19), {left}, 120), 1, 16)";
-                            case "'yyyy-MM-dd HH'": return $"substring(convert(char(19), {left}, 120), 1, 13)";
-                            case "'yyyy-MM-dd'": return $"convert(char(10), {left}, 23)";
-                            case "'yyyy-MM'": return $"substring(convert(char(10), {left}, 23), 1, 7)";
-                            case "'yyyyMMdd'": return $"convert(char(8), {left}, 112)";
-                            case "'yyyyMM'": return $"substring(convert(char(8), {left}, 112), 1, 6)";
-                            case "'yyyy'": return $"substring(convert(char(8), {left}, 112), 1, 4)";
-                            case "'HH:mm:ss'": return $"convert(char(8), {left}, 24)";
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"date_format({left},'%Y-%m-%d %H:%i:%s')";
+                            case "'yyyy-MM-dd HH:mm'": return $"date_format({left},'%Y-%m-%d %H:%i')";
+                            case "'yyyy-MM-dd HH'": return $"date_format({left},'%Y-%m-%d %H')";
+                            case "'yyyy-MM-dd'": return $"date_format({left},'%Y-%m-%d')";
+                            case "'yyyy-MM'": return $"date_format({left},'%Y-%m')";
+                            case "'yyyyMMddHHmmss'": return $"date_format({left},'%Y%m%d%H%i%s')";
+                            case "'yyyyMMddHHmm'": return $"date_format({left},'%Y%m%d%H%i')";
+                            case "'yyyyMMddHH'": return $"date_format({left},'%Y%m%d%H')";
+                            case "'yyyyMMdd'": return $"date_format({left},'%Y%m%d')";
+                            case "'yyyyMM'": return $"date_format({left},'%Y%m')";
+                            case "'yyyy'": return $"date_format({left},'%Y')";
+                            case "'HH:mm:ss'": return $"date_format({left},'%H:%i:%s')";
                         }
-                        var isMatched = false;
-                        var nchar = args1.StartsWith("N'") ? "N" : "";
-                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|m|ss|s|tt|t)", m =>
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|ss|tt)", m =>
                         {
-                            isMatched = true;
                             switch (m.Groups[1].Value)
                             {
-                                case "yyyy": return $"' + substring(convert(char(8), {left}, 112), 1, 4) + {nchar}'";
-                                case "yy": return $"' + substring(convert(char(6), {left}, 12), 1, 2) + {nchar}'";
-                                case "MM": return $"' + substring(convert(char(6), {left}, 12), 3, 2) + {nchar}'";
-                                case "M": return $"' + case when substring(convert(char(6), {left}, 12), 3, 1) = '0' then substring(convert(char(6), {left}, 12), 4, 1) else substring(convert(char(6), {left}, 12), 3, 2) end + {nchar}'";
-                                case "dd": return $"' + substring(convert(char(6), {left}, 12), 5, 2) + {nchar}'";
-                                case "d": return $"' + case when substring(convert(char(6), {left}, 12), 5, 1) = '0' then substring(convert(char(6), {left}, 12), 6, 1) else substring(convert(char(6), {left}, 12), 5, 2) end + {nchar}'";
-                                case "HH": return $"' + substring(convert(char(8), {left}, 24), 1, 2) + {nchar}'";
-                                case "H": return $"' + case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end + {nchar}'";
-                                case "hh":
-                                    return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
-                                    $"when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end + {nchar}'";
-                                case "h":
-                                    return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
-                                    $"when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end + {nchar}'";
-                                case "mm": return $"' + substring(convert(char(8), {left}, 24), 4, 2) + {nchar}'";
-                                case "m": return $"' + case when substring(convert(char(8), {left}, 24), 4, 1) = '0' then substring(convert(char(8), {left}, 24), 5, 1) else substring(convert(char(8), {left}, 24), 4, 2) end + {nchar}'";
-                                case "ss": return $"' + substring(convert(char(8), {left}, 24), 7, 2) + {nchar}'";
-                                case "s": return $"' + case when substring(convert(char(8), {left}, 24), 7, 1) = '0' then substring(convert(char(8), {left}, 24), 8, 1) else substring(convert(char(8), {left}, 24), 7, 2) end + {nchar}'";
-                                case "tt": return $"' + case when cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) >= 12 then 'PM' else 'AM' end + {nchar}'";
-                                case "t": return $"' + case when cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) >= 12 then 'P' else 'A' end + {nchar}'";
+                                case "yyyy": return $"%Y";
+                                case "yy": return $"%y";
+                                case "MM": return $"%_a1";
+                                case "M": return $"%c";
+                                case "dd": return $"%d";
+                                case "d": return $"%e";
+                                case "HH": return $"%H";
+                                case "H": return $"%k";
+                                case "hh": return $"%h";
+                                case "h": return $"%l";
+                                case "mm": return $"%i";
+                                case "ss": return $"%_a2";
+                                case "tt": return $"%p";
                             }
                             return m.Groups[0].Value;
                         });
-                        return isMatched == false ? args1 : $"({args1})";
+                        var argsFinds = new[] { "%Y", "%y", "%_a1", "%c", "%d", "%e", "%H", "%k", "%h", "%l", "%i", "%_a2", "%p" };
+                        var argsSpts = Regex.Split(args1, "(m|s|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
+                        {
+                            switch (argsSpts[a])
+                            {
+                                case "m": argsSpts[a] = $"case when substr(date_format({left},'%i'),1,1) = '0' then substr(date_format({left},'%i'),2,1) else date_format({left},'%i') end"; break;
+                                case "s": argsSpts[a] = $"case when substr(date_format({left},'%s'),1,1) = '0' then substr(date_format({left},'%s'),2,1) else date_format({left},'%s') end"; break;
+                                case "t": argsSpts[a] = $"trim(trailing 'M' from date_format({left},'%p'))"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"date_format({left},'{argsSptsA}')" : $"'{argsSptsA}'";
+                                    break;
+                            }
+                        }
+                        if (argsSpts.Length > 0) args1 = $"concat({string.Join(", ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "%m").Replace("%_a2", "%s");
                 }
             }
             return null;
