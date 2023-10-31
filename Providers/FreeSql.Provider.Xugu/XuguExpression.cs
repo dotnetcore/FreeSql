@@ -251,7 +251,7 @@ namespace FreeSql.Xugu
                 {
                     case "Now": return _common.Now;
                     case "UtcNow": return _common.NowUtc;
-                    case "Today": return "convert(char(10),getdate(),120)";
+                    case "Today": return $"cast(date_format({_common.Now},'%Y-%m-%d') as datetime)";
                     case "MinValue": return "'1753/1/1 0:00:00'";
                     case "MaxValue": return "'9999/12/31 23:59:59'";
                 }

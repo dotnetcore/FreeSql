@@ -15,6 +15,7 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1069,7 +1070,13 @@ SELECT ");
         }
 
         public int ExecuteAffrows() => _insertProvider.ExecuteAffrows();
-        public long ExecuteIdentity() => _insertProvider.ExecuteIdentity();
+        public long ExecuteIdentity(string identityColumn = null)
+        {
+            if (_insertProvider._table.ColumnsByCs.TryGetValue(identityColumn, out var col) == false)
+                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
+            col.Attribute.IsIdentity = true;
+            return _insertProvider.ExecuteIdentity();
+        }
         public List<Dictionary<string, object>> ExecuteInserted() => _insertProvider.ExecuteInserted();
 
 #if net40
