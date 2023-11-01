@@ -15,7 +15,6 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1070,8 +1069,11 @@ SELECT ");
         }
 
         public int ExecuteAffrows() => _insertProvider.ExecuteAffrows();
-        public long ExecuteIdentity(string identityColumn = null)
+        public long ExecuteIdentity() => _insertProvider.ExecuteIdentity();
+        public long ExecuteIdentity(string identityColumn)
         {
+            if (string.IsNullOrEmpty(identityColumn))
+                throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
             if (_insertProvider._table.ColumnsByCs.TryGetValue(identityColumn, out var col) == false)
                 throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
             col.Attribute.IsIdentity = true;
@@ -1083,6 +1085,15 @@ SELECT ");
 #else
         public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteAffrowsAsync(cancellationToken);
         public Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteIdentityAsync(cancellationToken);
+        public Task<long> ExecuteIdentityAsync(string identityColumn, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(identityColumn))
+                throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
+            if (_insertProvider._table.ColumnsByCs.TryGetValue(identityColumn, out var col) == false)
+                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
+            col.Attribute.IsIdentity = true;
+            return _insertProvider.ExecuteIdentityAsync(cancellationToken);
+        }
         public Task<List<Dictionary<string, object>>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteInsertedAsync(cancellationToken);
 #endif
 
