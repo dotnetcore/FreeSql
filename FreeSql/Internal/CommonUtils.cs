@@ -75,7 +75,18 @@ namespace FreeSql.Internal
         {
             var result = QuoteReadColumnAdapter(col.CsType, col.Attribute.MapType, columnName);
             if (string.IsNullOrWhiteSpace(col?.Attribute.RereadSql) == false)
-                return string.Format(col.Attribute.RereadSql, result);
+            {
+                var tableAlias = columnName.Replace(QuoteSqlName(col.Attribute.Name), "");
+                var rereadSql = Regex.Replace(col.Attribute.RereadSql, @"\{([_\w][_\w\d]+)\}", rm =>
+                {
+                    if (col.Table.ColumnsByCs.TryGetValue(rm.Groups[1].Value, out var trycol))
+                        return $"{tableAlias}{QuoteSqlName(trycol.Attribute.Name)}";
+                    else if (col.Table.Columns.TryGetValue(rm.Groups[1].Value, out trycol))
+                        return $"{tableAlias}{QuoteSqlName(trycol.Attribute.Name)}";
+                    return rm.Groups[0].Value;
+                });
+                return string.Format(rereadSql, result);
+            }
             return result;
         }
         public virtual string FieldAsAlias(string alias) => $" {alias}";

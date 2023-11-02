@@ -600,6 +600,21 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var x01sql01 = fsql.Select<Main1>()
+                .Include(a => a.Test1)
+                .Include(a => a.Test2)
+                .Include(a => a.Test3)
+                .ToSql();
+
+            var txxx01 = fsql.Select<User1>()
+                .WhereDynamicFilter(new DynamicFilterInfo
+                {
+                    Field = nameof(User1.CreateTime),
+                    Operator = DynamicFilterOperator.DateRange,
+                    Value = $"{DateTime.MinValue.ToString("yyyy-MM-dd")},{DateTime.MinValue.ToString("yyyy-MM-dd")}"
+                })
+                .ToSql();
+
             var updatejoin031sql = fsql.Update<User1>()
                 .Join<UserGroup>(fsql.Select<UserGroup>().Where(a => a.GroupName == "xxx"), (a, b) => a.GroupId == b.Id)
                 .AsTable("t1", null)
@@ -2950,4 +2965,30 @@ public class B11
     public int Id { get; set; }
     public string Name { get; set; }
     public A11 a { get; set; }
+}
+public class Main1
+{
+    public long Id { get; set; }
+
+    public long Test1Id { get; set; }
+
+    public long Test2Id { get; set; }
+
+    public long Test3Id { get; set; }
+
+    public virtual Test2 Test1 { get; set; }
+
+    public virtual Test2 Test2 { get; set; }
+
+    public virtual Test2 Test3 { get; set; }
+}
+
+public class Test2
+{
+    public long Id { get; set; }
+
+    [Column(RereadSql = "IIF({IsEnabled} = 1, {0}, {0} + '-已停用')")]
+    public string ItemName { get; set; }
+
+    public bool IsEnabled { get; set; }
 }
