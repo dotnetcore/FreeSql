@@ -20,6 +20,7 @@ namespace FreeSql.Tests.Issues
             RegisterPocoType(typeof(Customer)); //注删 POCO 类型
             fsql.Aop.ParseExpression += (_, e) =>
             {
+                if (e.Expression.IsParameter() == false) return;
                 //解析 POCO Jsonb   a.Customer.Name
                 if (e.Expression is MemberExpression memExp)
                 {

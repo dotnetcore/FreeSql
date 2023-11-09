@@ -1877,41 +1877,42 @@ var sql11111 = fsql.Select<Class1111>()
             }).Where(a => a.ConcurrentDictionarys.Length > 0).ToArray();
 
             #region pgsql poco
-            //fsql.Aop.ParseExpression += (_, e) =>
-            //{
-            //    //解析 POCO Jsonb   a.Customer.Name
-            //    if (e.Expression is MemberExpression memExp)
-            //    {
-            //        var parentMemExps = new Stack<MemberExpression>();
-            //        parentMemExps.Push(memExp);
-            //        while (true)
-            //        {
-            //            switch (memExp.Expression.NodeType)
-            //            {
-            //                case ExpressionType.MemberAccess:
-            //                    memExp = memExp.Expression as MemberExpression;
-            //                    if (memExp == null) return;
-            //                    parentMemExps.Push(memExp);
-            //                    break;
-            //                case ExpressionType.Parameter:
-            //                    var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
-            //                    if (tb == null) return;
-            //                    if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
-            //                    if (new[] { typeof(JToken), typeof(JObject), typeof(JArray) }.Contains(trycol.Attribute.MapType.NullableTypeOrThis()) == false) return;
-            //                    var tmpcol = tb.ColumnsByPosition.OrderBy(a => a.Attribute.Name.Length).First();
-            //                    var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[tmpcol.CsName]));
-            //                    result = result.Replace(tmpcol.Attribute.Name, trycol.Attribute.Name);
-            //                    while (parentMemExps.Any())
-            //                    {
-            //                        memExp = parentMemExps.Pop();
-            //                        result = $"{result}->>'{memExp.Member.Name}'";
-            //                    }
-            //                    e.Result = result;
-            //                    return;
-            //            }
-            //        }
-            //    }
-            //};
+            fsql.Aop.ParseExpression += (_, e) =>
+            {
+                if (e.Expression.IsParameter() == false) return;
+                //解析 POCO Jsonb   a.Customer.Name
+                if (e.Expression is MemberExpression memExp)
+                {
+                    var parentMemExps = new Stack<MemberExpression>();
+                    parentMemExps.Push(memExp);
+                    while (true)
+                    {
+                        switch (memExp.Expression.NodeType)
+                        {
+                            case ExpressionType.MemberAccess:
+                                memExp = memExp.Expression as MemberExpression;
+                                if (memExp == null) return;
+                                parentMemExps.Push(memExp);
+                                break;
+                            case ExpressionType.Parameter:
+                                var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
+                                if (tb == null) return;
+                                if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
+                                if (new[] { typeof(JToken), typeof(JObject), typeof(JArray) }.Contains(trycol.Attribute.MapType.NullableTypeOrThis()) == false) return;
+                                var tmpcol = tb.ColumnsByPosition.OrderBy(a => a.Attribute.Name.Length).First();
+                                var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[tmpcol.CsName]));
+                                result = result.Replace(tmpcol.Attribute.Name, trycol.Attribute.Name);
+                                while (parentMemExps.Any())
+                                {
+                                    memExp = parentMemExps.Pop();
+                                    result = $"{result}->>'{memExp.Member.Name}'";
+                                }
+                                e.Result = result;
+                                return;
+                        }
+                    }
+                }
+            };
 
             //void RegisterPocoType(Type pocoType)
             //{
@@ -1951,7 +1952,7 @@ var sql11111 = fsql.Select<Class1111>()
             //    .ToSql();
             #endregion
 
-            
+
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {
