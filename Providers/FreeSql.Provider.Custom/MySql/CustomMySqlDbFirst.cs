@@ -299,7 +299,7 @@ a.index_name 'index_id',
 case when a.non_unique = 0 then 1 else 0 end 'IsUnique',
 case when a.index_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
 0 'IsClustered',
-0 'IsDesc'
+case when a.collation = 'D' then 1 else 0 end 'IsDesc'
 from information_schema.statistics a
 where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseIn}) and {loc8}
 ";
