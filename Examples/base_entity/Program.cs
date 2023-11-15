@@ -837,7 +837,7 @@ namespace base_entity
 
 
             var now_to_timezone = "";
-            var timeOffset = (int)TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalMinutes;
+            var timeOffset = (int)DateTime.Now.Subtract(DateTime.UtcNow).TotalMinutes;
             if (timeOffset == 0) now_to_timezone = "systimestamp()";
             else
             {

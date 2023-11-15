@@ -60,12 +60,14 @@ namespace FreeSql.ClickHouse.Curd
                     var data = ToDataTable();
                     using (var conn = _orm.Ado.MasterPool.Get())
                     {
-                        using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
+                        using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                         {
                             DestinationTableName = data.TableName,
                             BatchSize = _source.Count
-                        };
-                        bulkCopyInterface.WriteToServerAsync(data, default).Wait();
+                        })
+                        {
+                            bulkCopyInterface.WriteToServerAsync(data, default).Wait();
+                        }
                     }
                     return affrows;
                 }
@@ -95,7 +97,8 @@ namespace FreeSql.ClickHouse.Curd
                     {
                         v = item.GetValue(u);
                     }
-                    dic.TryAdd(item.Name, v);
+                    if (dic.ContainsKey(item.Name) == false)
+                        dic.Add(item.Name, v);
                 }
                 return dic;
             }
@@ -170,12 +173,14 @@ namespace FreeSql.ClickHouse.Curd
                     var data = ToDataTable();
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
-                        using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
+                        using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                         {
                             DestinationTableName = data.TableName,
                             BatchSize = _source.Count
-                        };
-                        await bulkCopyInterface.WriteToServerAsync(data, default);
+                        })
+                        {
+                            await bulkCopyInterface.WriteToServerAsync(data, default);
+                        }
                     }
                     return affrows;
                 }

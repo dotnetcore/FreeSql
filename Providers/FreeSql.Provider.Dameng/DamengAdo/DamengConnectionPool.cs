@@ -145,7 +145,7 @@ namespace FreeSql.Dameng
                     {
                         if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -175,7 +175,7 @@ namespace FreeSql.Dameng
                     {
                         if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
                             throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw ex;
+                        throw;
                     }
                 }
             }

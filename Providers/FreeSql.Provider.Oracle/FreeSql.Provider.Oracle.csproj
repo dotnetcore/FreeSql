@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net60;net50;net45;net40</TargetFrameworks>
+		<TargetFrameworks>net6.0;net5.0;netstandard2.1;netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
@@ -19,21 +19,23 @@
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
 		<Version>3.2.803-preview20231114</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.130" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.210" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.61" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.14.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.18.0" />
 	</ItemGroup>
 
 	<ItemGroup>

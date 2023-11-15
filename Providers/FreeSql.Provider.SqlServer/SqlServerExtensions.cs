@@ -416,7 +416,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         }
     }
 #endif
-    #endregion
+#endregion
 }
 
 [Flags]

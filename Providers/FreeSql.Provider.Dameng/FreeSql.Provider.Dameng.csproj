@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net60;netcoreapp3.1;netstandard2.0;net45;net40</TargetFrameworks>
+		<TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 达梦数据库 Ado.net (DmProvider)</Description>
@@ -16,11 +16,16 @@
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<Version>3.2.803-preview20231114</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
-		<None Include="lib\DmProvider\net60\DmProvider.dll" Pack="true" PackagePath="\lib\net60\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="lib\DmProvider\net6.0\DmProvider.dll" Pack="true" PackagePath="\lib\net6.0\" />
 		<None Include="lib\DmProvider\netstandard2.0\DmProvider.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
 		<None Include="lib\DmProvider\netcoreapp3.1\DmProvider.dll" Pack="true" PackagePath="\lib\netcoreapp3.1\" />
 		<None Include="lib\DmProvider\net45\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
@@ -46,7 +51,7 @@
 		</Reference>
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0'">
 		<DefineConstants>ns20;netstandard20</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">

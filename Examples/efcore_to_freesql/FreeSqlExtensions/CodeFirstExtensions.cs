@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 public static class CodeFirstExtensions
 {
 
-    public static void ConfigEntity(this ICodeFirst codeFirst, IModel efmodel)
+    public static void ConfigEntity(this ICodeFirst codeFirst, IMutableModel efmodel)
     {
 
         foreach (var type in efmodel.GetEntityTypes())

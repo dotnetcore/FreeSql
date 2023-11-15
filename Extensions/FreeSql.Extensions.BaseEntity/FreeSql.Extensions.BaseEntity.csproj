@@ -20,9 +20,11 @@
 		<DelaySign>false</DelaySign>
 		<LangVersion>latest</LangVersion>
 		<Version>3.2.803-preview20231114</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net70;net60;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
+		<TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netstandard2.1;netcoreapp3.1;netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Firebird, Clickhouse, QuestDB, Odbc, Oledb, 达梦, 人大金仓, 南大通用, 虚谷, 神舟通用, 翰高, And Access</Description>
@@ -18,9 +18,11 @@
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
 		<Version>3.2.803-preview20231114</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../readme.md" Pack="true" PackagePath="\"/>
 		<None Include="../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
@@ -33,25 +35,24 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net70' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50' or '$(TargetFramework)' == 'netcoreapp31' or '$(TargetFramework)' == 'netcoreapp21'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'netcoreapp3.1'">
 		<DefineConstants>netcoreapp</DefineConstants>
 	</PropertyGroup>
 
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net60'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net70'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net50'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp31'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.10" />
-	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp21'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>

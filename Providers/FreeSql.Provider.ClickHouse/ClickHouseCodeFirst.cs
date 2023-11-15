@@ -322,7 +322,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                             //先判断表中有没此字段的索引
                             if (indexCollect.Any(c =>
                                     RemoveSpaceComparison(c.expr,
-                                        string.Join(',', uk.Columns.Select(i => i.Column.CsName)))))
+                                        string.Join(",", uk.Columns.Select(i => i.Column.CsName)))))
                             {
                                 //有这个字段的索引，但是名称不一样 修改名 , ClickHouse不支持修改列
                                 //if (!indexCollect.Where(c => c.name == uk.Name).Any())
@@ -507,22 +507,17 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                 }
             }
 
-            string CkNullablePrimaryAdapter(string dbType, bool isPrimary)
-            {
-                return isPrimary
-                    ? dbType.Replace("Nullable(", "").Replace(")", "")
-                    : dbType.Replace(" NOT NULL", "");
-            }
             string CkNullableAdapter(string dbType, bool isPrimary)
             {
-                return isPrimary switch
+                if (isPrimary)
                 {
-                    true when dbType.Contains("Nullable") => dbType.Replace("Nullable(", "")
-                        .Replace(")", "")
-                        .Replace(" NOT NULL", ""),
-                    true => dbType,
-                    _ => dbType.Replace(" NOT NULL", "")
-                };
+                    if (dbType.Contains("Nullable")) 
+                        return dbType.Replace("Nullable(", "")
+                            .Replace(")", "")
+                            .Replace(" NOT NULL", "");
+                    return dbType;
+                }
+                return dbType.Replace(" NOT NULL", "");
             }
 
 

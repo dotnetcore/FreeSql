@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -11,8 +11,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FreeSql.DbContext" Version="3.2.669" />
-		<PackageReference Include="FreeSql.Provider.Sqlite" Version="3.2.669" />
+		<PackageReference Include="FreeSql.DbContext" Version="3.2.802" />
+		<PackageReference Include="FreeSql.Provider.Sqlite" Version="3.2.802" />
 		<PackageReference Include="Rougamo.Fody" Version="1.1.1" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
 	</ItemGroup>
