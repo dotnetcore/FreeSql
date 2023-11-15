@@ -2545,7 +2545,7 @@ namespace FreeSql.Internal
                                 Expression.IfThenElse(
                                     Expression.TypeEqual(valueExp, typeof(byte[])),
                                     Expression.IfThenElse(
-                                        Expression.OrElse(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))), Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid?)))),
+                                        Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
                                         Expression.IfThenElse(
                                             Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
