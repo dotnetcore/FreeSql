@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<LangVersion>9</LangVersion>
 		<TargetFrameworks>netstandard2.1</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin;ChenBo</Authors>
@@ -23,7 +24,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
@@ -32,14 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ClickHouse.Client">
-			<Version>6.6.0</Version>
-		</PackageReference>
-	</ItemGroup>
-
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<PackageReference Include="ClickHouse.Client" Version="6.8.1" />
 	</ItemGroup>
 
 </Project>
