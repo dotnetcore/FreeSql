@@ -29,7 +29,7 @@ namespace FreeSql
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
         bool _isQuoteSqlName = true;
-        bool _isAdoConnectionPool = false;
+        bool? _isAdoConnectionPool = false;
         MappingPriorityType[] _mappingPriorityTypes;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -258,16 +258,19 @@ namespace FreeSql
                 switch (_dataType)
                 {
                     case DataType.MySql:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark)); //MySql.Data.dll
                         if (type == null) type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(typeof(TMark)); //MySqlConnector.dll
                         if (type == null) throwNotFind("FreeSql.Provider.MySql.dll", "FreeSql.MySql.MySqlProvider<>");
                         break;
                     case DataType.SqlServer:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark)); //Microsoft.Data.SqlClient.dll
                         if (type == null) type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServerForSystem")?.MakeGenericType(typeof(TMark)); //System.Data.SqlClient.dll
                         if (type == null) throwNotFind("FreeSql.Provider.SqlServer.dll", "FreeSql.SqlServer.SqlServerProvider<>");
                         break;
                     case DataType.PostgreSQL:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.PostgreSQL.dll", "FreeSql.PostgreSQL.PostgreSQLProvider<>");
                         break;
@@ -389,7 +392,7 @@ namespace FreeSql
             }
             ret = Activator.CreateInstance(type, new object[]
             {
-                _isAdoConnectionPool ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString,
+                _isAdoConnectionPool == true ? $"AdoConnectionPool,{_masterConnectionString}" : _masterConnectionString,
                 _slaveConnectionString,
                 _connectionFactory
             }) as IFreeSql<TMark>;
