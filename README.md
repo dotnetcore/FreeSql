@@ -1,6 +1,6 @@
 <h1 align="center"> 🦄 FreeSql </h1><div align="center">
 
-FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.0+, and Xamarin.
+FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.0+, Xamarin, And AOT.
 
 [![Member project of .NET Core Community](https://img.shields.io/badge/member%20project%20of-NCC-9e20c9.svg)](https://github.com/dotnetcore) 
 [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) 
