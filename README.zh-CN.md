@@ -1,4 +1,4 @@
-<h1 align="center"> 🦄 FreeSql 第一款支持 AOT 的国产 ORM</h1><div align="center">
+<h1 align="center"> 🦄 FreeSql, 第一款国产 AOT ORM！</h1><div align="center">
 
 FreeSql 是一款功能强大的对象关系映射（O/RM）组件，支持 .NET Core 2.1+、.NET Framework 4.0+、Xamarin 以及 AOT。
 
