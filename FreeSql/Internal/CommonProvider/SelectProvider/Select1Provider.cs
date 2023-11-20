@@ -213,11 +213,10 @@ namespace FreeSql.Internal.CommonProvider
         
         public ISelect<T1> UnionAll(params ISelect<T1>[] querys)
         {
-            var sql1 = this.ToSql();
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
-            var sb = new StringBuilder().Append(this.ToSql());
+            var sb = new StringBuilder().Append(LocalGetQuerySql(this));
             foreach (var select2 in querys)
-                sb.Append(" \r\nUNION ALL \r\n").Append(select2.ToSql());
+                sb.Append(" \r\nUNION ALL \r\n").Append(LocalGetQuerySql(select2));
             ret.WithSql(sb.ToString());
             sb.Clear();
             ret._commandTimeout = _commandTimeout;
@@ -229,6 +228,17 @@ namespace FreeSql.Internal.CommonProvider
             ret._tables[0] = _tables[0];
             ret._params = _params;
             return ret;
+
+            string LocalGetQuerySql(ISelect<T1> query)
+            {
+                var query2 = query as Select0Provider;
+                if (query2._diymemexpWithTempQuery == null ||
+                    query2.IsDefaultSqlContent == false) return query.ToSql();
+				var sql2 = query2._tableRule(query2._tables[0].Table.Type, null);
+				if (sql2.StartsWith("(") && sql2.EndsWith(")")) sql2 = sql2.Substring(1, sql2.Length - 2);
+				if (sql2.StartsWith(" \r\n")) sql2 = sql2.Substring(3);
+                return sql2;
+			}
         }
 
         public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns)
