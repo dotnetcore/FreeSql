@@ -1,6 +1,6 @@
 ﻿// by: Daily
 
-#if net40
+#if net40 || NETSTANDARD2_0
 #else
 
 using FreeSql;
