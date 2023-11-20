@@ -33,45 +33,49 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
-	    <DependentUpon>Select1Provider2`16.tt</DependentUpon>
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	  </Compile>
-	  <Compile Update="Properties\CoreStrings.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>CoreStrings.Designer.tt</DependentUpon>
-	  </Compile>
+		<Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
+			<DependentUpon>Select1Provider2`16.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="Properties\CoreStrings.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>CoreStrings.Designer.tt</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>ISelect2`16.cs</LastGenOutput>
-	  </None>
-	  <None Update="Internal\CommonProvider\SelectProvider\T4Temp\Select1Provider2`16.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>Select1Provider2`16.cs</LastGenOutput>
-	  </None>
-	  <None Update="Properties\CoreStrings.Designer.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
-	  </None>
+		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>ISelect2`16.cs</LastGenOutput>
+		</None>
+		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\Select1Provider2`16.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>Select1Provider2`16.cs</LastGenOutput>
+		</None>
+		<None Update="Properties\CoreStrings.Designer.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+		</None>
 		<EmbeddedResource Update="Properties\CoreStrings.resx">
 			<CustomToolNamespace>FreeSql</CustomToolNamespace>
 		</EmbeddedResource>
 	</ItemGroup>
-  
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DocumentationFile>FreeSql.xml</DocumentationFile>
 		<WarningLevel>3</WarningLevel>
 		<NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'net40'">
+		<PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+	</ItemGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
@@ -79,5 +83,6 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
 		<DefineConstants>net45</DefineConstants>
 	</PropertyGroup>
-	
+
 </Project>
+

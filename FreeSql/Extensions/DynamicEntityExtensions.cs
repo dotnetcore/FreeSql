@@ -1,6 +1,6 @@
 ﻿// by: Daily
 
-#if net40 || NETSTANDARD2_0
+#if net40
 #else
 
 using FreeSql;
@@ -406,7 +406,7 @@ namespace FreeSql.Extensions.DynamicEntity
             SetPropertys(ref typeBuilder);
 
             //创建类的Type对象
-            var type = typeBuilder.CreateType();
+            var type = typeBuilder.CreateTypeInfo().AsType();
 
             return _fsql.CodeFirst.GetTableByEntity(type);
         }
