@@ -43,8 +43,9 @@ namespace FreeSql.ClickHouse
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;
                 }
-                if (value is bool)
-                    ret.Value = (bool)value ? 1 : 0;
+                //直接使用Bool
+                //if (value is bool)
+                //    ret.Value = (bool)value ? 1 : 0;
             }
             _params?.Add(ret);
             return ret;

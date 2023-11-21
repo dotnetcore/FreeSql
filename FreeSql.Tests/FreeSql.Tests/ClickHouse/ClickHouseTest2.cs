@@ -8,11 +8,14 @@ using System.Diagnostics;
 using System.ComponentModel.DataAnnotations;
 using FreeSql.DataAnnotations;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace FreeSql.Tests.ClickHouse
 {
     public class ClickHouseTest2
     {
+
+
         private static IFreeSql fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                 "Host=127.0.0.1;Port=8123;Database=test;Compress=True;Min Pool Size=1")
             .UseMonitorCommand(cmd => Console.WriteLine($"线程：{cmd.CommandText}\r\n"))
@@ -29,6 +32,7 @@ namespace FreeSql.Tests.ClickHouse
         {
             fsql.CodeFirst.SyncStructure(typeof(PositionInfoModel));
         }
+
         [Fact]
         public void Issuse1587TestOnePrimary()
         {
