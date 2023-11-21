@@ -20,7 +20,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(false)
+                .UseNoneCommandParameter(true)
                 .Build();
         }
 
@@ -31,7 +31,6 @@ namespace FreeSql.Tests.ClickHouse
         public void TestBoolMappingSync()
         {
             _fsql.CodeFirst.SyncStructure(typeof(BoolMappingTest));
-          
         }
 
         /// <summary>
@@ -67,6 +66,19 @@ namespace FreeSql.Tests.ClickHouse
                 IsEnable = false
             }).ExecuteAffrows();
         }
+
+        /// <summary>
+        /// 测试bool类型修改
+        /// </summary>
+        [Fact]
+        public void TestBoolMappingUpdate()
+        {
+            _fsql.Update<BoolMappingTest>()
+                .Set(t => t.IsDelete, false)
+                .Where(b => b.Age > 10)
+                .ExecuteAffrows();
+        }
+
 
         /// <summary>
         /// 测试bool类型查询
