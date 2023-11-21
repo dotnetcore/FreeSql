@@ -23,8 +23,8 @@ namespace FreeSql.ClickHouse
 
         static Dictionary<string, CsToDb<DbType>> _dicCsToDb = new Dictionary<string, CsToDb<DbType>>()
         {
-            { typeof(bool).FullName, CsToDb.New(DbType.SByte, "Int8", "Int8", null, false, false) },
-            { typeof(bool?).FullName, CsToDb.New(DbType.SByte, "Int8", "Nullable(Int8)", null, true, null) },
+            { typeof(bool).FullName, CsToDb.New(DbType.SByte, "Bool", "Bool", null, false, false) },
+            { typeof(bool?).FullName, CsToDb.New(DbType.SByte, "Bool", "Nullable(Bool)", null, true, null) },
 
             { typeof(sbyte).FullName, CsToDb.New(DbType.SByte, "Int8", "Int8", false, false, 0) },
             { typeof(sbyte?).FullName, CsToDb.New(DbType.SByte, "Int8", "Nullable(Int8)", false, true, null) },
