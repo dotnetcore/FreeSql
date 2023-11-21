@@ -36,6 +36,11 @@
         </member>
         <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingInsert">
             <summary>
+            测试Array类型插入
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingSelect">
+            <summary>
             测试Array类型映射
             </summary>
         </member>

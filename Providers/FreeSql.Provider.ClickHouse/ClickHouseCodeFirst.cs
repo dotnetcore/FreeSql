@@ -85,7 +85,7 @@ namespace FreeSql.ClickHouse
                     trydc.defaultValue);
 
             //判断是否是集合
-            var isCollection = IsCollection(type);
+            var isCollection = IsArray(type);
             if (isCollection.Item1)
             {
                 var genericType = isCollection.Item2;
@@ -100,6 +100,21 @@ namespace FreeSql.ClickHouse
             
             }
             return null;
+        }
+
+
+        private Tuple<bool, Type> IsArray(Type type)
+        {
+            var flag = false;
+            Type resultType = null;
+
+            if (type.IsArray)
+            {
+                flag = true;
+                resultType = type.GetElementType();
+            }
+
+            return new Tuple<bool, Type>(flag, resultType);
         }
 
         private Tuple<bool, Type> IsCollection(Type type)

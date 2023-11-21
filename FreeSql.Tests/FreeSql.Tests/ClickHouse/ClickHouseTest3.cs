@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FreeSql.DataAnnotations;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(true)
+                .UseNoneCommandParameter(false)
                 .Build();
         }
 
@@ -118,18 +119,32 @@ namespace FreeSql.Tests.ClickHouse
         }
 
         /// <summary>
-        /// 测试Array类型映射
+        /// 测试Array类型插入
         /// </summary>
         [Fact]
         public void ArrayBoolMappingInsert()
         {
-            _ = _fsql.Insert(new ArrayMappingTestSimple
+            var source = new List<ArrayMappingTestSimple>()
             {
-                Name = "daily",
-                Tags1 = new List<string>() { "a", "b", "c" },
-                Tags2 = new List<int>() { 1, 2, 3, 4 },
-                Tags3 = new List<bool>() { true, true, false }
-            }).ExecuteAffrows();
+                new ArrayMappingTestSimple
+                {
+                    Name = "daily",
+                    Tags1 = new [] { "e", "f", "g" },
+                    Tags2 = new [] { 3, 45, 100, 400 },
+                    Tags3 = new [] { false, true, false }
+                }
+            };
+            var str  = _fsql.Insert(source).ExecuteAffrows();
+        }
+
+        /// <summary>
+        /// 测试Array类型映射
+        /// </summary>
+        [Fact]
+        public void ArrayBoolMappingSelect()
+        {
+            var list = _fsql.Select<ArrayMappingTestSimple>().ToList();
+            _output.WriteLine(JsonConvert.SerializeObject(list));
         }
     }
 
@@ -176,10 +191,10 @@ namespace FreeSql.Tests.ClickHouse
         [Column(Name = "name", IsPrimary = true)]
         public string Name { get; set; }
 
-        [Column(Name = "tags1")] public IEnumerable<string> Tags1 { get; set; }
+        [Column(Name = "tags1")] public string [] Tags1 { get; set; }
 
-        [Column(Name = "tags2")] public List<int> Tags2 { get; set; }
+        [Column(Name = "tags2")] public int[] Tags2 { get; set; }
 
-        [Column(Name = "tags3")] public IEnumerable<bool> Tags3 { get; set; }
+        [Column(Name = "tags3")] public bool [] Tags3 { get; set; }
     }
 }
