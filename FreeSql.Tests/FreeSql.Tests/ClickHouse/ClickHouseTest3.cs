@@ -71,11 +71,29 @@ namespace FreeSql.Tests.ClickHouse
         /// 测试bool类型修改
         /// </summary>
         [Fact]
-        public void TestBoolMappingUpdate()
+        public void TestBoolMappingUpdateSet()
         {
             _fsql.Update<BoolMappingTest>()
                 .Set(t => t.IsDelete, true)
                 .Where(b => b.Age > 10)
+                .ExecuteAffrows();
+        }
+
+        /// <summary>
+        /// 测试bool类型修改
+        /// </summary>
+        [Fact]
+        public void TestBoolMappingUpdate()
+        {
+            _fsql.Update<BoolMappingTest>()
+                .SetSource(new BoolMappingTest
+                {
+                    Id = "af199304-239a-48da-9c75-1d5e36167d74",
+                    IsEnable = false,
+                    IsDelete = true,
+                    Age = 60,
+                    Name = "Update"
+                })
                 .ExecuteAffrows();
         }
 

@@ -14,6 +14,11 @@
             测试bool类型插入
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingUpdateSet">
+            <summary>
+            测试bool类型修改
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingUpdate">
             <summary>
             测试bool类型修改
