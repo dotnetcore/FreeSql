@@ -114,7 +114,22 @@ namespace FreeSql.Tests.ClickHouse
         [Fact]
         public void ArrayBoolMappingSync()
         {
-            _fsql.CodeFirst.SyncStructure(typeof(ArrayMappingTest));
+            _fsql.CodeFirst.SyncStructure(typeof(ArrayMappingTestSimple));
+        }
+
+        /// <summary>
+        /// 测试Array类型映射
+        /// </summary>
+        [Fact]
+        public void ArrayBoolMappingInsert()
+        {
+            _ = _fsql.Insert(new ArrayMappingTestSimple
+            {
+                Name = "daily",
+                Tags1 = new List<string>() { "a", "b", "c" },
+                Tags2 = new List<int>() { 1, 2, 3, 4 },
+                Tags3 = new List<bool>() { true, true, false }
+            }).ExecuteAffrows();
         }
     }
 
@@ -152,5 +167,19 @@ namespace FreeSql.Tests.ClickHouse
         [Column(Name = "tags6")] public List<int> Tags6 { get; set; }
 
         [Column(Name = "tags7")] public IEnumerable<bool> Tags7 { get; set; }
+    }
+
+    [Table(Name = "table_test_array_simple")]
+    public class ArrayMappingTestSimple
+
+    {
+        [Column(Name = "name", IsPrimary = true)]
+        public string Name { get; set; }
+
+        [Column(Name = "tags1")] public IEnumerable<string> Tags1 { get; set; }
+
+        [Column(Name = "tags2")] public List<int> Tags2 { get; set; }
+
+        [Column(Name = "tags3")] public IEnumerable<bool> Tags3 { get; set; }
     }
 }

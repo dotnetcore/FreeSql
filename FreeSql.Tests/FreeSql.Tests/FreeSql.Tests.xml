@@ -34,6 +34,11 @@
             测试Array类型映射
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingInsert">
+            <summary>
+            测试Array类型映射
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01">
             <summary>
             实时数据

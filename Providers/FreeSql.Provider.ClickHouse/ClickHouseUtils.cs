@@ -146,7 +146,7 @@ namespace FreeSql.ClickHouse
         }
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value)
-        {
+         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
