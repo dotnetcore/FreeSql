@@ -4,6 +4,21 @@
         <name>FreeSql.Tests</name>
     </assembly>
     <members>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingSync">
+            <summary>
+            测试bool类型映射
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingInsert">
+            <summary>
+            测试bool类型插入
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingSelect">
+            <summary>
+            测试bool类型查询
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01">
             <summary>
             实时数据

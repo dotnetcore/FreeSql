@@ -20,7 +20,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(true)
+                .UseNoneCommandParameter(false)
                 .Build();
         }
 
