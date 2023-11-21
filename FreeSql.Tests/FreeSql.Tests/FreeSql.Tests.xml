@@ -29,6 +29,11 @@
             测试bool类型查询
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingSync">
+            <summary>
+            测试Array类型映射
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01">
             <summary>
             实时数据

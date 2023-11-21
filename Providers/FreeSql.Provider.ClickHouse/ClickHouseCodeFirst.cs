@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -50,7 +51,8 @@ namespace FreeSql.ClickHouse
             { typeof(float?).FullName, CsToDb.New(DbType.Single, "Float32", "Nullable(Float32)", false, true, null) },
             {
                 typeof(decimal).FullName,
-                CsToDb.New(DbType.Decimal, "Decimal(38, 19)", "Decimal(38, 19)", false, false, 0)  //Nullable(Decimal(38, 19))
+                CsToDb.New(DbType.Decimal, "Decimal(38, 19)", "Decimal(38, 19)", false, false,
+                    0) //Nullable(Decimal(38, 19))
             },
             {
                 typeof(decimal?).FullName,
@@ -75,14 +77,66 @@ namespace FreeSql.ClickHouse
             { typeof(Guid?).FullName, CsToDb.New(DbType.String, "String", "Nullable(String)", false, true, null) },
         };
 
+
         public override DbInfoResult GetDbInfo(Type type)
         {
             if (_dicCsToDb.TryGetValue(type.FullName, out var trydc))
                 return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable,
                     trydc.defaultValue);
-            if (type.IsArray)
-                return null;
+
+            //判断是否是集合
+            var isCollection = IsCollection(type);
+            if (isCollection.Item1)
+            {
+                var genericType = isCollection.Item2;
+                var genericTypeName = genericType?.FullName;
+                var tryGetValue = _dicCsToDb.TryGetValue(genericTypeName, out var value);
+                if (tryGetValue)
+                {
+                    var arrayDbType = $"Array({value.dbtype})";
+                    var defaultArray = new ArrayList(0);
+                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false,defaultArray);
+                }
+            
+            }
             return null;
+        }
+
+        private Tuple<bool, Type> IsCollection(Type type)
+        {
+            var flag = false;
+            Type resultType = null;
+            var interfaces = type.GetInterfaces();
+
+            if (interfaces.Any(t => t.Name == "IList"))
+                flag = true;
+
+            if (interfaces.Any(t => t.Name == "ICollection"))
+                flag = true;
+
+            if (interfaces.Any(t => t.Name == "IEnumerable"))
+                flag = true;
+
+            if (type.Name  == "Array")
+            {
+                flag = true;
+                resultType = typeof(string);
+            }
+
+            if (type.Name == "ArrayList")
+            {
+                flag = true;
+                resultType = typeof(string);
+            }
+
+            //是否是泛型
+            if (type.GetGenericArguments().Any())
+            {
+                var first = type.GetGenericArguments().First();
+                resultType = first;
+            }
+
+            return new Tuple<bool, Type>(flag, resultType);
         }
 
         protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
@@ -299,7 +353,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
                             //添加列
                             sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1]))
-                                .Append(" ADD Column ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ")
+                                .Append(" ADD Column ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name))
+                                .Append(" ")
                                 .Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" &&
                                 tbcol.Attribute.IsIdentity == false)
@@ -483,7 +538,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         cmd.CommandText = sql;
                         cmd.CommandType = CommandType.Text;
                         var before = new Aop.CommandBeforeEventArgs(cmd);
-                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before); 
+                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
                         Exception afterException = null;
                         try
                         {
@@ -496,7 +551,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         }
                         finally
                         {
-                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm, new Aop.CommandAfterEventArgs(before, afterException, null));
+                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm,
+                                new Aop.CommandAfterEventArgs(before, afterException, null));
                         }
                     }
                 }
@@ -511,12 +567,13 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
             {
                 if (isPrimary)
                 {
-                    if (dbType.Contains("Nullable")) 
+                    if (dbType.Contains("Nullable"))
                         return dbType.Replace("Nullable(", "")
                             .Replace(")", "")
                             .Replace(" NOT NULL", "");
                     return dbType;
                 }
+
                 return dbType.Replace(" NOT NULL", "");
             }
 
@@ -524,6 +581,9 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
             string CkIntAdapter(string dbType)
             {
                 var result = dbType;
+                if (dbType.Contains("Array"))
+                    return dbType;
+
                 if (dbType.ToLower().Contains("int64"))
                 {
                     if (dbType.Contains("Nullable"))
@@ -578,13 +638,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
     internal class ClickHouseTableIndex
     {
-        public string name
-        {
-            get; set;
-        }
-        public string expr
-        {
-            get; set;
-        }
+        public string name { get; set; }
+        public string expr { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(false)
+                .UseNoneCommandParameter(true)
                 .Build();
         }
 
@@ -106,6 +107,15 @@ namespace FreeSql.Tests.ClickHouse
         {
             var list = _fsql.Select<BoolMappingTest>().ToList();
         }
+
+        /// <summary>
+        /// 测试Array类型映射
+        /// </summary>
+        [Fact]
+        public void ArrayBoolMappingSync()
+        {
+            _fsql.CodeFirst.SyncStructure(typeof(ArrayMappingTest));
+        }
     }
 
     [Table(Name = "table_test_bool")]
@@ -121,5 +131,26 @@ namespace FreeSql.Tests.ClickHouse
         [Column(Name = "is_delete")] public bool IsDelete { get; set; }
 
         [Column(Name = "is_enable")] public bool? IsEnable { get; set; }
+    }
+
+    [Table(Name = "table_test_array")]
+    public class ArrayMappingTest
+    {
+        [Column(Name = "name", IsPrimary = true)]
+        public string Name { get; set; }
+
+        [Column(Name = "tags1")] public IEnumerable<string> Tags1 { get; set; }
+
+        [Column(Name = "tags2")] public IList<string> Tags2 { get; set; }
+
+        [Column(Name = "tags3")] public List<string> Tags3 { get; set; }
+
+        [Column(Name = "tags4")] public ArrayList Tags4 { get; set; }
+
+        [Column(Name = "tags5")] public Array Tags5 { get; set; }
+
+        [Column(Name = "tags6")] public List<int> Tags6 { get; set; }
+
+        [Column(Name = "tags7")] public IEnumerable<bool> Tags7 { get; set; }
     }
 }
