@@ -20,7 +20,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(false)
+                .UseNoneCommandParameter(true)
                 .Build();
         }
 
@@ -35,7 +35,7 @@ namespace FreeSql.Tests.ClickHouse
         }
 
         /// <summary>
-        /// 测试bool类型映射
+        /// 测试bool类型插入
         /// </summary>
         [Fact]
         public void TestBoolMappingInsert()
@@ -63,11 +63,19 @@ namespace FreeSql.Tests.ClickHouse
                 Name = "Daily",
                 Age = 22,
                 Id = Guid.NewGuid().ToString(),
-                IsDelete = true,
-                IsEnable = null
+                IsDelete = false,
+                IsEnable = false
             }).ExecuteAffrows();
         }
 
+        /// <summary>
+        /// 测试bool类型查询
+        /// </summary>
+        [Fact]
+        public void TestBoolMappingSelect()
+        {
+            var list = _fsql.Select<BoolMappingTest>().ToList();
+        }
     }
 
     [Table(Name = "table_test_bool")]
