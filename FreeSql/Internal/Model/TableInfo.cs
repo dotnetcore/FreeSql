@@ -26,7 +26,7 @@ namespace FreeSql.Internal.Model
         public bool DisableSyncStructure { get; set; }
         public string Comment { get; set; }
         public bool IsRereadSql { get; internal set; }
-        public bool IsDictionaryType { get; internal set; }
+        public bool IsDictionaryType { get; set; }
 
         public IAsTable AsTableImpl { get; internal set; }
         public ColumnInfo AsTableColumn { get; internal set; }
