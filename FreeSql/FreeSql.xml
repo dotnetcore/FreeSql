@@ -478,6 +478,15 @@
             禁用 CodeFirst 同步结构迁移
             </summary>
         </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent.AsTable(System.String)">
+            <summary>
+            格式：属性名=开始时间(递增)<para></para>
+            按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+            按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+            按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+            按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.Navigate(System.String,System.String,System.Type)">
             <summary>
             导航关系Fluent，与 NavigateAttribute 对应
@@ -509,6 +518,15 @@
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.DisableSyncStructure(System.Boolean)">
             <summary>
             禁用 CodeFirst 同步结构迁移
+            </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent`1.AsTable(System.String)">
+            <summary>
+            格式：属性名=开始时间(递增)<para></para>
+            按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+            按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+            按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+            按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
             </summary>
         </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.Navigate``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.String,System.Type)">
