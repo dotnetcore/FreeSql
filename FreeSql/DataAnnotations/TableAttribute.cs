@@ -86,7 +86,8 @@ namespace FreeSql.DataAnnotations
     public interface IAsTable
     {
         string[] AllTables { get; }
-        string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
+		IAsTable SetTableName(int index, string tableName);
+		string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
         string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
     }
@@ -377,5 +378,13 @@ namespace FreeSql.DataAnnotations
                 }
             }
         }
-    }
+		public IAsTable SetTableName(int index, string tableName)
+        {
+			lock (_lock)
+			{
+                _allTables[index] = tableName;
+			}
+            return this;
+		}
+	}
 }

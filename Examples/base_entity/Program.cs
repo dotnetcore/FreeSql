@@ -601,8 +601,12 @@ namespace base_entity
 			#endregion
 
 			fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Now && a.createtime < DateTime.Now.AddMonths(1)).ToList();
-			//var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
-			//table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
+            //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
+            //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
+
+            fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog)).AsTableImpl
+                .SetTableName(0, "AsTableLog1")
+                .SetTableName(1, "AsTableLog2");
 
 			var testitems = new[]
 			{
