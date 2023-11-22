@@ -561,8 +561,8 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
-
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseAdoConnectionPool(false)
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
@@ -589,7 +589,7 @@ namespace base_entity
                 //.UseConnectionString(DataType.ClickHouse, "DataCompress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=192.168.0.121;Port=8125;Database=PersonnelLocation;Username=root;Password=123")
                 .UseMonitorCommand(cmd =>
                 {
-                    Console.WriteLine(cmd.CommandText + "\r\n");
+                    //Console.WriteLine(cmd.CommandText + "\r\n");
                     //cmd.CommandText = null; //不执行
 
                     //if (cmd.CommandText.StartsWith(""))
@@ -598,7 +598,42 @@ namespace base_entity
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
-            #endregion
+			#endregion
+			fsql.Select<User1>().First();
+			var running = true;
+            for (var a = 0; a < 100; a++)
+            {
+                new Thread(() =>
+                {
+                    while (running)
+                    {
+                        try
+                        {
+                            fsql.Select<User1>().First();
+                        }
+                        catch(Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await fsql.Select<User1>().FirstAsync();
+                            }
+							catch (Exception ex)
+							{
+								Console.WriteLine("Async:" + ex.Message);
+							}
+						});
+                    }
+				}).Start();
+            }
+
+            Console.ReadKey();
+            running = false;
+            fsql.Dispose();
+            return;
 
             var x01sql01 = fsql.Select<Main1>()
                 .Include(a => a.Test1)

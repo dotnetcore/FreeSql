@@ -352,7 +352,7 @@ namespace FreeSql.Internal.ObjectPool
             }
             catch
             {
-                Return(obj);
+                Return(obj, true);
                 throw;
             }
 
@@ -404,7 +404,7 @@ namespace FreeSql.Internal.ObjectPool
             }
             catch
             {
-                Return(obj);
+                Return(obj, true);
                 throw;
             }
 

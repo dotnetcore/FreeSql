@@ -17,7 +17,7 @@ namespace FreeSql.Tests.MySql
                 .UseConnectionFactory(FreeSql.DataType.MySql, () => new MySqlConnection(connectionString))
                 .Build())
             {
-                Assert.Equal("server=127.0.0.1;port=3306;user id=root;password=root;database=cccddd;characterset=utf8;sslmode=Disabled;maxpoolsize=51;allowuservariables=True", t2.Ado.ConnectionString);
+                Assert.Equal("server=127.0.0.1;port=3306;user id=root;password=root;database=cccddd;characterset=utf8;sslmode=none;maxpoolsize=51;allowuservariables=True", t2.Ado.ConnectionString);
             }
         }
 
