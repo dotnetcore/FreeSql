@@ -42,4 +42,9 @@ class ModAsTableImpl : IAsTable
         if (tables.Any() == false) return AllTables;
         return tables;
     }
+
+	public IAsTable SetTableName(int index, string tableName)
+	{
+		throw new NotImplementedException();
+	}
 }

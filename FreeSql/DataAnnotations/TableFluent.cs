@@ -45,8 +45,20 @@ namespace FreeSql.DataAnnotations
             _table.DisableSyncStructure = value;
             return this;
         }
+		/// <summary>
+		/// 格式：属性名=开始时间(递增)<para></para>
+		/// 按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+		/// 按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+		/// 按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+		/// 按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+		/// </summary>
+		public TableFluent AsTable(string value)
+		{
+			_table.AsTable = value;
+			return this;
+		}
 
-        public ColumnFluent Property(string proto)
+		public ColumnFluent Property(string proto)
         {
             if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
@@ -125,9 +137,21 @@ namespace FreeSql.DataAnnotations
         {
             _table.DisableSyncStructure = value;
             return this;
-        }
+		}
+		/// <summary>
+		/// 格式：属性名=开始时间(递增)<para></para>
+		/// 按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+		/// 按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+		/// 按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+		/// 按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+		/// </summary>
+		public TableFluent<T> AsTable(string value)
+		{
+			_table.AsTable = value;
+			return this;
+		}
 
-        public ColumnFluent Property<TProto>(Expression<Func<T, TProto>> column)
+		public ColumnFluent Property<TProto>(Expression<Func<T, TProto>> column)
         {
             var exp = column?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;

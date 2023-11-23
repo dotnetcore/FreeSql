@@ -135,7 +135,7 @@ namespace FreeSql
                 }
                 if (collectionBefore != null && collectionAfter == null)
                 {
-                    //foreach (var item in collectionBefore as IEnumerable)
+                    //foreach (var item in collectionBefore)
                     //{
                     //    changelog.DeleteLog.Add(NativeTuple.Create(elementType, new[] { item }));
                     //    NavigateReader(boundaryName, fsql, elementType, item, (path, tr, ct, stackvs) =>
@@ -148,12 +148,12 @@ namespace FreeSql
                 }
                 Dictionary<string, object> dictBefore = new Dictionary<string, object>();
                 Dictionary<string, object> dictAfter = new Dictionary<string, object>();
-                foreach (var item in collectionBefore as IEnumerable)
+                foreach (var item in collectionBefore)
                 {
                     var key = fsql.GetEntityKeyString(elementType, item, false);
                     if (key != null) dictBefore.Add(key, item);
                 }
-                foreach (var item in collectionAfter as IEnumerable)
+                foreach (var item in collectionAfter)
                 {
                     var key = fsql.GetEntityKeyString(elementType, item, false);
                     if (key != null)
@@ -385,7 +385,7 @@ namespace FreeSql
                     if (propvalFrom == null)
                     {
                         EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, null);
-                        return;
+                        continue;
                     }
                     switch (tbref.RefType)
                     {

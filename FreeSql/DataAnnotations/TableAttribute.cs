@@ -45,7 +45,7 @@ namespace FreeSql.DataAnnotations
         {
             if (string.IsNullOrEmpty(AsTable) == false)
             {
-                var atm = Regex.Match(AsTable, @"([\w_\d]+)\s*=\s*(\d\d\d\d)\s*\-\s*(\d\d?)\s*\-\s*(\d\d?)\s*( [\d:]+)?\((\d+)\s*(year|month|day|hour)\)", RegexOptions.IgnoreCase);
+                var atm = Regex.Match(AsTable, @"([\w_\d]+)\s*=\s*(\d\d\d\d)\s*\-\s*(\d\d?)\s*\-\s*(\d\d?)\s*( [\d:]+)?\(([\d,]+)\s*(year|month|day|hour)\)", RegexOptions.IgnoreCase);
                 if (atm.Success == false)
                     throw new Exception(CoreStrings.AsTable_PropertyName_FormatError(AsTable));
 
@@ -65,11 +65,12 @@ namespace FreeSql.DataAnnotations
                     else if (hhmmss.Length == 2) beginTime = $"{beginTime} {hhmmss[0]}:{hhmmss[1]}:0";
                     else if (hhmmss.Length == 3) beginTime = $"{beginTime} {hhmmss[0]}:{hhmmss[1]}:{hhmmss[2]}";
                 }
-                int.TryParse(atm.Groups[6].Value, out var atm6);
+                var intervals = atm.Groups[6].Value.Split(',').Select(a => int.TryParse(a, out var atm6) ? atm6 : 0).Where(a => a > 0).ToArray();
                 string atm7 = atm.Groups[7].Value.ToLower();
-                tb.AsTableImpl = new DateTimeAsTableImpl(Name, DateTime.Parse(beginTime), dt =>
+                tb.AsTableImpl = new DateTimeAsTableImpl(Name, DateTime.Parse(beginTime), (dt, idx) =>
                 {
-                    switch (atm7)
+                    var atm6 = idx >= 0 && idx < intervals.Length ? intervals[idx] : intervals.Last();
+					switch (atm7)
                     {
                         case "year": return dt.AddYears(atm6);
                         case "month": return dt.AddMonths(atm6);
@@ -85,23 +86,24 @@ namespace FreeSql.DataAnnotations
     public interface IAsTable
     {
         string[] AllTables { get; }
-        string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
+		IAsTable SetTableName(int index, string tableName);
+		string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
         string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
     }
-    class DateTimeAsTableImpl : IAsTable
+	class DateTimeAsTableImpl : IAsTable
     {
         readonly object _lock = new object();
         readonly List<string> _allTables = new List<string>();
         readonly List<DateTime> _allTablesTime = new List<DateTime>();
         readonly DateTime _beginTime;
         DateTime _lastTime;
-        Func<DateTime, DateTime> _nextTimeFunc;
+        Func<DateTime, int, DateTime> _nextTimeFunc;
         string _tableName;
         Match _tableNameFormat;
         static Regex _regTableNameFormat = new Regex(@"\{([^\\}]+)\}");
 
-        public DateTimeAsTableImpl(string tableName, DateTime beginTime, Func<DateTime, DateTime> nextTimeFunc)
+        public DateTimeAsTableImpl(string tableName, DateTime beginTime, Func<DateTime, int, DateTime> nextTimeFunc)
         {
             if (nextTimeFunc == null) throw new ArgumentException(CoreStrings.Cannot_Be_NULL_Name("nextTimeFunc"));
             //beginTime = beginTime.Date; //日期部分作为开始
@@ -116,7 +118,8 @@ namespace FreeSql.DataAnnotations
         int GetTimestamp(DateTime dt) => (int)dt.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         void ExpandTable(DateTime beginTime, DateTime endTime)
         {
-            if (beginTime > endTime) endTime = _nextTimeFunc(beginTime);
+            var index = 0;
+            if (beginTime > endTime) endTime = _nextTimeFunc(beginTime, -1);
             lock (_lock)
             {
                 while (beginTime <= endTime)
@@ -127,7 +130,7 @@ namespace FreeSql.DataAnnotations
                     _allTables.Insert(0, name);
                     _allTablesTime.Insert(0, beginTime);
                     _lastTime = beginTime;
-                    beginTime = _nextTimeFunc(beginTime);
+                    beginTime = _nextTimeFunc(beginTime, index++);
                 }
             }
         }
@@ -153,7 +156,7 @@ namespace FreeSql.DataAnnotations
         {
             var dt = ParseColumnValue(columnValue);
             if (dt < _beginTime) throw new Exception(CoreStrings.SubTableFieldValue_CannotLessThen(dt.ToString("yyyy-MM-dd HH:mm:ss"), _beginTime.ToString("yyyy-MM-dd HH:mm:ss")));
-            var tmpTime = _nextTimeFunc(_lastTime);
+            var tmpTime = _nextTimeFunc(_lastTime, -1);
             if (dt >= tmpTime && autoExpand)
             {
                 // 自动建表
@@ -375,5 +378,13 @@ namespace FreeSql.DataAnnotations
                 }
             }
         }
-    }
+		public IAsTable SetTableName(int index, string tableName)
+        {
+			lock (_lock)
+			{
+                _allTables[index] = tableName;
+			}
+            return this;
+		}
+	}
 }
