@@ -55,7 +55,8 @@ namespace FreeSql.Dameng
 
                 case "char(36)": return DmDbType.Char;
             }
-            switch (column.DbTypeText?.ToLower())
+            if (dbfull?.StartsWith("datetime(") == true) return DmDbType.DateTime;
+			switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
