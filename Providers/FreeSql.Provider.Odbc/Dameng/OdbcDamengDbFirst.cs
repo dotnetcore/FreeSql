@@ -55,7 +55,11 @@ namespace FreeSql.Odbc.Dameng
 
                 case "char(36)": return OdbcType.Char;
 			}
-			if (dbfull?.StartsWith("datetime(") == true) return OdbcType.DateTime;
+			if (dbfull?.StartsWith("datetime(") == true)
+			{
+				_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
+				return OdbcType.DateTime;
+			}
 			switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
