@@ -90,6 +90,6 @@ namespace FreeSql.Custom
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects) => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects) => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
     }
 }

@@ -384,7 +384,7 @@ where IS_SYS=false and {loc8.ToString().Replace("a.table_name", "ns.SCHEMA_NAME 
                     var index_id = string.Concat(row[2]);
                     var is_unique = string.Concat(row[3]) == "1";
                     var is_primary_key = string.Concat(row[4]) == "1";
-                    var is_clustered = false;//= string.Concat(row[5]) == "1";
+                    //var is_clustered = false;//= string.Concat(row[5]) == "1";
                     var is_desc = false;//string.Concat(row[6]) == "1";
                     //var inkey = string.Concat(row[7]).Split(' ');
                     //var attnum = int.Parse(string.Concat(row[8]));
