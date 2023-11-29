@@ -154,27 +154,6 @@ namespace FreeSql.Xugu
                 var ts = (TimeSpan)value;
                 return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
             }
-            else if (value is Array)
-            {
-                var valueArr = value as Array;
-                var eleType = type2.GetElementType();
-                var len = valueArr.GetLength(0);
-                var sb = new StringBuilder().Append("ARRAY[");
-                for (var a = 0; a < len; a++)
-                {
-                    var item = valueArr.GetValue(a);
-                    if (a > 0) sb.Append(",");
-                    sb.Append(GetNoneParamaterSqlValue(specialParams, specialParamFlag, col, eleType, item));
-                }
-                sb.Append("]");
-                var dbinfo = _orm.CodeFirst.GetDbInfo(type);
-                if (dbinfo != null) sb.Append("::").Append(dbinfo.dbtype);
-                return sb.ToString();
-            }
-            else if (type2 == typeof(BitArray))
-            {
-                return $"'{(value as BitArray).To1010()}'";
-            }
             else if (dicGetParamterValue.ContainsKey(type2.FullName))
             {
                 value = string.Concat(value);

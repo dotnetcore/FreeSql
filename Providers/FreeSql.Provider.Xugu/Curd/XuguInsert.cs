@@ -35,7 +35,16 @@ namespace FreeSql.Xugu.Curd
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 
-        protected override long RawExecuteIdentity()
+		public override string ToSql()
+		{
+			return base.ToSqlValuesOrSelectUnionAllExtension102(true, (d, didx, sb) =>
+            {
+                if (didx > 0)
+                    sb.Remove(sb.Length - 3, 1); //批量无逗号
+            }, null);
+		}
+
+		protected override long RawExecuteIdentity()
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;

@@ -504,22 +504,6 @@ where b.TABLE_NAME={0} and c.SCHEMA_NAME={1} and a.cons_TYPE='P'
                 
             }
 
-
-            //foreach (var seqcol in seqcols)
-            //{
-            //    var tbname = seqcol.Item2;
-            //    var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_sequence_name").ToLower();
-            //    var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
-            //    var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
-            //    sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;\r\n");
-            //    sb.Append("DROP SEQUENCE IF EXISTS ").Append(seqname).Append(";\r\n");
-            //    if (seqcol.Item3)
-            //    {
-            //        sb.Append("CREATE SEQUENCE ").Append(seqname).Append(";\r\n");
-            //        sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT nextval('").Append(seqname).Append("'::regclass);\r\n");
-            //        sb.Append(" SELECT case when max(").Append(colname2).Append(") is null then 0 else setval('").Append(seqname).Append("', max(").Append(colname2).Append(")) end FROM ").Append(tbname2).Append(";\r\n");
-            //    }
-            //}
             Console.Write(sb.ToString());
             //throw new Exception(sb.ToString());
             return sb.Length == 0 ? null : sb.ToString();

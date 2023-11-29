@@ -37,11 +37,15 @@
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.QuestDb\FreeSql.Provider.QuestDb.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqliteCore\FreeSql.Provider.SqliteCore.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Xugu\FreeSql.Provider.Xugu.csproj" />
 	</ItemGroup>
 	
     <ItemGroup>
       <Reference Include="DmProvider">
         <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
+      </Reference>
+      <Reference Include="XuguClient">
+        <HintPath>..\..\Providers\FreeSql.Provider.Xugu\lib\XuguClient\netstandard2.0\XuguClient.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>

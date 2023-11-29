@@ -93,7 +93,7 @@ namespace FreeSql.Xugu.Curd
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
-                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::text");
+                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -111,24 +111,10 @@ namespace FreeSql.Xugu.Curd
             foreach (var pk in primarys)
             {
                 if (pkidx > 0) sb.Append(" || '+' || ");
-                sb.Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append("::text");
+                sb.Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d)));
                 ++pkidx;
             }
             sb.Append(")");
-        }
-
-        protected override void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col)
-        {
-            if (_noneParameter == false) return;
-            if (col.Attribute.MapType == typeof(string))
-            {
-                sb.Append("::text");
-                return;
-            }
-            var dbtype = _commonUtils.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
-            if (dbtype == null) return;
-
-            sb.Append("::").Append(dbtype);
         }
 
 #if net40

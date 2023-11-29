@@ -75,31 +75,6 @@ namespace FreeSql.Xugu
                 return ((TimeSpan)param).Ticks / 10;
             else if (param is byte[])
                 return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
-            else if (param is JToken || param is JObject || param is JArray)
-                return string.Concat("'", param.ToString().Replace("'", "''"), "'::jsonb");
-            else if ((isdic = param is Dictionary<string, string>) ||
-                param is IEnumerable<KeyValuePair<string, string>>)
-            {
-                var pgdics = isdic ? param as Dictionary<string, string> :
-                    param as IEnumerable<KeyValuePair<string, string>>;
-                
-                var pghstore = new StringBuilder("'");
-                var pairs = pgdics.ToArray();
-                
-                for (var i = 0; i < pairs.Length; i++)
-                {
-                    if (i != 0) pghstore.Append(",");
-
-                    pghstore.AppendFormat("\"{0}\"=>", pairs[i].Key.Replace("'", "''"));
-
-                    if (pairs[i].Value == null)
-                        pghstore.Append("NULL");
-                    else
-                        pghstore.AppendFormat("\"{0}\"", pairs[i].Value.Replace("'", "''"));
-                }
-                
-                return pghstore.Append("'::hstore");
-            }
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

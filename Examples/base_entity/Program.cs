@@ -544,13 +544,14 @@ namespace base_entity
 
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(true)
+                .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 .UseNameConvert(NameConvertType.ToLower)
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
+                .UseConnectionFactory(DataType.Xugu, () => null)
 
-                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
+                //.UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
@@ -559,10 +560,10 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
-                .UseAdoConnectionPool(false)
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseAdoConnectionPool(false)
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
@@ -600,7 +601,7 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
 			#endregion
 
-			fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Now && a.createtime < DateTime.Now.AddMonths(1)).ToList();
+			//fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Now && a.createtime < DateTime.Now.AddMonths(1)).ToList();
             //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
             //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
 
@@ -621,6 +622,8 @@ namespace base_entity
 				new AsTableLog{ msg = "msg09", createtime = DateTime.Parse("2022-7-1 11:00:00"), click = 10},
 				new AsTableLog{ msg = "msg10", createtime = DateTime.Parse("2022-7-1 12:00:00"), click = 10}
 			};
+
+            var xugusql01 = fsql.Insert(testitems).ToSql();
 			var sqlatb = fsql.Insert(testitems).NoneParameter();
 			var sqlat = sqlatb.ToSql();
 			var sqlatr = sqlatb.ExecuteAffrows();
