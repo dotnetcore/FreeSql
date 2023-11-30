@@ -64,6 +64,16 @@
             测试Array常用查询函数
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectConstContainsSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectConstLengthSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayFilterFuncTest">
             <summary>
             测试ArrayFilter测试

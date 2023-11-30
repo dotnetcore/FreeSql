@@ -160,7 +160,7 @@ namespace FreeSql.Tests.ClickHouse
             _output.WriteLine(JsonConvert.SerializeObject(sql));
         }
 
-        
+
         /// <summary>
         /// 测试Array常用查询函数
         /// </summary>
@@ -174,7 +174,7 @@ namespace FreeSql.Tests.ClickHouse
             _output.WriteLine(JsonConvert.SerializeObject(sql2));
         }
 
-            
+
         /// <summary>
         /// 测试Array常用查询函数
         /// </summary>
@@ -197,7 +197,27 @@ namespace FreeSql.Tests.ClickHouse
             var list = new List<string>() { "f" };
             var sql = _fsql.Select<ArrayMappingTestSimple>().ToList(a => a.Tags1.Concat(list));
             _output.WriteLine(JsonConvert.SerializeObject(sql));
+        }
 
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectConstContainsSync()
+        {
+            var list = new List<string>() { "daily", "a" };
+            var sql = _fsql.Select<ArrayMappingTestSimple>().Where(a => list.Contains(a.Name)).ToList();
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
+        }
+
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectConstLengthSync()
+        {
+            var sql = _fsql.Select<ArrayMappingTestSimple>().ToList(a => "aaaa".Length);
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
         }
 
         /// <summary>
