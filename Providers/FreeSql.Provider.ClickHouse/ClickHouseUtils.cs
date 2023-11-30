@@ -9,6 +9,7 @@ using System.Data;
 using System.Text.Json;
 using ClickHouse.Client.ADO.Parameters;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace FreeSql.ClickHouse
 {
@@ -157,7 +158,22 @@ namespace FreeSql.ClickHouse
                 var ts = (TimeSpan)value;
                 value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
             }
-            return FormatSql("{0}", value, 1);
+			else if (value is Array)
+			{
+				var valueArr = value as Array;
+				var eleType = type.GetElementType();
+				var len = valueArr.GetLength(0);
+				var sb = new StringBuilder().Append("[");
+				for (var a = 0; a < len; a++)
+				{
+					var item = valueArr.GetValue(a);
+					if (a > 0) sb.Append(",");
+					sb.Append(GetNoneParamaterSqlValue(specialParams, specialParamFlag, col, eleType, item));
+				}
+				sb.Append("]");
+				return sb.ToString();
+			}
+			return FormatSql("{0}", value, 1);
         }
     }
 }
