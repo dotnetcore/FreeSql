@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
@@ -126,15 +129,15 @@ namespace FreeSql.Tests.ClickHouse
         {
             var source = new List<ArrayMappingTestSimple>()
             {
-                new ArrayMappingTestSimple
+                new()
                 {
                     Name = "daily",
-                    Tags1 = new [] { "e", "f", "g" },
-                    Tags2 = new [] { 3, 45, 100, 400 },
-                    Tags3 = new [] { false, true, false }
+                    Tags1 = Array.Empty<string>(),
+                    Tags2 = new[] { 3, 45, 100, 400 },
+                    Tags3 = new[] { false, true, false }
                 }
             };
-            var str  = _fsql.Insert(source).ExecuteAffrows();
+            var str = _fsql.Insert(source).ExecuteAffrows();
         }
 
         /// <summary>
@@ -146,7 +149,175 @@ namespace FreeSql.Tests.ClickHouse
             var list = _fsql.Select<ArrayMappingTestSimple>().ToList();
             _output.WriteLine(JsonConvert.SerializeObject(list));
         }
+
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectAnySync()
+        {
+            var sql = _fsql.Select<ArrayMappingTestSimple>().Where(a => !a.Tags1.Any()).ToList(a => a.Name);
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
+        }
+
+        
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectLengthSync()
+        {
+            var sql = _fsql.Select<ArrayMappingTestSimple>().ToList(a => a.Tags1.Count());
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
+
+            var sql2 = _fsql.Select<ArrayMappingTestSimple>().Where(a => a.Tags1.Count() > 5).ToList(a => a.Tags1);
+            _output.WriteLine(JsonConvert.SerializeObject(sql2));
+        }
+
+            
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectContainsSync()
+        {
+            var sql = _fsql.Select<ArrayMappingTestSimple>().ToList(a => a.Tags1.Contains("a"));
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
+
+            var sql2 = _fsql.Select<ArrayMappingTestSimple>().Where(a => a.Tags2.Contains(2)).ToList(a => a.Tags2);
+            _output.WriteLine(JsonConvert.SerializeObject(sql2));
+        }
+
+        /// <summary>
+        /// 测试Array常用查询函数
+        /// </summary>
+        [Fact]
+        public void ArraySelectConcatSync()
+        {
+            var list = new List<string>() { "f" };
+            var sql = _fsql.Select<ArrayMappingTestSimple>().ToList(a => a.Tags1.Concat(list));
+            _output.WriteLine(JsonConvert.SerializeObject(sql));
+
+        }
+
+        /// <summary>
+        /// 测试ArrayFilter测试
+        /// </summary>
+        [Fact]
+        public void ArrayFilterFuncTest()
+        {
+            //var list = _fsql.Select<ArrayMappingTestSimple>().Where(a => a.Tags2.ArrayFilter(o => o == 1).Any())
+            //    .ToSql();
+
+
+            ////SELECT a.`name`, a.`tags1`, a.`tags2`, a.`tags3` 
+            ////FROM `table_test_array_simple` a 
+            ////WHERE (arrayFilter(x -> x = '1', a.`tags2`) != [])
+
+            //_output.WriteLine(JsonConvert.SerializeObject(list));
+        }
+
+        /// <summary>
+        /// 测试ArrayFilter测试
+        /// </summary>
+        [Fact]
+        public void IsPrimaryTest()
+        {
+            _fsql.CodeFirst.SyncStructure<HttpContextRecord>();
+        }
+
+        /// <summary>
+        /// https://github.com/dotnetcore/FreeSql/issues/969
+        /// </summary>
+        [Fact]
+        public async Task UriStringIsTooLongTest()
+        {
+            _fsql.CodeFirst.SyncStructure<TestTable>();
+            var json =
+                "[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}][{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}[{\"date\":\"2021-12-19T02:47:53.4365075 08:00\",\"temperatureC\":6,\"temperatureF\":42,\"summary\":\"Balmy\"},{\"date\":\"2021-12-20T02:47:53.4366893 08:00\",\"temperatureC\":36,\"temperatureF\":96,\"summary\":\"Bracing\"},{\"date\":\"2021-12-21T02:47:53.4366903 08:00\",\"temperatureC\":-15,\"temperatureF\":6,\"summary\":\"Bracing\"},{\"date\":\"2021-12-22T02:47:53.4366904 08:00\",\"temperatureC\":14,\"temperatureF\":57,\"summary\":\"Cool\"},{\"date\":\"2021-12-23T02:47:53.4366905 08:00\",\"temperatureC\":29,\"temperatureF\":84,\"summary\":\"Mild\"}";
+
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+            json += json;
+
+            var t = new TestTable
+            {
+                Id = Guid.NewGuid().ToString(),
+                Content = json,
+                Content2 = json,
+                Time = DateTime.Now
+            };
+
+            //单个插入报错
+            await _fsql.Insert(t).ExecuteAffrowsAsync();
+
+            // await _fsql.Insert(t).ExecuteBulkCopyAsync();
+        }
+
+
+        /// <summary>
+        /// 测试BulkCopy单条
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task TestBulkCopySingle()
+        {
+            var t = new TestTable
+            {
+                Id = Guid.NewGuid().ToString(),
+                Content = "1",
+                Content2 = "2",
+                Time = DateTime.Now
+            };
+
+            //单个插入报错
+            await _fsql.Insert(t).ExecuteAffrowsAsync();
+
+            await _fsql.Insert(t).ExecuteBulkCopyAsync();
+
+            _fsql.Insert(t).ExecuteBulkCopy();
+        }
+
+        /// <summary>
+        /// 测试BulkCopy多条
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task TestBulkCopyMany()
+        {
+            var t = new List<TestTable>();
+
+            foreach (var i in Enumerable.Range(0, 10))
+            {
+                t.Add(new TestTable
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Content = i.ToString(),
+                    Content2 = i.ToString(),
+                    Time = DateTime.Now
+                });
+            }
+
+            //单个插入报错
+            await _fsql.Insert(t).ExecuteAffrowsAsync();
+
+            await _fsql.Insert(t).ExecuteBulkCopyAsync();
+
+            _fsql.Insert(t).ExecuteBulkCopy();
+        }
     }
+
 
     [Table(Name = "table_test_bool")]
     public class BoolMappingTest
@@ -191,10 +362,74 @@ namespace FreeSql.Tests.ClickHouse
         [Column(Name = "name", IsPrimary = true)]
         public string Name { get; set; }
 
-        [Column(Name = "tags1")] public string [] Tags1 { get; set; }
+        [Column(Name = "tags1")] public string[] Tags1 { get; set; }
 
         [Column(Name = "tags2")] public int[] Tags2 { get; set; }
 
-        [Column(Name = "tags3")] public bool [] Tags3 { get; set; }
+        [Column(Name = "tags3")] public bool[] Tags3 { get; set; }
+    }
+
+    /// <summary>
+    /// Http请求信息统计
+    /// </summary>
+    [Table(Name = "http_context_record")]
+    public class HttpContextRecord
+    {
+        [Column(Name = "id", IsPrimary = true)]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// 请求模板
+        /// </summary>
+        [Column(Name = "request_total_key", StringLength = 80)]
+        public string RequestTotalKey { get; set; }
+
+        /// <summary>
+        /// 请求量
+        /// </summary>
+        [Column(Name = "total")]
+        public long Total { get; set; }
+
+        /// <summary>
+        /// 记录请求类型
+        /// </summary>
+        [Column(Name = "type")]
+        public int Type { get; set; }
+
+        /// <summary>
+        /// 添加时间
+        /// </summary>
+        [Column(Name = "add_time")]
+        public DateTime AddTime { get; set; }
+    }
+
+    public class ContentRecord
+    {
+        [Column(IsPrimary = true)] public string Id { get; set; }
+
+        public string? Content1 { get; set; }
+
+        public string? Content2 { get; set; }
+
+        public string? Content3 { get; set; }
+
+        public string Content4 { get; set; }
+    }
+
+    internal class TestTable
+    {
+        [Required] [Column(IsIdentity = true)] public string Id { get; set; }
+
+        [Column(StringLength = -2)] public string Content { get; set; }
+
+        [Column(StringLength = -2)] public string Content2 { get; set; }
+
+        [Column(DbType = "DateTime64(3, 'Asia/Shanghai')")]
+        public DateTime Time { get; set; }
+
+        public override string ToString()
+        {
+            return $"Id:{Id}  Content:{Content}  Content2:{Content2}  Time:{Time}";
+        }
     }
 }

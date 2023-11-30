@@ -583,9 +583,13 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                 if (isPrimary)
                 {
                     if (dbType.Contains("Nullable"))
-                        return dbType.Replace("Nullable(", "")
+                    {
+                        var res = dbType.Replace("Nullable(", "")
                             .Replace(")", "")
                             .Replace(" NOT NULL", "");
+                        return res;
+                    }
+
                     return dbType;
                 }
 

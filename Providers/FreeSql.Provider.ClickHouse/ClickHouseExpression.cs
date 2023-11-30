@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -121,27 +122,51 @@ namespace FreeSql.ClickHouse
                                 case "First":
                                 case "FirstOrDefault":
                                     return $"substr({getExp(callExp.Arguments[0])}, 1, 1)";
+
                             }
                         }
                     }
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
-                        if (argIndex >= callExp.Arguments.Count) break;
-                        tsc.SetMapColumnTmp(null);
-                        var args1 = getExp(callExp.Arguments[argIndex]);
-                        var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
-                        tsc.isNotSetMapColumnTmp = true;
+                        //if (argIndex >= callExp.Arguments.Count) break;
+                        //tsc.SetMapColumnTmp(null);
+                        //var args1 = getExp(callExp.Arguments[argIndex]);
+                        //var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
+                        //var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                        //tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
-                        tsc.isNotSetMapColumnTmp = false;
-                        tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
+                        //tsc.isNotSetMapColumnTmp = false;
+                        //tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                        //if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
+                            case "Count":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+                                return $"(case when {left} is null then 0 else length({left}) end)";
+                            case "Any":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+                                return $"(case when {left} is null then 0 else length({left}) end > 0)";
                             case "Contains":
-                                //判断 in //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
-                                return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
+                                tsc.SetMapColumnTmp(null);
+                                var args1 = getExp(callExp.Arguments[argIndex]);
+                                var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
+                                var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                                tsc.isNotSetMapColumnTmp = true;
+                                left = objExp == null ? null : getExp(objExp);
+                                tsc.isNotSetMapColumnTmp = false;
+                                tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+                                return $"(hasAny({left}, [{args1}]))";
+                            case "Concat":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+                                var right2 = getExp(callExp.Arguments[argIndex]);
+                                if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
+                                return $"(arrayConcat({left} || {right2}))";
                         }
                     }
                     break;
@@ -181,7 +206,6 @@ namespace FreeSql.ClickHouse
             }
             return null;
         }
-
         public override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, ExpTSC tsc)
         {
             if (exp.Expression == null)
