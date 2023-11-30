@@ -48,7 +48,7 @@ namespace FreeSql.ClickHouse
                 param = Utils.GetDataReaderValue(mapType, param);
 
             if (param is bool || param is bool?)
-                return (bool)param ? 1 : 0;
+                return (bool)param;  //不需要转0/1
             else if (param is string)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'"); //只有 mysql 需要处理反斜杠
             else if (param is char)

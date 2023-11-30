@@ -4,6 +4,128 @@
         <name>FreeSql.Tests</name>
     </assembly>
     <members>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingSync">
+            <summary>
+            测试bool类型映射
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingInsert">
+            <summary>
+            测试bool类型插入
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingUpdateSet">
+            <summary>
+            测试bool类型修改
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingUpdate">
+            <summary>
+            测试bool类型修改
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBoolMappingSelect">
+            <summary>
+            测试bool类型查询
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingSync">
+            <summary>
+            测试Array类型映射
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingInsert">
+            <summary>
+            测试Array类型插入
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayBoolMappingSelect">
+            <summary>
+            测试Array类型映射
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectAnySync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectLengthSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectContainsSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectConcatSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectConstContainsSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArraySelectConstLengthSync">
+            <summary>
+            测试Array常用查询函数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.ArrayFilterFuncTest">
+            <summary>
+            测试ArrayFilter测试
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.IsPrimaryTest">
+            <summary>
+            测试ArrayFilter测试
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.UriStringIsTooLongTest">
+            <summary>
+            https://github.com/dotnetcore/FreeSql/issues/969
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBulkCopySingle">
+            <summary>
+            测试BulkCopy单条
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Tests.ClickHouse.ClickHouseTest3.TestBulkCopyMany">
+            <summary>
+            测试BulkCopy多条
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.Tests.ClickHouse.HttpContextRecord">
+            <summary>
+            Http请求信息统计
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.HttpContextRecord.RequestTotalKey">
+            <summary>
+            请求模板
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.HttpContextRecord.Total">
+            <summary>
+            请求量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.HttpContextRecord.Type">
+            <summary>
+            记录请求类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ClickHouse.HttpContextRecord.AddTime">
+            <summary>
+            添加时间
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.ClickHouse.CollectDataEntityUpdate01">
             <summary>
             实时数据
