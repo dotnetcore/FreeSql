@@ -332,7 +332,8 @@ namespace FreeSql.Tests.ClickHouse
             //单个插入报错
             await _fsql.Insert(t).ExecuteAffrowsAsync();
 
-            await _fsql.Insert(t).ExecuteBulkCopyAsync();
+            //BulkCopy不会报错
+            await _fsql.Insert(t).ExecuteBulkCopyAsync(); 
 
             _fsql.Insert(t).ExecuteBulkCopy();
         }
