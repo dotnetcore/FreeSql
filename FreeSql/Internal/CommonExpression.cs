@@ -708,7 +708,7 @@ namespace FreeSql.Internal
         public string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, BaseDiyMemberExpression diymemexp, List<DbParameter> dbParams)
         {
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, _selectColumnMap = _selectColumnMap, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = table, dbParams = dbParams });
-            return GetBoolString(exp, sql);
+            return GetBoolString(exp, SearchColumnByField(_tables, null, sql), sql);
         }
 
         public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<DbParameter> dbParams)
@@ -720,7 +720,7 @@ namespace FreeSql.Internal
                         tb.Alias = tb.Parameter.Name;
             }
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter, dbParams = dbParams });
-            return GetBoolString(exp, sql);
+            return GetBoolString(exp, SearchColumnByField(_tables, null, sql), sql);
         }
         static ConcurrentDictionary<string, Regex> dicRegexAlias = new ConcurrentDictionary<string, Regex>();
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, SelectTableInfoType tbtype, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter)
@@ -733,7 +733,7 @@ namespace FreeSql.Internal
                         tb.Alias = tb.Parameter.Name;
             }
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter });
-            sql = GetBoolString(exp, sql);
+            sql = GetBoolString(exp, SearchColumnByField(_tables, null, sql), sql);
 
             if (_tables.Count > tbidx)
             {
@@ -765,11 +765,11 @@ namespace FreeSql.Internal
         static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
         static MethodInfo MethodMathFloor = typeof(Math).GetMethod("Floor", new Type[] { typeof(double) });
 
-        public string GetBoolString(Expression exp, string sql)
+        public string GetBoolString(Expression exp, ColumnInfo column, string sql)
         {
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                return $"{sql} = {formatSql(true, null, null, null)}";
+                return $"{sql} = {formatSql(true, column?.Attribute.MapType, null, null)}";
             if (isBool)
                 return GetBoolString(sql);
             return sql;
@@ -818,11 +818,13 @@ namespace FreeSql.Internal
                     if (oper == "OR")
                     {
                         var leftBool = ExpressionLambdaToSql(leftExp, tsc);
-                        if (SearchColumnByField(tsc._tables, tsc.currentTable, leftBool) != null) leftBool = $"{leftBool} = {formatSql(true, null, null, null)}";
+                        var leftColumn = SearchColumnByField(tsc._tables, tsc.currentTable, leftBool);
+                        if (leftColumn != null) leftBool = $"{leftBool} = {formatSql(true, leftColumn.Attribute.MapType, null, null)}";
                         else leftBool = GetBoolString(leftBool);
 
                         var rightBool = ExpressionLambdaToSql(rightExp, tsc);
-                        if (SearchColumnByField(tsc._tables, tsc.currentTable, rightBool) != null) rightBool = $"{rightBool} = {formatSql(true, null, null, null)}";
+                        var rightColumn = SearchColumnByField(tsc._tables, tsc.currentTable, rightBool);
+						if (rightColumn != null) rightBool = $"{rightBool} = {formatSql(true, rightColumn.Attribute.MapType, null, null)}";
                         else rightBool = GetBoolString(rightBool);
                         if (_common._orm?.Ado?.DataType == DataType.QuestDb) return $"(({leftBool}) {oper} ({rightBool}))";
                         return $"({leftBool} {oper} {rightBool})";
@@ -946,10 +948,10 @@ namespace FreeSql.Internal
                     break;
                 case "AND":
                 case "OR":
-                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, null, null, null)}";
+                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, leftMapColumn.Attribute.MapType, null, null)}";
                     else left = GetBoolString(left);
                     if (rightMapColumn == null) rightMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, right);
-                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, null, null, null)}";
+                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, rightMapColumn.Attribute.MapType, null, null)}";
                     else right = GetBoolString(right);
                     break;
             }
@@ -2410,7 +2412,7 @@ namespace FreeSql.Internal
                             new ReplaceParameterVisitor().Modify(fl.Where, newParameter),
                             newParameter
                         );
-                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC
+						var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC
                         {
                             _tables = isMultitb ? new List<SelectTableInfo>(new[] { tb }) : null,
                             _selectColumnMap = null,
@@ -2422,7 +2424,7 @@ namespace FreeSql.Internal
                             currentTable = tb.Table,
                             alias001 = tb.Alias
                         });
-                        whereSql = GetBoolString(expExp.Body, whereSql);
+                        whereSql = GetBoolString(expExp.Body, null, whereSql);
                         if (isEmpty == false)
                             sb.Append(" AND ");
                         else

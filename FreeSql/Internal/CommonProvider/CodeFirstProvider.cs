@@ -101,7 +101,7 @@ namespace FreeSql.Internal.CommonProvider
             if (objects == null) return;
             var syncObjects = objects.Where(a => a.tableSchema?.Type != null &&
                     (
-                        a.tableSchema.Type.Name == "DynamicRepository" && a.tableSchema.Columns.Any() 
+                        a.tableSchema.Type.Name == "DynamicDbContext" && a.tableSchema.Columns.Any() 
                         || 
                         a.tableSchema.Type != typeof(object) && _dicSycedGetOrAdd(a.tableSchema.Type).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false
                     ) && 

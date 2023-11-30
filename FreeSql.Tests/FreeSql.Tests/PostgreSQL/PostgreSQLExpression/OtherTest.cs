@@ -16,6 +16,7 @@ namespace FreeSql.Tests.PostgreSQLExpression
     {
 
         ISelect<TableAllType> select => g.pgsql.Select<TableAllType>();
+        IFreeSql fsql => g.pgsql;
 
         [Fact]
         public void Div()
@@ -32,11 +33,24 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var t8 = select.Where(a => a.testFieldDecimal / 3 > 3).Limit(10).ToList();
             var t9 = select.Where(a => a.testFieldFloat / 3 > 3).Limit(10).ToList();
         }
-
-        [Fact]
+        [Table(DisableSyncStructure = true)]
+		public class Student
+		{
+			public string Name { get; set; }
+			[Column(MapType = typeof(int))]
+			public bool IsDelete { get; set; }
+		}
+		[Fact]
         public void Boolean()
         {
-            var t1 = select.Where(a => a.testFieldBool == true).Limit(10).ToList();
+			var mapintSql01 = fsql.Select<Student>().Where(d => d.IsDelete).ToSql("1");
+			var mapintSql02 = fsql.Select<Student>().Where(d => d.IsDelete == true).ToSql("1");
+            Assert.Equal(mapintSql02, mapintSql01);
+            Assert.Equal(@"SELECT 1 
+FROM ""student"" a 
+WHERE (a.""isdelete"" = 1)", mapintSql01);
+
+			var t1 = select.Where(a => a.testFieldBool == true).Limit(10).ToList();
             var t2 = select.Where(a => a.testFieldBool != true).Limit(10).ToList();
             var t3 = select.Where(a => a.testFieldBool == false).Limit(10).ToList();
             var t4 = select.Where(a => !a.testFieldBool).Limit(10).ToList();
