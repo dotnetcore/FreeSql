@@ -43,7 +43,7 @@ namespace FreeSql.Internal.CommonProvider
                 sb.Append(AddslashesProcessParam(z, mapType, mapColumn));
             }
 
-            return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
+            return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "[").Append("]").ToString();
         }
 
         public static bool IsFromSlave(string cmdText)

@@ -57,18 +57,7 @@ namespace FreeSql.ClickHouse.Curd
                 {
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-                    var data = ToDataTable();
-                    using (var conn = _orm.Ado.MasterPool.Get())
-                    {
-                        using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
-                        {
-                            DestinationTableName = data.TableName,
-                            BatchSize = _source.Count
-                        })
-                        {
-                            bulkCopyInterface.WriteToServerAsync(data, default).Wait();
-                        }
-                    }
+                    InternalBulkCopyAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                     return affrows;
                 }
                 catch (Exception ex)
@@ -83,6 +72,24 @@ namespace FreeSql.ClickHouse.Curd
                 }
             }
             return base.RawExecuteAffrows();
+        }
+
+        internal async Task<int> InternalBulkCopyAsync()
+        {
+            var data = ToDataTable();
+            using (var conn = _orm.Ado.MasterPool.Get())
+            {
+                using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
+                       {
+                           DestinationTableName = data.TableName,
+                           BatchSize = _source.Count
+                       })
+                {
+                    await bulkCopyInterface.WriteToServerAsync(data, default);
+                }
+            }
+            return 0;
+              
         }
 
         private IDictionary<string, object> GetValue<T>(T u, System.Reflection.PropertyInfo[] columns)

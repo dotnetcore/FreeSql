@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Globalization;
 using System.Data;
+using System.Text.Json;
 using ClickHouse.Client.ADO.Parameters;
 using System.Text.RegularExpressions;
 
@@ -18,7 +19,7 @@ namespace FreeSql.ClickHouse
         }
 
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
-        {
+         {
             if (value is string str)
                 value = str?.Replace("\t", "\\t")
                     .Replace("\r\n", "\\r\\n")
@@ -43,8 +44,10 @@ namespace FreeSql.ClickHouse
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;
                 }
-                if (value is bool)
-                    ret.Value = (bool)value ? 1 : 0;
+                //if (value.GetType().IsArray)
+                //{
+                //     ret.DbType = DbType.Object;
+                //}
             }
             _params?.Add(ret);
             return ret;
@@ -145,7 +148,7 @@ namespace FreeSql.ClickHouse
         }
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value)
-        {
+         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
