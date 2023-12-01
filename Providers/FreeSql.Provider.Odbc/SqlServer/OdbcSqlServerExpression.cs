@@ -103,8 +103,10 @@ namespace FreeSql.Odbc.SqlServer
                                     var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
                                     tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                     return enumStr;
-                                }
-                                return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
+								}
+								var value = ExpressionGetValue(callExp.Object, out var success);
+								if (success) return formatSql(value, typeof(string), null, null);
+								return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
                                     $"cast({getExp(callExp.Object)} as varchar(36))" :
                                     $"cast({getExp(callExp.Object)} as nvarchar{(gentype2.IsNumberType() || gentype2.IsEnum ? "(100)" : "(max)")})") : null;
                             }

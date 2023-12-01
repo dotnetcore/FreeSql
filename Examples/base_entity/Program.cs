@@ -549,7 +549,6 @@ namespace base_entity
                 .UseNameConvert(NameConvertType.ToLower)
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
-                .UseConnectionFactory(DataType.Xugu, () => null)
 
                 //.UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
@@ -560,7 +559,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
@@ -599,13 +598,21 @@ namespace base_entity
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
-			#endregion
+            #endregion
+
+            var v1 = 123123123;
+            var mysql0111 = fsql.Select<User1>().Where(a => a.Nickname.Contains(v1.ToString())).ToSql();
+            var mysql0112 = fsql.Select<User1>().Where(a => a.Nickname.Contains(123123123.ToString())).ToSql();
+			var v2 = "123123123";
+			var mysql0113 = fsql.Select<User1>().Where(a => a.Nickname.Contains(v2)).ToSql();
+			var mysql0114 = fsql.Select<User1>().Where(a => a.Nickname.Contains(v2.ToString())).ToSql();
+			var mysql0115 = fsql.Select<User1>().Where(a => a.Nickname.Contains("123123123")).ToSql();
 
 			//fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Now && a.createtime < DateTime.Now.AddMonths(1)).ToList();
-            //var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
-            //table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
+			//var table = fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog));
+			//table.SetAsTable(new ModAsTableImpl(fsql), table.ColumnsByCs[nameof(AsTableLog.click)]);
 
-            fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog)).AsTableImpl
+			fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog)).AsTableImpl
                 .SetTableName(0, "AsTableLog1")
                 .SetTableName(1, "AsTableLog2");
 

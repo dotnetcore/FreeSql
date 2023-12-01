@@ -99,6 +99,8 @@ namespace FreeSql.ClickHouse
                                     tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                     return enumStr;
                                 }
+                                var value = ExpressionGetValue(callExp.Object, out var success);
+                                if (success) return formatSql(value, typeof(string), null, null);
                                 return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as String)" : null;
                             }
                             return null;
