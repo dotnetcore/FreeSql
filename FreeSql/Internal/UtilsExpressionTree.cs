@@ -347,22 +347,26 @@ namespace FreeSql.Internal
 			if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
 			{
 				int strlen = colattr.StringLength;
-				var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+				var charPattern = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+                var replaceCounter = 0;
 				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
 				switch (common._orm.Ado.DataType)
 				{
 					case DataType.MySql:
 					case DataType.OdbcMySql:
 					case DataType.CustomMySql:
-						if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
-						else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                        if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
+                        else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.SqlServer:
 					case DataType.OdbcSqlServer:
 					case DataType.CustomSqlServer:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(MAX)");
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(MAX)" : m.Groups[0].Value);
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.PostgreSQL:
 					case DataType.OdbcPostgreSQL:
@@ -371,39 +375,48 @@ namespace FreeSql.Internal
 					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong:
 						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Oracle:
 					case DataType.CustomOracle:
 						if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Dameng:
 						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.OdbcOracle:
 					case DataType.OdbcDameng:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(4000)"); //ODBC 不支持 NCLOB
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Sqlite:
 						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.MsAccess:
-						charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
 						if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Firebird:
-						charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
 						if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.GBase:
 						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 				}
 			}
@@ -412,7 +425,7 @@ namespace FreeSql.Internal
 			if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
 			{
 				int strlen = colattr.StringLength;
-				var bytePatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+				var bytePattern = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
 				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
 				switch (common._orm.Ado.DataType)
 				{
@@ -421,13 +434,13 @@ namespace FreeSql.Internal
 					case DataType.CustomMySql:
 						if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
 						else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
 						break;
 					case DataType.SqlServer:
 					case DataType.OdbcSqlServer:
 					case DataType.CustomSqlServer:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1(MAX)");
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1(MAX)");
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
 						break;
 					case DataType.PostgreSQL:
 					case DataType.OdbcPostgreSQL:
@@ -453,7 +466,7 @@ namespace FreeSql.Internal
 						break;
 					case DataType.MsAccess:
 						if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
 						break;
 					case DataType.Firebird:
 						colattr.DbType = $"BLOB{strNotNull}";
