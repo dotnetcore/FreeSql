@@ -1002,7 +1002,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 var sb1 = new StringBuilder();
                 ToSqlExtension110(sb1, false);
-                fetch(sb1);
+                if (sb1.Length > 0) fetch(sb1);
                 return;
             }
             if (_where.Length == 0) return;
@@ -1035,7 +1035,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 var sb1 = new StringBuilder();
                 ToSqlExtension110(sb1, false);
-                await fetchAsync(sb1);
+				if (sb1.Length > 0) await fetchAsync(sb1);
                 sb1.Clear();
                 return;
             }
@@ -1126,7 +1126,11 @@ namespace FreeSql.Internal.CommonProvider
                         ++colidx;
                     }
                 }
-                if (colidx == 0) return;
+                if (colidx == 0)
+                {
+                    sb.Clear();
+                    return;
+                }
 
             }
             else if (_source.Count > 1)

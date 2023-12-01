@@ -205,7 +205,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tableRule = old => name;
                     sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
                     _interceptSql?.Invoke(sb);
-                    fetch(sb);
+					if (sb.Length > 0) fetch(sb);
                 }
                 _tableRule = oldTableRule;
                 return;
@@ -240,7 +240,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tableRule = old => name;
                     sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
                     _interceptSql?.Invoke(sb);
-                    await fetchAsync(sb);
+					if (sb.Length > 0) await fetchAsync(sb);
                 }
                 _tableRule = oldTableRule;
                 return;
