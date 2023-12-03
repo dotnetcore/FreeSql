@@ -281,7 +281,9 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
+		public static MethodInfo _methodSqlExtInternalRawField = typeof(SqlExt).GetMethod("InternalRawField", BindingFlags.NonPublic | BindingFlags.Static);
+		public static MethodInfo _methodSqlExtInternalRawSql = typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static);
+		public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
         {
             if (string.IsNullOrEmpty(property)) return null;
             var field = property.Split('.').Select(a => a.Trim()).ToArray();
@@ -289,7 +291,16 @@ namespace FreeSql.Internal.CommonProvider
 
             if (field.Length == 1 && fromFirstTable == false)
             {
-                foreach (var tb in _tables)
+				if (_tables.Count == 1 && _tables[0].Table?.Type == typeof(object))
+				{
+                    //配合 .Select<object>().WithSql("...").WhereDynamicFilter(...)
+					var tb = _tables[0];
+					tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
+					var rawField = $"{tb.Alias}.{_commonUtils.QuoteSqlName(field[0])}";
+					return Expression.Call(_methodSqlExtInternalRawField, Expression.Constant(rawField, typeof(string)));
+				}
+
+				foreach (var tb in _tables)
                 {
                     if (tb.Table.ColumnsByCs.TryGetValue(field[0], out var col) &&
                         tb.Table.Properties.TryGetValue(field[0], out var prop))
@@ -1029,7 +1040,7 @@ namespace FreeSql.Internal.CommonProvider
                                     .Select(a => a.ParameterType == typeof(object) ? (object)this : 
                                         (a.ParameterType == typeof(string) ? (object)(fi.Value?.ToString()) : (object)null))
                                     .ToArray());
-                            exp = fiValue0MethodReturn is Expression expression ? expression : Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn?.ToString(), typeof(string)));
+                            exp = fiValue0MethodReturn is Expression expression ? expression : Expression.Call(_methodSqlExtInternalRawSql, Expression.Constant(fiValue0MethodReturn?.ToString(), typeof(string)));
                             break;
 
                         case DynamicFilterOperator.Contains:
@@ -1043,6 +1054,16 @@ namespace FreeSql.Internal.CommonProvider
                             break;
                         default:
                             exp = ConvertStringPropertyToExpression(fi.Field);
+                            if (exp.Type == typeof(object) && fi.Value != null)
+                            {
+                                var valueType = fi.Value?.GetType();
+                                if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(valueType)) exp = Expression.Convert(exp, valueType);
+								else if (valueType.FullName == "System.Text.Json.JsonElement")
+                                {
+									var valueKind = valueType.GetProperty("ValueKind").GetValue(fi.Value, null).ToString();
+                                    if (valueKind == "Number") exp = Expression.Convert(exp, typeof(decimal));
+								}
+							}
                             break;
                     }
                     switch (fi.Operator)

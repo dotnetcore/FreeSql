@@ -162,13 +162,18 @@ namespace FreeSql
             expContext.Value.Result = sql;
             return false;
         }
+		static object InternalRawField([RawValue] string sql)
+		{
+			expContext.Value.Result = sql;
+			return default;
+		}
 
-        #region 大小判断
-        /// <summary>
-        /// 大于 &gt;
-        /// </summary>
-        /// <returns></returns>
-        public static bool GreaterThan<TValue>(TValue value1, TValue value2)
+		#region 大小判断
+		/// <summary>
+		/// 大于 &gt;
+		/// </summary>
+		/// <returns></returns>
+		public static bool GreaterThan<TValue>(TValue value1, TValue value2)
         {
             expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} > {expContext.Value.ParsedContent["value2"]}";
             return false;
