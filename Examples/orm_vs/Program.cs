@@ -23,9 +23,9 @@ namespace orm_vs
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Max Pool Size=21;TrustServerCertificate=true")
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=21;AllowLoadLocalInfile=true;")
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21")
-                .UseAutoSyncStructure(false)
+				//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=21;AllowLoadLocalInfile=true;")
+				//.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21")
+				.UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
                 .Build();
@@ -38,11 +38,11 @@ namespace orm_vs
                 {
                     ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=20;Max Pool Size=20;TrustServerCertificate=true",
                     DbType = DbType.SqlServer,
-                    //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20;AllowLoadLocalInfile=true;",
-                    //DbType = DbType.MySql,
-                    //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20",
-                    //DbType = DbType.PostgreSQL,
-                    IsAutoCloseConnection = true,
+					//ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20;AllowLoadLocalInfile=true;",
+					//DbType = DbType.MySql,
+					//ConnectionString = "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20",
+					//DbType = DbType.PostgreSQL,
+					IsAutoCloseConnection = true,
                     InitKeyType = InitKeyType.Attribute
                 });
                 //db.Aop.OnLogExecuting = (sql, pars) =>
@@ -60,12 +60,12 @@ namespace orm_vs
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
                 optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=tedb1;Pooling=true;Min Pool Size=19;Max Pool Size=19;TrustServerCertificate=true");
-                //var connectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=19;Max Pool Size=19";
-                //optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-                //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=19");
-            }
+				//var connectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=19;Max Pool Size=19";
+				//optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+				//optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=19");
+			}
 
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
+			protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 base.OnModelCreating(modelBuilder);
             }

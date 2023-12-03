@@ -48,9 +48,9 @@ public class g
     static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() =>
     {
         return new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
-        //.UseConnectionFactory(FreeSql.DataType.OdbcPostgreSQL, () => new System.Data.Odbc.OdbcConnection("Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;"))
-        .UseAutoSyncStructure(true)
+        .UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=127.0.0.1;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
+		//.UseConnectionFactory(FreeSql.DataType.OdbcPostgreSQL, () => new System.Data.Odbc.OdbcConnection("Driver={PostgreSQL Unicode(x64)};Server=127.0.0.1;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;"))
+		.UseAutoSyncStructure(true)
         .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseLazyLoading(true)
         .UseMonitorCommand(

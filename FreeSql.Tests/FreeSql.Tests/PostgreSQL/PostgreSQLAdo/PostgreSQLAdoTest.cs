@@ -12,7 +12,7 @@ namespace FreeSql.Tests.PostgreSQL
         {
             var t1 = g.pgsql.Ado.MasterPool.StatisticsFullily;
 
-            var connectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;ArrayNullabilityMode=Always;Pooling=true;Maximum Pool Size=21";
+            var connectionString = "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;ArrayNullabilityMode=Always;Pooling=true;Maximum Pool Size=21";
             using (var t2 = new FreeSqlBuilder()
                 .UseConnectionFactory(FreeSql.DataType.PostgreSQL, () => new NpgsqlConnection(connectionString))
                 .Build())

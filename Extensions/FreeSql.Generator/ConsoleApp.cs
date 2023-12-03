@@ -104,13 +104,13 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
 
      -DB ""{6},data source=127.0.0.1;port=3306;user id=root;password=root;initial catalog=数据库;charset=utf8;sslmode=none;max pool size=2""
      -DB ""{7},data source=.;integrated security=True;initial catalog=数据库;pooling=true;max pool size=2""
-     -DB ""{8},host=192.168.164.10;port=5432;username=postgres;password=123456;database=数据库;pooling=true;maximum pool size=2""
+     -DB ""{8},host=127.0.0.1;port=5432;username=postgres;password=123456;database=数据库;pooling=true;maximum pool size=2""
      -DB ""{9},user id=user1;password=123456;data source=//127.0.0.1:1521/XE;pooling=true;max pool size=2""
      -DB ""{10},data source=document.db""
      -DB ""{14},database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=2""
      -DB ""{11},server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=2""
      -DB ""{12},server=127.0.0.1;port=54321;uid=USER2;pwd=123456789;database=数据库""
-     -DB ""{13},host=192.168.164.10;port=2003;database=数据库;username=SYSDBA;password=szoscar55;maxpoolsize=2""
+     -DB ""{13},host=127.0.0.1;port=2003;database=数据库;username=SYSDBA;password=szoscar55;maxpoolsize=2""
                                * {11}(达梦数据库)、{12}(人大金仓数据库)、{13}(神舟通用数据库)
 
      -Filter                   Table+View+StoreProcedure

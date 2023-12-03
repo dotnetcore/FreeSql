@@ -178,7 +178,7 @@ WHERE (a.""TenrantId"" = 100) AND (a.""id"" > 10) AND (a.""IsDeleted"" = 1)", sq
                 var sql = fsql.Select<TestGFilter1>().Where(a => a.id > 10).ToSql();
                 Assert.Equal(@"SELECT a.`id`, a.`TenrantId`, a.`IsDeleted` 
 FROM `TestGFilter1` a 
-WHERE (a.`TenrantId` = 100) AND (a.`id` > 10) AND (a.`IsDeleted` = 1)", sql);
+WHERE (a.`TenrantId` = 100) AND (a.`id` > 10) AND (a.`IsDeleted` = true)", sql);
             }
         }
 

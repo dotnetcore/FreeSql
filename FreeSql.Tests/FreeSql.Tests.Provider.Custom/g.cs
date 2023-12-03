@@ -61,7 +61,7 @@ public class g
     static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() =>
     {
         var fsql = new FreeSql.FreeSqlBuilder()
-            .UseConnectionFactory(FreeSql.DataType.CustomPostgreSQL, () => new NpgsqlConnection("Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_custom;Pooling=true;"))
+            .UseConnectionFactory(FreeSql.DataType.CustomPostgreSQL, () => new NpgsqlConnection("Server=127.0.0.1;Port=5432;UID=postgres;PWD=123456;Database=tedb_custom;Pooling=true;"))
             .UseAutoSyncStructure(true)
             .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
             .UseLazyLoading(true)

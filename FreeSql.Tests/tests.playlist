@@ -63,9 +63,6 @@
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.Oracle" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.OracleExpression" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.OracleMapType" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.PostgreSQL" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.PostgreSQLExpression" />
-            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.PostgreSQLMapType" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServer" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServerExpression" />
             <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServerMapType" />
