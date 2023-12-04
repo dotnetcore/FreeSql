@@ -44,6 +44,7 @@ QQ群：561616019(在线)、4336577(已满)、8578575(已满)、52508226(已满)
 
 - [zhontai.net Admin 后台管理系统](https://github.com/zhontai/Admin.Core)
 - [A simple and practical CMS implemented by .NET Core](https://github.com/luoyunchong/lin-cms-dotnetcore)
+- [AIBPM 一个开源的工作流引擎](https://github.com/leooneone/aibpm.plus)
 - [EasyCms 企业建站，事业单位使用的CMS管理系统](https://github.com/jasonyush/EasyCMS)
 
 <p align="center">
