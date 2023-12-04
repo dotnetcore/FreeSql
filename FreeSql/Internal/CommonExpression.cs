@@ -978,7 +978,7 @@ namespace FreeSql.Internal
                     _common._orm.Aop.ParseExpressionHandler(this, args);
                     if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
                 }
-                ParseExpressionNoAsSelect(this, args, tsc._tableRule, tsc.whereGlobalFilter);
+                ParseExpressionNoAsSelect(this, args, tsc._tableRule, tsc.whereGlobalFilter, tsc.dbParams);
                 if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
             }
             switch (exp.NodeType)
@@ -2611,7 +2611,7 @@ namespace FreeSql.Internal
             }
         }
 
-        public static void ParseExpressionNoAsSelect(object sender, Aop.ParseExpressionEventArgs e, Func<Type, string, string> tableRule, List<GlobalFilter.Item> whereGlobalFilter)
+        public static void ParseExpressionNoAsSelect(object sender, Aop.ParseExpressionEventArgs e, Func<Type, string, string> tableRule, List<GlobalFilter.Item> whereGlobalFilter, List<DbParameter> dbParams)
         {
             if (e.Expression.NodeType != ExpressionType.Call &&
                 (e.Expression as MemberExpression)?.Member.Name != "Count") return;
@@ -2689,6 +2689,7 @@ namespace FreeSql.Internal
                         var mtmReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
                         mtmReftbname = mtmReftbname.Substring(0, mtmReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
                         var midSelect = commonExp._common._orm.Select<object>().As($"M{select._tables[0].Alias}_M{mtmReftbname}").AsType(memberTbref.RefMiddleEntityType) as Select1Provider<object>;
+                        if (dbParams != null) midSelect.WithParameters(dbParams);
                         if (tableRule != null) midSelect._tableRules.Add(tableRule);
                         if (whereGlobalFilter != null)
                         {
@@ -2752,7 +2753,8 @@ namespace FreeSql.Internal
                     Type = SelectTableInfoType.Parent,
                     Parameter = a.Parameter
                 }));
-                if (tableRule != null) select._tableRules.Add(tableRule);
+				if (dbParams != null) select.WithParameters(dbParams);
+				if (tableRule != null) select._tableRules.Add(tableRule);
                 if (whereGlobalFilter != null)
                 {
                     select._whereGlobalFilter.Clear();

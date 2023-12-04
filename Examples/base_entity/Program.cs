@@ -305,6 +305,7 @@ namespace base_entity
             public int id { get; set; }
             public int parentid { get; set; }
             public string code { get; set; }
+            public ActivityStatusCode status { get; set; }  
 
             [Navigate(nameof(parentid))]
             public TreeModel Parent { get; set; }
@@ -544,7 +545,7 @@ namespace base_entity
 
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(false)
+                .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 .UseNameConvert(NameConvertType.ToLower)
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
@@ -599,6 +600,9 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            //fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+            //var TreeModel01 = fsql.Select<TreeModel>().Where(a => a.code == "x" && a.Childs.AsSelect().Any(b => b.id == a.id && b.status == ActivityStatusCode.Error)).ToList();
 
             var v1 = 123123123;
             var mysql0111 = fsql.Select<User1>().Where(a => a.Nickname.Contains(v1.ToString())).ToSql();
