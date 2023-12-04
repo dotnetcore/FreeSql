@@ -44,14 +44,7 @@ namespace FreeSql
         {
             var update = base.OrmUpdate(entitys).AsTable(_repo.AsTableValueInternal);
             var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true))
-            {
-                if (entitys != null)
-                    foreach (var entity in entitys)
-                        if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception(DbContextStrings.UpdateError_Filter(filter.Key, filter.Value.Expression, _db.OrmOriginal.GetEntityString(_entityType, entity)));
-                update.Where(filter.Value.Expression);
-            }
+            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) update.Where(filter.Value.Expression);
             var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
             disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
             if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter.ToArray());
