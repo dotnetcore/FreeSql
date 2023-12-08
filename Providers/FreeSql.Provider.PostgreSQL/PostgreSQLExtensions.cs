@@ -36,15 +36,41 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     /// <returns></returns>
     public static OnConflictDoUpdate<T1> OnConflictDoUpdate<T1>(this IInsert<T1> that, Expression<Func<T1, object>> columns = null) where T1 : class => new FreeSql.PostgreSQL.Curd.OnConflictDoUpdate<T1>(that.InsertIdentity(), columns);
 
-    #region ExecutePgCopy
-    /// <summary>
-    /// 批量插入或更新（操作的字段数量超过 2000 时收益大）<para></para>
-    /// 实现原理：使用 PgCopy 插入临时表，再执行 INSERT INTO t1 select * from #temp ON CONFLICT(""id"") DO UPDATE SET ...
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="that"></param>
-    /// <returns></returns>
-    public static int ExecutePgCopy<T>(this IInsertOrUpdate<T> that) where T : class
+	/// <summary>
+	/// PostgreSQL<para></para>
+    /// select distinct on(subject) * from score order by subject, score desc, name;
+	/// </summary>
+	public static ISelect<T1> DistinctOn<T1, TKey>(this ISelect<T1> query, Expression<Func<T1, object>> selector)
+	{
+		var select = query as FreeSql.PostgreSQL.Curd.PostgreSQLSelect<T1>;
+		if (select == null) throw new Exception($"{nameof(DistinctOn)} 是 FreeSql.Provider.PostgreSQL 特有的功能");
+		var s0p = select as Select0Provider;
+        var orderByOld = s0p._orderby;
+        var orderByNew = "";
+		try
+        {
+            s0p._orderby = null;
+            select.OrderBy(selector);
+            orderByNew = s0p._orderby;
+		}
+        finally
+        {
+            s0p._orderby = orderByOld;
+        }
+        if (orderByNew.StartsWith(" \r\nORDER BY "))
+            s0p._select = $"{s0p._select} distinct on({orderByNew.Substring(12)}) ";
+		return select;
+	}
+
+	#region ExecutePgCopy
+	/// <summary>
+	/// 批量插入或更新（操作的字段数量超过 2000 时收益大）<para></para>
+	/// 实现原理：使用 PgCopy 插入临时表，再执行 INSERT INTO t1 select * from #temp ON CONFLICT(""id"") DO UPDATE SET ...
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="that"></param>
+	/// <returns></returns>
+	public static int ExecutePgCopy<T>(this IInsertOrUpdate<T> that) where T : class
     {
         var upsert = that as InsertOrUpdateProvider<T>;
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return 0;
