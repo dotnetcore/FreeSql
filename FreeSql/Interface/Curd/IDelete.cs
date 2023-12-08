@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FreeSql.Internal.Model;
 
 namespace FreeSql
 {
@@ -80,13 +81,19 @@ namespace FreeSql
         /// <param name="not">是否标识为NOT</param>
         /// <returns></returns>
         IDelete<T1> WhereDynamic(object dywhere, bool not = false);
+		/// <summary>
+		/// 动态过滤条件
+		/// </summary>
+		/// <param name="filter"></param>
+		/// <returns></returns>
+		IDelete<T1> WhereDynamicFilter(DynamicFilterInfo filter);
 
-        /// <summary>
-        /// 禁用全局过滤功能，不传参数时将禁用所有
-        /// </summary>
-        /// <param name="name">零个或多个过滤器名字</param>
-        /// <returns></returns>
-        IDelete<T1> DisableGlobalFilter(params string[] name);
+		/// <summary>
+		/// 禁用全局过滤功能，不传参数时将禁用所有
+		/// </summary>
+		/// <param name="name">零个或多个过滤器名字</param>
+		/// <returns></returns>
+		IDelete<T1> DisableGlobalFilter(params string[] name);
 
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；

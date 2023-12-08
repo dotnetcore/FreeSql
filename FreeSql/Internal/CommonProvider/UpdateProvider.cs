@@ -847,8 +847,17 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
             this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
             this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
+		public IUpdate<T1> WhereDynamicFilter(DynamicFilterInfo filter)
+		{
+			var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);
+			var tempQuery = _orm.Select<object>().AsType(_table.Type).DisableGlobalFilter().As(alias);
+			tempQuery.WhereDynamicFilter(filter);
+			var where = (tempQuery as Select0Provider)._where.ToString().Replace(alias + ".", "");
+			_where.Append(where);
+			return this;
+		}
 
-        public IUpdate<T1> DisableGlobalFilter(params string[] name)
+		public IUpdate<T1> DisableGlobalFilter(params string[] name)
         {
             if (_whereGlobalFilter.Any() == false) return this;
             if (name?.Any() != true)
