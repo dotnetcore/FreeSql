@@ -40,9 +40,9 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
 	/// PostgreSQL<para></para>
     /// select distinct on(subject) * from score order by subject, score desc, name;
 	/// </summary>
-	public static ISelect<T1> DistinctOn<T1, TKey>(this ISelect<T1> query, Expression<Func<T1, object>> selector)
+	public static ISelect<T1> DistinctOn<T1>(this ISelect<T1> query, Expression<Func<T1, object>> selector)
 	{
-		var select = query as FreeSql.PostgreSQL.Curd.PostgreSQLSelect<T1>;
+        var select = query as FreeSql.PostgreSQL.Curd.PostgreSQLSelect<T1>;
 		if (select == null) throw new Exception($"{nameof(DistinctOn)} 是 FreeSql.Provider.PostgreSQL 特有的功能");
 		var s0p = select as Select0Provider;
         var orderByOld = s0p._orderby;
