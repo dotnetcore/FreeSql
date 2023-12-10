@@ -29,11 +29,11 @@ namespace FreeSql.Xugu.Curd
         internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+		protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) => base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
 
-        protected override List<T1> RawExecuteUpdated()
-        {
-            var ret = new List<T1>();
+		protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
+		{
+            var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
             ToSqlFetch(sb =>
@@ -45,7 +45,7 @@ namespace FreeSql.Xugu.Curd
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
-                    foreach (var col in _table.Columns.Values)
+                    foreach (var col in columns)
                     {
                         if (colidx > 0) sbret.Append(", ");
                         sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
@@ -59,7 +59,7 @@ namespace FreeSql.Xugu.Curd
                 Exception exception = null;
                 try
                 {
-                    var rettmp = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    var rettmp = _orm.Ado.Query<TReturn>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
@@ -120,11 +120,11 @@ namespace FreeSql.Xugu.Curd
 #if net40
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        
-        async protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default)
-        {
-            var ret = new List<T1>();
+		protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns, cancellationToken);
+
+		async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
+		{
+            var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
             await ToSqlFetchAsync(async sb =>
@@ -136,7 +136,7 @@ namespace FreeSql.Xugu.Curd
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
-                    foreach (var col in _table.Columns.Values)
+                    foreach (var col in columns)
                     {
                         if (colidx > 0) sbret.Append(", ");
                         sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
@@ -150,7 +150,7 @@ namespace FreeSql.Xugu.Curd
                 Exception exception = null;
                 try
                 {
-                    var rettmp = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }

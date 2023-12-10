@@ -350,7 +350,7 @@ namespace FreeSql.Internal.CommonProvider
                 ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
             return ret;
         }
-        void SplitExecute(int valuesLimit, int parameterLimit, string traceName, Action execute)
+        protected virtual void SplitExecute(int valuesLimit, int parameterLimit, string traceName, Action execute)
         {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			if (ss.Length <= 1)
@@ -422,7 +422,7 @@ namespace FreeSql.Internal.CommonProvider
 			ClearData();
 		}
 
-		protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+		protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {
             var ret = 0;
             SplitExecute(valuesLimit, parameterLimit, "SplitExecuteAffrows", () =>
@@ -430,19 +430,11 @@ namespace FreeSql.Internal.CommonProvider
             );
             return ret;
         }
-        protected virtual List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit)
-        {
-            var ret = new List<T1>();
-			SplitExecute(valuesLimit, parameterLimit, "SplitExecuteUpdated", () =>
-                ret.AddRange(this.RawExecuteUpdated())
-			);
-			return ret;
-		}
-		protected virtual List<TReturn> SplitExecuteUpdated<TReturn>(int valuesLimit, int parameterLimit, Expression<Func<T1, TReturn>> returnColumns)
+		protected List<TReturn> SplitExecuteUpdated<TReturn>(int valuesLimit, int parameterLimit, IEnumerable<ColumnInfo> columns)
 		{
 			var ret = new List<TReturn>();
 			SplitExecute(valuesLimit, parameterLimit, "SplitExecuteUpdated", () =>
-				ret.AddRange(this.RawExecuteUpdated(returnColumns))
+				ret.AddRange(this.RawExecuteUpdated<TReturn>(columns ?? _table.ColumnsByPosition))
 			);
 			return ret;
 		}
@@ -480,12 +472,18 @@ namespace FreeSql.Internal.CommonProvider
             return affrows;
         }
 
-        protected abstract List<T1> RawExecuteUpdated();
-        protected abstract List<TReturn> RawExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns);
+        protected abstract List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns);
 
 		public abstract int ExecuteAffrows();
-        public abstract List<T1> ExecuteUpdated();
-        public abstract List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns);
+		protected abstract List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns);
+
+        public List<T1> ExecuteUpdated() => ExecuteUpdated<T1>(_table.ColumnsByPosition);
+        public List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns)
+        {
+			var cols = new List<SelectColumnInfo>();
+			_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, returnColumns?.Body, true, null);
+            return ExecuteUpdated<TReturn>(cols.Select(a => a.Column));
+		}
 
 		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
         public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));

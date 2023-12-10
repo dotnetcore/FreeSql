@@ -98,19 +98,11 @@ namespace FreeSql.Internal.CommonProvider
             );
             return ret;
         }
-        async protected virtual Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
-        {
-			var ret = new List<T1>();
-            await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteUpdatedAsync", async () =>
-                ret.AddRange(await this.RawExecuteUpdatedAsync(cancellationToken))
-            );
-			return ret;
-		}
-		async protected virtual Task<List<TReturn>> SplitExecuteUpdatedAsync<TReturn>(int valuesLimit, int parameterLimit, Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default)
+		async protected virtual Task<List<TReturn>> SplitExecuteUpdatedAsync<TReturn>(int valuesLimit, int parameterLimit, IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
 		{
 			var ret = new List<TReturn>();
 			await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteUpdatedAsync", async () =>
-				ret.AddRange(await this.RawExecuteUpdatedAsync(returnColumns, cancellationToken))
+				ret.AddRange(await this.RawExecuteUpdatedAsync<TReturn>(columns ?? _table.ColumnsByPosition))
 			);
 			return ret;
 		}
@@ -145,13 +137,19 @@ namespace FreeSql.Internal.CommonProvider
                 }
             });
             return affrows;
-        }
-        protected abstract Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default);
-		protected abstract Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default);
+		}
+		protected abstract Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default);
 
 		public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
-		public abstract Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
-		public abstract Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default);
+		protected abstract Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default);
+
+		public Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => ExecuteUpdatedAsync<T1>(_table.ColumnsByPosition, cancellationToken);
+		public Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default)
+		{
+			var cols = new List<SelectColumnInfo>();
+			_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, returnColumns?.Body, true, null);
+			return ExecuteUpdatedAsync<TReturn>(cols.Select(a => a.Column), cancellationToken);
+		}
 #endif
 	}
 }
