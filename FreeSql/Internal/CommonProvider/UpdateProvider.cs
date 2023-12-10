@@ -479,10 +479,10 @@ namespace FreeSql.Internal.CommonProvider
 
         public List<T1> ExecuteUpdated() => ExecuteUpdated<T1>(_table.ColumnsByPosition);
         public List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns)
-        {
-			var cols = new List<SelectColumnInfo>();
-			_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, returnColumns?.Body, true, null);
-            return ExecuteUpdated<TReturn>(cols.Select(a => a.Column));
+		{
+            var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, returnColumns?.Body, false, null)
+                .Distinct().Select(a => _table.ColumnsByCs.TryGetValue(a, out var c) ? c : null).Where(a => a != null).ToArray();
+			return ExecuteUpdated<TReturn>(cols);
 		}
 
 		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));

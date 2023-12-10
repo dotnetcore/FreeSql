@@ -58,7 +58,8 @@ namespace FreeSql.Custom.MySql
 				Exception exception = null;
 				try
 				{
-					var rettmp = _orm.Ado.Query<TReturn>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+					var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
 					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
 					ret.AddRange(rettmp);
 				}
@@ -146,9 +147,10 @@ namespace FreeSql.Custom.MySql
 
                 Exception exception = null;
                 try
-                {
-                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+				{
+					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+					var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)

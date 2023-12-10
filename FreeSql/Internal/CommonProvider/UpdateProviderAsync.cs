@@ -90,7 +90,7 @@ namespace FreeSql.Internal.CommonProvider
 			ClearData();
 		}
 
-		async protected virtual Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+		async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ret = 0;
             await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteAffrowsAsync", async () =>
@@ -98,7 +98,7 @@ namespace FreeSql.Internal.CommonProvider
             );
             return ret;
         }
-		async protected virtual Task<List<TReturn>> SplitExecuteUpdatedAsync<TReturn>(int valuesLimit, int parameterLimit, IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
+		async protected Task<List<TReturn>> SplitExecuteUpdatedAsync<TReturn>(int valuesLimit, int parameterLimit, IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
 		{
 			var ret = new List<TReturn>();
 			await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteUpdatedAsync", async () =>
@@ -146,9 +146,9 @@ namespace FreeSql.Internal.CommonProvider
 		public Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => ExecuteUpdatedAsync<T1>(_table.ColumnsByPosition, cancellationToken);
 		public Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default)
 		{
-			var cols = new List<SelectColumnInfo>();
-			_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, cols, SelectTableInfoType.From, returnColumns?.Body, true, null);
-			return ExecuteUpdatedAsync<TReturn>(cols.Select(a => a.Column), cancellationToken);
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, returnColumns?.Body, false, null)
+				.Distinct().Select(a => _table.ColumnsByCs.TryGetValue(a, out var c) ? c : null).Where(a => a != null).ToArray();
+			return ExecuteUpdatedAsync<TReturn>(cols, cancellationToken);
 		}
 #endif
 	}

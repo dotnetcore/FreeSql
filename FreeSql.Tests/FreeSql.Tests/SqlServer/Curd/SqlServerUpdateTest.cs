@@ -193,11 +193,15 @@ namespace FreeSql.Tests.SqlServer
             g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
 
             var items = g.sqlserver.Select<Topic>().Limit(2).ToList();
-            g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdated();
+			Assert.Equal("test", g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdated().FirstOrDefault().Title);
+			Assert.Equal("test1", g.sqlserver.Update<Topic>(items).SetRaw("Title='test1'").ExecuteUpdated(a => new { a.Title }).FirstOrDefault().Title);
+			Assert.Equal("test2", g.sqlserver.Update<Topic>(items).SetRaw("Title='test2'").ExecuteUpdated(a => a.Title).FirstOrDefault());
 
-            items = g.sqlserver.Select<Topic>().Limit(2).ToList();
-            var result = g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdatedAsync().Result;
-        }
+			items = g.sqlserver.Select<Topic>().Limit(2).ToList();
+			Assert.Equal("test", g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdatedAsync().Result.FirstOrDefault().Title);
+			Assert.Equal("test1", g.sqlserver.Update<Topic>(items).SetRaw("Title='test1'").ExecuteUpdatedAsync(a => new { a.Title }).Result.FirstOrDefault().Title);
+			Assert.Equal("test2", g.sqlserver.Update<Topic>(items).SetRaw("Title='test2'").ExecuteUpdatedAsync(a => a.Title).Result.FirstOrDefault());
+		}
 
         [Fact]
         public void AsTable()
