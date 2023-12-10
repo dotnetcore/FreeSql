@@ -1104,6 +1104,82 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
+            <summary>
+            动态创建实体类型
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.#ctor(IFreeSql,System.String,System.Attribute[])">
+            <summary>
+            配置Class
+            </summary>
+            <param name="className">类名</param>
+            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Object,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="defaultValue">属性默认值</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
+            <summary>
+            配置父类
+            </summary>
+            <param name="superClass">父类类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.OverrideProperty(System.Reflection.Emit.TypeBuilder@,System.Reflection.Emit.MethodBuilder,FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.PropertyMethodEnum,System.String)">
+            <summary>
+            Override属性
+            </summary>
+            <param name="typeBuilder"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
+            <summary>
+            Emit动态创建出Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
@@ -3499,83 +3575,6 @@
             查询
             </summary>
             <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArray(System.String,System.Object)">
-            <summary>
-            查询，ExecuteArray("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSet(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSet(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataSet("select * from user where age > @age; select 2", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTable(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTable(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataTable("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalar(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalar(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteScalar("select 1 from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <pa name="cmdType"></param>
             <param name="cmdText"></param>
             <param name="cmdParms"></param>
         </member>
