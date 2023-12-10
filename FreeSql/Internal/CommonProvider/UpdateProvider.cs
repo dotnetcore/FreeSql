@@ -350,156 +350,105 @@ namespace FreeSql.Internal.CommonProvider
                 ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
             return ret;
         }
-        protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+        void SplitExecute(int valuesLimit, int parameterLimit, string traceName, Action execute)
         {
-            var ss = SplitSource(valuesLimit, parameterLimit);
-            var ret = 0;
-            if (ss.Length <= 1)
-            {
-                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = this.RawExecuteAffrows();
-                ClearData();
-                return ret;
-            }
-            if (_transaction == null)
-            {
-                var threadTransaction = _orm.Ado.TransactionCurrentThread;
-                if (threadTransaction != null) this.WithTransaction(threadTransaction);
-            }
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			if (ss.Length <= 1)
+			{
+				if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
+                execute();
+				ClearData();
+				return;
+			}
+			if (_transaction == null)
+			{
+				var threadTransaction = _orm.Ado.TransactionCurrentThread;
+				if (threadTransaction != null) this.WithTransaction(threadTransaction);
+			}
 
-            var before = new Aop.TraceBeforeEventArgs("SplitExecuteAffrows", null);
-            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
-            Exception exception = null;
-            try
-            {
-                if (_transaction != null || _batchAutoTransaction == false)
-                {
-                    for (var a = 0; a < ss.Length; a++)
-                    {
-                        _source = ss[a];
-                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret += this.RawExecuteAffrows();
-                    }
-                }
-                else
-                {
-                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
-                    using (var conn = _orm.Ado.MasterPool.Get())
-                    {
-                        _transaction = conn.Value.BeginTransaction();
-                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
-                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
-                        try
-                        {
-                            for (var a = 0; a < ss.Length; a++)
-                            {
-                                _source = ss[a];
-                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret += this.RawExecuteAffrows();
-                            }
-                            _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
-                        }
-                        catch (Exception ex)
-                        {
-                            _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
-                            throw;
-                        }
-                        _transaction = null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.TraceAfterEventArgs(before, null, exception);
-                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
-            }
-            ClearData();
+			var before = new Aop.TraceBeforeEventArgs(traceName, null);
+			_orm.Aop.TraceBeforeHandler?.Invoke(this, before);
+			Exception exception = null;
+			try
+			{
+				if (_transaction != null || _batchAutoTransaction == false)
+				{
+					for (var a = 0; a < ss.Length; a++)
+					{
+						_source = ss[a];
+						_batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
+                        execute();
+					}
+				}
+				else
+				{
+					if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
+					using (var conn = _orm.Ado.MasterPool.Get())
+					{
+						_transaction = conn.Value.BeginTransaction();
+						var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+						_orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+						try
+						{
+							for (var a = 0; a < ss.Length; a++)
+							{
+								_source = ss[a];
+								_batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
+								execute();
+							}
+							_transaction.Commit();
+							_orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
+						}
+						catch (Exception ex)
+						{
+							_transaction.Rollback();
+							_orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
+							throw;
+						}
+						_transaction = null;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				throw;
+			}
+			finally
+			{
+				var after = new Aop.TraceAfterEventArgs(before, null, exception);
+				_orm.Aop.TraceAfterHandler?.Invoke(this, after);
+			}
+			ClearData();
+		}
+
+		protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+        {
+            var ret = 0;
+            SplitExecute(valuesLimit, parameterLimit, "SplitExecuteAffrows", () =>
+                ret += this.RawExecuteAffrows()
+            );
             return ret;
         }
-
         protected virtual List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit)
         {
-            var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = new List<T1>();
-            if (ss.Length <= 1)
-            {
-                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = this.RawExecuteUpdated();
-                ClearData();
-                return ret;
-            }
-            if (_transaction == null)
-            {
-                var threadTransaction = _orm.Ado.TransactionCurrentThread;
-                if (threadTransaction != null) this.WithTransaction(threadTransaction);
-            }
+			SplitExecute(valuesLimit, parameterLimit, "SplitExecuteUpdated", () =>
+                ret.AddRange(this.RawExecuteUpdated())
+			);
+			return ret;
+		}
+		protected virtual List<TReturn> SplitExecuteUpdated<TReturn>(int valuesLimit, int parameterLimit, Expression<Func<T1, TReturn>> returnColumns)
+		{
+			var ret = new List<TReturn>();
+			SplitExecute(valuesLimit, parameterLimit, "SplitExecuteUpdated", () =>
+				ret.AddRange(this.RawExecuteUpdated(returnColumns))
+			);
+			return ret;
+		}
+		#endregion
 
-            var before = new Aop.TraceBeforeEventArgs("SplitExecuteUpdated", null);
-            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
-            Exception exception = null;
-            try
-            {
-                if (_transaction != null || _batchAutoTransaction == false)
-                {
-                    for (var a = 0; a < ss.Length; a++)
-                    {
-                        _source = ss[a];
-                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(this.RawExecuteUpdated());
-                    }
-                }
-                else
-                {
-                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
-                    using (var conn = _orm.Ado.MasterPool.Get())
-                    {
-                        _transaction = conn.Value.BeginTransaction();
-                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
-                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
-                        try
-                        {
-                            for (var a = 0; a < ss.Length; a++)
-                            {
-                                _source = ss[a];
-                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(this.RawExecuteUpdated());
-                            }
-                            _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
-                        }
-                        catch (Exception ex)
-                        {
-                            _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
-                            throw;
-                        }
-                        _transaction = null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.TraceAfterEventArgs(before, null, exception);
-                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
-            }
-            ClearData();
-            return ret;
-        }
-        #endregion
-
-        protected int RawExecuteAffrows()
+		protected int RawExecuteAffrows()
         {
             var affrows = 0;
             DbParameter[] dbParms = null;
@@ -532,11 +481,13 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         protected abstract List<T1> RawExecuteUpdated();
+        protected abstract List<TReturn> RawExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns);
 
-        public abstract int ExecuteAffrows();
+		public abstract int ExecuteAffrows();
         public abstract List<T1> ExecuteUpdated();
+        public abstract List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns);
 
-        public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
+		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
         public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
 
         public IUpdate<T1> IgnoreColumns(string[] columns)
