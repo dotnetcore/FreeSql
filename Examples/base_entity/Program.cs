@@ -116,9 +116,17 @@ namespace base_entity
             public string msg { get; set; }
             public DateTime createtime { get; set; }
             public int click { get; set; }
-        }
+		}
+		[Table(Name = "as_table_logext_{yyyyMMddHH}", AsTable = "createtime=2022-1-1 11(12,2 month)")]
+		class AsTableLogExt
+		{
+			public Guid id { get; set; }
+			public string msg { get; set; }
+			public DateTime createtime { get; set; }
+			public int click { get; set; }
+		}
 
-        public class SomeEntity
+		public class SomeEntity
         {
             [Column(IsIdentity = true)]
             public int Id { get; set; }
@@ -619,12 +627,36 @@ namespace base_entity
 			fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog)).AsTableImpl
                 .SetTableName(0, "AsTableLog1")
                 .SetTableName(1, "AsTableLog2")
-                //.SetDefaultAllTables(value =>
-                //{
-                //    if (value.Length > 3) return value.Take(3).ToArray();
-                //    return value;
-                //})
+                .SetDefaultAllTables(value =>
+                {
+                    if (value.Length > 3) return value.Take(3).ToArray();
+                    return value;
+                })
                 ;
+
+
+			var astsql01 = fsql.Select<AsTableLog, Sys_owner>()
+				.InnerJoin((a, b) => a.id == b.Id)
+				.OrderBy((a, b) => a.createtime)
+				.ToSql();
+
+			var astsql02 = fsql.Select<Sys_owner, AsTableLog>()
+				.InnerJoin((a, b) => a.Id == b.id)
+				.OrderBy((a, b) => b.createtime)
+				.ToSql();
+
+			var astsql03 = fsql.Select<AsTableLog>()
+				.Where(a => a.createtime < DateTime.Parse("2023-5-1"))
+                .FromQuery(fsql.Select<AsTableLogExt>())
+				.InnerJoin((a, b) => a.id == b.id)
+				.OrderBy((a, b) => a.createtime)
+				.ToSql();
+
+			var astsql04 = fsql.Select<AsTableLog, AsTableLogExt>()
+				.InnerJoin((a, b) => a.id == b.id)
+                .Where((a,b) => a.createtime < DateTime.Parse("2023-5-1"))
+				.OrderBy((a, b) => a.createtime)
+				.ToSql();
 
 			var testitems = new[]
 			{
@@ -1010,10 +1042,6 @@ namespace base_entity
             var sqlastable2 = fsql.Update<CurrentDetail>(101).AsTable("current_detail_230501").Set(t => t.StatuId, 1).ToSql();
             var sqlastable3 = fsql.Delete<CurrentDetail>(101).AsTable("current_detail_230501").ToSql();
 
-            var astsql = fsql.Select<AsTableLog, Sys_owner>()
-                .InnerJoin((a, b) => a.id == b.Id)
-                .OrderBy((a, b) => a.createtime)
-                .ToSql();
 
 
 			

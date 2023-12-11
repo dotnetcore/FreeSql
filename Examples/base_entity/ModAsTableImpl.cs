@@ -34,14 +34,14 @@ class ModAsTableImpl : IAsTable
         throw new NotImplementedException();
     }
 
-    public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
+    public IAsTableTableNameRangeResult GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
     {
         var match = Regex.Match(sqlWhere, @"/\*astable\([^\)]+\)*\/");
-        if (match.Success == false) return AllTables;
+        if (match.Success == false) return new IAsTableTableNameRangeResult(AllTables, null, null);
         var tables = match.Groups[1].Value.Split(',').Where(a => AllTables.Contains(a)).ToArray();
-        if (tables.Any() == false) return AllTables;
-        return tables;
-    }
+        if (tables.Any() == false) return new IAsTableTableNameRangeResult(AllTables, null, null);
+		return new IAsTableTableNameRangeResult(tables, null, null);
+	}
 
 	public IAsTable SetDefaultAllTables(Func<string[], string[]> audit)
 	{

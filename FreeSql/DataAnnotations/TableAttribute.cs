@@ -89,8 +89,20 @@ namespace FreeSql.DataAnnotations
 		IAsTable SetTableName(int index, string tableName);
 		string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
-        string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
+		IAsTableTableNameRangeResult GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
         IAsTable SetDefaultAllTables(Func<string[], string[]> audit);
+	}
+    public class IAsTableTableNameRangeResult
+    {
+        public string[] Names { get; }
+        public object ColumnValue1 { get; }
+        public object ColumnValue2 { get; }
+        public IAsTableTableNameRangeResult(string[] names, object columnValue1, object columnValue2)
+		{
+			Names = names;
+			ColumnValue1 = columnValue1;
+			ColumnValue2 = columnValue2;
+		}
 	}
 	class DateTimeAsTableImpl : IAsTable
     {
@@ -135,6 +147,17 @@ namespace FreeSql.DataAnnotations
                 }
             }
         }
+        public NativeTuple<DateTime, DateTime> GetRangeByTableName(string tableName)
+        {
+			lock (_lock)
+            {
+                var idx = _allTables.FindIndex(a => a == tableName);
+                if (idx == -1) return null;
+                if (idx == 0) return NativeTuple.Create(_allTablesTime[idx], DateTime.Now);
+				if (idx == _allTables.Count - 1) return NativeTuple.Create(DateTime.MinValue, _allTablesTime[idx]);
+                return NativeTuple.Create(_allTablesTime[idx], _allTablesTime[idx - 1]);
+            }
+		}
         DateTime ParseColumnValue(object columnValue)
         {
             if (columnValue == null) throw new Exception(CoreStrings.SubTableFieldValue_IsNotNull);
@@ -262,9 +285,9 @@ namespace FreeSql.DataAnnotations
 		/// </summary>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
+		public IAsTableTableNameRangeResult GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
 		{
-            if (string.IsNullOrWhiteSpace(sqlWhere)) return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
+            if (string.IsNullOrWhiteSpace(sqlWhere)) return new IAsTableTableNameRangeResult(_GetDefaultAllTables?.Invoke(AllTables) ?? AllTables, _beginTime, _lastTime);
             var quoteParameterName = "";
             if (commonUtils._orm.Ado.DataType == DataType.ClickHouse) quoteParameterName = "@"; //特殊处理 Clickhouse 参数化
             else quoteParameterName = commonUtils.QuoteParamterName("");
@@ -291,7 +314,7 @@ namespace FreeSql.DataAnnotations
                 var val1 = LocalGetParamValue(m.Groups[1].Value);
                 var val2 = LocalGetParamValue(m.Groups[2].Value);
                 if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
-                return GetTableNamesByColumnValueRange(val1, val2);
+                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, val2), ParseColumnValue(val1), ParseColumnValue(val2));
             }
             m = regs[8].Match(newSqlWhere);
             if (m.Success)
@@ -299,23 +322,23 @@ namespace FreeSql.DataAnnotations
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
                 var val2 = LocalGetParamValue(m.Groups[4].Value);
                 if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
-                return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
+				return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
             }
             m = regs[10].Match(newSqlWhere);
             if (m.Success)
             {
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
                 if (val1 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
-                return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
+				return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
             }
-            return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
+            return new IAsTableTableNameRangeResult(_GetDefaultAllTables?.Invoke(AllTables) ?? AllTables, _beginTime, _lastTime);
 
-            object LocalGetParamValue(string paramName)
+			object LocalGetParamValue(string paramName)
             {
                 if (dictParams.TryGetValue(quoteParameterName + paramName, out var trydictVal)) return trydictVal;
-                return dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[2].Value).FirstOrDefault()?.Value;
+                return dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == paramName).FirstOrDefault()?.Value;
             }
-            string[] LocalGetTables(string opt1, string opt2, DateTime val1, DateTime val2)
+			IAsTableTableNameRangeResult LocalGetTables(string opt1, string opt2, DateTime val1, DateTime val2)
             {
                 switch (opt1)
                 {
@@ -326,15 +349,15 @@ namespace FreeSql.DataAnnotations
                         {
                             case "<":
                                 val2 = val2.AddSeconds(-1);
-                                return GetTableNamesByColumnValueRange(_beginTime, val1 > val2 ? val2 : val1);
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(_beginTime, val1 > val2 ? val2 : val1), _beginTime, val1 > val2 ? val2 : val1);
                             case "<=":
-                                return GetTableNamesByColumnValueRange(_beginTime, val1 > val2 ? val2 : val1);
-                            case ">":
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(_beginTime, val1 > val2 ? val2 : val1), _beginTime, val1 > val2 ? val2 : val1);
+							case ">":
                                 val2 = val2.AddSeconds(1);
-                                return GetTableNamesByColumnValueRange(val2, val1);
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val2, val1), val2, val1);
                             case ">=":
-                                return GetTableNamesByColumnValueRange(val2, val1);
-                        }
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val2, val1), val2, val1);
+						}
                         break;
                     case ">":
                     case ">=":
@@ -343,38 +366,38 @@ namespace FreeSql.DataAnnotations
                         {
                             case "<":
                                 val2 = val2.AddSeconds(-1);
-                                return GetTableNamesByColumnValueRange(val1, val2);
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, val2), val1, val2);
                             case "<=":
-                                return GetTableNamesByColumnValueRange(val1, val2);
-                            case ">":
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, val2), val1, val2);
+							case ">":
                                 val2 = val2.AddSeconds(1);
-                                return GetTableNamesByColumnValueRange(val1 > val2 ? val1 : val2, _lastTime);
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1 > val2 ? val1 : val2, _lastTime), val1 > val2 ? val1 : val2, _lastTime);
                             case ">=":
-                                return GetTableNamesByColumnValueRange(val1 > val2 ? val1 : val2, _lastTime);
-                        }
+                                return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1 > val2 ? val1 : val2, _lastTime), val1 > val2 ? val1 : val2, _lastTime);
+						}
                         break;
                 }
-                return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
-            }
-            string[] LocalGetTables2(string opt, DateTime val1)
+                return new IAsTableTableNameRangeResult(_GetDefaultAllTables?.Invoke(AllTables) ?? AllTables, _beginTime, _lastTime);
+			}
+			IAsTableTableNameRangeResult LocalGetTables2(string opt, DateTime val1)
             {
                 switch (m.Groups[1].Value)
                 {
                     case "=":
-                        return GetTableNamesByColumnValueRange(val1, val1);
+                        return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, val1), val1, val1);
                     case "<":
                         val1 = val1.AddSeconds(-1);
-                        return GetTableNamesByColumnValueRange(_beginTime, val1);
-                    case "<=":
-                        return GetTableNamesByColumnValueRange(_beginTime, val1);
-                    case ">":
+                        return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(_beginTime, val1), _beginTime, val1);
+					case "<=":
+                        return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(_beginTime, val1), _beginTime, val1);
+					case ">":
                         val1 = val1.AddSeconds(1);
-                        return GetTableNamesByColumnValueRange(val1, _lastTime);
-                    case ">=":
-                        return GetTableNamesByColumnValueRange(val1, _lastTime);
-                }
-                return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
-            }
+                        return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, _lastTime), val1, _lastTime);
+					case ">=":
+                        return new IAsTableTableNameRangeResult(GetTableNamesByColumnValueRange(val1, _lastTime), val1, _lastTime);
+				}
+                return new IAsTableTableNameRangeResult(_GetDefaultAllTables?.Invoke(AllTables) ?? AllTables, _beginTime, _lastTime);
+			}
         }
 
         public string[] AllTables

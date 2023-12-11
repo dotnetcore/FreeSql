@@ -212,7 +212,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_table.AsTableImpl != null && string.IsNullOrWhiteSpace(_tableRule?.Invoke(_table.DbName)) == true)
             {
                 var oldTableRule = _tableRule;
-                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils).Names;
                 foreach (var name in names)
                 {
                     _tableRule = old => name;
@@ -247,7 +247,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_table.AsTableImpl != null && string.IsNullOrWhiteSpace(_tableRule?.Invoke(_table.DbName)) == true)
             {
                 var oldTableRule = _tableRule;
-                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils).Names;
                 foreach (var name in names)
                 {
                     _tableRule = old => name;
