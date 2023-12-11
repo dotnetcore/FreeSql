@@ -90,7 +90,8 @@ namespace FreeSql.DataAnnotations
 		string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
         string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
-    }
+        IAsTable SetDefaultAllTables(Func<string[], string[]> audit);
+	}
 	class DateTimeAsTableImpl : IAsTable
     {
         readonly object _lock = new object();
@@ -239,23 +240,31 @@ namespace FreeSql.DataAnnotations
                 };
             });
         }
-        /// <summary>
-        /// 可以匹配以下条件（支持参数化）：<para></para>
-        /// `field` BETWEEN '2022-01-01 00:00:00' AND '2022-03-01 00:00:00'<para></para>
-        /// `field` &gt; '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
-        /// `field` &gt; '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
-        /// `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
-        /// `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
-        /// `field` &gt; '2022-01-01 00:00:00'<para></para>
-        /// `field` &gt;= '2022-01-01 00:00:00'<para></para>
-        /// `field` &lt; '2022-01-01 00:00:00'<para></para>
-        /// `field` &lt;= '2022-01-01 00:00:00'<para></para>
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
+
+        Func<string[], string[]> _GetDefaultAllTables;
+        public IAsTable SetDefaultAllTables(Func<string[], string[]> audit)
         {
-            if (string.IsNullOrWhiteSpace(sqlWhere)) return AllTables;
+			_GetDefaultAllTables = audit;
+            return this;
+        }
+
+		/// <summary>
+		/// 可以匹配以下条件（支持参数化）：<para></para>
+		/// `field` BETWEEN '2022-01-01 00:00:00' AND '2022-03-01 00:00:00'<para></para>
+		/// `field` &gt; '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
+		/// `field` &gt; '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
+		/// `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
+		/// `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
+		/// `field` &gt; '2022-01-01 00:00:00'<para></para>
+		/// `field` &gt;= '2022-01-01 00:00:00'<para></para>
+		/// `field` &lt; '2022-01-01 00:00:00'<para></para>
+		/// `field` &lt;= '2022-01-01 00:00:00'<para></para>
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="Exception"></exception>
+		public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
+		{
+            if (string.IsNullOrWhiteSpace(sqlWhere)) return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
             var quoteParameterName = "";
             if (commonUtils._orm.Ado.DataType == DataType.ClickHouse) quoteParameterName = "@"; //特殊处理 Clickhouse 参数化
             else quoteParameterName = commonUtils.QuoteParamterName("");
@@ -299,7 +308,7 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
             }
-            return AllTables;
+            return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
 
             object LocalGetParamValue(string paramName)
             {
@@ -345,7 +354,7 @@ namespace FreeSql.DataAnnotations
                         }
                         break;
                 }
-                return AllTables;
+                return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
             }
             string[] LocalGetTables2(string opt, DateTime val1)
             {
@@ -364,7 +373,7 @@ namespace FreeSql.DataAnnotations
                     case ">=":
                         return GetTableNamesByColumnValueRange(val1, _lastTime);
                 }
-                return AllTables;
+                return _GetDefaultAllTables?.Invoke(AllTables) ?? AllTables;
             }
         }
 
@@ -382,6 +391,7 @@ namespace FreeSql.DataAnnotations
         {
 			lock (_lock)
 			{
+                index = _allTables.Count - 1 - index;
                 _allTables[index] = tableName;
 			}
             return this;

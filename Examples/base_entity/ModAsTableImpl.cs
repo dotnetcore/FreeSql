@@ -23,7 +23,7 @@ class ModAsTableImpl : IAsTable
 
     public string[] AllTables { get; }
 
-    public string GetTableNameByColumnValue(object columnValue, bool autoExpand = false)
+	public string GetTableNameByColumnValue(object columnValue, bool autoExpand = false)
     {
         var modid = (int)columnValue;
         return $"order_{(modid % 10)}";
@@ -43,6 +43,10 @@ class ModAsTableImpl : IAsTable
         return tables;
     }
 
+	public IAsTable SetDefaultAllTables(Func<string[], string[]> audit)
+	{
+		throw new NotImplementedException();
+	}
 	public IAsTable SetTableName(int index, string tableName)
 	{
 		throw new NotImplementedException();

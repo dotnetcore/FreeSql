@@ -618,7 +618,12 @@ namespace base_entity
 
 			fsql.CodeFirst.GetTableByEntity(typeof(AsTableLog)).AsTableImpl
                 .SetTableName(0, "AsTableLog1")
-                .SetTableName(1, "AsTableLog2");
+                .SetTableName(1, "AsTableLog2")
+                .SetDefaultAllTables(value =>
+                {
+                    if (value.Length > 3) return value.Take(3).ToArray();
+                    return value;
+                });
 
 			var testitems = new[]
 			{
