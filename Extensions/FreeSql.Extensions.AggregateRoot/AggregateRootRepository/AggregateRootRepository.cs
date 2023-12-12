@@ -57,13 +57,23 @@ namespace FreeSql
             }
         }
         public void AsType(Type entityType) => _repository.AsType(entityType); 
-        Func<string, string> _asTableRule;
+        Func<Type, string, string> _asTableRule;
         public void AsTable(Func<string, string> rule)
         {
             _repository.AsTable(rule);
-            _asTableRule = rule;
+            if (rule == null)
+            {
+                _asTableRule = null;
+                return;
+            }
+            _asTableRule = (t, old) => t == EntityType ? rule(old) : null;
         }
-        public Type EntityType => _repository.EntityType;
+		public void AsTable(Func<Type, string, string> rule)
+		{
+			_repository.AsTable(rule);
+			_asTableRule = rule;
+		}
+		public Type EntityType => _repository.EntityType;
         public IDataFilter<TEntity> DataFilter => _repository.DataFilter;
 
         public void Attach(TEntity entity)

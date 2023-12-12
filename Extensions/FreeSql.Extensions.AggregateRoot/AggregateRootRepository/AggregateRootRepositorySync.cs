@@ -261,9 +261,10 @@ namespace FreeSql
             }
             var affrows = 0;
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
-            {
-                affrows += Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
-                    .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
+			{
+				var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
+				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
+				affrows += delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
                 if (deletedOutput != null) deletedOutput.AddRange(tracking.DeleteLog[a].Item2);
                 UnitOfWork?.EntityChangeReport?.Report.AddRange(tracking.DeleteLog[a].Item2.Select(x =>
                     new DbContext.EntityChangeReport.ChangeInfo
@@ -300,9 +301,10 @@ namespace FreeSql
             }
 
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
-            {
-                affrows += Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1).AsTable(_asTableRule)
-                    .WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
+			{
+                var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
+				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
+				affrows += delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
                 UnitOfWork?.EntityChangeReport?.Report.AddRange(tracking.DeleteLog[a].Item2.Select(x =>
                     new DbContext.EntityChangeReport.ChangeInfo
                     {
@@ -325,8 +327,10 @@ namespace FreeSql
             {
                 foreach (var dl2 in dl.Value)
                 {
-                    affrows += Orm.Update<object>().AsType(dl.Key).AsTable(_asTableRule)
-                        .SetSource(dl2.Value.Select(a => a.AfterObject).ToArray())
+                    var update = Orm.Update<object>().AsType(dl.Key);
+                    if (_asTableRule != null) update.AsTable(old => _asTableRule(dl.Key, old));
+					affrows += update
+						.SetSource(dl2.Value.Select(a => a.AfterObject).ToArray())
                         .UpdateColumns(dl2.Value.First().UpdateColumns.ToArray())
                         .ExecuteAffrows();
                     UnitOfWork?.EntityChangeReport?.Report.AddRange(dl2.Value.Select(x =>
