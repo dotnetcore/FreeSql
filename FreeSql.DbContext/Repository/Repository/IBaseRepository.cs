@@ -24,11 +24,16 @@ namespace FreeSql
         /// </summary>
         /// <param name="rule"></param>
         void AsTable(Func<string, string> rule);
+		/// <summary>
+		/// 分表规则，参数：实体类型、旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository
+		/// </summary>
+		/// <param name="rule"></param>
+		void AsTable(Func<Type, string, string> rule);
 
-        /// <summary>
-        /// 设置 DbContext 选项
-        /// </summary>
-        DbContextOptions DbContextOptions { get; set; }
+		/// <summary>
+		/// 设置 DbContext 选项
+		/// </summary>
+		DbContextOptions DbContextOptions { get; set; }
     }
 
     public interface IBaseRepository<TEntity> : IBaseRepository

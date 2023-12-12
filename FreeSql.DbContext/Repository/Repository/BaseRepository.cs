@@ -18,8 +18,7 @@ namespace FreeSql
         internal RepositoryDbSet<TEntity> _dbset => _dbsetPriv ?? (_dbsetPriv = _db.Set<TEntity>() as RepositoryDbSet<TEntity>);
 
         public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
-        internal Func<string, string> AsTableValueInternal { get; private set; }
-        internal Func<Type, string, string> AsTableSelectValueInternal { get; private set; }
+        internal Func<Type, string, string> _asTablePriv;
 
         protected void ApplyDataFilter(string name, Expression<Func<TEntity, bool>> exp) => DataFilter.Apply(name, exp);
 
@@ -60,10 +59,18 @@ namespace FreeSql
         public void AsType(Type entityType) => _dbset.AsType(entityType);
         public void AsTable(Func<string, string> rule)
         {
-            AsTableValueInternal = rule;
-            AsTableSelectValueInternal = rule == null ? null : new Func<Type, string, string>((a, b) => a == EntityType ? rule(b) : null);
+            if (rule == null)
+            {
+				_asTablePriv = null;
+				return;
+            }
+			_asTablePriv = (a, b) => a == EntityType ? rule(b) : null;
         }
-        public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
+		public void AsTable(Func<Type, string, string> rule)
+		{
+			_asTablePriv = rule;
+		}
+		public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
 
         internal DbContextScopedFreeSql _ormScoped;
         internal IFreeSql OrmOriginal => _ormScoped?._originalFsql;

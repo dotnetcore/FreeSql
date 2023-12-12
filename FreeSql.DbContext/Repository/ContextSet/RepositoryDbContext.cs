@@ -18,8 +18,9 @@ namespace FreeSql
             _repo = repo;
         }
 
-        static ConcurrentDictionary<Type, FieldInfo> _dicGetRepositoryDbField = new ConcurrentDictionary<Type, FieldInfo>();
-        static FieldInfo GetRepositoryDbField(Type type) => _dicGetRepositoryDbField.GetOrAdd(type, tp => typeof(BaseRepository<,>).MakeGenericType(tp, typeof(int)).GetField("_dbPriv", BindingFlags.Instance | BindingFlags.NonPublic));
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicGetRepositoryDbField = new ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>();
+        static FieldInfo GetRepositoryDbField(Type type, string fieldName) => _dicGetRepositoryDbField.GetOrAdd(type, tp => new ConcurrentDictionary<string, FieldInfo>()).GetOrAdd(fieldName, fn =>
+            typeof(BaseRepository<,>).MakeGenericType(type, typeof(int)).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic));
         public override IDbSet Set(Type entityType)
         {
             if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
@@ -32,7 +33,9 @@ namespace FreeSql
             {
                 repo = Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(entityType, typeof(int)), _repo.Orm);
                 (repo as IBaseRepository).UnitOfWork = _repo.UnitOfWork;
-                GetRepositoryDbField(entityType).SetValue(repo, this);
+				GetRepositoryDbField(entityType, "_dbPriv").SetValue(repo, this);
+				GetRepositoryDbField(entityType, "_asTablePriv").SetValue(repo, 
+				    GetRepositoryDbField(_repo.EntityType, "_asTablePriv").GetValue(_repo));
 
                 if (typeof(IBaseRepository<>).MakeGenericType(_repo.EntityType).IsAssignableFrom(_repo.GetType()))
                     typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
