@@ -1,18 +1,17 @@
 ﻿using FreeSql.Internal.CommonProvider;
 using FreeSql.Oracle.Curd;
 using System;
-using System.Data.Common;
-using System.Text.RegularExpressions;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.IO;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace FreeSql.Oracle
 {
 
-    public class OracleProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
+	public class OracleProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new OracleSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsert<T1> CreateInsertProvider<T1>() => new OracleInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -44,7 +43,23 @@ namespace FreeSql.Oracle
             this.Aop.CommandBefore += (_, e) =>
             {
                 if (e.Command.Parameters.Count > 0)
-                    e.Command.CommandText = _regCommandText.Replace(e.Command.CommandText, "?");
+                {
+                    var dbparms = new DbParameter[e.Command.Parameters.Count];
+                    e.Command.Parameters.CopyTo(dbparms, 0);
+                    var cmdText = e.Command.CommandText;
+                    var ischanged = false;
+                    foreach(var dbparm in dbparms.OrderByDescending(a => a.ParameterName.Length))
+                    {
+                        if (dbparm.ParameterName[0] != ':') continue;
+                        var idx = cmdText.IndexOf(dbparm.ParameterName);
+                        if (idx != -1)
+                        {
+                            ischanged = true;
+							cmdText = $"{cmdText.Substring(0, idx)}?{cmdText.Substring(idx + dbparm.ParameterName.Length)}";
+                        }
+                    }
+                    if (ischanged) e.Command.CommandText = cmdText;
+                }
             };
 
             this.Aop.AuditDataReader += (_, e) =>

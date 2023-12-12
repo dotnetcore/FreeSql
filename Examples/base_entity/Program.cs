@@ -646,10 +646,11 @@ namespace base_entity
 				.ToSql();
 
 			var astsql03 = fsql.Select<AsTableLog>()
-				.Where(a => a.createtime < DateTime.Parse("2023-5-1"))
-                .FromQuery(fsql.Select<AsTableLogExt>())
-				.InnerJoin((a, b) => a.id == b.id)
-				.OrderBy((a, b) => a.createtime)
+	            .Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2023-5-1")))
+                .WithTempQuery(a => a)
+				.FromQuery(fsql.Select<AsTableLogExt>().Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2023-5-1"))))
+	            .InnerJoin((a, b) => a.id == b.id)
+	            .OrderBy((a, b) => a.createtime)
 				.ToSql();
 
 			var astsql04 = fsql.Select<AsTableLog, AsTableLogExt>()

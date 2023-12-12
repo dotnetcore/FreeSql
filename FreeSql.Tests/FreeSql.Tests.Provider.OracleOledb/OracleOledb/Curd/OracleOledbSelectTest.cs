@@ -720,10 +720,16 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
         }
         [Fact]
         public void WhereIf()
-        {
-            //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.WhereIf(true, a => a.Id == 10);
+		{
+            var time = DateTime.Parse("2023-12-12");
+            var query = select.Where(x => x.CreateTime == time);
             var sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a WHERE (a.\"CREATETIME\" = to_timestamp('2023-12-12 00:00:00.000000','YYYY-MM-DD HH24:MI:SS.FF6'))", sql);
+			query.ToList();
+
+			//����е�������a.Type��a.Type.Parent ���ǵ�������
+			query = select.WhereIf(true, a => a.Id == 10);
+            sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a WHERE (a.\"ID\" = 10)", sql);
             query.ToList();
 
