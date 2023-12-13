@@ -858,6 +858,7 @@ namespace FreeSql.Internal.CommonProvider
                     new[] { typeof(string), typeof(DateTime), typeof(DateTime?) }.Contains(col.Attribute.MapType) ||
                     col.Attribute.MapType.NullableTypeOrThis().IsEnum;
                 var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
+                if (valsameIf == false && ds[0] == null) valsameIf = true;
                 if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                 {
                     var val = ds.First();
@@ -1119,7 +1120,8 @@ namespace FreeSql.Internal.CommonProvider
                                 new[] { typeof(string), typeof(DateTime), typeof(DateTime?) }.Contains(col.Attribute.MapType) ||
                                 col.Attribute.MapType.NullableTypeOrThis().IsEnum;
                             var ds = _source.Select(a => col.GetDbValue(a)).ToArray();
-                            if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
+							if (valsameIf == false && ds[0] == null) valsameIf = true;
+							if (valsameIf && ds.All(a => object.Equals(a, ds[0])))
                             {
                                 var val = ds.First();
                                 var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
