@@ -167,7 +167,8 @@ namespace @gen.NameSpace {
 			@:if (_@csname == value) return;
 			@:_@csname = value;
 			foreach (var fkcok2 in findfks) {
-			@:@gen.GetCsName(GetFkObjectName(fkcok2)) = null;
+   			var csName = gen.GetCsName(gen.FullTableName) == gen.GetCsName(GetFkObjectName(fkcok2)) ? "Parrent_" + gen.GetCsName(GetFkObjectName(fkcok2)) : gen.GetCsName(GetFkObjectName(fkcok2));
+			@:@csName = null;
 			}
 		@:} }
 		@:private @gen.GetCsType(col) _@csname@GetDefaultValue(gen.GetColumnDefaultValue(col, false)).TrimEnd(';');
@@ -183,9 +184,10 @@ namespace @gen.NameSpace {
             {
                 fkTableName = fkTableName.Replace(fk.ReferencedTable.Schema + ""."", """");
             }
+	    var csName = gen.GetCsName(fkTableName) == gen.GetCsName(GetFkObjectName(fk)) ? "Parrent_" + gen.GetCsName(GetFkObjectName(fk)) : gen.GetCsName(GetFkObjectName(fk));
 @:
 		@:[Navigate(""@string.Join("", "", fk.Columns.Select(a => gen.GetCsName(a.Name)))"")]
-		@:public@(isLazying ? "" virtual"" : """") @gen.GetCsName(fkTableName) @gen.GetCsName(GetFkObjectName(fk)) { get; set; }
+		@:public@(isLazying ? "" virtual"" : """") @gen.GetCsName(fkTableName) @csName { get; set; }
 		}
 @:
 		@:#endregion
