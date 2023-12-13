@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.ZoreEntity</name>
+    </assembly>
+    <members>
+        <member name="P:FreeSql.Extensions.ZoreEntity.ZoreDbContext.Select">
+            <summary>
+            【有状态管理】自动 Include 查询
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectNoTracking(System.String)">
+            <summary>
+            【无状态管理】指定表查询
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZoreEntity.ZoreDbContext.ChangeReport.ChangeInfo.BeforeObject">
+            <summary>
+            Type = Update 的时候，获取更新之前的对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZoreEntity.ZoreDbContext.ChangeReport.Report">
+            <summary>
+            实体变化记录
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZoreEntity.ZoreDbContext.ChangeReport.OnChange">
+            <summary>
+            实体变化事件
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.LeftJoin(System.String,System.String[])">
+            <summary>
+            举例1：LeftJoin("table1", "id", "user.id") -> LEFT JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：LeftJoin("table1", "id", "user.id", "xid", "user.xid") -> LEFT JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.InnerJoin(System.String,System.String[])">
+            <summary>
+            举例1：InnerJoin("table1", "id", "user.id") -> INNER JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：InnerJoin("table1", "id", "user.id", "xid", "user.xid") -> INNER JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.RightJoin(System.String,System.String[])">
+            <summary>
+            举例1：RightJoin("table1", "id", "user.id") -> RIGTH JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：RightJoin("table1", "id", "user.id", "xid", "user.xid") -> RIGTH JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            WHERE [Id] IN (...)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.Where(System.Object)">
+            <summary>
+            Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZoreEntity.ZoreDbContext.SelectImpl.Where(System.String,System.Object)">
+            <summary>
+            WHERE [field] = ..
+            </summary>
+        </member>
+    </members>
+</doc>
