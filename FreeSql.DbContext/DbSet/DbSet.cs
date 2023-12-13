@@ -93,6 +93,12 @@ namespace FreeSql
             if (_db.Options.EnableGlobalFilter == false) delete.DisableGlobalFilter();
             return delete;
         }
+        protected virtual IDelete<object> OrmDeleteAsType(Type entityType)
+        {
+			var delete = _db.OrmOriginal.Delete<object>().AsType(entityType).WithTransaction(_uow?.GetOrBeginTransaction());
+			if (_db.Options.EnableGlobalFilter == false) delete.DisableGlobalFilter();
+			return delete;
+		}
 
         internal void EnqueueToDbContext(DbContext.EntityChangeType changeType, EntityState state) =>
             _db.EnqueuePreCommand(changeType, this, typeof(EntityState), _entityType, state);

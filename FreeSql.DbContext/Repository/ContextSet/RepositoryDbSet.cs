@@ -64,7 +64,15 @@ namespace FreeSql
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
-        protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
+
+		protected override IDelete<object> OrmDeleteAsType(Type entityType)
+		{
+			var delete = base.OrmDeleteAsType(entityType);
+			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+            return delete;
+		}
+
+		protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
         protected override IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys)
         {
             var insert = base.OrmInsert(entitys);
