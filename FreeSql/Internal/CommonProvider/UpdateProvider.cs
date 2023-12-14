@@ -777,6 +777,38 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this;
         }
+        public IUpdate<T1> SetDtoIgnoreNull(object dto)
+        {
+            if (dto == null) return this;
+            if (dto is Dictionary<string, object>)
+            {
+                var dic = dto as Dictionary<string, object>;
+                foreach (var kv in dic)
+                {
+                    if (kv.Value == null)
+                    {
+                        continue;
+                    }
+                    if (_table.ColumnsByCs.TryGetValue(kv.Key, out var trycol) == false) continue;
+                    if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
+                    SetPriv(trycol, kv.Value);
+                }
+                return this;
+            }
+            var dtoProps = dto.GetType().GetProperties();
+            foreach (var dtoProp in dtoProps)
+            {
+                var v3 = dtoProp.GetValue(dto, null);
+                if (v3 == null)
+                {
+                    continue;
+                }
+                if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
+                if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
+                SetPriv(trycol, v3);
+            }
+            return this;
+        }
 
         public IUpdate<T1> Where(Expression<Func<T1, bool>> exp) => WhereIf(true, exp);
         public IUpdate<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
