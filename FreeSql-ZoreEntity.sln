@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{3AAE17E8-8608-4905-826A-6DB68F75F339}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZoreEntity", "Extensions\FreeSql.Extensions.ZoreEntity\FreeSql.Extensions.ZoreEntity.csproj", "{E0480E6F-CFCD-4108-969C-448E44023C97}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{5E4928F2-E52B-4563-9FF7-C0A4119E6596}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zore_entity", "Examples\zore_entity\zore_entity.csproj", "{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -73,6 +73,13 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 					orm.CodeFirst.SyncStructure(table, table.DbName, false);
 		}
 
+		public TableInfo GetTableInfo(string name) => _tables.Where(a => a.CsName == name).FirstOrDefault();
+		public void SyncStructure(string name)
+		{
+			var table = GetTableInfo(name);
+			_orm.CodeFirst.SyncStructure(table, table.DbName, false);
+		}
+
 		static List<ZoreTableInfo> VilidateSchemaToInfo(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
 		{
 			var common = (orm.Ado as AdoProvider)._util;
