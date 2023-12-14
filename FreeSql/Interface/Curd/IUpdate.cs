@@ -109,7 +109,7 @@ namespace FreeSql
         /// <param name="source">实体</param>
         /// <param name="ignore">属性值忽略判断, true忽略</param>
         /// <returns></returns>
-        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore);
+        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore = null);
 
         /// <summary>
         /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})<para></para>
@@ -186,23 +186,35 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetRaw(string sql, object parms = null);
 
-        /// <summary>
-        /// 设置更新的列<para></para>
-        /// SetDto(new { title = "xxx", clicks = 2 })<para></para>
-        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
-        /// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新
-        /// </summary>
-        /// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
-        /// <returns></returns>
-        IUpdate<T1> SetDto(object dto);
+		/// <summary>
+		/// 设置更新的列<para></para>
+		/// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+		/// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+		/// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新<para></para>
+		/// 注意：SetDto 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+		/// </summary>
+		/// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+		/// <returns></returns>
+		IUpdate<T1> SetDto(object dto);
+		/// <summary>
+		/// 设置更新的列<para></para>
+		/// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+		/// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+		/// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新<para></para>
+		/// 注意：SetDto 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+		/// </summary>
+		/// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+		/// <param name="ignore">属性值忽略判断, true忽略</param>
+		/// <returns></returns>
+		IUpdate<T1> SetDtoIgnore(object dto, Func<object, bool> ignore = null);
 
-        /// <summary>
-        /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
-        /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
-        /// </summary>
-        /// <param name="exp">lambda表达式条件</param>
-        /// <returns></returns>
-        IUpdate<T1> Where(Expression<Func<T1, bool>> exp);
+		/// <summary>
+		/// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
+		/// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
+		/// </summary>
+		/// <param name="exp">lambda表达式条件</param>
+		/// <returns></returns>
+		IUpdate<T1> Where(Expression<Func<T1, bool>> exp);
         /// <summary>
         /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
         /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法

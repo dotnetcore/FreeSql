@@ -633,9 +633,9 @@ namespace FreeSql.Internal.CommonProvider
             _versionColumn = _ignoreVersion ? null : _table?.VersionColumn;
             return this;
         }
-        public IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore)
+        public IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore = null)
         {
-            if (ignore == null) throw new ArgumentNullException(nameof(ignore));
+            if (ignore == null) ignore = val => val == null;
             var columns = _table.Columns.Values
                 .Where(col => ignore(_orm.GetEntityValueWithPropertyName(_table.Type, source, col.CsName)))
                 .Select(col => col.Attribute.Name).ToArray();
@@ -754,14 +754,17 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IUpdate<T1> SetDto(object dto)
-        {
+        public IUpdate<T1> SetDto(object dto) => SetDtoIgnore(dto, val => false);
+        public IUpdate<T1> SetDtoIgnore(object dto, Func<object, bool> ignore = null)
+		{
             if (dto == null) return this;
+            if (ignore == null) ignore = val => val == null;
             if (dto is Dictionary<string, object>)
             {
                 var dic = dto as Dictionary<string, object>;
                 foreach (var kv in dic)
                 {
+                    if (ignore(kv.Value)) continue;
                     if (_table.ColumnsByCs.TryGetValue(kv.Key, out var trycol) == false) continue;
                     if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
                     SetPriv(trycol, kv.Value);
@@ -771,41 +774,11 @@ namespace FreeSql.Internal.CommonProvider
             var dtoProps = dto.GetType().GetProperties();
             foreach (var dtoProp in dtoProps)
             {
-                if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
+                var val = dtoProp.GetValue(dto, null);
+				if (ignore(val)) continue;
+				if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
                 if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
-                SetPriv(trycol, dtoProp.GetValue(dto, null));
-            }
-            return this;
-        }
-        public IUpdate<T1> SetDtoIgnoreNull(object dto)
-        {
-            if (dto == null) return this;
-            if (dto is Dictionary<string, object>)
-            {
-                var dic = dto as Dictionary<string, object>;
-                foreach (var kv in dic)
-                {
-                    if (kv.Value == null)
-                    {
-                        continue;
-                    }
-                    if (_table.ColumnsByCs.TryGetValue(kv.Key, out var trycol) == false) continue;
-                    if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
-                    SetPriv(trycol, kv.Value);
-                }
-                return this;
-            }
-            var dtoProps = dto.GetType().GetProperties();
-            foreach (var dtoProp in dtoProps)
-            {
-                var v3 = dtoProp.GetValue(dto, null);
-                if (v3 == null)
-                {
-                    continue;
-                }
-                if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
-                if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
-                SetPriv(trycol, v3);
+                SetPriv(trycol, val);
             }
             return this;
         }
