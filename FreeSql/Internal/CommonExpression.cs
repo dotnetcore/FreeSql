@@ -2568,6 +2568,7 @@ namespace FreeSql.Internal
         {
             if (tb == null || dtoProp == null || tb.Parameter == null) return null;
             var retList = new List<Expression[]>();
+            var matchIgnores = new Dictionary<PropertyInfo, bool>();
             var retExp = LocalMatch(tb.Parameter.Type, tb.Parameter);
             if (retList.Any() == false) retList.Add(new[] { retExp });
             return retList;
@@ -2584,7 +2585,9 @@ namespace FreeSql.Internal
                         if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeProp.PropertyType)) continue;
                         if (typeProp.PropertyType.IsAnonymousType() || _common.GetTableByEntity(typeProp.PropertyType)?.Columns.Any() == true)
                         {
-                            var nextExp = Expression.MakeMemberAccess(memExp, typeProp);
+                            if (matchIgnores.ContainsKey(typeProp)) continue;
+                            matchIgnores.Add(typeProp, true);
+							var nextExp = Expression.MakeMemberAccess(memExp, typeProp);
                             var ret = LocalMatch(typeProp.PropertyType, nextExp);
                             if (ret != null)
                             {
