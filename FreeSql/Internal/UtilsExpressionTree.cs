@@ -252,16 +252,21 @@ namespace FreeSql.Internal
 			if (entityDefault != null) defaultValue = trytb.Properties[csName].GetValue(entityDefault, null);
 			if (defaultValue != null && mapType.IsEnum)
 			{
-				var isEqualsEnumValue = false;
-				var enumValues = Enum.GetValues(mapType);
-				for (var a = 0; a < enumValues.Length; a++)
-					if (object.Equals(defaultValue, enumValues.GetValue(a)))
-					{
-						isEqualsEnumValue = true;
-						break;
-					}
-				if (isEqualsEnumValue == false && enumValues.Length > 0)
-					defaultValue = enumValues.GetValue(0);
+                Array enumValues = null;
+                try { enumValues = Enum.GetValues(mapType); } //AOT error
+                catch { }
+                if (enumValues != null)
+                {
+                    var isEqualsEnumValue = false;
+                    for (var a = 0; a < enumValues.Length; a++)
+                        if (object.Equals(defaultValue, enumValues.GetValue(a)))
+                        {
+                            isEqualsEnumValue = true;
+                            break;
+                        }
+                    if (isEqualsEnumValue == false && enumValues.Length > 0)
+                        defaultValue = enumValues.GetValue(0);
+                }
 			}
 			if (defaultValue != null && mapType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
 			if (defaultValue == null) defaultValue = tp?.defaultValue;
