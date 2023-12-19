@@ -149,7 +149,12 @@ namespace FreeSql.Sqlite
 
         public void OnDestroy(DbConnection obj)
         {
-            if (obj.State != ConnectionState.Closed) obj.Close();
+#if MicrosoftData
+			if (obj is SqliteConnection sqlconn && sqlconn != null) SqliteConnection.ClearPool(sqlconn);
+#else
+            if (obj is SQLiteConnection sqlconn && sqlconn != null) SQLiteConnection.ClearPool(sqlconn);
+#endif
+			if (obj.State != ConnectionState.Closed) obj.Close();
             obj.Dispose();
         }
 
