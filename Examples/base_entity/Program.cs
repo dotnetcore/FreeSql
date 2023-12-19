@@ -570,7 +570,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 				//.UseAdoConnectionPool(false)
 				//.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
 				////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -609,10 +609,20 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            //fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
-            //var TreeModel01 = fsql.Select<TreeModel>().Where(a => a.code == "x" && a.Childs.AsSelect().Any(b => b.id == a.id && b.status == ActivityStatusCode.Error)).ToList();
+            fsql.Update<User1>()
+		        .Where(t => t.GroupId == 1)
+		        .ExecuteUpdated();
 
-            var v1 = 123123123;
+
+			fsql.Update<User1>()
+		        .Where(t => t.GroupId == 1)
+				.SetIf(false, t => t.CreateTime == DateTime.Now)
+				.ExecuteUpdated();
+
+			//fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+			//var TreeModel01 = fsql.Select<TreeModel>().Where(a => a.code == "x" && a.Childs.AsSelect().Any(b => b.id == a.id && b.status == ActivityStatusCode.Error)).ToList();
+
+			var v1 = 123123123;
             var mysql0111 = fsql.Select<User1>().Where(a => a.Nickname.Contains(v1.ToString())).ToSql();
             var mysql0112 = fsql.Select<User1>().Where(a => a.Nickname.Contains(123123123.ToString())).ToSql();
 			var v2 = "123123123";

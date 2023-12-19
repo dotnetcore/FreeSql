@@ -970,7 +970,8 @@ namespace FreeSql.Internal.CommonProvider
                 return;
             }
             if (_where.Length == 0) return;
-            var newwhere = new StringBuilder();
+			if (_set.Length == 0 && _setIncr.Length == 0) return;
+			var newwhere = new StringBuilder();
             ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
@@ -1004,6 +1005,7 @@ namespace FreeSql.Internal.CommonProvider
                 return;
             }
             if (_where.Length == 0) return;
+			if (_set.Length == 0 && _setIncr.Length == 0) return;
             var newwhere = new StringBuilder();
             ToSqlWhere(newwhere);
 
@@ -1027,7 +1029,7 @@ namespace FreeSql.Internal.CommonProvider
             sb.Clear();
         }
 #endif
-        public virtual void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
+		public virtual void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
         {
             if (_where.Length == 0 && _source.Any() == false) return;
             if (_source.Any() == false && _set.Length == 0 && _setIncr.Length == 0) return;
