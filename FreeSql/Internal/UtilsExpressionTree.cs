@@ -47,12 +47,20 @@ namespace FreeSql.Internal
                 ) return null;
             var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
             if (tbc.TryGetValue(entity, out var trytb)) return trytb;
-            if (entity == typeof(object)) return new TableInfo
+            if (entity == typeof(object))
             {
-                Type = entity,
-                CsName = entity.Name,
-                DbName = entity.Name,
-                DisableSyncStructure = true,
+                var columnsEmpty = new ColumnInfo[0];
+                return new TableInfo
+                {
+                    Type = entity,
+                    CsName = entity.Name,
+                    DbName = entity.Name,
+                    DisableSyncStructure = true,
+                    ColumnsByPosition = columnsEmpty,
+                    ColumnsByCanUpdateDbUpdateValue = columnsEmpty,
+                    Primarys = columnsEmpty,
+                    Indexes = new IndexInfo[0],
+                };
             };
             if (common.CodeFirst.GetDbInfo(entity) != null) return null;
             if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericType == true) return null;
