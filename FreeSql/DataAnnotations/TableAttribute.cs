@@ -108,8 +108,8 @@ namespace FreeSql.DataAnnotations
     {
         readonly object _lock = new object();
         readonly List<string> _allTables = new List<string>();
-        readonly List<DateTime> _allTablesTime = new List<DateTime>();
-        readonly DateTime _beginTime;
+		readonly List<DateTime> _allTablesTime = new List<DateTime>();
+		readonly DateTime _beginTime;
         DateTime _lastTime;
         Func<DateTime, int, DateTime> _nextTimeFunc;
         string _tableName;
@@ -131,20 +131,20 @@ namespace FreeSql.DataAnnotations
         int GetTimestamp(DateTime dt) => (int)dt.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         void ExpandTable(DateTime beginTime, DateTime endTime)
         {
-            var index = 0;
             if (beginTime > endTime) endTime = _nextTimeFunc(beginTime, -1);
             lock (_lock)
-            {
-                while (beginTime <= endTime)
+			{
+				var index = _allTables.Count;
+				while (beginTime <= endTime)
                 {
                     var dtstr = beginTime.ToString(_tableNameFormat.Groups[1].Value);
                     var name = _tableName.Replace(_tableNameFormat.Groups[0].Value, dtstr);
                     if (_allTables.Contains(name)) throw new ArgumentException(CoreStrings.Generated_Same_SubTable(_tableName));
                     _allTables.Insert(0, name);
-                    _allTablesTime.Insert(0, beginTime);
-                    _lastTime = beginTime;
-                    beginTime = _nextTimeFunc(beginTime, index++);
-                }
+					_allTablesTime.Insert(0, beginTime);
+					_lastTime = _nextTimeFunc(beginTime, index++);
+					beginTime = _lastTime;
+				}
             }
         }
         public NativeTuple<DateTime, DateTime> GetRangeByTableName(string tableName)
@@ -153,10 +153,10 @@ namespace FreeSql.DataAnnotations
             {
                 var idx = _allTables.FindIndex(a => a == tableName);
                 if (idx == -1) return null;
-                if (idx == 0) return NativeTuple.Create(_allTablesTime[idx], DateTime.Now);
+				if (idx == 0) return NativeTuple.Create(_allTablesTime[idx], DateTime.Now);
 				if (idx == _allTables.Count - 1) return NativeTuple.Create(DateTime.MinValue, _allTablesTime[idx]);
-                return NativeTuple.Create(_allTablesTime[idx], _allTablesTime[idx - 1]);
-            }
+				return NativeTuple.Create(_allTablesTime[idx], _allTablesTime[idx - 1]);
+			}
 		}
         DateTime ParseColumnValue(object columnValue)
         {
@@ -180,11 +180,10 @@ namespace FreeSql.DataAnnotations
         {
             var dt = ParseColumnValue(columnValue);
             if (dt < _beginTime) throw new Exception(CoreStrings.SubTableFieldValue_CannotLessThen(dt.ToString("yyyy-MM-dd HH:mm:ss"), _beginTime.ToString("yyyy-MM-dd HH:mm:ss")));
-            var tmpTime = _nextTimeFunc(_lastTime, -1);
-            if (dt >= tmpTime && autoExpand)
+            if (dt >= _lastTime && autoExpand)
             {
-                // 自动建表
-                ExpandTable(tmpTime, dt);
+                // 扩容分表
+                ExpandTable(_lastTime, dt);
             }
             lock (_lock)
             {
@@ -217,7 +216,7 @@ namespace FreeSql.DataAnnotations
                         }
                     }
                 }
-                if (dt2 > _allTablesTime.First()) dt2idx = 0;
+                if (dt2 > _allTablesTime[0]) dt2idx = 0;
                 else
                 {
                     for (var a = 0; a < allTablesCount; a++)
