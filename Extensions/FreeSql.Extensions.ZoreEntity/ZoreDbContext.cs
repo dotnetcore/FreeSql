@@ -770,11 +770,11 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				}
 				else
 				{
-					if (_states.ContainsKey(key))
-					{
-						if (isThrow) throw new Exception($"不可添加，已存在于状态管理：{GetEntityString(table, data)}");
-						return false;
-					}
+					//if (_states.ContainsKey(key))
+					//{
+					//	if (isThrow) throw new Exception($"不可添加，已存在于状态管理：{GetEntityString(table, data)}");
+					//	return false;
+					//}
 					if (_orm.Ado.DataType == DataType.ClickHouse) return true;
 					var idcol = table.Primarys.FirstOrDefault(a => a.Attribute.IsIdentity);
 					if (table.Primarys.Any(a => a.Attribute.IsIdentity))

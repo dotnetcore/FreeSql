@@ -349,12 +349,13 @@ namespace FreeSql
             }
             else
             {
-                if (_states.ContainsKey(key))
-                {
-                    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_AlreadyExistsInStateManagement(_db.OrmOriginal.GetEntityString(_entityType, data)));
-                    return false;
-                }
-                if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
+				//不可添加，已存在于状态管理
+				//if (_states.ContainsKey(key))
+				//{
+				//    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_AlreadyExistsInStateManagement(_db.OrmOriginal.GetEntityString(_entityType, data)));
+				//    return false;
+				//}
+				if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
                 var idval = _db.OrmOriginal.GetEntityIdentityValueWithPrimary(_entityType, data);
                 if (idval > 0)
                 {
