@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 扩展包，实现 低代码、零实体类型，并且支持导航属性，级联保存 等功能.</Description>
+		<Description>FreeSql 扩展包，实现 低代码、零实体、ZeroEntity，并且支持导航属性，级联保存 等功能.</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
