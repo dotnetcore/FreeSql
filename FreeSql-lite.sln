@@ -89,7 +89,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.QuestDb", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Xugu", "Providers\FreeSql.Provider.Xugu\FreeSql.Provider.Xugu.csproj", "{353F3732-0704-40F2-972B-036E9CC01881}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZoreEntity", "Extensions\FreeSql.Extensions.ZoreEntity\FreeSql.Extensions.ZoreEntity.csproj", "{4367B7AC-604F-4503-A1D4-643ADBFCF703}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{4367B7AC-604F-4503-A1D4-643ADBFCF703}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

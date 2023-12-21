@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using T = System.Collections.Generic.Dictionary<string, object>;
 
-namespace FreeSql.Extensions.ZoreEntity
+namespace FreeSql.Extensions.ZeroEntity
 {
 
 	/*
@@ -58,13 +58,13 @@ OneToMany 级联删除
 ManyToOne 忽略
 ManyToMany 级联删除中间表（注意不删除外部根）
 	 */
-	public partial class ZoreDbContext
+	public partial class ZeroDbContext
 	{
 		internal IFreeSql _orm;
 		internal DbTransaction _transaction;
 		internal int _commandTimeout;
-		internal List<ZoreTableInfo> _tables;
-		public ZoreDbContext(IFreeSql orm, TableDescriptor[] schemas)
+		internal List<ZeroTableInfo> _tables;
+		public ZeroDbContext(IFreeSql orm, TableDescriptor[] schemas)
 		{
 			_orm = orm;
 			_tables = VilidateSchemaToInfo(orm, schemas);
@@ -80,10 +80,10 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			_orm.CodeFirst.SyncStructure(table, table.DbName, false);
 		}
 
-		static List<ZoreTableInfo> VilidateSchemaToInfo(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
+		static List<ZeroTableInfo> VilidateSchemaToInfo(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
 		{
 			var common = (orm.Ado as AdoProvider)._util;
-			var tables = new List<ZoreTableInfo>();
+			var tables = new List<ZeroTableInfo>();
 			foreach (var dtd in schemas)
 			{
 				if (string.IsNullOrWhiteSpace(dtd.Name)) continue;
@@ -97,7 +97,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				{
 					IndexMethod = a.IndexMethod,
 				});
-				var tab = new ZoreTableInfo();
+				var tab = new ZeroTableInfo();
 				tab.Comment = dtd.Comment;
 				tab.Type = typeof(object);
 				tab.CsName = dtd.Name;
@@ -137,7 +137,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				{
 					if (tab.Navigates.ContainsKey(dtdnav.Name)) continue;
 					var error = $"表“{tab.CsName}”导航属性 {dtdnav.Name} 配置错误：";
-					var nav = new ZoreTableRef();
+					var nav = new ZeroTableRef();
 					nav.NavigateKey = dtdnav.Name;
 					nav.Table = tab;
 					nav.RefTable = tables.Where(a => a.CsName == dtdnav.RelTable).FirstOrDefault();
@@ -210,12 +210,12 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			return tables;
 		}
 
-		public ZoreDbContext WithTransaction(DbTransaction value)
+		public ZeroDbContext WithTransaction(DbTransaction value)
 		{
 			_transaction = value;
 			return this;
 		}
-		public ZoreDbContext CommandTimeout(int seconds)
+		public ZeroDbContext CommandTimeout(int seconds)
 		{
 			_commandTimeout = seconds;
 			return this;
@@ -334,18 +334,18 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			AttachCascade(_tables[0], entity, true);
 		}
 
-		void AuditCascade(ZoreTableInfo entityTable, IEnumerable<T> entities)
+		void AuditCascade(ZeroTableInfo entityTable, IEnumerable<T> entities)
 		{
 			if (entities == null) return;
 			foreach (var entity in entities) AuditCascade(entityTable, entity);
 		}
-		internal void AuditCascade(ZoreTableInfo entityTable, T entity)
+		internal void AuditCascade(ZeroTableInfo entityTable, T entity)
 		{
 			var ignores = new Dictionary<string, Dictionary<string, bool>>(); //比如 Tree 结构可以递归添加
 			LocalAuditCascade(entityTable, entity);
 			ignores.Clear();
 
-			void LocalAuditCascade(ZoreTableInfo table, T entityFrom)
+			void LocalAuditCascade(ZeroTableInfo table, T entityFrom)
 			{
 				if (entityFrom == null) return;
 
@@ -550,7 +550,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			}
 			return false;
 		}
-		void InsertCascade(ZoreTableInfo entityTable, IEnumerable<T> entities, bool cascade)
+		void InsertCascade(ZeroTableInfo entityTable, IEnumerable<T> entities, bool cascade)
 		{
 			var navs = entityTable.Navigates.OrderBy(a => a.Value.RefType).ThenBy(a => a.Key).ToArray();
 			SaveOutsideCascade(entities, navs);
@@ -791,7 +791,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			#endregion
 		}
 
-		void SaveOutsideCascade(IEnumerable<T> entities, IEnumerable<KeyValuePair<string, ZoreTableRef>> navs)
+		void SaveOutsideCascade(IEnumerable<T> entities, IEnumerable<KeyValuePair<string, ZeroTableRef>> navs)
 		{
 			foreach (var nav in navs)
 			{
@@ -829,7 +829,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				SaveOutsideCascade(nav.Value.RefTable, nav.Value, outsideList);
 			}
 		}
-		void SaveOutsideCascade(ZoreTableInfo entityTable, ZoreTableRef nav, IEnumerable<NativeTuple<T, T>> outsideData)
+		void SaveOutsideCascade(ZeroTableInfo entityTable, ZeroTableRef nav, IEnumerable<NativeTuple<T, T>> outsideData)
 		{
 			outsideData = outsideData.Where(a => CanCascade(entityTable, a.Item2, true)).ToList();
 			if (outsideData.Any() == false) return;
@@ -861,20 +861,20 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			}
 		}
 
-		void UpdateCascade(ZoreTableInfo entityTable, IEnumerable<T> entities, bool cascade)
+		void UpdateCascade(ZeroTableInfo entityTable, IEnumerable<T> entities, bool cascade)
 		{
 			SaveOutsideCascade(entities, entityTable.Navigates.OrderBy(a => a.Value.RefType).ThenBy(a => a.Key));
 			var tracking = new TrackingChangeInfo();
 			foreach (var entity in entities)
 			{
 				var stateKey = GetEntityKeyString(entityTable, entity);
-				if (_states.TryGetValue(entityTable.DbName, out var kv) == false || kv.TryGetValue(stateKey, out var state) == false) throw new Exception($"{nameof(ZoreDbContext)} 查询之后，才可以更新数据 {GetEntityString(entityTable, entity)}");
+				if (_states.TryGetValue(entityTable.DbName, out var kv) == false || kv.TryGetValue(stateKey, out var state) == false) throw new Exception($"{nameof(ZeroDbContext)} 查询之后，才可以更新数据 {GetEntityString(entityTable, entity)}");
 				CompareEntityValue(entityTable, state.Value, entity, tracking);
 			}
 			SaveTrackingChange(tracking);
 			foreach (var entity in entities) AttachCascade(entityTable, entity, false);
 		}
-		void DeleteCascade(ZoreTableInfo entityTable, IEnumerable<T> entities, List<object> deletedOutput)
+		void DeleteCascade(ZeroTableInfo entityTable, IEnumerable<T> entities, List<object> deletedOutput)
 		{
 			var tracking = new TrackingChangeInfo();
 			foreach (var entity in entities)
@@ -946,13 +946,13 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 		}
 
 		#region EntityState
-		internal void AttachCascade(ZoreTableInfo entityTable, T entity, bool includeOutside)
+		internal void AttachCascade(ZeroTableInfo entityTable, T entity, bool includeOutside)
 		{
 			var ignores = new Dictionary<string, Dictionary<string, bool>>(); //比如 Tree 结构可以递归添加
 			LocalAttachCascade(entityTable, entity, true);
 			ignores.Clear();
 
-			void LocalAttachCascade(ZoreTableInfo table, T entityFrom, bool flag)
+			void LocalAttachCascade(ZeroTableInfo table, T entityFrom, bool flag)
 			{
 				if (flag == false) return;
 				if (entityFrom == null) return;
@@ -967,7 +967,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				if (kv.ContainsKey(state.Key)) kv[state.Key] = state;
 				else kv.Add(state.Key, state);
 			}
-			bool LocalMapEntityValue(ZoreTableInfo table, T entityFrom, T entityTo)
+			bool LocalMapEntityValue(ZeroTableInfo table, T entityFrom, T entityTo)
 			{
 				if (entityFrom == null || entityTo == null) return true;
 
@@ -1081,7 +1081,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			public DateTime Time { get; set; }
 		}
 		Dictionary<string, Dictionary<string, EntityState>> _states = new Dictionary<string, Dictionary<string, EntityState>>();
-		bool? ExistsInStates(ZoreTableInfo table, T data)
+		bool? ExistsInStates(ZeroTableInfo table, T data)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			var key = GetEntityKeyString(table, data);
@@ -1131,17 +1131,17 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 
 		class TrackingChangeInfo
 		{
-			public List<NativeTuple<ZoreTableInfo, T>> InsertLog { get; } = new List<NativeTuple<ZoreTableInfo, T>>();
-			public List<NativeTuple<ZoreTableInfo, T, T, List<string>>> UpdateLog { get; } = new List<NativeTuple<ZoreTableInfo, T, T, List<string>>>();
-			public List<NativeTuple<ZoreTableInfo, T[]>> DeleteLog { get; } = new List<NativeTuple<ZoreTableInfo, T[]>>();
+			public List<NativeTuple<ZeroTableInfo, T>> InsertLog { get; } = new List<NativeTuple<ZeroTableInfo, T>>();
+			public List<NativeTuple<ZeroTableInfo, T, T, List<string>>> UpdateLog { get; } = new List<NativeTuple<ZeroTableInfo, T, T, List<string>>>();
+			public List<NativeTuple<ZeroTableInfo, T[]>> DeleteLog { get; } = new List<NativeTuple<ZeroTableInfo, T[]>>();
 		}
-		void CompareEntityValue(ZoreTableInfo rootTable, T rootEntityBefore, T rootEntityAfter, TrackingChangeInfo tracking)
+		void CompareEntityValue(ZeroTableInfo rootTable, T rootEntityBefore, T rootEntityAfter, TrackingChangeInfo tracking)
 		{
 			var rootIgnores = new Dictionary<string, Dictionary<string, bool>>(); //比如 Tree 结构可以递归添加
 			LocalCompareEntityValue(rootTable, rootEntityBefore, rootEntityAfter, true);
 			rootIgnores.Clear();
 
-			void LocalCompareEntityValue(ZoreTableInfo table, T entityBefore, T entityAfter, bool cascade)
+			void LocalCompareEntityValue(ZeroTableInfo table, T entityBefore, T entityAfter, bool cascade)
 			{
 				if (entityBefore != null)
 				{
@@ -1211,7 +1211,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 					}
 				}
 			}
-			void LocalCompareEntityValueCollection(ZoreTableInfo elementTable, IEnumerable collectionBefore, IEnumerable collectionAfter, bool cascade)
+			void LocalCompareEntityValueCollection(ZeroTableInfo elementTable, IEnumerable collectionBefore, IEnumerable collectionAfter, bool cascade)
 			{
 				if (collectionBefore == null && collectionAfter == null) return;
 				if (collectionBefore == null && collectionAfter != null)
@@ -1271,7 +1271,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				foreach (var key in dictBefore.Keys)
 					LocalCompareEntityValue(elementTable, dictBefore[key], dictAfter.TryGetValue(key, out var afterItem) ? afterItem : null, cascade);
 			}
-			void NavigateReader(ZoreTableInfo readerTable, T readerEntity, Action<string, ZoreTableRef, ZoreTableInfo, List<object>> callback)
+			void NavigateReader(ZeroTableInfo readerTable, T readerEntity, Action<string, ZeroTableRef, ZeroTableInfo, List<object>> callback)
 			{
 				var ignores = new Dictionary<string, Dictionary<string, bool>>(); //比如 Tree 结构可以递归添加
 				var statckPath = new Stack<string>();
@@ -1281,7 +1281,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 				LocalNavigateReader(readerTable, readerEntity);
 				ignores.Clear();
 
-				void LocalNavigateReader(ZoreTableInfo table, T entity)
+				void LocalNavigateReader(ZeroTableInfo table, T entity)
 				{
 					if (entity == null) return;
 					var stateKey = GetEntityKeyString(table, entity);
@@ -1418,7 +1418,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			return object.Equals(propvalBefore, propvalAfter);
 		}
 		
-		List<T> GetManyToManyObjects(ZoreTableRef nav, T entity, string navName)
+		List<T> GetManyToManyObjects(ZeroTableRef nav, T entity, string navName)
 		{
 			if (nav.RefType != TableRefType.ManyToMany) return null;
 			if (entity.TryGetValue(navName, out var rightsObj) == false || rightsObj is IEnumerable rights == false || rights == null) return null;
@@ -1442,7 +1442,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			}
 			return middles;
 		}
-		void SetNavigateRelationshipValue(ZoreTableRef nav, T leftItem, object rightItem)
+		void SetNavigateRelationshipValue(ZeroTableRef nav, T leftItem, object rightItem)
 		{
 			switch (nav.RefType)
 			{

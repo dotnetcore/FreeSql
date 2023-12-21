@@ -125,7 +125,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Xugu", "Pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Xugu", "FreeSql.Tests\FreeSql.Tests.Provider.Xugu\FreeSql.Tests.Provider.Xugu.csproj", "{16C21D77-20AC-4722-AD97-F53BDDE8210C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZoreEntity", "Extensions\FreeSql.Extensions.ZoreEntity\FreeSql.Extensions.ZoreEntity.csproj", "{D9419896-BFB0-47C1-BEFD-A6C48394643B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{D9419896-BFB0-47C1-BEFD-A6C48394643B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -10,15 +10,15 @@ using System.Linq;
 using System.Text;
 using T = System.Collections.Generic.Dictionary<string, object>;
 
-namespace FreeSql.Extensions.ZoreEntity
+namespace FreeSql.Extensions.ZeroEntity
 {
-	partial class ZoreDbContext
+	partial class ZeroDbContext
 	{
 		public class SelectImpl
 		{
-			ZoreDbContext _dbcontext;
+			ZeroDbContext _dbcontext;
 			IFreeSql _orm => _dbcontext._orm;
-			List<ZoreTableInfo> _tables => _dbcontext._tables;
+			List<ZeroTableInfo> _tables => _dbcontext._tables;
 			int _mainTableIndex = -1;
 			List<TableAliasInfo> _tableAlias;
 			ISelect<TestDynamicFilterInfo> _select;
@@ -33,7 +33,7 @@ namespace FreeSql.Extensions.ZoreEntity
 			bool _includeAll = false;
 
 			SelectImpl() { }
-			internal SelectImpl(ZoreDbContext dbcontext, string tableName)
+			internal SelectImpl(ZeroDbContext dbcontext, string tableName)
 			{
 				_dbcontext = dbcontext;
 				var tableIndex = _tables.FindIndex(a => a.CsName.ToLower() == tableName?.ToLower());
@@ -61,7 +61,7 @@ namespace FreeSql.Extensions.ZoreEntity
 				LocalAutoInclude(_tables[_mainTableIndex], "a");
 				return this;
 
-				void LocalAutoInclude(ZoreTableInfo table, string alias, string navPath = "")
+				void LocalAutoInclude(ZeroTableInfo table, string alias, string navPath = "")
 				{
 					if (ignores.ContainsKey(table.CsName)) return;
 					ignores.Add(table.CsName, true);
@@ -179,7 +179,7 @@ namespace FreeSql.Extensions.ZoreEntity
 			class TableAliasInfo
 			{
 				public string Alias { get; set; }
-				public ZoreTableInfo Table { get; set; }
+				public ZeroTableInfo Table { get; set; }
 				public string[] NavPath { get; set; }
 				public List<NativeTuple<string, Action<SelectImpl>>> IncludeMany { get; set; } = new List<NativeTuple<string, Action<SelectImpl>>>();
 			}
@@ -200,7 +200,7 @@ namespace FreeSql.Extensions.ZoreEntity
 					return alias;
 				}
 			}
-			TableAliasInfo FlagFetchResult(ZoreTableInfo table, string alias, string navPath)
+			TableAliasInfo FlagFetchResult(ZeroTableInfo table, string alias, string navPath)
 			{
 				var tableAlias = _tableAlias.Where(a => a.Alias == alias).FirstOrDefault();
 				if (tableAlias == null)
@@ -533,7 +533,7 @@ namespace FreeSql.Extensions.ZoreEntity
 				return this;
 			}
 
-			NativeTuple<string, ColumnInfo> ParseField(ZoreTableInfo firstTable, string firstTableAlias, string property)
+			NativeTuple<string, ColumnInfo> ParseField(ZeroTableInfo firstTable, string firstTableAlias, string property)
 			{
 				if (string.IsNullOrEmpty(property)) return null;
 				var field = property.Split('.').Select(a => a.Trim()).ToArray();

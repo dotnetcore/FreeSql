@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{3AAE17E8-8608-4905-826A-6DB68F75F339}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZoreEntity", "Extensions\FreeSql.Extensions.ZoreEntity\FreeSql.Extensions.ZoreEntity.csproj", "{E0480E6F-CFCD-4108-969C-448E44023C97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{E0480E6F-CFCD-4108-969C-448E44023C97}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{5E4928F2-E52B-4563-9FF7-C0A4119E6596}"
 EndProject

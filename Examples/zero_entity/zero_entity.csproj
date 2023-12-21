@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.ZoreEntity\FreeSql.Extensions.ZoreEntity.csproj" />
+	  <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj" />
 	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
 	</ItemGroup>
 

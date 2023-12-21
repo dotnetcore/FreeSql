@@ -1,7 +1,7 @@
 ﻿
 using FreeSql;
 using FreeSql.DataAnnotations;
-using FreeSql.Extensions.ZoreEntity;
+using FreeSql.Extensions.ZeroEntity;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,7 +17,7 @@ using (var fsql = new FreeSqlBuilder()
 {
 	var json = JsonConvert.SerializeObject(Helper.GetTestDesc());
 
-	var dyctx = new ZoreDbContext(fsql, JsonConvert.DeserializeObject<TableDescriptor[]>(@"
+	var dyctx = new ZeroDbContext(fsql, JsonConvert.DeserializeObject<TableDescriptor[]>(@"
 [
 	{
 		""Name"":""User"",

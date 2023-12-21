@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-		<DocumentationFile>FreeSql.Extensions.ZoreEntity.xml</DocumentationFile>
+		<DocumentationFile>FreeSql.Extensions.ZeroEntity.xml</DocumentationFile>
 		<WarningLevel>3</WarningLevel>
 	</PropertyGroup>
 

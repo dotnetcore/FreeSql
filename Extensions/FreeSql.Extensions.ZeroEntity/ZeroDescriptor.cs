@@ -3,7 +3,7 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 
-namespace FreeSql.Extensions.ZoreEntity
+namespace FreeSql.Extensions.ZeroEntity
 {
 	public class TableDescriptor
 	{
@@ -78,20 +78,20 @@ namespace FreeSql.Extensions.ZoreEntity
 	}
 
 
-	class ZoreTableRef
+	class ZeroTableRef
 	{
 		internal string NavigateKey { get; set; }
 		public TableRefType RefType { get; set; }
-		internal ZoreTableInfo Table { get; set; }
-		internal ZoreTableInfo RefTable { get; set; }
-		internal ZoreTableInfo RefMiddleTable { get; set; }
+		internal ZeroTableInfo Table { get; set; }
+		internal ZeroTableInfo RefTable { get; set; }
+		internal ZeroTableInfo RefMiddleTable { get; set; }
 
 		public List<string> Columns { get; set; } = new List<string>();
 		public List<string> MiddleColumns { get; set; } = new List<string>();
 		public List<string> RefColumns { get; set; } = new List<string>();
 	}
-	class ZoreTableInfo : TableInfo
+	class ZeroTableInfo : TableInfo
 	{
-		public Dictionary<string, ZoreTableRef> Navigates { get; set; } = new Dictionary<string, ZoreTableRef>(StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, ZeroTableRef> Navigates { get; set; } = new Dictionary<string, ZeroTableRef>(StringComparer.OrdinalIgnoreCase);
 	}
 }
