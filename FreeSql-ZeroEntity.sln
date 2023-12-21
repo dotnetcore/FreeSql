@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEnti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{5E4928F2-E52B-4563-9FF7-C0A4119E6596}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zore_entity", "Examples\zore_entity\zore_entity.csproj", "{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zero_entity", "Examples\zero_entity\zero_entity.csproj", "{97E60B48-06AC-42F3-90A8-DFC5FD386582}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E58095E7-DD2C-41E6-A2E5-4EBE586FA3AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
