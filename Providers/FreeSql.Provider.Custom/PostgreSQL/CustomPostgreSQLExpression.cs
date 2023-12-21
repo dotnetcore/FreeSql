@@ -166,12 +166,12 @@ namespace FreeSql.Custom.PostgreSQL
                                 tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                 if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                                 //判断 in 或 array @> array
-                                if (left.StartsWith("array[") || left.EndsWith("]"))
+                                if (left.StartsWith("array[") && left.EndsWith("]"))
                                     return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
-                                if (left.StartsWith("(") || left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
                                     return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
-                                if (args1.StartsWith("(") || args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
-                                args1 = $"array[{args1}]";
+                                if (args1.StartsWith("(") && args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
+                                else args1 = $"array[{args1}]";
                                 if (objExp != null)
                                 {
                                     var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);

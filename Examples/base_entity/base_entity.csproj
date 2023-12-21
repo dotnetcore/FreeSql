@@ -28,6 +28,7 @@
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.Linq\FreeSql.Extensions.Linq.csproj" />
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.ClickHouse\FreeSql.Provider.ClickHouse.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj" />
