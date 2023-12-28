@@ -525,9 +525,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         public ISelect<T1> WithMemory(IEnumerable<T1> source)
         {
-            var sb = new StringBuilder();
+            var list = source?.Select(a => (object)a).ToList();
+            if (list.Any() != true) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(source)));
+			var sb = new StringBuilder();
             (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
-                .WriteSourceSelectUnionAll(source.Select(a => (object)a).ToList(), sb, _params);
+                .WriteSourceSelectUnionAll(list, sb, _params);
 
             try { return WithSql(sb.ToString()); }
             finally { sb.Clear(); }
