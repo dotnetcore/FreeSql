@@ -507,7 +507,7 @@ namespace FreeSql
                 await UpdateRangePrivAsync(new[] { data }, false, cancellationToken);
                 await DbContextFlushCommandAsync(cancellationToken);
                 affrows = _db._affrows - affrows;
-                if (affrows > 0) return;
+                return;
             }
             if (CanAdd(data, false))
             {

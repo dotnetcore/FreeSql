@@ -579,7 +579,7 @@ namespace FreeSql
                 UpdateRangePriv(new[] { data }, false);
                 DbContextFlushCommand();
                 affrows = _db._affrows - affrows;
-                if (affrows > 0) return;
+                return;
             }
             if (CanAdd(data, false))
             {
