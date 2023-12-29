@@ -1,0 +1,160 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+
+using FreeSql;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace FreeSql.Extensions.JoinTable
+{
+
+	public static class JoinTableExtension
+    {
+        public static SelectContext<T1> JoinTables<T1>(this ISelect<T1> select) where T1 : class
+        {
+            return new SelectContext<T1>(select);
+        }
+    }
+
+    public enum JoinType
+    {
+        LeftJoin,
+        RightJoin,
+        InnerJoin,
+    }
+
+    public class ExpressionConvert
+    {
+        public static LambdaExpression ConvertToMoreParameters(LambdaExpression expression, params Type[] additionalParameterTypes)
+        {
+            var currentParameters = expression.Parameters;
+            var newParameters = currentParameters.ToList();
+
+            foreach (var paramType in additionalParameterTypes)
+            {
+                newParameters.Add(Expression.Parameter(paramType, "param" + newParameters.Count));
+            }
+
+            return Expression.Lambda(expression.Body, newParameters);
+        }
+    }
+
+    public class SelectContext<T1> where T1 : class
+    {
+        public readonly ISelect<T1> SelectProvider;
+
+        public SelectContext(ISelect<T1> select)
+        {
+            this.SelectProvider = select;
+        }
+
+        public SelectContext(SelectContext<T1> ctx)
+        {
+            this.SelectProvider = ctx.SelectProvider;
+        }
+
+        public virtual SelectContext<T1, T2> LeftJoin<T2>(Expression<Func<T1, T2, bool>> exp = null) where T2 : class
+        {
+            return new SelectContext<T1, T2>(this, exp, JoinType.LeftJoin);
+        }
+
+        public virtual SelectContext<T1, T2> RightJoin<T2>(Expression<Func<T1, T2, bool>> exp = null) where T2 : class
+        {
+            return new SelectContext<T1, T2>(this, exp, JoinType.RightJoin);
+        }
+
+        public virtual SelectContext<T1, T2> InnerJoin<T2>(Expression<Func<T1, T2, bool>> exp = null) where T2 : class
+        {
+            return new SelectContext<T1, T2>(this, exp, JoinType.InnerJoin);
+        }
+    }
+
+<#
+    for (int i = 2; i <= 16; i++)
+    {
+#>
+    public class SelectContext<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>>
+        where T1 : class 
+        <#= string.Join("\n        ", Enumerable.Range(2, i - 1).Select(n => $"where T{n} : class")) #>
+    {
+        public readonly ISelect<T1> SelectProvider;
+
+        <#= string.Join("\n        ", Enumerable.Range(2, i - 1).Select(n => "public readonly Expression<Func<T1, " + string.Join(", ", Enumerable.Range(2, n - 1).Select(m => "T" + m)) + ", bool>> ExpressionT" + n + ";")) #>
+
+        <#= string.Join("\n        ", Enumerable.Range(2, i - 1).Select(n => "public readonly JoinType JoinTypeT" + n + ";")) #>
+
+        private ISelect<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>> SelectCore;
+
+        public SelectContext(SelectContext<<#= string.Join(", ", Enumerable.Range(1, i - 1).Select(n => "T" + n)) #>> ctx, Expression<Func<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>, bool>> expression = null, JoinType joinType = JoinType.InnerJoin)
+        {
+            this.SelectProvider = ctx.SelectProvider;
+			this.SelectCore = SelectProvider.From<<#= string.Join(", ", Enumerable.Range(2, i - 1).Select(n => "T" + n)) #>>();
+
+            <#= string.Join("\n            ", Enumerable.Range(2, i - 2).Select(n => "this.ExpressionT" + n +  " = ctx.ExpressionT" + n + ";")) #>
+
+            <#= string.Join("\n            ", Enumerable.Range(2, i - 2).Select(n => "this.JoinTypeT" + n +  " = ctx.JoinTypeT" + n + ";")) #>
+
+            <#= "this.ExpressionT" + i + " = expression;" #>
+            <#= "this.JoinTypeT" + i + " = joinType;" #>
+        }
+
+        <# if (i < 16) { #>
+        public SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>> LeftJoin<#= "<T" + (i + 1) + ">(Expression<Func<" + string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) + ", bool>> exp = null) where T" +( i + 1 ) + " : class" #>
+        {
+            return new SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>>(this, exp, JoinType.LeftJoin);
+        }
+
+        public SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>> InnerJoin<#= "<T" + (i + 1) + ">(Expression<Func<" + string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) + ", bool>> exp = null) where T" +( i + 1 ) + " : class" #>
+        {
+            return new SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>>(this, exp, JoinType.InnerJoin);
+        }
+
+        public SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>> RightJoin<#= "<T" + (i + 1) + ">(Expression<Func<" + string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) + ", bool>> exp = null) where T" +( i + 1 ) + " : class" #>
+        {
+            return new SelectContext<<#= string.Join(", ", Enumerable.Range(1, i + 1).Select(n => "T" + n)) #>>(this, exp, JoinType.RightJoin);
+        }
+        <# } #>
+
+        private ISelect<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>> JoinTable(Expression<Func<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>, bool>> exp, JoinType type)
+        {
+            if (type == JoinType.LeftJoin)
+            {
+                return SelectCore.LeftJoin(exp);
+            }
+            else if (type == JoinType.InnerJoin)
+            {
+                return SelectCore.InnerJoin(exp);
+            }
+            else if (type == JoinType.RightJoin)
+            {
+                return SelectCore.RightJoin(exp);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public ISelect<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>> EndJoin()
+        {
+        <#
+            for(int loop = 1; loop < i - 1;  loop++)
+            {
+        #>
+            JoinTable((Expression<Func<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>, bool>>)ExpressionConvert.ConvertToMoreParameters(ExpressionT<#= loop + 1 #>, <#= string.Join(", ", Enumerable.Range(loop , i - loop - 1).Select(n => $"typeof(T{ n + 2 })")) + $"), JoinTypeT{ loop + 1 });" #> 
+       <#   
+            }
+        #>
+        JoinTable((Expression<Func<<#= string.Join(", ", Enumerable.Range(1, i).Select(n => "T" + n)) #>, bool>>)ExpressionConvert.ConvertToMoreParameters(ExpressionT<#= i + $"), JoinTypeT{ i });" #> 
+
+            return SelectCore;
+        }
+    }
+
+<#
+    }
+#>
+}
