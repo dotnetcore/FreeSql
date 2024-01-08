@@ -555,7 +555,7 @@ namespace base_entity
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
-                .UseNameConvert(NameConvertType.ToLower)
+                //.UseNameConvert(NameConvertType.ToLower)
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
 
@@ -596,7 +596,7 @@ namespace base_entity
 				//.UseConnectionString(DataType.QuestDb, "host=localhost;port=8812;username=admin;password=quest;database=qdb;ServerCompatibilityMode=NoTypeLoading;")
 
 				//.UseConnectionString(DataType.ClickHouse, "DataCompress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=192.168.0.121;Port=8125;Database=PersonnelLocation;Username=root;Password=123")
-                .UseConnectionFactory(DataType.ClickHouse, () => null)
+                //.UseConnectionFactory(DataType.ClickHouse, () => null)
 				.UseMonitorCommand(cmd =>
                 {
                     Console.WriteLine(cmd.CommandText + "\r\n");
@@ -608,16 +608,55 @@ namespace base_entity
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
-            #endregion
+			#endregion
 
-            var clickhouseSql1 = fsql.Select<User1>().Where(a => new[] { 1, 2, 3 }.Contains(a.GroupId)).ToSql();
-            var clickhouseVal1 = new[] { 1, 2, 3 };
-            var clickhouseSql2 = fsql.Select<User1>().Where(a => clickhouseVal1.Contains(a.GroupId)).ToSql();
-            var clickhouseSql3 = fsql.Select<User1>().Where(a => a.Tags.Contains("tag1")).ToSql();
-            var clickhouseVal2 = "tag2";
-            var clickhouseSql4 = fsql.Select<User1>().Where(a => a.Tags.Contains(clickhouseVal2)).ToSql();
 
-            fsql.Update<User1>()
+			var list111222 = fsql.Select<OrderLine, Product>()
+			    .InnerJoin((l, p) => l.ProductId == p.ID)
+			    .GroupBy((l, p) => new { p.ID, ShopType = l.ShopType ?? 0 })
+			    .WithTempQuery(a => new
+			    {
+				    a.Key.ID,
+				    Money = a.Sum(a.Value.Item1.Amount) * a.Key.ShopType
+			    })
+			    .ToList();
+			Console.WriteLine(list111222);
+
+			var list0x1sql = fsql.Select<OrderLine22x, Product22x>()
+                .InnerJoin((l, p) => l.ProductId == p.ID)
+                .GroupBy((l, p) => new { p.ID, l.ShopType })
+                .WithTempQuery(a => new {
+	                a.Key.ID,
+	                Money2 = a.Key.ShopType,
+	                Money = a.Key.ShopType == 1 ? a.Value.Item1.Price * a.Value.Item1.Amount : a.Value.Item1.Price * a.Value.Item1.Amount * 1.1m
+                })
+                .ToSql();
+			Console.WriteLine(list0x1sql);
+			var sql1c2 = fsql.Select<User1>()
+				.GroupBy(a => new { a.Nickname, a.Avatar })
+				.WithTempQuery(b => new
+				{
+					sum = b.Sum(b.Value.Sort),
+					b.Key.Nickname,
+					b.Key.Avatar,
+				})
+				.OrderByDescending(arg => arg.sum)
+				.ToSql(arg => new
+				{
+					str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
+					str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
+				});   //报错 多括号
+					  //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
+			Console.WriteLine(sql1c2);
+
+			//var clickhouseSql1 = fsql.Select<User1>().Where(a => new[] { 1, 2, 3 }.Contains(a.GroupId)).ToSql();
+			//         var clickhouseVal1 = new[] { 1, 2, 3 };
+			//         var clickhouseSql2 = fsql.Select<User1>().Where(a => clickhouseVal1.Contains(a.GroupId)).ToSql();
+			//         var clickhouseSql3 = fsql.Select<User1>().Where(a => a.Tags.Contains("tag1")).ToSql();
+			//         var clickhouseVal2 = "tag2";
+			//         var clickhouseSql4 = fsql.Select<User1>().Where(a => a.Tags.Contains(clickhouseVal2)).ToSql();
+
+			fsql.Update<User1>()
 		        .Where(t => t.GroupId == 1)
 		        .ExecuteUpdated();
 
@@ -831,16 +870,6 @@ namespace base_entity
             fsql.UseJsonMap();
             fsql.Select<MiDevice>().Where(a => a.FormLocking == null).Count();
 
-            var list0x1sql = fsql.Select<OrderLine22x, Product22x>()
-.InnerJoin((l, p) => l.ProductId == p.ID)
-.GroupBy((l, p) => new { p.ID, l.ShopType })
-.WithTempQuery(a => new {
-    a.Key.ID,
-    Money2 = a.Key.ShopType,
-    Money = a.Key.ShopType == 1 ? a.Value.Item1.Price * a.Value.Item1.Amount : a.Value.Item1.Price * a.Value.Item1.Amount * 1.1m
-})
-.ToSql();
-            Console.WriteLine(list0x1sql);
 
             fsql.Delete<TypeHandler01>().Where("1=1").ExecuteAffrows();
             FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(TestIdAndIdentity), new String_TestIdAndIdentity());
@@ -1211,22 +1240,8 @@ var sql11111 = fsql.Select<Class1111>()
                 .Set((a, b) => a.Nickname == "b.groupname")
                 .ExecuteAffrows();
 
-            var sql1c2 = fsql.Select<User1>()
-                .GroupBy(a => new { a.Nickname, a.Avatar })
-                .WithTempQuery(b => new
-                {
-                    sum = b.Sum(b.Value.Sort),
-                    b.Key.Nickname,
-                    b.Key.Avatar,
-                })
-                .OrderByDescending(arg => arg.sum)
-                .ToSql(arg => new
-                {
-                    str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
-                    str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
-                });   //报错 多括号
-                //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
-            Console.WriteLine(sql1c2);
+
+			
 
             var xp = new Xpb()
             {
@@ -3066,3 +3081,25 @@ public class Test2
 
     public bool IsEnabled { get; set; }
 }
+[JsonObject(MemberSerialization.OptIn), Table(Name = "T_OrderLine111222")]
+public partial class OrderLine
+{
+
+	public string Id { get; set; }
+	public string OrderId { get; set; }
+
+	public string ShopId { get; set; }
+	[JsonProperty, Column(Name = "Shop_Type")]
+	public int? ShopType { get; set; }
+	public string ProductId { get; set; }
+	public decimal Price { get; set; }
+	public decimal? Amount { get; set; }
+}
+[JsonObject(MemberSerialization.OptIn), Table(Name = "T_Product111222")]
+public partial class Product
+{
+	public string ID { get; set; }
+	public string Name { get; set; }
+	public string Model { get; set; }
+}
+
