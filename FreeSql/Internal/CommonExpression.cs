@@ -2269,6 +2269,10 @@ namespace FreeSql.Internal
                             else
                                 return Expression.Lambda(exp).Compile().DynamicInvoke();
                             break;
+                        case ExpressionType.Call:
+                            if (exp.IsParameter() == false)
+                                return Expression.Lambda(exp).Compile().DynamicInvoke();
+                            break;
                     }
                     while (expStack.Any())
                     {
