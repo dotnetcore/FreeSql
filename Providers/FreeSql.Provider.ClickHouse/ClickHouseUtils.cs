@@ -72,13 +72,13 @@ namespace FreeSql.ClickHouse
 
         public override string RewriteColumn(ColumnInfo col, string sql)
         {
+            if (string.IsNullOrWhiteSpace(col?.Attribute?.DbType)) return sql;
             col.Attribute.DbType = col.Attribute.DbType.Replace(" NOT NULL", "");
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
                 return string.Format(col.Attribute.RewriteSql, sql);
             if (Regex.IsMatch(sql, @"\{\{[\w\d]+_+\d:\{\d\}\}\}"))
                 return string.Format(sql, col.Attribute.DbType);
-            else
-                return sql;
+            return sql;
         }
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatClickHouse(args);
