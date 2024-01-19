@@ -105,7 +105,7 @@ namespace FreeSql.Xugu
 								}
 								var value = ExpressionGetValue(callExp.Object, out var success);
 								if (success) return formatSql(value, typeof(string), null, null);
-								return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as text)" : null;
+								return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as varchar)" : null;
                             }
                             return null;
                     }
@@ -373,10 +373,10 @@ namespace FreeSql.Xugu
                             if (exp.Arguments[1].Type == typeof(bool) ||
                                 exp.Arguments[1].Type == typeof(StringComparison)) likeOpt = "ILIKE";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as text) || '%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || cast({args0Value} as text))")}";
+                        if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as varchar) || '%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || cast({args0Value} as varchar))")}";
                         if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) {likeOpt} ('%' || cast({args0Value} as text) || '%')";
+                        return $"({left}) {likeOpt} ('%' || cast({args0Value} as varchar) || '%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":

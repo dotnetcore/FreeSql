@@ -608,10 +608,33 @@ namespace base_entity
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
-			#endregion
+            #endregion
 
+            fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
+            var repoxx = fsql.GetRepository<VM_District_Child>();
+            repoxx.DbContextOptions.EnableCascadeSave = true;
+            repoxx.DbContextOptions.NoneParameter = true;
+            repoxx.Insert(new VM_District_Child
+            {
+                Code = "100000",
+                Name = "中国",
+                Childs = new List<VM_District_Child>(new[] {
+                    new VM_District_Child
+                    {
+                        Code = "110000",
+                        Name = "北京",
+                        Childs = new List<VM_District_Child>(new[] {
+                            new VM_District_Child{ Code="110100", Name = "北京市" },
+                            new VM_District_Child{ Code="110101", Name = "东城区" },
+                        })
+                    }
+                })
+            });
+            var ttre1 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国")
+                .AsTreeCte(pathSelector: a => $"[{a.Name}]{a.Code}", pathSeparator: "=>")
+                .OrderBy(a => a.Code).ToTreeList(); ;
 
-			var list111222 = fsql.Select<OrderLine, Product>()
+            var list111222 = fsql.Select<OrderLine, Product>()
 			    .InnerJoin((l, p) => l.ProductId == p.ID)
 			    .GroupBy((l, p) => new { p.ID, ShopType = l.ShopType ?? 0 })
 			    .WithTempQuery(a => new
@@ -3103,3 +3126,33 @@ public partial class Product
 	public string Model { get; set; }
 }
 
+[Table(Name = "D1_District")]
+public class BaseDistrict
+{
+    [Column(IsPrimary = true, StringLength = 6)]
+    public string Code { get; set; }
+
+    [Column(StringLength = 20, IsNullable = false)]
+    public string Name { get; set; }
+
+    [Column(StringLength = 6)]
+    public virtual string ParentCode { get; set; }
+
+    public int testint { get; set; }
+}
+[Table(Name = "D1_District")]
+public class VM_District_Child : BaseDistrict
+{
+    public override string ParentCode { get => base.ParentCode; set => base.ParentCode = value; }
+
+    [Navigate(nameof(ParentCode))]
+    public List<VM_District_Child> Childs { get; set; }
+}
+[Table(Name = "D1_District")]
+public class VM_District_Parent : BaseDistrict
+{
+    public override string ParentCode { get => base.ParentCode; set => base.ParentCode = value; }
+
+    [Navigate(nameof(ParentCode))]
+    public VM_District_Parent Parent { get; set; }
+}

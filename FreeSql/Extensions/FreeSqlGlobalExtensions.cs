@@ -750,17 +750,20 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.CustomSqlServer:
                 case DataType.Firebird:
                 case DataType.ClickHouse:
-                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
+                        Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
                 case DataType.MySql:
                 case DataType.OdbcMySql:
                 case DataType.CustomMySql:
-                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
+                        Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     sql1ctePath = $"CAST({sql1ctePath} as char(2000))";
                     wct2ctePath = sql1ctePath;
                     break;
                 default:
-                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, pathSelector?.Body, select._diymemexpWithTempQuery, null, null);
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule,
+                        Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
             }
             sql1ctePath = $"{sql1ctePath} as cte_path, ";
