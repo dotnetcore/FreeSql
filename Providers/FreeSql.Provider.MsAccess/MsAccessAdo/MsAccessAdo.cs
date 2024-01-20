@@ -62,13 +62,13 @@ namespace FreeSql.MsAccess
             {
                 if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(param);
                 if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+                return string.Concat("cdate('", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "')");
             }
             else if (param is DateTime?)
             {
                 if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(param);
                 if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+                return string.Concat("cdate('", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "')");
             }
 
             else if (param is TimeSpan || param is TimeSpan?)
