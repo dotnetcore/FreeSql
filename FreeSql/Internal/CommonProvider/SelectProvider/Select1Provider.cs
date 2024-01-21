@@ -867,7 +867,20 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
                 var list = listObj as List<T1>;
-                if (list == null) return;
+                if (list == null)
+                {
+                    if (typeof(T1) == typeof(object))
+                    {
+                        var ilist = listObj as IList;
+                        if (ilist != null)
+                        {
+                            list = new List<T1>();
+                            foreach (var iitem in ilist)
+                                list.Add((T1)iitem);
+                        }
+                    }
+                    if (list == null) return;
+                }
                 if (list.Any() == false) return;
                 if (tbref.Columns.Any() == false) return;
 
