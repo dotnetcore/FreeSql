@@ -79,8 +79,10 @@ namespace FreeSql
         public void Attach(TEntity entity)
         {
             var state = CreateEntityState(entity);
-            if (_states.ContainsKey(state.Key)) _states[state.Key] = state;
-            else _states.Add(state.Key, state);
+            if (_states.ContainsKey(state.Key)) 
+                _states[state.Key] = state;
+            else
+                _states.Add(state.Key, state);
         }
         public void Attach(IEnumerable<TEntity> entity)
         {
