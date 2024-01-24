@@ -67,7 +67,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 		public ZeroDbContext(IFreeSql orm, TableDescriptor[] schemas)
 		{
 			_orm = orm;
-			_tables = VilidateSchemaToInfo(orm, schemas);
+			_tables = ValidateSchemaToInfo(orm, schemas);
 			if (orm.CodeFirst.IsAutoSyncStructure)
 				foreach (var table in _tables)
 					orm.CodeFirst.SyncStructure(table, table.DbName, false);
@@ -80,7 +80,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 			_orm.CodeFirst.SyncStructure(table, table.DbName, false);
 		}
 
-		static List<ZeroTableInfo> VilidateSchemaToInfo(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
+		static List<ZeroTableInfo> ValidateSchemaToInfo(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
 		{
 			var common = (orm.Ado as AdoProvider)._util;
 			var tables = new List<ZeroTableInfo>();
