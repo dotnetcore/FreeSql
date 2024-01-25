@@ -334,7 +334,7 @@ namespace FreeSql
                             statckPath.Pop();
                             break;
                         case TableRefType.ManyToMany:
-                            var middleValues = GetManyToManyObjects(fsql, table, tbref, entity, prop).ToArray();
+                            var middleValues = GetManyToManyObjects(fsql, table, tbref, entity, prop)?.ToArray();
                             if (middleValues == null) continue;
                             statckPath.Push($"{prop.Name}[]");
                             stackValues.Add(middleValues);

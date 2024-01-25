@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.2.811-preview20240120</Version>
+		<Version>3.2.811-preview20240125</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -28,14 +28,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+		<PackageReference Include="FreeSql.DbContext" Version="3.2.811-preview20240125" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
 		<DocumentationFile>FreeSql.Extensions.AggregateRoot.xml</DocumentationFile>
 		<WarningLevel>3</WarningLevel>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
 	</PropertyGroup>
