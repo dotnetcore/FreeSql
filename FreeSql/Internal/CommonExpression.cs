@@ -25,7 +25,7 @@ namespace FreeSql.Internal
         public ParameterExpression _lambdaParameter;
         public ReadAnonymousTypeInfo _map;
         public string _field;
-        public ReadAnonymousTypeInfo ParseExpMapResult { get; protected set; }
+        public ReadAnonymousTypeInfo ParseExpMapResult { get; internal protected set; }
         public abstract string ParseExp(Expression[] members);
     }
 
@@ -859,8 +859,10 @@ namespace FreeSql.Internal
             }
 
             Type oldMapType = null;
+            if (tsc.diymemexp != null) tsc.diymemexp.ParseExpMapResult = null;
             var left = ExpressionLambdaToSql(leftExp, tsc);
-            var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
+            var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left) ?? 
+                (tsc.diymemexp?.ParseExpMapResult?.Table?.ColumnsByCs.TryGetValue(tsc.diymemexp.ParseExpMapResult.CsName, out var dmcol) == true ? dmcol : null); //group by emum -> MapType(string) #1727
             var isLeftMapType = leftMapColumn != null && new[] { "AND", "OR", "*", "/", "+", "-" }.Contains(oper) == false && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;

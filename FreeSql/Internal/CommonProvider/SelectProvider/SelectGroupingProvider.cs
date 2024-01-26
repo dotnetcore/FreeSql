@@ -130,7 +130,19 @@ namespace FreeSql.Internal.CommonProvider
                                 return null;
                         }
                     }
-                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
+                    var tsc = new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where };
+                    var result = _comonExp.ExpressionLambdaToSql(retExp, tsc);
+                    //ParseExpMapResult = result
+                    if (tsc.mapColumnTmp != null)
+                        ParseExpMapResult = new ReadAnonymousTypeInfo
+                        {
+                            Property = tsc.mapColumnTmp.Table.Properties[tsc.mapColumnTmp.CsName],
+                            CsName = tsc.mapColumnTmp.CsName,
+                            CsType = tsc.mapColumnTmp.CsType, //dtoProp.PropertyType,
+                            MapType = tsc.mapColumnTmp.Attribute.MapType,
+                            Table = tsc.mapColumnTmp.Table
+                        };
+                    return result;
             }
             return null;
         }
