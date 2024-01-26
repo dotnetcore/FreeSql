@@ -36,9 +36,11 @@ namespace FreeSql.Internal.CommonProvider
         public override string ParseExp(Expression[] members)
         {
             ParseExpMapResult = null;
+            ParseExpColumnResult = null;
             if (members.Any() == false)
             {
                 ParseExpMapResult = _map;
+                ParseExpColumnResult = ParseExpMapResult.GetColumn();
                 return _map.DbField;
             }
             var firstMember = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression);
@@ -53,6 +55,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (read == null) return null;
                     }
                     ParseExpMapResult = read;
+                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     if (!_addFieldAlias) return read.DbField;
                     if (_flagNestedFieldAlias) return read.DbField;
                     if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false)
@@ -82,6 +85,7 @@ namespace FreeSql.Internal.CommonProvider
                                 members[a] = replaceVistor.Modify(members[a], replaceMember, curtable.Parameter);
                             var ret = _select._diymemexpWithTempQuery.ParseExp(members);
                             ParseExpMapResult = _select._diymemexpWithTempQuery.ParseExpMapResult;
+                            ParseExpColumnResult = ParseExpMapResult.GetColumn();
                             return ret;
                         }
                     }
@@ -132,16 +136,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     var tsc = new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where };
                     var result = _comonExp.ExpressionLambdaToSql(retExp, tsc);
-                    //ParseExpMapResult = result
-                    if (tsc.mapColumnTmp != null)
-                        ParseExpMapResult = new ReadAnonymousTypeInfo
-                        {
-                            Property = tsc.mapColumnTmp.Table.Properties[tsc.mapColumnTmp.CsName],
-                            CsName = tsc.mapColumnTmp.CsName,
-                            CsType = tsc.mapColumnTmp.CsType, //dtoProp.PropertyType,
-                            MapType = tsc.mapColumnTmp.Attribute.MapType,
-                            Table = tsc.mapColumnTmp.Table
-                        };
+                    ParseExpColumnResult = tsc.mapColumnTmp;
                     return result;
             }
             return null;

@@ -25,6 +25,12 @@ namespace FreeSql.Internal.Model
         public string IncludeManyKey { get; set; } //ToList(a => new { a.Childs }) 集合属性指定加载
         public Expression SubSelectMany { get; set; } //ToList(a => new { sublist = fsql.Select<T>().ToList() }) 子集合查询
 
+        public ColumnInfo GetColumn()
+        {
+            if (Childs.Any() == false && Table != null && CsName != null && Table.ColumnsByCs.TryGetValue(CsName, out var pcol)) return pcol;
+            return null;
+        }
+
         public void CopyTo(ReadAnonymousTypeInfo target)
         {
             target.Property = Property;

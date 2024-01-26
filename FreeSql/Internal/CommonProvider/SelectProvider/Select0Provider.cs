@@ -241,6 +241,7 @@ namespace FreeSql.Internal.CommonProvider
             public override string ParseExp(Expression[] members)
             {
                 ParseExpMapResult = null;
+                ParseExpColumnResult = null;
                 ParseExpMatchedTable = GetOutsideSelectTable(members.FirstOrDefault()?.GetParameter());
                 if (ParseExpMatchedTable == null) return null;
 
@@ -254,12 +255,14 @@ namespace FreeSql.Internal.CommonProvider
                 if (members.Any() == false)
                 {
                     ParseExpMapResult = insideData.InsideMap;
+                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     return $"{ParseExpMatchedTable.Alias}.{insideData.InsideMap.DbNestedField}";
                 }
                 var read = insideData.InsideMap;
                 if (members.Length == 1 && members[0] == ParseExpMatchedTable.Parameter)
                 {
                     ParseExpMapResult = read;
+                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
                 }
                 for (var a = members[0] == ParseExpMatchedTable.Parameter ? 1 : 0; a < members.Length; a++)
@@ -268,6 +271,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (read == null) return null;
                 }
                 ParseExpMapResult = read;
+                ParseExpColumnResult = ParseExpMapResult.GetColumn();
                 return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
             }
             public SelectTableInfo GetOutsideSelectTable(ParameterExpression parameterExp)

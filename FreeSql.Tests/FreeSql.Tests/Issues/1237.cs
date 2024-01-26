@@ -36,11 +36,11 @@ ORDER BY b.""Name"", b.""ID""", people1);
                 .ToSql();
             Assert.Equal(@"SELECT * 
 FROM ( 
-    SELECT replace(replace(a.""Name"", ' ', ''), '　', '') ""xm_new"", a.""CSNY"" ""csny"" 
+    SELECT replace(replace(a.""Name"", ' ', ''), '　', '') ""xm"", a.""CSNY"" ""csny"" 
     FROM ""people_issues_1237"" a 
     GROUP BY replace(replace(a.""Name"", ' ', ''), '　', ''), a.""CSNY"" 
     HAVING (count(1) > 1) ) a 
-INNER JOIN ""people_issues_1237"" b ON a.""xm_new"" = replace(replace(b.""Name"", ' ', ''), '　', '') AND a.""csny"" = b.""CSNY"" 
+INNER JOIN ""people_issues_1237"" b ON a.""xm"" = replace(replace(b.""Name"", ' ', ''), '　', '') AND a.""csny"" = b.""CSNY"" 
 ORDER BY b.""Name"", b.""ID""", people2);
 
         }
