@@ -873,6 +873,7 @@ namespace FreeSql.Internal
                 (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.IsParameter() == false)) ? //自动分表
                 formatSql(Expression.Lambda(rightExp).Compile().DynamicInvoke(), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams) :
                 ExpressionLambdaToSql(rightExp, tsc);
+            if (isLeftMapType) tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
             if (right != "NULL" && isLeftMapType &&
                 //判断参数化后的bug
                 !(right.Contains('@') || right.Contains('?') || right.Contains(':')) &&
@@ -899,6 +900,7 @@ namespace FreeSql.Internal
                         (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.IsParameter() == false)) ? //自动分表
                         formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) : 
                         ExpressionLambdaToSql(leftExp, tsc);
+                    if (isRightMapType) tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
                     if (left != "NULL" && isRightMapType &&
                         //判断参数化后的bug
                         !(left.Contains('@') || left.Contains('?') || left.Contains(':')) &&
