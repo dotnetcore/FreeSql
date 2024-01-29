@@ -163,6 +163,7 @@ public static partial class FreeSqlGlobalExtensions
     public static object CreateInstanceGetDefaultValue(this Type that)
     {
         if (that == null) return null;
+        if (that == typeof(void)) return null;
         if (that == typeof(string)) return default(string);
         if (that == typeof(Guid)) return default(Guid);
         if (that == typeof(byte[])) return default(byte[]);

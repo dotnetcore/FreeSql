@@ -130,6 +130,26 @@
             实体变化事件
             </summary>
         </member>
+        <member name="E:FreeSql.DbContextOptions.AuditValue">
+            <summary>
+            DbContext/Repository 审计值事件，适合 Scoped IOC 中获取登陆信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.AuditValueType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.EntityType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.Object">
+            <summary>
+            实体对象
+            </summary>
+        </member>
         <member name="M:FreeSql.DbSet`1.AsType(System.Type)">
             <summary>
             动态Type，在使用 DbSet&lt;object&gt; 后使用本方法，指定实体类型
@@ -804,6 +824,15 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

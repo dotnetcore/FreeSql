@@ -66,16 +66,27 @@ namespace FreeSql
             if (_db.Options.NoneParameter != null) insert.NoneParameter(_db.Options.NoneParameter.Value);
             return insert;
         }
-        protected virtual IInsert<TEntity> OrmInsert(TEntity data)
+        protected virtual IInsert<TEntity> OrmInsert(TEntity entity)
         {
             var insert = OrmInsert();
-            if (data != null) (insert as InsertProvider<TEntity>)._source.Add(data); //防止 Aop.AuditValue 触发两次
+            if (entity != null)
+            {
+                (insert as InsertProvider<TEntity>)._source.Add(entity); //防止 Aop.AuditValue 触发两次
+                if (_db.Options.AuditValueHandler != null) 
+                    _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, entity));
+            }
             return insert;
         }
-        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data)
+        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys)
         {
             var insert = OrmInsert();
-            if (data != null) (insert as InsertProvider<TEntity>)._source.AddRange(data.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+            if (entitys != null)
+            {
+                (insert as InsertProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+                if (_db.Options.AuditValueHandler != null)
+                    foreach (var item in entitys)
+                        _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, item));
+            }
             return insert;
         }
 
@@ -84,7 +95,13 @@ namespace FreeSql
             var update = _db.OrmOriginal.Update<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
             if (_db.Options.NoneParameter != null) update.NoneParameter(_db.Options.NoneParameter.Value);
             if (_db.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
-            if (entitys != null) (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+            if (entitys != null)
+            {
+                (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
+                if (_db.Options.AuditValueHandler != null)
+                    foreach (var item in entitys)
+                        _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
+            }
             return update;
         }
         protected virtual IDelete<TEntity> OrmDelete(object dywhere)

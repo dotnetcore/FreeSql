@@ -23,12 +23,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FreeSql.DbContext" Version="3.2.811-preview20240125" />
+	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">

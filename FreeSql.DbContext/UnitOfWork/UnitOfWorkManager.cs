@@ -72,6 +72,7 @@ namespace FreeSql
         {
             var repoInfo = new RepoInfo(repository);
             repository.UnitOfWork = Current;
+            if (_repos.Any(a => a.Repository == repository)) return;
             _repos.Add(repoInfo);
         }
         void SetAllRepositoryUow()

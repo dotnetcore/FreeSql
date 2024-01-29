@@ -314,7 +314,28 @@ namespace FreeSql
                     }));
             }
 
-            var updateLogDict = tracking.UpdateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.UpdateLog.Where(b => b.Item1 == a.Key).Select(b => new
+            if (_repository.DbContextOptions.AuditValueHandler != null)
+            {
+                foreach (var log in tracking.UpdateLog)
+                {
+                    var table = Orm.CodeFirst.GetTableByEntity(log.Item1);
+                    _repository.DbContextOptions.AuditValueHandler(this, new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, log.Item1, log.Item3));
+                    log.Item4.Clear();
+                    foreach (var col in table.ColumnsByCs.Values)
+                    {
+                        if (table.ColumnsByCsIgnore.ContainsKey(col.CsName)) continue;
+                        if (table.ColumnsByCs.ContainsKey(col.CsName))
+                        {
+                            if (col.Attribute.IsVersion) continue;
+                            var propvalBefore = table.GetPropertyValue(log.Item2, col.CsName);
+                            var propvalAfter = table.GetPropertyValue(log.Item3, col.CsName);
+                            if (AggregateRootUtils.CompareEntityPropertyValue(col.CsType, propvalBefore, propvalAfter) == false) log.Item4.Add(col.CsName);
+                            continue;
+                        }
+                    }
+                }
+            }
+            var updateLogDict = tracking.UpdateLog.GroupBy(a => a.Item1).ToDictionary(a => a.Key, a => tracking.UpdateLog.Where(b => b.Item1 == a.Key && b.Item4.Any()).Select(b => new
             {
                 BeforeObject = b.Item2,
                 AfterObject = b.Item3,

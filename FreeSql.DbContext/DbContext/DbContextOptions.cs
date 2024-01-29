@@ -1,4 +1,5 @@
 ﻿
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,5 +48,34 @@ namespace FreeSql
         /// 实体变化事件
         /// </summary>
         public Action<List<DbContext.EntityChangeReport.ChangeInfo>> OnEntityChange { get; set; }
+
+        /// <summary>
+        /// DbContext/Repository 审计值事件，适合 Scoped IOC 中获取登陆信息
+        /// </summary>
+        public event EventHandler<DbContextAuditValueEventArgs> AuditValue;
+        public EventHandler<DbContextAuditValueEventArgs> AuditValueHandler => AuditValue;
+    }
+
+    public class DbContextAuditValueEventArgs : EventArgs
+    {
+        public DbContextAuditValueEventArgs(Aop.AuditValueType auditValueType, Type entityType, object obj)
+        {
+            this.AuditValueType = auditValueType;
+            this.EntityType = entityType;
+            this.Object = obj;
+        }
+
+        /// <summary>
+        /// 类型
+        /// </summary>
+        public Aop.AuditValueType AuditValueType { get; }
+        /// <summary>
+        /// 类型
+        /// </summary>
+        public Type EntityType { get; }
+        /// <summary>
+        /// 实体对象
+        /// </summary>
+        public object Object { get; }
     }
 }
