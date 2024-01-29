@@ -72,8 +72,8 @@ namespace FreeSql
             if (entity != null)
             {
                 (insert as InsertProvider<TEntity>)._source.Add(entity); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValueHandler != null) 
-                    _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, entity));
+                if (_db.Options.AuditValue != null) 
+                    _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, entity));
             }
             return insert;
         }
@@ -83,9 +83,9 @@ namespace FreeSql
             if (entitys != null)
             {
                 (insert as InsertProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValueHandler != null)
+                if (_db.Options.AuditValue != null)
                     foreach (var item in entitys)
-                        _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, item));
+                        _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, item));
             }
             return insert;
         }
@@ -98,9 +98,9 @@ namespace FreeSql
             if (entitys != null)
             {
                 (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValueHandler != null)
+                if (_db.Options.AuditValue != null)
                     foreach (var item in entitys)
-                        _db.Options.AuditValueHandler(_db, new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
+                        _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
             }
             return update;
         }

@@ -50,10 +50,9 @@ namespace FreeSql
         public Action<List<DbContext.EntityChangeReport.ChangeInfo>> OnEntityChange { get; set; }
 
         /// <summary>
-        /// DbContext/Repository 审计值事件，适合 Scoped IOC 中获取登陆信息
+        /// DbContext/Repository 审计值，适合 Scoped IOC 中获取登陆信息
         /// </summary>
-        public event EventHandler<DbContextAuditValueEventArgs> AuditValue;
-        public EventHandler<DbContextAuditValueEventArgs> AuditValueHandler => AuditValue;
+        public Action<DbContextAuditValueEventArgs> AuditValue;
     }
 
     public class DbContextAuditValueEventArgs : EventArgs

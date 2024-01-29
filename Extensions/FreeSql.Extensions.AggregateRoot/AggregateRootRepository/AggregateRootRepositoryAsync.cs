@@ -263,12 +263,12 @@ namespace FreeSql
                     }));
             }
 
-            if (_repository.DbContextOptions.AuditValueHandler != null)
+            if (_repository.DbContextOptions.AuditValue != null)
             {
                 foreach (var log in tracking.UpdateLog)
                 {
                     var table = Orm.CodeFirst.GetTableByEntity(log.Item1);
-                    _repository.DbContextOptions.AuditValueHandler(this, new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, log.Item1, log.Item3));
+                    _repository.DbContextOptions.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, log.Item1, log.Item3));
                     log.Item4.Clear();
                     foreach (var col in table.ColumnsByCs.Values)
                     {

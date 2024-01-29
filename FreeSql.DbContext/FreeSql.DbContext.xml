@@ -130,9 +130,9 @@
             实体变化事件
             </summary>
         </member>
-        <member name="E:FreeSql.DbContextOptions.AuditValue">
+        <member name="F:FreeSql.DbContextOptions.AuditValue">
             <summary>
-            DbContext/Repository 审计值事件，适合 Scoped IOC 中获取登陆信息
+            DbContext/Repository 审计值，适合 Scoped IOC 中获取登陆信息
             </summary>
         </member>
         <member name="P:FreeSql.DbContextAuditValueEventArgs.AuditValueType">
