@@ -36,11 +36,9 @@ namespace FreeSql.Internal.CommonProvider
         public override string ParseExp(Expression[] members)
         {
             ParseExpMapResult = null;
-            ParseExpColumnResult = null;
             if (members.Any() == false)
             {
                 ParseExpMapResult = _map;
-                ParseExpColumnResult = ParseExpMapResult.GetColumn();
                 return _map.DbField;
             }
             var firstMember = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression);
@@ -55,7 +53,6 @@ namespace FreeSql.Internal.CommonProvider
                         if (read == null) return null;
                     }
                     ParseExpMapResult = read;
-                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     if (!_addFieldAlias) return read.DbField;
                     if (_flagNestedFieldAlias) return read.DbField;
                     if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false)
@@ -85,7 +82,6 @@ namespace FreeSql.Internal.CommonProvider
                                 members[a] = replaceVistor.Modify(members[a], replaceMember, curtable.Parameter);
                             var ret = _select._diymemexpWithTempQuery.ParseExp(members);
                             ParseExpMapResult = _select._diymemexpWithTempQuery.ParseExpMapResult;
-                            ParseExpColumnResult = ParseExpMapResult.GetColumn();
                             return ret;
                         }
                     }
@@ -134,10 +130,7 @@ namespace FreeSql.Internal.CommonProvider
                                 return null;
                         }
                     }
-                    var tsc = new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where };
-                    var result = _comonExp.ExpressionLambdaToSql(retExp, tsc);
-                    ParseExpColumnResult = tsc.mapColumnTmp;
-                    return result;
+                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
             }
             return null;
         }
@@ -238,7 +231,7 @@ namespace FreeSql.Internal.CommonProvider
     public class SelectGroupingProvider<TKey, TValue> : SelectGroupingProvider, ISelectGrouping<TKey, TValue>
     {
         public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
-            :base(orm, select, map, field, comonExp, tables) { }
+            : base(orm, select, map, field, comonExp, tables) { }
 
         public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
@@ -262,10 +255,10 @@ namespace FreeSql.Internal.CommonProvider
             Select0Provider.WithTempQueryParser parser = null;
             _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bug
             _flagNestedFieldAlias = true;//解决重复设置别名问题：.GroupBy((l, p) => new { p.ID, ShopType=l.ShopType??0 }).WithTempQuery(a => new { Money = a.Sum(a.Value.Item1.Amount)* a.Key.ShopType })
-			var old_field = _field;
+            var old_field = _field;
             var fieldsb = new StringBuilder();
             if (_map.Childs.Any() == false) fieldsb.Append(", ").Append(_map.DbField).Append(_comonExp.EndsWithDbNestedField(_map.DbField, _map.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(_map.DbNestedField));
-            foreach (var child in _map.GetAllChilds()) 
+            foreach (var child in _map.GetAllChilds())
                 fieldsb.Append(", ").Append(child.DbField).Append(_comonExp.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(child.DbNestedField));
             _field = fieldsb.ToString();
             fieldsb.Clear();
@@ -279,7 +272,7 @@ namespace FreeSql.Internal.CommonProvider
                 _field = old_field;
                 _addFieldAlias = false;
                 _flagNestedFieldAlias = false;
-			}
+            }
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;

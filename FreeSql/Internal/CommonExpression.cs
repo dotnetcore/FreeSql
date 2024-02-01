@@ -25,8 +25,7 @@ namespace FreeSql.Internal
         public ParameterExpression _lambdaParameter;
         public ReadAnonymousTypeInfo _map;
         public string _field;
-        public ReadAnonymousTypeInfo ParseExpMapResult { get; internal protected set; }
-        public ColumnInfo ParseExpColumnResult { get; internal protected set; }
+        public ReadAnonymousTypeInfo ParseExpMapResult { get; protected set; }
         public abstract string ParseExp(Expression[] members);
     }
 
@@ -532,7 +531,7 @@ namespace FreeSql.Internal
                                 parent.Childs.Add(child);
                                 if (dtTb.Parameter != null)
                                     ReadAnonymousField(_tables, _tableRule, field, child, ref index, Expression.Property(
-                                        dtTb.Parameter.Type == dtTb.Table.Type ? (Expression)dtTb.Parameter : Expression.TypeAs(dtTb.Parameter, dtTb.Table.Type), 
+                                        dtTb.Parameter.Type == dtTb.Table.Type ? (Expression)dtTb.Parameter : Expression.TypeAs(dtTb.Parameter, dtTb.Table.Type),
                                         dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
                                 else
                                 {
@@ -825,7 +824,7 @@ namespace FreeSql.Internal
 
                         var rightBool = ExpressionLambdaToSql(rightExp, tsc);
                         var rightColumn = SearchColumnByField(tsc._tables, tsc.currentTable, rightBool);
-						if (rightColumn != null) rightBool = $"{rightBool} = {formatSql(true, rightColumn.Attribute.MapType, null, null)}";
+                        if (rightColumn != null) rightBool = $"{rightBool} = {formatSql(true, rightColumn.Attribute.MapType, null, null)}";
                         else rightBool = GetBoolString(rightBool);
                         if (_common._orm?.Ado?.DataType == DataType.QuestDb) return $"(({leftBool}) {oper} ({rightBool}))";
                         return $"({leftBool} {oper} {rightBool})";
@@ -860,20 +859,17 @@ namespace FreeSql.Internal
             }
 
             Type oldMapType = null;
-            if (tsc.diymemexp != null) tsc.diymemexp.ParseExpColumnResult = null;
             var left = ExpressionLambdaToSql(leftExp, tsc);
-            var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left) ?? 
-                tsc.diymemexp?.ParseExpColumnResult; //group by emum -> MapType(string) #1727
+            var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
             var isLeftMapType = leftMapColumn != null && new[] { "AND", "OR", "*", "/", "+", "-" }.Contains(oper) == false && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
 
-            var right = (leftMapColumn != null && 
+            var right = (leftMapColumn != null &&
                 (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.IsParameter() == false)) ? //自动分表
                 formatSql(Expression.Lambda(rightExp).Compile().DynamicInvoke(), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams) :
                 ExpressionLambdaToSql(rightExp, tsc);
-            if (isLeftMapType) tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
             if (right != "NULL" && isLeftMapType &&
                 //判断参数化后的bug
                 !(right.Contains('@') || right.Contains('?') || right.Contains(':')) &&
@@ -896,11 +892,10 @@ namespace FreeSql.Internal
                 if (isRightMapType)
                 {
                     oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
-                    left = (rightMapColumn != null && 
+                    left = (rightMapColumn != null &&
                         (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.IsParameter() == false)) ? //自动分表
-                        formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) : 
+                        formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) :
                         ExpressionLambdaToSql(leftExp, tsc);
-                    if (isRightMapType) tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
                     if (left != "NULL" && isRightMapType &&
                         //判断参数化后的bug
                         !(left.Contains('@') || left.Contains('?') || left.Contains(':')) &&
@@ -990,7 +985,7 @@ namespace FreeSql.Internal
             {
                 case ExpressionType.Not:
                     var notExp = (exp as UnaryExpression)?.Operand;
-                    if (notExp.Type.IsNumberType())return _common.BitNot(ExpressionLambdaToSql(notExp, tsc)); //位操作
+                    if (notExp.Type.IsNumberType()) return _common.BitNot(ExpressionLambdaToSql(notExp, tsc)); //位操作
                     if (notExp.NodeType == ExpressionType.MemberAccess)
                     {
                         var notBody = ExpressionLambdaToSql(notExp, tsc);
@@ -1006,7 +1001,7 @@ namespace FreeSql.Internal
                 case ExpressionType.Invoke: //#1378
                     var invokeExp = exp as InvocationExpression;
                     var invokeReplaceExp = invokeExp.Expression;
-                    var invokeLambdaExp = invokeReplaceExp as LambdaExpression; 
+                    var invokeLambdaExp = invokeReplaceExp as LambdaExpression;
                     if (invokeLambdaExp == null) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     var invokeReplaceVistor = new FreeSql.Internal.CommonExpression.ReplaceVisitor();
                     var len = Math.Min(invokeExp.Arguments.Count, invokeLambdaExp.Parameters.Count);
@@ -1842,7 +1837,7 @@ namespace FreeSql.Internal
                     }
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
                     var diymemexps = new[] { tsc.diymemexp, tsc.subSelect001?._diymemexpWithTempQuery };
-                    if (_subSelectParentDiyMemExps.Value?.Any() == true) 
+                    if (_subSelectParentDiyMemExps.Value?.Any() == true)
                         diymemexps = diymemexps.Concat(_subSelectParentDiyMemExps.Value).ToArray();
                     foreach (var diymemexp in diymemexps)
                     {
@@ -2425,7 +2420,7 @@ namespace FreeSql.Internal
                             new ReplaceParameterVisitor().Modify(fl.Where, newParameter),
                             newParameter
                         );
-						var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC
+                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC
                         {
                             _tables = isMultitb ? new List<SelectTableInfo>(new[] { tb }) : null,
                             _selectColumnMap = null,
@@ -2507,8 +2502,8 @@ namespace FreeSql.Internal
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
                 this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
-                parameters = this.tables.Select(a => a.Parameter ?? 
-                    Expression.Parameter(a.Table.Type, 
+                parameters = this.tables.Select(a => a.Parameter ??
+                    Expression.Parameter(a.Table.Type,
                         a.Alias.StartsWith("SP10") ? a.Alias.Replace("SP10", "ht") : a.Alias)).ToArray();
                 lambdaHzyParameter = lambda.Parameters.FirstOrDefault();
                 var exp = Visit(lambda.Body);
@@ -2596,7 +2591,7 @@ namespace FreeSql.Internal
                         {
                             if (matchIgnores.ContainsKey(typeProp)) continue;
                             matchIgnores.Add(typeProp, true);
-							var nextExp = Expression.MakeMemberAccess(memExp, typeProp);
+                            var nextExp = Expression.MakeMemberAccess(memExp, typeProp);
                             var ret = LocalMatch(typeProp.PropertyType, nextExp);
                             if (ret != null)
                             {
@@ -2765,8 +2760,8 @@ namespace FreeSql.Internal
                     Type = SelectTableInfoType.Parent,
                     Parameter = a.Parameter
                 }));
-				if (dbParams != null) select.WithParameters(dbParams);
-				if (tableRule != null) select._tableRules.Add(tableRule);
+                if (dbParams != null) select.WithParameters(dbParams);
+                if (tableRule != null) select._tableRules.Add(tableRule);
                 if (whereGlobalFilter != null)
                 {
                     select._whereGlobalFilter.Clear();
