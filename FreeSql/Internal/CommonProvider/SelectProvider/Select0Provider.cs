@@ -50,7 +50,7 @@ namespace FreeSql.Internal.CommonProvider
         public BaseDiyMemberExpression _diymemexpWithTempQuery;
         public Func<DbTransaction> _resolveHookTransaction;
 
-        public bool IsDefaultSqlContent => _tables.Count == 1 && _tables[0].Table?.AsTableImpl == null && 
+        public bool IsDefaultSqlContent => _tables.Count == 1 && _tables[0].Table?.AsTableImpl == null &&
             _distinct == false && _is_AsTreeCte == false && _where.Length == 0 && _join.Length == 0 &&
             string.IsNullOrWhiteSpace(_orderby) && string.IsNullOrWhiteSpace(_groupby) && string.IsNullOrWhiteSpace(_tosqlAppendContent) &&
             _aliasRule == null && _selectExpression == null;
@@ -241,7 +241,6 @@ namespace FreeSql.Internal.CommonProvider
             public override string ParseExp(Expression[] members)
             {
                 ParseExpMapResult = null;
-                ParseExpColumnResult = null;
                 ParseExpMatchedTable = GetOutsideSelectTable(members.FirstOrDefault()?.GetParameter());
                 if (ParseExpMatchedTable == null) return null;
 
@@ -255,14 +254,12 @@ namespace FreeSql.Internal.CommonProvider
                 if (members.Any() == false)
                 {
                     ParseExpMapResult = insideData.InsideMap;
-                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     return $"{ParseExpMatchedTable.Alias}.{insideData.InsideMap.DbNestedField}";
                 }
                 var read = insideData.InsideMap;
                 if (members.Length == 1 && members[0] == ParseExpMatchedTable.Parameter)
                 {
                     ParseExpMapResult = read;
-                    ParseExpColumnResult = ParseExpMapResult.GetColumn();
                     return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
                 }
                 for (var a = members[0] == ParseExpMatchedTable.Parameter ? 1 : 0; a < members.Length; a++)
@@ -271,7 +268,6 @@ namespace FreeSql.Internal.CommonProvider
                     if (read == null) return null;
                 }
                 ParseExpMapResult = read;
-                ParseExpColumnResult = ParseExpMapResult.GetColumn();
                 return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
             }
             public SelectTableInfo GetOutsideSelectTable(ParameterExpression parameterExp)
@@ -287,9 +283,9 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-		public static MethodInfo _methodSqlExtInternalRawField = typeof(SqlExt).GetMethod("InternalRawField", BindingFlags.NonPublic | BindingFlags.Static);
-		public static MethodInfo _methodSqlExtInternalRawSql = typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static);
-		public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
+        public static MethodInfo _methodSqlExtInternalRawField = typeof(SqlExt).GetMethod("InternalRawField", BindingFlags.NonPublic | BindingFlags.Static);
+        public static MethodInfo _methodSqlExtInternalRawSql = typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static);
+        public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
         {
             if (string.IsNullOrEmpty(property)) return null;
             var field = property.Split('.').Select(a => a.Trim()).ToArray();
@@ -297,16 +293,16 @@ namespace FreeSql.Internal.CommonProvider
 
             if (field.Length == 1 && fromFirstTable == false)
             {
-				if (_tables.Count == 1 && _tables[0].Table?.Type == typeof(object))
-				{
+                if (_tables.Count == 1 && _tables[0].Table?.Type == typeof(object))
+                {
                     //配合 .Select<object>().WithSql("...").WhereDynamicFilter(...)
-					var tb = _tables[0];
-					tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
-					var rawField = $"{tb.Alias}.{_commonUtils.QuoteSqlName(field[0])}";
-					return Expression.Call(_methodSqlExtInternalRawField, Expression.Constant(rawField, typeof(string)));
-				}
+                    var tb = _tables[0];
+                    tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
+                    var rawField = $"{tb.Alias}.{_commonUtils.QuoteSqlName(field[0])}";
+                    return Expression.Call(_methodSqlExtInternalRawField, Expression.Constant(rawField, typeof(string)));
+                }
 
-				foreach (var tb in _tables)
+                foreach (var tb in _tables)
                 {
                     if (tb.Table.ColumnsByCs.TryGetValue(field[0], out var col) &&
                         tb.Table.Properties.TryGetValue(field[0], out var prop))
@@ -382,7 +378,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 var last = _SameSelectPendingShareData.Last();
                 if (last == null && _SameSelectPendingShareData.Count > 1) last = _SameSelectPendingShareData[_SameSelectPendingShareData.Count - 2];
-                if (last != null) 
+                if (last != null)
                     _params.AddRange(last.Item2 ?? new DbParameter[0]);
             }
             return this;
@@ -874,11 +870,11 @@ namespace FreeSql.Internal.CommonProvider
             var unions = new List<Dictionary<Type, string>>();
             var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => null) });
 
-            if (trs.Count == 1 && _tables.Any(a => a.Table != null && a.Table.AsTableImpl != null && 
+            if (trs.Count == 1 && _tables.Any(a => a.Table != null && a.Table.AsTableImpl != null &&
                 string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.AsTableImpl != null ? null : a.Table.DbName)) == true))
             {
                 DateTime? DateTimeAsTableImplStart = null, DateTimeAsTableImplEnd = null;
-				string[] LocalGetTableNames(SelectTableInfo tb)
+                string[] LocalGetTableNames(SelectTableInfo tb)
                 {
                     var trname = trs[0](tb.Table.Type, tb.Table.AsTableImpl != null ? null : tb.Table.DbName);
                     if (tb.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trname) == true)
@@ -919,17 +915,17 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     return new string[] { tb.Table.DbName };
                 }
-				var tbnames = _tables.Where(a => a.Type != SelectTableInfoType.Parent).GroupBy(a => a.Table.Type).Select(g => _tables.Where(a => a.Table.Type == g.Key).FirstOrDefault()).Select(a => new { Tb = a, Names = LocalGetTableNames(a) }).ToList();
+                var tbnames = _tables.Where(a => a.Type != SelectTableInfoType.Parent).GroupBy(a => a.Table.Type).Select(g => _tables.Where(a => a.Table.Type == g.Key).FirstOrDefault()).Select(a => new { Tb = a, Names = LocalGetTableNames(a) }).ToList();
                 if (DateTimeAsTableImplStart != null && DateTimeAsTableImplEnd != null && tbnames.Where(a => a.Names.Length > 1).Count() > 1)
                 {
                     tbnames = tbnames.Select(a => new { a.Tb, Names = a.Tb.Table.AsTableImpl?.GetTableNamesByColumnValueRange(DateTimeAsTableImplStart, DateTimeAsTableImplEnd) ?? a.Names }).ToList();
                 }
-				var dict = new Dictionary<Type, string>();
+                var dict = new Dictionary<Type, string>();
                 tbnames.ForEach(a =>
                 {
                     dict.Add(a.Tb.Table.Type, a.Names[0]);
                 });
-				unions.Add(dict);
+                unions.Add(dict);
                 for (var a = 0; a < tbnames.Count; a++)
                 {
                     if (tbnames[a].Names.Length <= 1) continue;
@@ -941,7 +937,7 @@ namespace FreeSql.Internal.CommonProvider
                             dict = new Dictionary<Type, string>();
                             foreach (var uit in unions[d])
                                 dict.Add(uit.Key, uit.Key == tbnames[a].Tb.Table.Type ? tbnames[a].Names[b] : uit.Value);
-							unions.Add(dict);
+                            unions.Add(dict);
                         }
                     }
                 }
@@ -968,7 +964,7 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         if (ignore) unions.RemoveAt(uidx);
                     }
-				}
+                }
                 return unions;
             }
             if (trs.Any() == false) trs.Add(new Func<Type, string, string>((type, oldname) => null));
@@ -1082,7 +1078,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (fiValue0Method == null) throw new ArgumentException(CoreStrings.NotFound_Static_MethodName(fiValueCustomArray[0]));
                             if (MethodIsDynamicFilterCustomAttribute(fiValue0Method) == false) throw new ArgumentException(CoreStrings.Custom_StaticMethodName_NotSet_DynamicFilterCustom(fiValueCustomArray[0]));
                             var fiValue0MethodReturn = fiValue0Method?.Invoke(null, fiValue0Method.GetParameters()
-                                    .Select(a => a.ParameterType == typeof(object) ? (object)this : 
+                                    .Select(a => a.ParameterType == typeof(object) ? (object)this :
                                         (a.ParameterType == typeof(string) ? (object)(fi.Value?.ToString()) : (object)null))
                                     .ToArray());
                             exp = fiValue0MethodReturn is Expression expression ? expression : Expression.Call(_methodSqlExtInternalRawSql, Expression.Constant(fiValue0MethodReturn?.ToString(), typeof(string)));
@@ -1103,12 +1099,12 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var valueType = fi.Value?.GetType();
                                 if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(valueType)) exp = Expression.Convert(exp, valueType);
-								else if (valueType.FullName == "System.Text.Json.JsonElement")
+                                else if (valueType.FullName == "System.Text.Json.JsonElement")
                                 {
-									var valueKind = valueType.GetProperty("ValueKind").GetValue(fi.Value, null).ToString();
+                                    var valueKind = valueType.GetProperty("ValueKind").GetValue(fi.Value, null).ToString();
                                     if (valueKind == "Number") exp = Expression.Convert(exp, typeof(decimal));
-								}
-							}
+                                }
+                            }
                             break;
                     }
                     switch (fi.Operator)
