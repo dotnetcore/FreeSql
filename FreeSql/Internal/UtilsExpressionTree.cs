@@ -952,67 +952,39 @@ namespace FreeSql.Internal
                         if (pnv.Name.Length >= tbref.CsName.Length - 1)
                             midFlagStr = pnv.Name.Remove(pnv.Name.Length - tbref.CsName.Length - 1);
 
-                        #region 在 trytb 命名空间下查找中间类
-                        if (midType == null)
+                        void midTypeFind(TableInfo maintb, string findTypeName)
                         {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
+                            if (midType == null)
+                            {
+                                midType = maintb.Type.IsNested ?
+                                    maintb.Type.Assembly.GetType($"{maintb.Type.Namespace?.NotNullAndConcat(".")}{maintb.Type.DeclaringType.Name}+{findTypeName}", false, true) : //Song.SongTag
+                                    maintb.Type.Assembly.GetType($"{maintb.Type.Namespace?.NotNullAndConcat(".")}{findTypeName}", false, true);
+                                valiManyToMany();
+                            }
                         }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        #endregion
+                        midTypeFind(trytb, $"{trytb.CsName}{tbref.CsName}{midFlagStr}"); //SongTag
+                        midTypeFind(trytb, $"{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song_Tag
+                        midTypeFind(trytb, $"{tbref.CsName}{trytb.CsName}{midFlagStr}"); //TagSong
+                        midTypeFind(trytb, $"{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag_Song
 
-                        #region 在 tbref 命名空间下查找中间类
-                        if (midType == null)
+                        if (trytb.Type.Namespace != tbref.Type.Name)
                         {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
+                            midTypeFind(tbref, $"{trytb.CsName}{tbref.CsName}{midFlagStr}"); //SongTag
+                            midTypeFind(tbref, $"{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song_Tag
+                            midTypeFind(tbref, $"{tbref.CsName}{trytb.CsName}{midFlagStr}"); //TagSong
+                            midTypeFind(tbref, $"{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag_Song
                         }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        #endregion
+
+                        //嵌套子类中查找
+                        midTypeFind(trytb, $"{trytb.CsName}+{trytb.CsName}{tbref.CsName}{midFlagStr}"); //Song.SongTag
+                        midTypeFind(trytb, $"{trytb.CsName}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song.Song_Tag
+                        midTypeFind(trytb, $"{trytb.CsName}+{tbref.CsName}{trytb.CsName}{midFlagStr}"); //Song.TagSong
+                        midTypeFind(trytb, $"{trytb.CsName}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song.Tag_Song
+
+                        midTypeFind(tbref, $"{tbref.CsName}+{trytb.CsName}{tbref.CsName}{midFlagStr}"); //Tag.SongTag
+                        midTypeFind(tbref, $"{tbref.CsName}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag.Song_Tag
+                        midTypeFind(tbref, $"{tbref.CsName}+{tbref.CsName}{trytb.CsName}{midFlagStr}"); //Tag.TagSong
+                        midTypeFind(tbref, $"{tbref.CsName}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag.Tag_Song
                     }
 
                     isManyToMany = midType != null;
