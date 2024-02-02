@@ -766,7 +766,8 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (string.IsNullOrWhiteSpace(sql)) return this;
 				_useStates = false;
 				_groupBy = $"{_groupBy}, {sql}";
-				_select.GroupBy(_groupBy);
+				_useStates = false;
+				_select.GroupBy(_groupBy.Substring(2));
 				return this;
 			}
 			public SelectImpl GroupBy(string[] fields)
@@ -783,7 +784,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (count > 0)
 				{
 					_useStates = false;
-					_select.GroupBy(_groupBy);
+					_select.GroupBy(_groupBy.Substring(2));
 				}
 				return this;
 			}
