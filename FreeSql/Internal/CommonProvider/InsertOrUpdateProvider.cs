@@ -264,7 +264,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public void WriteSourceSelectUnionAll(List<T1> source, StringBuilder sb, List<DbParameter> dbParams)
+        public void WriteSourceSelectUnionAll(List<T1> source, StringBuilder sb, List<DbParameter> dbParams, bool disableInsertValueSql = false)
         {
             if (_sourceSql != null)
             {
@@ -287,7 +287,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in _table.Columns.Values)
                 {
                     if (colidx2 > 0) sb.Append(", ");
-                    if (string.IsNullOrEmpty(col.DbInsertValue) == false)
+                    if (disableInsertValueSql == false && string.IsNullOrEmpty(col.DbInsertValue) == false)
                         sb.Append(col.DbInsertValue);
                     else
                     {

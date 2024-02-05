@@ -119,11 +119,12 @@ namespace FreeSql
         public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => Select.WhereIf(condition, exp);
 
         readonly Dictionary<Type, IBaseRepository<object>> _childRepositorys = new Dictionary<Type, IBaseRepository<object>>();
+        protected virtual IFreeSql GetChildFreeSql(Type type) => Orm;
         IBaseRepository<object> GetChildRepository(Type type)
         {
             if (_childRepositorys.TryGetValue(type, out var repo) == false)
             {
-                repo = Orm.GetRepository<object>();
+                repo = GetChildFreeSql(type).GetRepository<object>();
                 repo.AsType(type);
                 _childRepositorys.Add(type, repo);
             }

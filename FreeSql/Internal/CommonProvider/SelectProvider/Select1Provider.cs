@@ -529,7 +529,7 @@ namespace FreeSql.Internal.CommonProvider
             if (list.Any() != true) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(source)));
 			var sb = new StringBuilder();
             (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
-                .WriteSourceSelectUnionAll(list, sb, _params);
+                .WriteSourceSelectUnionAll(list, sb, _params, true);
 
             try { return WithSql(sb.ToString()); }
             finally { sb.Clear(); }
