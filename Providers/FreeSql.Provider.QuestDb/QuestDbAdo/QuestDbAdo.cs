@@ -60,20 +60,14 @@ namespace FreeSql.QuestDb
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return ((Enum)param).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
 
             else if (param is DateTime)
-            {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(param);
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
-            }
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is DateTime?)
-            {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(param);
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
-            }
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
 
             else if (param is TimeSpan || param is TimeSpan?)
                 return (long)((TimeSpan)param).TotalSeconds;
@@ -86,10 +80,10 @@ namespace FreeSql.QuestDb
             {
                 var pgdics = isdic ? param as Dictionary<string, string> :
                     param as IEnumerable<KeyValuePair<string, string>>;
-                
+
                 var pghstore = new StringBuilder("'");
                 var pairs = pgdics.ToArray();
-                
+
                 for (var i = 0; i < pairs.Length; i++)
                 {
                     if (i != 0) pghstore.Append(",");
@@ -101,7 +95,7 @@ namespace FreeSql.QuestDb
                     else
                         pghstore.AppendFormat("\"{0}\"", pairs[i].Value.Replace("'", "''"));
                 }
-                
+
                 return pghstore.Append("'::hstore");
             }
             else if (param is IEnumerable)

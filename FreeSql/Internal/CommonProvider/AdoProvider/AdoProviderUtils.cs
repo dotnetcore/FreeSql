@@ -10,6 +10,16 @@ namespace FreeSql.Internal.CommonProvider
 {
     partial class AdoProvider
     {
+        public object AddslashesTypeHandler(Type type, object param)
+        {
+            if (Utils.TypeHandlers.TryGetValue(type, out var typeHandler))
+            {
+                var result = typeHandler.Serialize(param);
+                return AddslashesProcessParam(result, null, null);
+            }
+            return null;
+        }
+
         public abstract object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn);
         public string Addslashes(string filter, params object[] parms)
         {

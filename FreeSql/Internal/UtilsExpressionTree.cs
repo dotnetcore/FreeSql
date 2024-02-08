@@ -2509,7 +2509,7 @@ namespace FreeSql.Internal
                         );
                         break;
                     default:
-                        if (type.IsEnum)
+                        if (type.IsEnum && TypeHandlers.ContainsKey(type) == false)
                             return Expression.Block(
                                 Expression.IfThenElse(
                                     Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),

@@ -102,14 +102,14 @@ namespace FreeSql.GBase
             }
             if (type == typeof(DateTime))
             {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(value)?.ToString();
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return FormatSql("{0}", typeHandler.Serialize(value), 1);
                 if (col?.DbPrecision > 0)
                     return string.Concat("'", ((DateTime)value).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(col.DbPrecision, 'f')}"), "'");
                 return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");
             }
             if (type == typeof(DateTime?))
             {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(value)?.ToString();
+                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return FormatSql("{0}", typeHandler.Serialize(value), 1);
                 if (col?.DbPrecision > 0)
                     return string.Concat("'", ((DateTime)value).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(col.DbPrecision, 'f')}"), "'");
                 return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");

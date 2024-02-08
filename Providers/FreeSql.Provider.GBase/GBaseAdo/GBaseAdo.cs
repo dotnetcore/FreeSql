@@ -54,24 +54,18 @@ namespace FreeSql.GBase
             else if (param is string || param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
             else if (param is Enum)
-                return ((Enum)param).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
 
             else if (param is DateTime)
-            {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(param);
-                if (mapColumn?.DbPrecision > 0)
-                    return string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'");
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
-            }
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? (mapColumn?.DbPrecision > 0 ?
+                    string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'") :
+                    string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'"));
             else if (param is DateTime?)
-            {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(param);
-                if (mapColumn?.DbPrecision > 0)
-                    return string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'");
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
-            }
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? (mapColumn?.DbPrecision > 0 ?
+                    string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'") :
+                    string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'"));
 
             else if (param is TimeSpan || param is TimeSpan?)
             {

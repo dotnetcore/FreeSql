@@ -40,12 +40,14 @@ namespace FreeSql.Custom
                 return Adapter.UnicodeStringRawSql(param, mapColumn);
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
-            else if (param is Enum)
-                return ((Enum)param).ToInt64();
+            else if (param is Enum) 
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
-            else if (param is DateTime || param is DateTime?)
-                return Adapter.DateTimeRawSql(param);
+            else if (param is DateTime)
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? Adapter.DateTimeRawSql(param);
+            else if (param is DateTime?)
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? Adapter.DateTimeRawSql(param);
             else if (param is TimeSpan || param is TimeSpan?)
                 return Adapter.TimeSpanRawSql(param);
             else if (param is byte[])

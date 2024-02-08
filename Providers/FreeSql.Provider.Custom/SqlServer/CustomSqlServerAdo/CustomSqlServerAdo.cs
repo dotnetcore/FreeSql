@@ -46,19 +46,21 @@ namespace FreeSql.Custom.SqlServer
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return ((Enum)param).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
 
             else if (param is DateTime)
             {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return typeHandler.Serialize(param);
+                var result = AddslashesTypeHandler(typeof(DateTime), param);
+                if (result != null) return result;
                 if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
             }
             else if (param is DateTime?)
             {
-                if (Utils.TypeHandlers.TryGetValue(typeof(DateTime?), out var typeHandler)) return typeHandler.Serialize(param);
+                var result = AddslashesTypeHandler(typeof(DateTime?), param);
+                if (result != null) return result;
                 if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
             }
@@ -72,7 +74,7 @@ namespace FreeSql.Custom.SqlServer
                 return ((TimeSpan)param).TotalSeconds;
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
-            else if (param is IEnumerable) 
+            else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
