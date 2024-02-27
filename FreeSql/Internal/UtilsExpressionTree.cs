@@ -209,7 +209,8 @@ namespace FreeSql.Internal
 				};
 			if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
 			if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
-			if (colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum("))
+            var isMySqlEnum = colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum(");
+            if (isMySqlEnum)
 			{
 				var leftBt = colattr.DbType.IndexOf('(');
 				colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
@@ -232,7 +233,7 @@ namespace FreeSql.Internal
 			}
 			if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
 			else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse) colattr.DbType = $"Nullable({colattr.DbType})";
-			colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
+            if (isMySqlEnum == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
 			{
 				var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
 				if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
