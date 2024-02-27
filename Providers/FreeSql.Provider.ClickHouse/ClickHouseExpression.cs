@@ -604,14 +604,14 @@ namespace FreeSql.ClickHouse
                     case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as DateTime)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as Decimal128(19))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as Float64)";
-                    case "ToInt16":
-                    case "ToInt32":
-                    case "ToInt64":
+                    case "ToInt16": return $"cast({getExp(exp.Arguments[0])} as Int16)";
+                    case "ToInt32": return $"cast({getExp(exp.Arguments[0])} as Int32)";
+                    case "ToInt64": return $"cast({getExp(exp.Arguments[0])} as Int64)";
                     case "ToSByte": return $"cast({getExp(exp.Arguments[0])} as UInt8)";
                     case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as Float32)";
                     case "ToString": return $"cast({getExp(exp.Arguments[0])} as String)";
-                    case "ToUInt16":
-                    case "ToUInt32":
+                    case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as UInt16)";
+                    case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as UInt32)";
                     case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as UInt64)";
                 }
             }
