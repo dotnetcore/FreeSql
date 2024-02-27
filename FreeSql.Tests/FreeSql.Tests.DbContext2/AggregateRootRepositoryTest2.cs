@@ -22,6 +22,38 @@ namespace FreeSql.Tests.DbContext2
         }
 
         [Fact]
+        public void Test2()
+        {
+            using (var fsql = g.CreateMemory())
+            {
+                new OrderRepository(fsql, null);
+                var repo = fsql.GetAggregateRootRepository<Order>();
+
+                var order = new Order
+                {
+                    Field2 = "field2",
+                    Extdata = new OrderExt { Field3 = "field3" },
+                    //Details = new List<OrderDetail>
+                    //{
+                    //    new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
+                    //    new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
+                    //    new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
+                    //},
+                };
+                repo.Insert(order); //级联插入
+
+                var findOrder = repo.Select.Where(a => a.Id == order.Id).First();
+                findOrder.Details = new List<OrderDetail>
+                {
+                    new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
+                    new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
+                    new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
+                };
+                repo.InsertOrUpdate(findOrder);
+            }
+        }
+
+        [Fact]
         public void Test1()
         {
             using (var fsql = g.CreateMemory())
@@ -79,11 +111,11 @@ SelectDiy
                         Field2 = "field2",
                         Extdata = new OrderExt { Field3 = "field3" },
                         Details = new List<OrderDetail>
-                    {
-                        new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
-                        new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
-                        new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
-                    },
+                        {
+                            new OrderDetail { Field4 = "field4_01", Extdata = new OrderDetailExt { Field5 = "field5_01" } },
+                            new OrderDetail { Field4 = "field4_02", Extdata = new OrderDetailExt { Field5 = "field5_02" } },
+                            new OrderDetail { Field4 = "field4_03", Extdata = new OrderDetailExt { Field5 = "field5_03" } },
+                        },
                         Tags = fsql.Select<Tag>().Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList()
                     };
                     repo.Insert(order); //级联插入

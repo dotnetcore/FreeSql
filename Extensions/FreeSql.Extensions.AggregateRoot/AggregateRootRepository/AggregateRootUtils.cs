@@ -151,12 +151,12 @@ namespace FreeSql
                 foreach (var item in collectionBefore)
                 {
                     var key = fsql.GetEntityKeyString(elementType, item, false);
-                    if (key != null) dictBefore.Add(key, item);
+                    if (!string.IsNullOrEmpty(key)) dictBefore.Add(key, item);
                 }
                 foreach (var item in collectionAfter)
                 {
                     var key = fsql.GetEntityKeyString(elementType, item, false);
-                    if (key != null)
+                    if (!string.IsNullOrEmpty(key))
                     {
                         if (dictAfter.ContainsKey(key) == false) 
                             dictAfter.Add(key, item);

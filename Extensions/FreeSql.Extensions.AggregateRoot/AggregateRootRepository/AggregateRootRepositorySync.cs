@@ -106,7 +106,7 @@ namespace FreeSql
             bool LocalCanInsert(Type entityType, object entity, bool isadd)
             {
                 var stateKey = rootRepository.Orm.GetEntityKeyString(entityType, entity, false);
-                if (stateKey == null) return true;
+                if (string.IsNullOrEmpty(stateKey)) return true;
                 if (ignores.TryGetValue(entityType, out var stateKeys) == false)
                 {
                     if (isadd)

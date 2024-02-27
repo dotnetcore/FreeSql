@@ -21,7 +21,7 @@ namespace FreeSql.Extensions.EntityUtil
 
         static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>>();
         /// <summary>
-        /// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
+        /// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
         /// </summary>
         /// <param name="orm"></param>
         /// <param name="entityType"></param>
