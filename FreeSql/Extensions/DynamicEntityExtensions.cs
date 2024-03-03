@@ -87,6 +87,7 @@ namespace FreeSql.Extensions.DynamicEntity
         private List<DynamicPropertyInfo> _properties = new List<DynamicPropertyInfo>();
         private Type _superClass = null;
         private IFreeSql _fsql = null;
+        private TypeBuilder _typeBuilder = null;
 
         /// <summary>
         /// 配置Class
@@ -99,7 +100,24 @@ namespace FreeSql.Extensions.DynamicEntity
             _fsql = fsql;
             _className = className;
             _tableAttributes = attributes;
+
+            //初始化AssemblyName的一个实例
+            var assemblyName = new AssemblyName("FreeSql.DynamicCompileBuilder");
+            //设置程序集的名称
+            var defineDynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            //动态在程序集内创建一个模块
+            var defineDynamicModule =
+                defineDynamicAssembly.DefineDynamicModule("FreeSql.DynamicCompileBuilder.Dynamics");
+
+            //动态的在模块内创建一个类
+            _typeBuilder =
+                defineDynamicModule.DefineType(_className, TypeAttributes.Public | TypeAttributes.Class, _superClass);
         }
+
+        /// <summary>
+        /// 获取类型构建器，可作为要构建的Type来引用
+        /// </summary>
+        public TypeBuilder TypeBuilder { get { return _typeBuilder; } }
 
         /// <summary>
         /// 配置属性
@@ -388,25 +406,14 @@ namespace FreeSql.Extensions.DynamicEntity
         /// <returns></returns>
         public TableInfo Build()
         {
-            //初始化AssemblyName的一个实例
-            var assemblyName = new AssemblyName("FreeSql.DynamicCompileBuilder");
-            //设置程序集的名称
-            var defineDynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            //动态在程序集内创建一个模块
-            var defineDynamicModule =
-                defineDynamicAssembly.DefineDynamicModule("FreeSql.DynamicCompileBuilder.Dynamics");
-            //动态的在模块内创建一个类
-            var typeBuilder =
-                defineDynamicModule.DefineType(_className, TypeAttributes.Public | TypeAttributes.Class, _superClass);
-
             //设置TableAttribute
-            SetTableAttribute(ref typeBuilder);
+            SetTableAttribute(ref _typeBuilder);
 
             //设置属性
-            SetPropertys(ref typeBuilder);
+            SetPropertys(ref _typeBuilder);
 
             //创建类的Type对象
-            var type = typeBuilder.CreateTypeInfo().AsType();
+            var type = _typeBuilder.CreateTypeInfo().AsType();
 
             return _fsql.CodeFirst.GetTableByEntity(type);
         }
