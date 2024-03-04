@@ -406,6 +406,15 @@ namespace FreeSql.Extensions.DynamicEntity
         /// <returns></returns>
         public TableInfo Build()
         {
+            return _fsql.CodeFirst.GetTableByEntity(BuildJustType());
+        }
+
+        /// <summary>
+        /// Emit动态创建出Class - Type，不附带获取TableInfo
+        /// </summary>
+        /// <returns></returns>
+        public Type BuildJustType()
+        {
             //设置TableAttribute
             SetTableAttribute(ref _typeBuilder);
 
@@ -413,9 +422,7 @@ namespace FreeSql.Extensions.DynamicEntity
             SetPropertys(ref _typeBuilder);
 
             //创建类的Type对象
-            var type = _typeBuilder.CreateTypeInfo().AsType();
-
-            return _fsql.CodeFirst.GetTableByEntity(type);
+            return _typeBuilder.CreateTypeInfo().AsType();
         }
 
         /// <summary>
