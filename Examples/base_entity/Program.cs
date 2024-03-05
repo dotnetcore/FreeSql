@@ -559,7 +559,7 @@ namespace base_entity
                 //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
 
-                //.UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
@@ -568,7 +568,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
 				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 				//.UseAdoConnectionPool(false)
@@ -609,6 +609,71 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+
+            // 交叉引用类型，先定义两个类型，再Build
+            var channelBuilder = fsql.CodeFirst.DynamicEntity("Channel", new TableAttribute { Name = "dm_channel" });
+            var channelGroupBuilder = fsql.CodeFirst.DynamicEntity("ChannelGroup", new TableAttribute { Name = "dm_channel_group" });
+
+            channelBuilder.Property("id", typeof(long), new ColumnAttribute { IsPrimary = true })
+                .Property("name", typeof(string), new ColumnAttribute { StringLength = 30 }).Property("channelGroupId", typeof(long?), new ColumnAttribute { IsNullable = true })
+                .Property("channelGroupId", typeof(long?))
+                .Property("channelGroup", channelGroupBuilder.TypeBuilder, new NavigateAttribute { Bind = "channelGroupId" });
+
+            channelGroupBuilder.Property("id", typeof(long), new ColumnAttribute { IsPrimary = true })
+                .Property("name", typeof(string), new ColumnAttribute { StringLength = 30 })
+                .Property("channels", typeof(List<>).MakeGenericType(channelBuilder.TypeBuilder), new NavigateAttribute { Bind = "channelGroupId" });
+
+            // Build时不能立即获取TableInfo，因为类型尚未真正构建
+            var channelEntityType = channelBuilder.BuildJustType();
+            var channelGroupEntityType = channelGroupBuilder.BuildJustType();
+
+            // 构建后才根据实体类型获取表信息
+            var channelTable = fsql.CodeFirst.GetTableByEntity(channelEntityType);
+            var channelGroupTable = fsql.CodeFirst.GetTableByEntity(channelGroupEntityType);
+
+            // 迁移
+            fsql.CodeFirst.SyncStructure(channelEntityType, channelGroupEntityType);
+
+            fsql.Delete<object>().AsType(channelEntityType).Where("1=1").ExecuteAffrows();
+            fsql.Delete<object>().AsType(channelGroupEntityType).Where("1=1").ExecuteAffrows();
+
+            // 创建实体对象
+            var channelGroup = channelGroupTable.CreateInstance(new Dictionary<string, object>
+            {
+                ["id"] = 1,
+                ["name"] = "央视频道",
+            });
+            var c = fsql.Insert<object>().AsType(channelGroupEntityType)
+                .AppendData(channelGroup)
+                .ExecuteAffrows();
+            Console.WriteLine($"{c} inserted");
+
+            var channel = channelTable.CreateInstance(new Dictionary<string, object>
+            {
+                ["id"] = 1,
+                ["name"] = "CCTV-1",
+                ["channelGroupId"] = 1
+            });
+            c = fsql.Insert<object>().AsType(channelEntityType)
+                .AppendData(channel)
+                .ExecuteAffrows();
+            Console.WriteLine($"{c} inserted");
+
+            // 运行正确
+            var list111 = fsql.Select<object>().AsType(channelGroupEntityType)
+                .IncludeByPropertyName("channels")
+                .ToList();
+
+            var repo222 = fsql.GetRepository<object>();
+            repo222.AsType(channelGroupEntityType);
+
+            // 运行错误
+            var list222 = repo222.Select
+                .IncludeByPropertyName("channels")
+                .ToList();
+
+
 
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repoxx = fsql.GetRepository<VM_District_Child>();

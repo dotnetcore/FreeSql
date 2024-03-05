@@ -45,6 +45,10 @@ namespace FreeSql.Extensions.EntityUtil
                 var var3IsNull = Expression.Variable(typeof(bool));
                 var exps = new List<Expression>(new Expression[] {
                     Expression.Assign(var1Parm, Expression.TypeAs(parm1, t)),
+                    Expression.IfThen(
+                        Expression.Equal(var1Parm, Expression.Constant(null, t)),
+                        Expression.Return(returnTarget, Expression.Default(typeof(string)))
+                    ),
                     Expression.Assign(var2Sb, Expression.New(typeof(StringBuilder))),
                     Expression.Assign(var3IsNull, Expression.Constant(false))
                 });
