@@ -2501,6 +2501,7 @@ namespace FreeSql.Internal
             private ParameterExpression lambdaHzyParameter;
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
+                if (lambda == null) return null;
                 this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
                 parameters = this.tables.Select(a => a.Parameter ??
                     Expression.Parameter(a.Table.Type,

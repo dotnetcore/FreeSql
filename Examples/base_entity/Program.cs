@@ -610,6 +610,10 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            Expression<Func<HzyTuple<User1, UserGroup, User1, User1, User1, User1>, bool>> where111 = null;
+            //where111 = where111.Or(a => a.t6.Sort > 10);
+            var tsqlqlq1 = fsql.Select<User1, UserGroup, User1, User1, User1, User1>().Where(where111).ToSql();
+
 
             // 交叉引用类型，先定义两个类型，再Build
             var channelBuilder = fsql.CodeFirst.DynamicEntity("Channel", new TableAttribute { Name = "dm_channel" });
