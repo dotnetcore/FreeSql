@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -610,72 +611,39 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            Expression<Func<HzyTuple<User1, UserGroup, User1, User1, User1, User1>, bool>> where111 = null;
-            //where111 = where111.Or(a => a.t6.Sort > 10);
-            var tsqlqlq1 = fsql.Select<User1, UserGroup, User1, User1, User1, User1>().Where(where111).ToSql();
+            var fsql2 = fsql;
+            // 动态构建实体类型，树形结构，引用自身类型
+            var areaBuilder = fsql2.CodeFirst.DynamicEntity("Area", new TableAttribute { Name = "dy_area" });
 
+            areaBuilder.Property("id", typeof(int), new ColumnAttribute { IsPrimary = true })
+                .Property("parentId", typeof(int?))
+                .Property("name", typeof(string), new ColumnAttribute { StringLength = 30 });
 
-            // 交叉引用类型，先定义两个类型，再Build
-            var channelBuilder = fsql.CodeFirst.DynamicEntity("Channel", new TableAttribute { Name = "dm_channel" });
-            var channelGroupBuilder = fsql.CodeFirst.DynamicEntity("ChannelGroup", new TableAttribute { Name = "dm_channel_group" });
+            // builder.TypeBuilder可作为类型被引用
+            areaBuilder.Property("parent", areaBuilder.TypeBuilder, new NavigateAttribute { Bind = "parentId" })
+                .Property("children", typeof(List<>).MakeGenericType(areaBuilder.TypeBuilder), new NavigateAttribute { Bind = "parentId" });
 
-            channelBuilder.Property("id", typeof(long), new ColumnAttribute { IsPrimary = true })
-                .Property("name", typeof(string), new ColumnAttribute { StringLength = 30 }).Property("channelGroupId", typeof(long?), new ColumnAttribute { IsNullable = true })
-                .Property("channelGroupId", typeof(long?))
-                .Property("channelGroup", channelGroupBuilder.TypeBuilder, new NavigateAttribute { Bind = "channelGroupId" });
-
-            channelGroupBuilder.Property("id", typeof(long), new ColumnAttribute { IsPrimary = true })
-                .Property("name", typeof(string), new ColumnAttribute { StringLength = 30 })
-                .Property("channels", typeof(List<>).MakeGenericType(channelBuilder.TypeBuilder), new NavigateAttribute { Bind = "channelGroupId" });
-
-            // Build时不能立即获取TableInfo，因为类型尚未真正构建
-            var channelEntityType = channelBuilder.BuildJustType();
-            var channelGroupEntityType = channelGroupBuilder.BuildJustType();
-
-            // 构建后才根据实体类型获取表信息
-            var channelTable = fsql.CodeFirst.GetTableByEntity(channelEntityType);
-            var channelGroupTable = fsql.CodeFirst.GetTableByEntity(channelGroupEntityType);
+            var table = areaBuilder.Build();
 
             // 迁移
-            fsql.CodeFirst.SyncStructure(channelEntityType, channelGroupEntityType);
+            fsql2.CodeFirst.SyncStructure(table.Type);
 
-            fsql.Delete<object>().AsType(channelEntityType).Where("1=1").ExecuteAffrows();
-            fsql.Delete<object>().AsType(channelGroupEntityType).Where("1=1").ExecuteAffrows();
+            var area1 = table.CreateInstance(new Dictionary<string, object> { ["id"] = 1, ["name"] = "北京" });
+            var area2 = table.CreateInstance(new Dictionary<string, object> { ["id"] = 2, ["parentId"] = 1, ["name"] = "东城区" });
+            var area3 = table.CreateInstance(new Dictionary<string, object> { ["id"] = 3, ["parentId"] = 1, ["name"] = "西城区" });
 
-            // 创建实体对象
-            var channelGroup = channelGroupTable.CreateInstance(new Dictionary<string, object>
-            {
-                ["id"] = 1,
-                ["name"] = "央视频道",
-            });
-            var c = fsql.Insert<object>().AsType(channelGroupEntityType)
-                .AppendData(channelGroup)
-                .ExecuteAffrows();
-            Console.WriteLine($"{c} inserted");
+            var area1Children = Activator.CreateInstance(typeof(List<>).MakeGenericType(table.Type)) as IList;
+            area1Children!.Add(area2);
+            area1Children!.Add(area3);
+            table.Type.GetProperty("children")!.SetValue(area1, area1Children);
 
-            var channel = channelTable.CreateInstance(new Dictionary<string, object>
-            {
-                ["id"] = 1,
-                ["name"] = "CCTV-1",
-                ["channelGroupId"] = 1
-            });
-            c = fsql.Insert<object>().AsType(channelEntityType)
-                .AppendData(channel)
-                .ExecuteAffrows();
-            Console.WriteLine($"{c} inserted");
+            fsql2.Delete<object>().AsType(table.Type).Where("1=1").ExecuteAffrows();
 
-            // 运行正确
-            var list111 = fsql.Select<object>().AsType(channelGroupEntityType)
-                .IncludeByPropertyName("channels")
-                .ToList();
+            var testRepo = fsql2.GetRepository<object>();
+            testRepo.AsType(table.Type);
+            testRepo.Insert(area1);
+            testRepo.SaveMany(area1, "children");
 
-            var repo222 = fsql.GetRepository<object>();
-            repo222.AsType(channelGroupEntityType);
-
-            // 运行错误
-            var list222 = repo222.Select
-                .IncludeByPropertyName("channels")
-                .ToList();
 
 
 

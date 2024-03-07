@@ -34,8 +34,9 @@ namespace FreeSql
                 repo = Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(entityType, typeof(int)), _repo.Orm);
                 (repo as IBaseRepository).UnitOfWork = _repo.UnitOfWork;
 				GetRepositoryDbField(entityType, "_dbPriv").SetValue(repo, this);
-				GetRepositoryDbField(entityType, "_asTablePriv").SetValue(repo, 
-				    GetRepositoryDbField(_repo.EntityType, "_asTablePriv").GetValue(_repo));
+                GetRepositoryDbField(entityType, "_asTablePriv").SetValue(repo,
+                    _repo.GetType().GetField("_asTablePriv", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(_repo));
+				    //GetRepositoryDbField(_repo.EntityType, "_asTablePriv").GetValue(_repo));
 
                 if (typeof(IBaseRepository<>).MakeGenericType(_repo.EntityType).IsAssignableFrom(_repo.GetType()))
                     typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
