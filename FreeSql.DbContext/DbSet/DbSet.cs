@@ -239,6 +239,7 @@ namespace FreeSql
             if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAttach_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
             foreach (var item in data)
             {
+                FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, item, _db.OrmOriginal, _table, null); //与 CanUpdate 同步
                 var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
                 if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.CannotAttach_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, item)));
 

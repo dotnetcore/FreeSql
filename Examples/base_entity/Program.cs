@@ -9,6 +9,7 @@ using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
 using MessagePack;
 using Microsoft.Data.SqlClient;
+using MySqlConnector;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -571,7 +572,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 				//.UseAdoConnectionPool(false)
 				//.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
 				////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -610,6 +611,18 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.AuditValue += (_, e) =>
+            {
+
+            };
+
+            var tt1 = new ProjectItem { ID = 1, MaxQuantity = 0, Code = null, Name = null };
+            var tt2 = new ProjectItem { ID = 1, MaxQuantity = 100, Code = null, Name = null };
+            var repot2 = fsql.GetRepository<ProjectItem>();
+
+            repot2.Attach(tt1);
+            var nt1 = repot2.Update(tt2);
 
             var fsql2 = fsql;
             // 动态构建实体类型，树形结构，引用自身类型
@@ -3192,4 +3205,34 @@ public class VM_District_Parent : BaseDistrict
 
     [Navigate(nameof(ParentCode))]
     public VM_District_Parent Parent { get; set; }
+}
+
+[JsonObject(MemberSerialization.OptIn), Table(DisableSyncStructure = true)]
+public partial class ProjectItem
+{
+    [JsonProperty, Column(DbType = "bigint", IsPrimary = true, IsIdentity = true)]
+    public long ID { get; set; }
+
+
+    /// <summary>
+    /// 编码
+    /// </summary>
+    [JsonProperty, Column(StringLength = 100, IsNullable = false)]
+    public string Code { get; set; }
+
+
+    /// <summary>
+    /// 实际最大用量
+    /// </summary>
+    [JsonProperty, Column(DbType = "decimal(14,4)")]
+    public decimal MaxQuantity { get; set; } = 0.0000M;
+
+    /// <summary>
+    /// 名称
+    /// </summary>
+    [JsonProperty, Column(StringLength = 50, IsNullable = false)]
+    public string Name { get; set; }
+
+
+
 }

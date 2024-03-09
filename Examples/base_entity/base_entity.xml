@@ -316,6 +316,21 @@
             这个不行
             </summary>
         </member>
+        <member name="P:ProjectItem.Code">
+            <summary>
+            编码
+            </summary>
+        </member>
+        <member name="P:ProjectItem.MaxQuantity">
+            <summary>
+            实际最大用量
+            </summary>
+        </member>
+        <member name="P:ProjectItem.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表
