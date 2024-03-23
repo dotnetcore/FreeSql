@@ -87,7 +87,7 @@ public static partial class FreeSqlClickHouseGlobalExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="insert"></param>
     /// <returns></returns>
-    public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
+    public static int ExecuteClickHouseBulkCopy<T>(this IInsert<T> insert) where T : class
     {
         return ExecuteClickHouseBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
     }

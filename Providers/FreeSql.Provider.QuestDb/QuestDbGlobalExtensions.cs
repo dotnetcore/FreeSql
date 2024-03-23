@@ -249,7 +249,7 @@ public static partial class QuestDbGlobalExtensions
     /// <param name="insert"></param>
     /// <param name="dateFormat">导入时，时间格式 默认:yyyy/M/d H:mm:ss</param>
     /// <returns></returns>
-    public static int ExecuteBulkCopy<T>(this IInsert<T> insert, string dateFormat = "yyyy/M/d H:mm:ss") where T : class
+    public static int ExecuteQuestDbBulkCopy<T>(this IInsert<T> insert, string dateFormat = "yyyy/M/d H:mm:ss") where T : class
     {
         return ExecuteQuestDbBulkCopyAsync(insert, dateFormat).ConfigureAwait(false).GetAwaiter().GetResult();
     }
