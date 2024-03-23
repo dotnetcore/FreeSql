@@ -224,7 +224,7 @@ namespace FreeSql.Tests.QuestDb.Crud
                 });
             }
 
-            var result = await restFsql.Insert(list).ExecuteQuestBulkCopyAsync();
+            var result = await restFsql.Insert(list).ExecuteQuestDbBulkCopyAsync();
             Assert.True(result > 0);
         }
 
