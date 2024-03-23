@@ -306,7 +306,7 @@ namespace FreeSql.Tests.ClickHouse
 
             await _fsql.Insert(t).ExecuteClickHouseBulkCopyAsync();
 
-            _fsql.Insert(t).ExecuteBulkCopy();
+            _fsql.Insert(t).ExecuteClickHouseBulkCopy();
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ namespace FreeSql.Tests.ClickHouse
             //BulkCopy不会报错
             await _fsql.Insert(t).ExecuteClickHouseBulkCopyAsync(); 
 
-            _fsql.Insert(t).ExecuteBulkCopy();
+            _fsql.Insert(t).ExecuteClickHouseBulkCopy();
         }
     }
 
