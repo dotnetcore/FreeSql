@@ -90,7 +90,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var pk in primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" + '+' + ");
-                caseWhen.Append("cast(").Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
+                caseWhen.Append("cast(").Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar(2000))");
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -107,7 +107,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var pk in primarys)
             {
                 if (pkidx > 0) sb.Append(" + '+' + ");
-                sb.Append("cast(").Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append(" as varchar)");
+                sb.Append("cast(").Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append(" as varchar(2000))");
                 ++pkidx;
             }
         }
