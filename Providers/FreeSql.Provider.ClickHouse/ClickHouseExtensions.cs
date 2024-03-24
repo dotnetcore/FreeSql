@@ -66,7 +66,7 @@ public static partial class FreeSqlClickHouseGlobalExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="that"></param>
     /// <returns></returns>
-    public static async Task<int> ExecuteBulkCopyAsync<T>(this IInsert<T> that) where T : class
+    public static async Task<int> ExecuteClickHouseBulkCopyAsync<T>(this IInsert<T> that) where T : class
     {
         try
         {
@@ -87,8 +87,8 @@ public static partial class FreeSqlClickHouseGlobalExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="insert"></param>
     /// <returns></returns>
-    public static int ExecuteBulkCopy<T>(this IInsert<T> insert) where T : class
+    public static int ExecuteClickHouseBulkCopy<T>(this IInsert<T> insert) where T : class
     {
-        return ExecuteBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
+        return ExecuteClickHouseBulkCopyAsync(insert).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

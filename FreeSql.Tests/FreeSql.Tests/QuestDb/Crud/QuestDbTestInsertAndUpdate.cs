@@ -223,7 +223,8 @@ namespace FreeSql.Tests.QuestDb.Crud
                     NameUpdate = "NameUpdate"
                 });
             }
-            var result = await restFsql.Insert(list).ExecuteBulkCopyAsync();
+
+            var result = await restFsql.Insert(list).ExecuteQuestDbBulkCopyAsync();
             Assert.True(result > 0);
         }
 
