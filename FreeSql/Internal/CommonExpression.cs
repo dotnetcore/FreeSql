@@ -713,6 +713,7 @@ namespace FreeSql.Internal
 
         public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<DbParameter> dbParams)
         {
+            if (exp is LambdaExpression lambdaExp) exp = lambdaExp?.Body;
             if (_tables?.Count > 1)
             {
                 foreach (var tb in _tables)
