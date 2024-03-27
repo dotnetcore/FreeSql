@@ -1,7 +1,8 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests.MySqlConnector
@@ -10,6 +11,31 @@ namespace FreeSql.Tests.MySqlConnector
     {
 
         IFreeSql fsql => g.mysql;
+
+        [Fact]
+        public void InsertOrUpdate_ExecuteMySqlBulkCopy_Test()
+        {
+            fsql.Delete<tbiou02>().Where("1=1").ExecuteAffrows();
+            var iou = fsql.InsertOrUpdate<tbiou02>().SetSource(new[] { new tbiou02 { id = 1, name = "01" }, new tbiou02 { id = 2, name = "02" }, new tbiou02 { id = 3, name = "03" }, new tbiou02 { id = 4, name = "04" } });
+           var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO `tbiou02`(`id`, `name`) VALUES(1, '001'), (2, '002'), (3, '003'), (4, '004')
+ON DUPLICATE KEY UPDATE
+`name` = VALUES(`name`)", sql);
+            Assert.Equal(4, iou.ExecuteMySqlBulkCopy());
+        }
+
+        [Fact]
+        public async Task InsertOrUpdate_ExecuteMySqlBulkCopyAsync_Test()
+        {
+            fsql.Delete<tbiou02>().Where("1=1").ExecuteAffrows();
+            var iou = fsql.InsertOrUpdate<tbiou02>().SetSource(new[] { new tbiou02 { id = 1, name = "01" }, new tbiou02 { id = 2, name = "02" }, new tbiou02 { id = 3, name = "03" }, new tbiou02 { id = 4, name = "04" } });
+            var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO `tbiou02`(`id`, `name`) VALUES(1, '01'), (2, '02'), (3, '03'), (4, '04')
+ON DUPLICATE KEY UPDATE
+`name` = VALUES(`name`)", sql);
+            Assert.Equal(4, await iou.ExecuteMySqlBulkCopyAsync());
+        }
+
 
         [Fact]
         public void InsertOrUpdate_OnePrimary()

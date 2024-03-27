@@ -199,10 +199,10 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
 #else
     public static Task<int> ExecuteMySqlBulkCopyAsync<T>(this IInsertOrUpdate<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
-        var upsert = that as UpdateProvider<T>;
+        var upsert = that as InsertOrUpdateProvider<T>;
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return Task.FromResult(0);
         var state = ExecuteMySqlBulkCopyState(upsert);
-        return UpdateProvider.ExecuteBulkUpdateAsync(upsert, state, insert => insert.ExecuteMySqlBulkCopyAsync(bulkCopyTimeout, cancellationToken));
+        return UpdateProvider.ExecuteBulkUpsertAsync(upsert, state, insert => insert.ExecuteMySqlBulkCopyAsync(bulkCopyTimeout, cancellationToken));
     }
     public static Task<int> ExecuteMySqlBulkCopyAsync<T>(this IUpdate<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
