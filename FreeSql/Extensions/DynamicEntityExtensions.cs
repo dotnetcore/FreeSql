@@ -192,6 +192,7 @@ namespace FreeSql.Extensions.DynamicEntity
         public DynamicCompileBuilder Extend(Type superClass)
         {
             _superClass = superClass;
+            _typeBuilder.SetParent(superClass);
             return this;
         }
 

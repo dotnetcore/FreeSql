@@ -7,19 +7,28 @@ using FreeSql.DataAnnotations;
 using FreeSql.Extensions.DynamicEntity;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace FreeSql.Tests.DynamicEntity
 {
     public class DynamicEntityTest
     {
-        private static IFreeSql fsql = new FreeSqlBuilder().UseConnectionString(DataType.Sqlite,
-                "data source=:memory:")
-            .UseMonitorCommand(d => Console.WriteLine(d.CommandText)).Build();
+        private readonly ITestOutputHelper _output;
+
+        private static IFreeSql _fsql;
+
+        public DynamicEntityTest(ITestOutputHelper output)
+        {
+            _output = output;
+            _fsql = new FreeSqlBuilder().UseConnectionString(DataType.Sqlite,
+                    "data source=:memory:")
+                .UseMonitorCommand(d => _output.WriteLine(d.CommandText)).Build();
+        }
 
         [Fact]
         public void NormalTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("NormalUsers")
+            var table = _fsql.CodeFirst.DynamicEntity("NormalUsers")
                 .Property("Id", typeof(string))
                 .Property("Name", typeof(string))
                 .Property("Address", typeof(string))
@@ -32,15 +41,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void AttributeTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers",
+            var table = _fsql.CodeFirst.DynamicEntity("AttributeUsers",
                     new TableAttribute() { Name = "T_Attribute_User" },
                     new IndexAttribute("Name_Index1", "Name", false))
                 .Property("Id", typeof(int),
@@ -57,15 +66,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            var insertId = fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
-            var select = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            var insertId = _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
+            var select = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void SuperClassTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("Roles", new TableAttribute() { Name = "T_Role" },
+            var table = _fsql.CodeFirst.DynamicEntity("Roles", new TableAttribute() { Name = "T_Role" },
                     new IndexAttribute("Name_Index2", "Name", false))
                 .Extend(typeof(BaseModel))
                 .Property("Id", typeof(int),
@@ -81,15 +90,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void SuperClassVirtualOverrideTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("Role_VirtualOverride",
+            var table = _fsql.CodeFirst.DynamicEntity("Role_VirtualOverride",
                     new TableAttribute() { Name = "T_Role_VirtualOverride" },
                     new IndexAttribute("Name_Index2", "Name", false))
                 .Extend(typeof(BaseModelOverride))
@@ -97,7 +106,7 @@ namespace FreeSql.Tests.DynamicEntity
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
                     new ColumnAttribute() { StringLength = 20, Position = 2 })
-                .Property("Operators", typeof(string), true) //重写 virtual 属性
+                .Property("Operators", typeof(string), true,new ColumnAttribute() { StringLength = 20} ) //重写 virtual 属性
                 .Build();
             var dict = new Dictionary<string, object>
             {
@@ -108,15 +117,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void SuperClassBaseModelAbstractTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("Role_AbstractOverride",
+            var table = _fsql.CodeFirst.DynamicEntity("Role_AbstractOverride",
                     new TableAttribute() { Name = "T_Role_AbstractOverride" },
                     new IndexAttribute("Name_Index2", "Name", false))
                 .Extend(typeof(BaseModelAbstract))
@@ -135,15 +144,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void SuperClassBaseModelAbstractAndVirtualTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("Role_AbstractAndVirtualOverride",
+            var table = _fsql.CodeFirst.DynamicEntity("Role_AbstractAndVirtualOverride",
                     new TableAttribute() { Name = "Role_AbstractAndVirtualOverride" },
                     new IndexAttribute("Name_Index2", "Name", false))
                 .Extend(typeof(BaseModelAbstractAndVirtual))
@@ -164,15 +173,15 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
         public void DefaultValueTest()
         {
-            var table = fsql.CodeFirst.DynamicEntity("NormalUsers")
+            var table = _fsql.CodeFirst.DynamicEntity("NormalUsers")
                 .Property("Id", typeof(string))
                 .Property("Age", typeof(int), false, 12)
                 .Property("Longs", typeof(long), false, 16666)
@@ -190,9 +199,9 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
-            var objects = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteAffrows();
+            var objects = _fsql.Select<object>().AsType(table.Type).ToList();
         }
 
         [Fact]
@@ -215,7 +224,7 @@ namespace FreeSql.Tests.DynamicEntity
                 , false);
             attributes.Add(indexAttribute);
 
-            var table = fsql.CodeFirst.DynamicEntity("AttributeUsers", attributes.ToArray())
+            var table = _fsql.CodeFirst.DynamicEntity("AttributeUsers", attributes.ToArray())
                 .Property("Id", typeof(int),
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
@@ -232,9 +241,9 @@ namespace FreeSql.Tests.DynamicEntity
             };
             var instance = table.CreateInstance(dict);
             //根据Type生成表
-            fsql.CodeFirst.SyncStructure(table.Type);
-            var insertId = fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
-            var select = fsql.Select<object>().AsType(table.Type).ToList();
+            _fsql.CodeFirst.SyncStructure(table.Type);
+            var insertId = _fsql.Insert<object>().AsType(table.Type).AppendData(instance).ExecuteIdentity();
+            var select = _fsql.Select<object>().AsType(table.Type).ToList();
         }
     }
 
