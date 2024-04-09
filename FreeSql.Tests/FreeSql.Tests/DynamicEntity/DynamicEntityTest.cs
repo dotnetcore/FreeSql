@@ -106,7 +106,7 @@ namespace FreeSql.Tests.DynamicEntity
                     new ColumnAttribute() { IsPrimary = true, IsIdentity = true, Position = 1 })
                 .Property("Name", typeof(string),
                     new ColumnAttribute() { StringLength = 20, Position = 2 })
-                .Property("Operators", typeof(string), true) //重写 virtual 属性
+                .Property("Operators", typeof(string), true,new ColumnAttribute() { StringLength = 20} ) //重写 virtual 属性
                 .Build();
             var dict = new Dictionary<string, object>
             {
