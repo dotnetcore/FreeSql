@@ -85,6 +85,7 @@ namespace FreeSql.ClickHouse.Curd
                            BatchSize = _source.Count
                        })
                 {
+                    await bulkCopyInterface.InitAsync();
                     await bulkCopyInterface.WriteToServerAsync(data, default);
                 }
             }
