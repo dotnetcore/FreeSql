@@ -2089,6 +2089,10 @@ namespace FreeSql.Internal
             {
                 var other99Exp = ExpressionLambdaToSqlOther(exp, tsc);
                 if (string.IsNullOrEmpty(other99Exp) == false) return other99Exp;
+                //if (exp is NewExpression newExp && 
+                //    newExp.Type == typeof(Guid) && 
+                //    newExp.Arguments.Count == 1 && 
+                //    newExp.Arguments[0].Type == typeof(string)) return ExpressionLambdaToSql(newExp.Arguments[0], tsc);
                 return "";
             }
             switch (expBinary.NodeType)

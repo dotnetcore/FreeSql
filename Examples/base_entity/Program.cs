@@ -612,6 +612,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Select<User1>().Where(a => a.Id == new Guid("xxx")).ToList(a => new Guid("zzz"));
+
             fsql.Aop.AuditValue += (_, e) =>
             {
 
