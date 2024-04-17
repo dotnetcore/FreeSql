@@ -2271,7 +2271,7 @@ namespace FreeSql.Internal
                             var expStackFirstMem = expStack.First() as MemberExpression;
                             if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant)
                                 firstValue = (expStackFirstMem.Expression as ConstantExpression)?.Value;
-                            else
+                            else if (exp.IsParameter() == false)
                                 return Expression.Lambda(exp).Compile().DynamicInvoke();
                             break;
                         case ExpressionType.Call:
