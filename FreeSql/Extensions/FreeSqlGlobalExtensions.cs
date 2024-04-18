@@ -1006,6 +1006,18 @@ SELECT ");
         insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
         return insertOrUpdateDict;
     }
+    public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, IEnumerable<dynamic> source)
+    {
+        
+        if (source?.Any() == true)
+        {
+            var newSource = source.Select(t => new Dictionary<string, object>(t));
+            foreach (var dict in newSource) LocalReplaceDictDBNullValue(dict);
+        }
+        var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
+        insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
+        return insertOrUpdateDict;
+    }
     /// <summary>
     /// 删除数据字典 Dictionary&lt;string, object&gt;
     /// </summary>
