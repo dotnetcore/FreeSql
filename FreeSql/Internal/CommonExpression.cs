@@ -703,6 +703,9 @@ namespace FreeSql.Internal
             { ExpressionType.Divide, "/" },
             { ExpressionType.Modulo, "%" },
             { ExpressionType.Equal, "=" },
+            { ExpressionType.AddChecked, "+" },
+            { ExpressionType.SubtractChecked, "-" },
+            { ExpressionType.MultiplyChecked, "*" },
         };
 
         public string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, BaseDiyMemberExpression diymemexp, List<DbParameter> dbParams)
