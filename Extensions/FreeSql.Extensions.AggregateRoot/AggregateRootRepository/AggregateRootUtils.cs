@@ -146,6 +146,7 @@ namespace FreeSql
                     //}
                     return;
                 }
+                var table = fsql.CodeFirst.GetTableByEntity(elementType);
                 Dictionary<string, object> dictBefore = new Dictionary<string, object>();
                 Dictionary<string, object> dictAfter = new Dictionary<string, object>();
                 foreach (var item in collectionBefore)
@@ -158,8 +159,11 @@ namespace FreeSql
                     var key = fsql.GetEntityKeyString(elementType, item, false);
                     if (!string.IsNullOrEmpty(key))
                     {
-                        if (dictAfter.ContainsKey(key) == false) 
+                        if (dictAfter.ContainsKey(key) == false)
                             dictAfter.Add(key, item);
+                        else if (key == "0" && table.Primarys.Length == 1 && 
+                            new[] { typeof(long), typeof(long) }.Contains(table.Primarys[0].CsType))
+                            tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
                     }
                     else tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
                 }
