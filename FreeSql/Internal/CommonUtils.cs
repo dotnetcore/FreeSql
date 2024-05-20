@@ -686,7 +686,15 @@ namespace FreeSql.Internal
                 }
 
                 var dic = new Dictionary<string, string>();
-                var sReader = new StringReader(File.ReadAllText(xmlPath));
+                StringReader sReader = null;
+                try
+                {
+                    sReader = new StringReader(File.ReadAllText(xmlPath));
+                }
+                catch
+                {
+                    return dic;
+                }
                 using (var xmlReader = XmlReader.Create(sReader))
                 {
                     XPathDocument xpath = null;

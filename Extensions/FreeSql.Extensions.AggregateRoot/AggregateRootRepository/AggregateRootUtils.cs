@@ -162,7 +162,7 @@ namespace FreeSql
                         if (dictAfter.ContainsKey(key) == false)
                             dictAfter.Add(key, item);
                         else if (key == "0" && table.Primarys.Length == 1 && 
-                            new[] { typeof(long), typeof(long) }.Contains(table.Primarys[0].CsType))
+                            new[] { typeof(long), typeof(int) }.Contains(table.Primarys[0].CsType))
                             tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
                     }
                     else tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
