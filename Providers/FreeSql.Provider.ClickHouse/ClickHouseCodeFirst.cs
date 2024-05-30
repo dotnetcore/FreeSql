@@ -254,25 +254,25 @@ namespace FreeSql.ClickHouse
                                 sb.Append("TYPE set(8192) GRANULARITY 5,");
                             }
 
-                            sb.Remove(sb.Length - 1, 1);
+                            //sb.Remove(sb.Length - 1, 1);
+
+                            if (tb.Primarys.Any())
+                            {
+                                var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
+                                sb.Append(" \r\n   PRIMARY KEY ");
+                                sb.Append($"( {primaryKeys} ) ");
+                            }
+
                             sb.Append("\r\n) ");
                             sb.Append("\r\nENGINE = MergeTree()");
 
                             if (tb.Primarys.Any())
                             {
-                                sb.Append(" \r\nORDER BY ( ");
-                                var ls = new StringBuilder();
-                                foreach (var tbcol in tb.Primarys)
-                                    ls.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                                sb.Append(ls);
-                                sb.Remove(sb.Length - 2, 2);
-                                sb.Append(" )");
-                                sb.Append(" \r\nPRIMARY KEY ");
-                                sb.Append($"({ls})   ");
-                                sb.Remove(sb.Length - 2, 2).Append(",");
+                                var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
+                                sb.Append(" \r\nORDER BY ");
+                                sb.Append($"( {primaryKeys} ) ");
                             }
 
-                            sb.Remove(sb.Length - 1, 1);
                             //if (string.IsNullOrEmpty(tb.Comment) == false)
                             //    sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
                             sb.Append(" SETTINGS index_granularity = 8192;\r\n");
@@ -477,16 +477,12 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
                     if (tb.Primarys.Any())
                     {
+                        var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
                         sb.Append(" \r\nORDER BY ( ");
-                        var ls = new StringBuilder();
-                        foreach (var tbcol in tb.Primarys)
-                            ls.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                        sb.Append(ls);
-                        sb.Remove(sb.Length - 2, 2);
+                        sb.Append(primaryKeys);
                         sb.Append(" )");
                         sb.Append(" \r\nPRIMARY KEY ");
-                        sb.Append($"({ls})   ");
-                        sb.Remove(sb.Length - 2, 2).Append(",");
+                        sb.Append($"({primaryKeys})   ");
                     }
 
                     sb.Remove(sb.Length - 1, 1);
