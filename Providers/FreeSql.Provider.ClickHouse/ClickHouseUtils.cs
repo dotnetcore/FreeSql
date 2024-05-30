@@ -158,7 +158,7 @@ namespace FreeSql.ClickHouse
                 var ts = (TimeSpan)value;
                 value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
             }
-			else if (value is Array)
+            else if (value is Array)
 			{
 				var valueArr = value as Array;
 				var eleType = type.GetElementType();

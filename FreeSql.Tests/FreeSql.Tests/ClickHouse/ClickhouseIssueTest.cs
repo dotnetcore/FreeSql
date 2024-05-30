@@ -22,7 +22,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test_issue;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(true)
+                .UseNoneCommandParameter(false)
                 .UseAdoConnectionPool(true)
                 .Build();
         }
@@ -32,25 +32,35 @@ namespace FreeSql.Tests.ClickHouse
         [Fact]
         public void TestIssue1813()
         {
-            //var personsUpdate = new List<Person>
-            //{
-            //    new Person
-            //    {
-            //        Id = 1,
-            //        Name = $"test2{DateTime.Now.Millisecond}",
-            //        Age = 20,
-            //        CreateTime = DateTime.Now
-            //    },
-            //    new Person
-            //    {
-            //        Id = 2,
-            //        Name = "test3"+ 286,
-            //        Age = 22,
-            //        CreateTime = DateTime.Now
-            //    }
-            //};
+            //普通修改
+            _fsql.Update<Person>()
+                .Set(p => p.Name == "update_name")
+                .Set(p => p.UpdateTime == DateTime.Now)
+                .Where(p => p.Id == "25e8d92e-29f2-43ff-b861-9ade0eec4041")
+                .ExecuteAffrows();
 
-            //_fsql.Update<Person>().SetSource()
+            //批量修改
+            var updatePerson = new List<Person>();
+            updatePerson.Add(new Person
+            {
+                Id = "9cd7af52-85cc-4d26-898a-4020cadb0491",
+                Name = "update_name1",
+                UpdateTime = DateTime.Now
+            });
+
+            updatePerson.Add(new Person
+            {
+                Id = "bd9f9ed6-bd03-4675-abb4-12b7fdac7678",
+                Name = "update_name2",
+                UpdateTime = DateTime.Now
+            });
+
+            _fsql.Update<Person>().SetSource(updatePerson).UpdateColumns(person => new
+            {
+                person.Name,
+                person.UpdateTime,
+            }).ExecuteAffrows();
+
         }
 
         [Fact]
