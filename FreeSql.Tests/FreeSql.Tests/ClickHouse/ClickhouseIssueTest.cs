@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FreeSql.DataAnnotations;
+using FreeSql.Provider.ClickHouse.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -141,10 +142,41 @@ namespace FreeSql.Tests.ClickHouse
 
             public string Name { get; set; }
             public int Age { get; set; }
+
             public DateTime CreateTime { get; set; }
+
             public DateTime? UpdateTime { get; set; }
         }
 
+        #endregion
+
+        #region https: //github.com/dotnetcore/FreeSql/issues/1814
+
+        public class Test1814Table
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+
+            public string Name { get; set; }
+
+            [ClickHousePartition]
+            [Column(Name = "create_time")]
+            public DateTime CreateTime { get; set; }
+        }
+
+        [Fact]
+        public void TestIssue1814()
+        {
+            _fsql.CodeFirst.SyncStructure<Test1814Table>();
+
+            var insert = _fsql.Insert(new Test1814Table
+            {
+                Name = "test",
+                CreateTime = DateTime.Now
+            }).ExecuteAffrows();
+
+            var query = _fsql.Select<Test1814Table>().ToList();
+        }
         #endregion
     }
 }

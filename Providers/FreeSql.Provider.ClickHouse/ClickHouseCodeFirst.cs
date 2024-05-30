@@ -8,8 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Data.Common;
+using System.Reflection;
 using FreeSql.Internal.ObjectPool;
 using ClickHouse.Client.ADO;
+using FreeSql.Provider.ClickHouse.Attributes;
 
 namespace FreeSql.ClickHouse
 {
@@ -95,10 +97,11 @@ namespace FreeSql.ClickHouse
                 {
                     var arrayDbType = $"Array({value.dbtype})";
                     var defaultArray = new ArrayList(0);
-                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false,defaultArray);
+                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false,
+                        defaultArray);
                 }
-            
             }
+
             return null;
         }
 
@@ -132,7 +135,7 @@ namespace FreeSql.ClickHouse
             if (interfaces.Any(t => t.Name == "IEnumerable"))
                 flag = true;
 
-            if (type.Name  == "Array")
+            if (type.Name == "Array")
             {
                 flag = true;
                 resultType = typeof(string);
@@ -173,7 +176,8 @@ namespace FreeSql.ClickHouse
                     if (tb == null)
                         throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
                     if (tb.Columns.Any() == false)
-                        throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
+                        throw new Exception(
+                            CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                     var tbname = _commonUtils.SplitTableName(tb.DbName);
                     if (tbname?.Length == 1)
                         tbname = new[] { database, tbname[0] };
@@ -258,7 +262,8 @@ namespace FreeSql.ClickHouse
 
                             if (tb.Primarys.Any())
                             {
-                                var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
+                                var primaryKeys = string.Join(",",
+                                    tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
                                 sb.Append(" \r\n   PRIMARY KEY ");
                                 sb.Append($"( {primaryKeys} ) ");
                             }
@@ -268,14 +273,32 @@ namespace FreeSql.ClickHouse
 
                             if (tb.Primarys.Any())
                             {
-                                var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
+                                var primaryKeys = string.Join(",",
+                                    tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
                                 sb.Append(" \r\nORDER BY ");
                                 sb.Append($"( {primaryKeys} ) ");
                             }
 
+                            //查找属性是否标记了分区特性
+                            var partitionColumnInfos = tb.Properties.Where(
+                                c => c.Value.GetCustomAttribute<ClickHousePartitionAttribute>() != null).ToList();
+
+                            if (partitionColumnInfos != null && partitionColumnInfos.Any())
+                            {
+                                var partitionProperty = partitionColumnInfos.First();
+
+                                var partitionColumnInfo = tb.Columns.FirstOrDefault(pair =>
+                                    pair.Value.CsName == partitionProperty.Value.Name);
+                                var partitionName = _commonUtils.QuoteSqlName(partitionColumnInfo.Value.Attribute.Name);
+                                var partitionAttribute = partitionProperty.Value
+                                    .GetCustomAttribute<ClickHousePartitionAttribute>();
+                                sb.Append($" \r\nPARTITION BY {string.Format(partitionAttribute.Format, partitionName)}");
+                            }
+
+
                             //if (string.IsNullOrEmpty(tb.Comment) == false)
                             //    sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
-                            sb.Append(" SETTINGS index_granularity = 8192;\r\n");
+                            sb.Append(" \r\nSETTINGS index_granularity = 8192;\r\n");
                             continue;
                         }
 
@@ -477,7 +500,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
                     if (tb.Primarys.Any())
                     {
-                        var primaryKeys = string.Join(",", tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
+                        var primaryKeys = string.Join(",",
+                            tb.Primarys.Select(p => _commonUtils.QuoteSqlName(p.Attribute.Name)));
                         sb.Append(" \r\nORDER BY ( ");
                         sb.Append(primaryKeys);
                         sb.Append(" )");
