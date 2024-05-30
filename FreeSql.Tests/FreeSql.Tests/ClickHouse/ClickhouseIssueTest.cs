@@ -22,7 +22,7 @@ namespace FreeSql.Tests.ClickHouse
             _fsql = new FreeSqlBuilder().UseConnectionString(DataType.ClickHouse,
                     "Host=192.168.1.123;Port=8123;Database=test_issue;Compress=True;Min Pool Size=1")
                 .UseMonitorCommand(cmd => _output.WriteLine($"线程：{cmd.CommandText}\r\n"))
-                .UseNoneCommandParameter(false)
+                .UseNoneCommandParameter(true)
                 .UseAdoConnectionPool(true)
                 .Build();
         }
@@ -45,22 +45,25 @@ namespace FreeSql.Tests.ClickHouse
             {
                 Id = "9cd7af52-85cc-4d26-898a-4020cadb0491",
                 Name = "update_name1",
-                UpdateTime = DateTime.Now
+                UpdateTime = DateTime.Now,
+                CreateTime = DateTime.Parse("2024-05-30 10:01:02")
             });
 
             updatePerson.Add(new Person
             {
                 Id = "bd9f9ed6-bd03-4675-abb4-12b7fdac7678",
                 Name = "update_name2",
-                UpdateTime = DateTime.Now
+                UpdateTime = DateTime.Now,
+                CreateTime = DateTime.Parse("2024-05-30 10:01:02")
             });
 
-            _fsql.Update<Person>().SetSource(updatePerson).UpdateColumns(person => new
-            {
-                person.Name,
-                person.UpdateTime,
-            }).ExecuteAffrows();
-
+            var sql = _fsql.Update<Person>().SetSource(updatePerson)
+                .UpdateColumns(person => new
+                {
+                    person.Name,
+                    person.UpdateTime,
+                    person.CreateTime
+                }).ToSql();
         }
 
         [Fact]
@@ -94,6 +97,7 @@ namespace FreeSql.Tests.ClickHouse
 
             var insertMany = _fsql.Insert(persons).ExecuteAffrows();
         }
+
         [Fact]
         public void TestIssue1813CodeFirst2()
         {
@@ -130,11 +134,11 @@ namespace FreeSql.Tests.ClickHouse
         }
 
 
-
         public class Person
         {
             [Column(IsPrimary = true, IsIdentity = true)]
             public string Id { get; set; }
+
             public string Name { get; set; }
             public int Age { get; set; }
             public DateTime CreateTime { get; set; }

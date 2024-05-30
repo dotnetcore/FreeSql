@@ -173,8 +173,6 @@ namespace FreeSql.ClickHouse.Curd
                                 if (col.Attribute.MapType == typeof(DateTime) || col.Attribute.MapType == typeof(DateTime?) )
                                 {
                                     //获取当前实时区
-                                    var timeZone = TimeZoneInfo.Local;
-
                                     colsql = $"toDateTime({colsql},'Asia/Shanghai')";
                                 }
 
