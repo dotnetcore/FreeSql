@@ -169,7 +169,7 @@ namespace FreeSql.ClickHouse.Curd
                                 var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
                                     _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
 
-                                //判断是否是DateTime类型，如果是DateTime类型，需要转换成ClickHouse支持的时间格式
+                                //判断是否是DateTime类型，如果是DateTime类型，需要转换成ClickHouse支持的时间格式 #1813
                                 if (col.Attribute.MapType == typeof(DateTime) || col.Attribute.MapType == typeof(DateTime?) )
                                 {
                                     //获取当前实时区

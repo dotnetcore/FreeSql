@@ -11,7 +11,7 @@ using System.Data.Common;
 using System.Reflection;
 using FreeSql.Internal.ObjectPool;
 using ClickHouse.Client.ADO;
-using FreeSql.Provider.ClickHouse.Attributes;
+using FreeSql.DataAnnotations;
 
 namespace FreeSql.ClickHouse
 {
@@ -97,8 +97,7 @@ namespace FreeSql.ClickHouse
                 {
                     var arrayDbType = $"Array({value.dbtype})";
                     var defaultArray = new ArrayList(0);
-                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false,
-                        defaultArray);
+                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false, defaultArray);
                 }
             }
 
@@ -176,8 +175,7 @@ namespace FreeSql.ClickHouse
                     if (tb == null)
                         throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
                     if (tb.Columns.Any() == false)
-                        throw new Exception(
-                            CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
+                        throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                     var tbname = _commonUtils.SplitTableName(tb.DbName);
                     if (tbname?.Length == 1)
                         tbname = new[] { database, tbname[0] };

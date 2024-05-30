@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FreeSql.Provider.ClickHouse.Attributes
+namespace FreeSql.DataAnnotations
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ClickHousePartitionAttribute : Attribute
