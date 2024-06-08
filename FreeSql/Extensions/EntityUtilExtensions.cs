@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,7 +20,8 @@ namespace FreeSql.Extensions.EntityUtil
         static readonly MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
         static readonly MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>> _dicGetEntityKeyString
+            = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>>>();
         /// <summary>
         /// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
         /// </summary>
@@ -152,7 +154,7 @@ namespace FreeSql.Extensions.EntityUtil
             });
             return func(entity, genGuid);
         }
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>> _dicGetEntityKeyValues = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>> _dicGetEntityKeyValues = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>>());
         /// <summary>
         /// 获取实体的主键值，多个主键返回数组
         /// </summary>
@@ -193,7 +195,8 @@ namespace FreeSql.Extensions.EntityUtil
             });
             return func(entity);
         }
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>> _dicGetEntityValueWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>> _dicGetEntityValueWithPropertyName
+            = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>>());
         /// <summary>
         /// 获取实体的属性值
         /// </summary>
@@ -260,7 +263,7 @@ namespace FreeSql.Extensions.EntityUtil
                 });
             return func(entity);
         }
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityString = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>());
         /// <summary>
         /// 获取实体的所有数据，以 (1, 2, xxx) 的形式
         /// </summary>
@@ -313,7 +316,7 @@ namespace FreeSql.Extensions.EntityUtil
         /// <summary>
         /// 使用新实体的值，复盖旧实体的值
         /// </summary>
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityValue = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>());
         public static void MapEntityValue(this IFreeSql orm, Type entityType, object entityFrom, object entityTo)
         {
             if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
@@ -355,7 +358,7 @@ namespace FreeSql.Extensions.EntityUtil
             func(entityFrom, entityTo);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityKeyValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityKeyValue = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>());
         /// <summary>
         /// 使用新实体的主键值，复盖旧实体的主键值
         /// </summary>
@@ -388,7 +391,7 @@ namespace FreeSql.Extensions.EntityUtil
             func(entityFrom, entityTo);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>> _dicSetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>> _dicSetEntityIdentityValueWithPrimary = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>>());
         /// <summary>
         /// 设置实体中主键内的自增字段值（若存在）
         /// </summary>
@@ -424,7 +427,7 @@ namespace FreeSql.Extensions.EntityUtil
             });
             func(entity, idtval);
         }
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>> _dicGetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>> _dicGetEntityIdentityValueWithPrimary = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>>());
         /// <summary>
         /// 获取实体中主键内的自增字段值（若存在）
         /// </summary>
@@ -473,7 +476,7 @@ namespace FreeSql.Extensions.EntityUtil
             return func(entity);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentityAndGuid = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentityAndGuid = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>());
         /// <summary>
         /// 清除实体的主键值，将自增、Guid类型的主键值清除
         /// </summary>
@@ -521,7 +524,7 @@ namespace FreeSql.Extensions.EntityUtil
             func(entity);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentity = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>());
         /// <summary>
         /// 清除实体的主键值，将自增、Guid类型的主键值清除
         /// </summary>
@@ -558,7 +561,7 @@ namespace FreeSql.Extensions.EntityUtil
             func(entity);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>> _dicCompareEntityValueReturnColumns = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>> _dicCompareEntityValueReturnColumns = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>>());
         /// <summary>
         /// 对比两个实体值，返回相同/或不相同的列名
         /// </summary>
@@ -625,7 +628,8 @@ namespace FreeSql.Extensions.EntityUtil
             });
             var result = func(entity1, entity2, isEqual);
             var tmptb = orm.CodeFirst.GetTableByEntity(entityType);
-            if (tmptb.ColumnsByCanUpdateDbUpdateValue.Length > 0) {
+            if (tmptb.ColumnsByCanUpdateDbUpdateValue.Length > 0)
+            {
                 if (isEqual && result.Length + tmptb.ColumnsByCanUpdateDbUpdateValue.Length == tmptb.ColumnsByCs.Count)
                     return result.Concat(tmptb.ColumnsByCanUpdateDbUpdateValue.Select(a => a.Attribute.Name)).ToArray();
                 if (!isEqual && result.Length == tmptb.ColumnsByCanUpdateDbUpdateValue.Length)
@@ -634,7 +638,7 @@ namespace FreeSql.Extensions.EntityUtil
             return result;
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>());
         /// <summary>
         /// 设置实体中某属性的数值增加指定的值
         /// </summary>
@@ -678,7 +682,7 @@ namespace FreeSql.Extensions.EntityUtil
             func(entity, propertyName, incrBy);
         }
 
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>> _dicSetEntityValueWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>>();
+        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>> _dicSetEntityValueWithPropertyName = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>>());
         /// <summary>
         /// 设置实体中某属性的值
         /// </summary>
@@ -785,8 +789,8 @@ namespace FreeSql.Extensions.EntityUtil
             func(entity, propertyName, value);
         }
 
-        static ConcurrentDictionary<Type, MethodInfo[]> _dicAppendEntityUpdateSetWithColumnMethods = new ConcurrentDictionary<Type, MethodInfo[]>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>> _dicAppendEntityUpdateSetWithColumnMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>>();
+        static ConcurrentDictionary<Type, MethodInfo[]> _dicAppendEntityUpdateSetWithColumnMethods = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo[]>());
+        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>> _dicAppendEntityUpdateSetWithColumnMethod = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>>());
         /// <summary>
         /// 缓存执行 IUpdate.Set
         /// </summary>

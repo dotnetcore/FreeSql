@@ -18,7 +18,7 @@ namespace FreeSql
             _repo = repo;
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicGetRepositoryDbField = new ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicGetRepositoryDbField = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>>();
         static FieldInfo GetRepositoryDbField(Type type, string fieldName) => _dicGetRepositoryDbField.GetOrAdd(type, tp => new ConcurrentDictionary<string, FieldInfo>()).GetOrAdd(fieldName, fn =>
             typeof(BaseRepository<,>).MakeGenericType(type, typeof(int)).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic));
         public override IDbSet Set(Type entityType)

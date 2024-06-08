@@ -12,6 +12,7 @@ using System.Runtime;
 using FreeSql.Internal.Model.Interface;
 using System.Threading;
 using FreeSql.Internal.Model;
+using FreeSql.Interface;
 
 namespace FreeSql
 {
@@ -58,9 +59,21 @@ namespace FreeSql
         /// </summary>
         /// <param name="factory"></param>
         /// <returns></returns>
+        [Obsolete("请使用 UseCacheFactory", true)]
         public FreeSqlBuilder UseCustomTableEntityCacheFactory(Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> factory)
         {
-            Utils.ChacheTableEntityFactory = factory;
+            Utils._cacheGetTableByEntity = factory.Invoke();
+            return this;
+        }
+
+        /// <summary>
+        /// 解决多实例下相同类型映射到不同表的问题，可以覆盖为从自定义缓存中构建
+        /// </summary>
+        /// <param name="cacheFactory">自定义缓存策略，参考 <see cref="DefaultCacheFactory"/> </param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseCacheFactory(IGlobalCacheFactory cacheFactory)
+        {
+            Utils.GlobalCacheFactory = cacheFactory;
             return this;
         }
         /// <summary>
@@ -646,7 +659,7 @@ namespace FreeSql
             return ret;
         }
         static int _isTypeHandlered = 0;
-        ConcurrentDictionary<Type, bool> _dicTypeHandlerTypes = new ConcurrentDictionary<Type, bool>();
+        ConcurrentDictionary<Type, bool> _dicTypeHandlerTypes = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, bool>());
         object _concurrentObj = new object();
     }
 }

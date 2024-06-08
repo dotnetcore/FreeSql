@@ -66,7 +66,7 @@ namespace FreeSql.Odbc.KingbaseES
             return ret;
         }
 
-        static ConcurrentDictionary<int, DbToCs> _dicDbToCs = new ConcurrentDictionary<int, DbToCs>();
+        static ConcurrentDictionary<int, DbToCs> _dicDbToCs = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<int, DbToCs>());
         static OdbcKingbaseESDbFirst()
         {
             var defaultDbToCs = new Dictionary<int, DbToCs>() {

@@ -182,7 +182,7 @@ public static partial class FreeSqlGlobalExtensions
         return Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Constant(a.ParameterType.CreateInstanceGetDefaultValue(), a.ParameterType)));
     }
 
-    static ConcurrentDictionary<Type, Lazy<ConstructorInfo>> _dicInternalGetTypeConstructor0OrFirst = new ConcurrentDictionary<Type, Lazy<ConstructorInfo>>();
+    static ConcurrentDictionary<Type, Lazy<ConstructorInfo>> _dicInternalGetTypeConstructor0OrFirst = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, Lazy<ConstructorInfo>>());
     internal static ConstructorInfo InternalGetTypeConstructor0OrFirst(this Type that, bool isThrow = true)
     {
         var ret = _dicInternalGetTypeConstructor0OrFirst.GetOrAdd(that, tp =>
@@ -197,7 +197,7 @@ public static partial class FreeSqlGlobalExtensions
         return ret.Value;
     }
 
-    static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
+    static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>());
     public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>
     {
         var props = that.GetProperties().GroupBy(p => p.DeclaringType).Reverse().SelectMany(p => p); //将基类的属性位置放在前面 #164
@@ -232,7 +232,7 @@ public static partial class FreeSqlGlobalExtensions
     }
 
     #region Enum 对象扩展方法
-    static ConcurrentDictionary<Type, FieldInfo[]> _dicGetFields = new ConcurrentDictionary<Type, FieldInfo[]>();
+    static ConcurrentDictionary<Type, FieldInfo[]> _dicGetFields = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, FieldInfo[]>());
     public static object GetEnum<T>(this IDataReader dr, int index)
     {
         var value = dr.GetString(index);
@@ -613,7 +613,7 @@ public static partial class FreeSqlGlobalExtensions
     #endregion
 
     #region AsTreeCte(..) 递归查询
-    static ConcurrentDictionary<string, string> _dicMySqlVersion = new ConcurrentDictionary<string, string>();
+    static ConcurrentDictionary<string, string> _dicMySqlVersion = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, string>());
     /// <summary>
     /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
     /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、Firebird、达梦、人大金仓、翰高<para></para>
@@ -751,7 +751,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.CustomSqlServer:
                 case DataType.Firebird:
                 case DataType.ClickHouse:
-                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule,
                         Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
                 case DataType.MySql:

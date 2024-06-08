@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Interface;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.Model.Interface;
 using System;
@@ -19,12 +20,9 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
-        /// <summary>
-        /// 用于解决多实例情况下的静态集合缓存问题
-        /// </summary>
-        public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
-        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
-        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity => ChacheTableEntityFactory?.Invoke() ?? __cacheGetTableByEntity;
+        public static IGlobalCacheFactory GlobalCacheFactory { get; set; } = new DefaultCacheFactory();
+
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>());
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
@@ -129,20 +127,20 @@ namespace FreeSql.Internal
                 if (tp == null && colattr != null) colattr.IsIgnore = true; //无法匹配的属性，认定是导航属性，且自动过滤
 
                 var col = ColumnAttributeToInfo(trytb, entityDefault, p.Name, p.PropertyType, setMethod == null, ref colattr, tp, common);
-				if (col == null) continue;
+                if (col == null) continue;
 
-				if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
-					col.Comment = trycomment;
-				if (string.IsNullOrEmpty(col.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue(p.Name, out trycomment))
-					col.Comment = trycomment;
+                if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
+                    col.Comment = trycomment;
+                if (string.IsNullOrEmpty(col.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue(p.Name, out trycomment))
+                    col.Comment = trycomment;
 
-				trytb.Columns.Add(colattr.Name, col);
+                trytb.Columns.Add(colattr.Name, col);
                 trytb.ColumnsByCs.Add(p.Name, col);
                 columnsList.Add(col);
             }
 
             var indexes = common.GetEntityIndexAttribute(trytb.Type);
-			AuditTableInfo(trytb, tbattr, indexes, columnsList, common);
+            AuditTableInfo(trytb, tbattr, indexes, columnsList, common);
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
@@ -197,70 +195,70 @@ namespace FreeSql.Internal
         }
         public static ColumnInfo ColumnAttributeToInfo(TableInfo trytb, object entityDefault, string csName, Type mapType, bool isIgnore, ref ColumnAttribute colattr, DbInfoResult tp, CommonUtils common)
         {
-			var colattrIsNullable = colattr?._IsNullable;
-			var colattrIsNull = colattr == null;
-			if (colattr == null)
-				colattr = new ColumnAttribute
-				{
-					Name = csName,
-					DbType = tp.dbtypeFull,
-					IsNullable = tp.isnullable ?? true,
-					MapType = mapType
-				};
-			if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
-			if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
+            var colattrIsNullable = colattr?._IsNullable;
+            var colattrIsNull = colattr == null;
+            if (colattr == null)
+                colattr = new ColumnAttribute
+                {
+                    Name = csName,
+                    DbType = tp.dbtypeFull,
+                    IsNullable = tp.isnullable ?? true,
+                    MapType = mapType
+                };
+            if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
+            if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
             var isMySqlEnum = colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum(");
             if (isMySqlEnum)
-			{
-				var leftBt = colattr.DbType.IndexOf('(');
-				colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
-			}
-			else if (common._orm.Ado.DataType != DataType.ClickHouse)
-				colattr.DbType = colattr.DbType.ToUpper();
+            {
+                var leftBt = colattr.DbType.IndexOf('(');
+                colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
+            }
+            else if (common._orm.Ado.DataType != DataType.ClickHouse)
+                colattr.DbType = colattr.DbType.ToUpper();
 
-			if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-			if (colattrIsNull == false && colattrIsNullable == false && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
-			if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
-			if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
-			if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = csName;
-			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
+            if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+            if (colattrIsNull == false && colattrIsNullable == false && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
+            if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
+            if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
+            if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = csName;
+            if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
+            if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
-			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse)
-			{
-				colattr.IsNullable = false;
-				colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
-			}
-			if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-			else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse) colattr.DbType = $"Nullable({colattr.DbType})";
+            if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse)
+            {
+                colattr.IsNullable = false;
+                colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
+            }
+            if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+            else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse) colattr.DbType = $"Nullable({colattr.DbType})";
             if (isMySqlEnum == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
-			{
-				var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
-				if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
-				if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
-				return tmpLt;
-			});
-			if (colattr.IsIdentity == true && colattr.MapType.IsNumberType() == false)
-				colattr.IsIdentity = false;
-			if (isIgnore) colattr.IsIgnore = true;
+            {
+                var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
+                if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
+                if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
+                return tmpLt;
+            });
+            if (colattr.IsIdentity == true && colattr.MapType.IsNumberType() == false)
+                colattr.IsIdentity = false;
+            if (isIgnore) colattr.IsIgnore = true;
 
-			var col = new ColumnInfo
-			{
-				Table = trytb,
-				CsName = csName,
-				CsType = mapType,
-				Attribute = colattr
-			};
+            var col = new ColumnInfo
+            {
+                Table = trytb,
+                CsName = csName,
+                CsType = mapType,
+                Attribute = colattr
+            };
 
-			if (colattr.IsIgnore)
-			{
-				trytb.ColumnsByCsIgnore.Add(csName, col);
+            if (colattr.IsIgnore)
+            {
+                trytb.ColumnsByCsIgnore.Add(csName, col);
                 return null;
-			}
-			object defaultValue = null;
-			if (entityDefault != null) defaultValue = trytb.Properties[csName].GetValue(entityDefault, null);
-			if (defaultValue != null && mapType.IsEnum)
-			{
+            }
+            object defaultValue = null;
+            if (entityDefault != null) defaultValue = trytb.Properties[csName].GetValue(entityDefault, null);
+            if (defaultValue != null && mapType.IsEnum)
+            {
                 Array enumValues = null;
                 try { enumValues = Enum.GetValues(mapType); } //AOT error
                 catch { }
@@ -276,413 +274,413 @@ namespace FreeSql.Internal
                     if (isEqualsEnumValue == false && enumValues.Length > 0)
                         defaultValue = enumValues.GetValue(0);
                 }
-			}
-			if (defaultValue != null && mapType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
-			if (defaultValue == null) defaultValue = tp?.defaultValue;
-			if (colattr.IsNullable == false && defaultValue == null)
-			{
-				var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
-				defaultValue = citype.CreateInstanceGetDefaultValue();
-			}
-			try
-			{
-				var initParms = new List<DbParameter>();
-				col.DbDefaultValue = common.GetNoneParamaterSqlValue(initParms, "init", col, colattr.MapType, defaultValue);
-				if (initParms.Any()) col.DbDefaultValue = "NULL";
-			}
-			catch
-			{
-				col.DbDefaultValue = "NULL";
-			}
-			//if (defaultValue != null && colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
-			//{
-			//    var dt = (DateTime)defaultValue;
-			//    if (Math.Abs(dt.Subtract(DateTime.Now).TotalSeconds) < 60)
-			//        col.DbDefaultValue = common.Now;
-			//    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
-			//        col.DbDefaultValue = common.NowUtc;
-			//}
+            }
+            if (defaultValue != null && mapType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
+            if (defaultValue == null) defaultValue = tp?.defaultValue;
+            if (colattr.IsNullable == false && defaultValue == null)
+            {
+                var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
+                defaultValue = citype.CreateInstanceGetDefaultValue();
+            }
+            try
+            {
+                var initParms = new List<DbParameter>();
+                col.DbDefaultValue = common.GetNoneParamaterSqlValue(initParms, "init", col, colattr.MapType, defaultValue);
+                if (initParms.Any()) col.DbDefaultValue = "NULL";
+            }
+            catch
+            {
+                col.DbDefaultValue = "NULL";
+            }
+            //if (defaultValue != null && colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+            //{
+            //    var dt = (DateTime)defaultValue;
+            //    if (Math.Abs(dt.Subtract(DateTime.Now).TotalSeconds) < 60)
+            //        col.DbDefaultValue = common.Now;
+            //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
+            //        col.DbDefaultValue = common.NowUtc;
+            //}
 
-			if (common._orm.Ado.DataType == DataType.GBase)
-			{
-				if (colattr.IsIdentity == true)
-				{
-					var colType = col.CsType.NullableTypeOrThis();
-					if (colType == typeof(int) || colType == typeof(uint))
-						colattr.DbType = "SERIAL";
-					else if (colType == typeof(long) || colType == typeof(ulong))
-						colattr.DbType = "SERIAL8";
-				}
-				if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
-				{
-					if (colattr._Precision == null)
-					{
-						colattr.DbType = "DATETIME YEAR TO FRACTION(3)";
-						colattr.Precision = 3;
-						col.DbPrecision = 3;
-					}
-					else if (colattr._Precision == 0)
-					{
-						colattr.DbType = "DATETIME YEAR TO SECOND";
-					}
-					else if (colattr._Precision > 0)
-					{
-						colattr.DbType = $"DATETIME YEAR TO FRACTION({colattr.Precision})";
-						col.DbPrecision = (byte)colattr.Precision;
-					}
-				}
-			}
-			if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
-			{
-				var commonNow = common.Now;
-				var commonNowUtc = common.NowUtc;
-				switch (common._orm.Ado.DataType)
-				{
-					case DataType.MySql:
-					case DataType.OdbcMySql: //处理毫秒
-					case DataType.CustomMySql:
-						var timeLength = 0;
-						var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
-						if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
-						if (timeLength > 0 && timeLength < 7)
-						{
-							commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
-							commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
-						}
-						//https://github.com/dotnetcore/FreeSql/issues/1604 mysql 不支持默认值 utc_timestamp DDL
-						if (colattr.ServerTime == DateTimeKind.Local)
-							col.DbDefaultValue = commonNow;
-						break;
-					default:
-						col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-						break;
-				}
-				col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-				col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-			}
-			if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
-			{
-				col.DbDefaultValue = colattr.InsertValueSql;
-				col.DbInsertValue = colattr.InsertValueSql;
-			}
-			if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
-			{
-				int strlen = colattr.StringLength;
-				var charPattern = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+            if (common._orm.Ado.DataType == DataType.GBase)
+            {
+                if (colattr.IsIdentity == true)
+                {
+                    var colType = col.CsType.NullableTypeOrThis();
+                    if (colType == typeof(int) || colType == typeof(uint))
+                        colattr.DbType = "SERIAL";
+                    else if (colType == typeof(long) || colType == typeof(ulong))
+                        colattr.DbType = "SERIAL8";
+                }
+                if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+                {
+                    if (colattr._Precision == null)
+                    {
+                        colattr.DbType = "DATETIME YEAR TO FRACTION(3)";
+                        colattr.Precision = 3;
+                        col.DbPrecision = 3;
+                    }
+                    else if (colattr._Precision == 0)
+                    {
+                        colattr.DbType = "DATETIME YEAR TO SECOND";
+                    }
+                    else if (colattr._Precision > 0)
+                    {
+                        colattr.DbType = $"DATETIME YEAR TO FRACTION({colattr.Precision})";
+                        col.DbPrecision = (byte)colattr.Precision;
+                    }
+                }
+            }
+            if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
+            {
+                var commonNow = common.Now;
+                var commonNowUtc = common.NowUtc;
+                switch (common._orm.Ado.DataType)
+                {
+                    case DataType.MySql:
+                    case DataType.OdbcMySql: //处理毫秒
+                    case DataType.CustomMySql:
+                        var timeLength = 0;
+                        var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
+                        if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
+                        if (timeLength > 0 && timeLength < 7)
+                        {
+                            commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
+                            commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
+                        }
+                        //https://github.com/dotnetcore/FreeSql/issues/1604 mysql 不支持默认值 utc_timestamp DDL
+                        if (colattr.ServerTime == DateTimeKind.Local)
+                            col.DbDefaultValue = commonNow;
+                        break;
+                    default:
+                        col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+                        break;
+                }
+                col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+                col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+            }
+            if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
+            {
+                col.DbDefaultValue = colattr.InsertValueSql;
+                col.DbInsertValue = colattr.InsertValueSql;
+            }
+            if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
+            {
+                int strlen = colattr.StringLength;
+                var charPattern = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
                 var replaceCounter = 0;
-				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
-				switch (common._orm.Ado.DataType)
-				{
-					case DataType.MySql:
-					case DataType.OdbcMySql:
-					case DataType.CustomMySql:
+                var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
+                switch (common._orm.Ado.DataType)
+                {
+                    case DataType.MySql:
+                    case DataType.OdbcMySql:
+                    case DataType.CustomMySql:
                         if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
                         else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                         else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.SqlServer:
-					case DataType.OdbcSqlServer:
-					case DataType.CustomSqlServer:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(MAX)" : m.Groups[0].Value);
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.PostgreSQL:
-					case DataType.OdbcPostgreSQL:
-					case DataType.CustomPostgreSQL:
-					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
-					case DataType.ShenTong:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.Oracle:
-					case DataType.CustomOracle:
-						if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.Dameng:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.Sqlite:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.MsAccess:
-						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-						if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.Firebird:
-						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-						if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-					case DataType.GBase:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
-							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
-						break;
-				}
-			}
-			if (colattr.MapType == typeof(string) && colattr.IsVersion == true) colattr.StringLength = 40;
-			if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16; // 8=sqlserver timestamp, 16=GuidToBytes
-			if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
-			{
-				int strlen = colattr.StringLength;
-				var bytePattern = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
-				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
-				switch (common._orm.Ado.DataType)
-				{
-					case DataType.MySql:
-					case DataType.OdbcMySql:
-					case DataType.CustomMySql:
-						if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
-						else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
-						break;
-					case DataType.SqlServer:
-					case DataType.OdbcSqlServer:
-					case DataType.CustomSqlServer:
-						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1(MAX)");
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
-						break;
-					case DataType.PostgreSQL:
-					case DataType.OdbcPostgreSQL:
-					case DataType.CustomPostgreSQL:
-					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
-					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-						colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
-						break;
-					case DataType.Oracle:
-					case DataType.CustomOracle:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.Dameng:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.Sqlite:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.MsAccess:
-						if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
-						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
-						break;
-					case DataType.Firebird:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.GBase:
-						colattr.DbType = $"BYTE{strNotNull}";
-						break;
-				}
-			}
-			if (colattr.MapType.NullableTypeOrThis() == typeof(decimal) && (colattr.Precision > 0 || colattr.Scale > 0))
-			{
-				if (colattr.Precision <= 0) colattr.Precision = 10;
-				if (colattr.Scale <= 0) colattr.Scale = 0;
-				var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
-				colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
-			}
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.SqlServer:
+                    case DataType.OdbcSqlServer:
+                    case DataType.CustomSqlServer:
+                        if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}(MAX)" : m.Groups[0].Value);
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.PostgreSQL:
+                    case DataType.OdbcPostgreSQL:
+                    case DataType.CustomPostgreSQL:
+                    case DataType.KingbaseES:
+                    case DataType.OdbcKingbaseES:
+                    case DataType.ShenTong:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.Oracle:
+                    case DataType.CustomOracle:
+                        if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.Dameng:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.OdbcOracle:
+                    case DataType.OdbcDameng:
+                        if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.Sqlite:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.MsAccess:
+                        charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+                        if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.Firebird:
+                        charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+                        if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                    case DataType.GBase:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+                }
+            }
+            if (colattr.MapType == typeof(string) && colattr.IsVersion == true) colattr.StringLength = 40;
+            if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16; // 8=sqlserver timestamp, 16=GuidToBytes
+            if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
+            {
+                int strlen = colattr.StringLength;
+                var bytePattern = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+                var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
+                switch (common._orm.Ado.DataType)
+                {
+                    case DataType.MySql:
+                    case DataType.OdbcMySql:
+                    case DataType.CustomMySql:
+                        if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
+                        else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+                        break;
+                    case DataType.SqlServer:
+                    case DataType.OdbcSqlServer:
+                    case DataType.CustomSqlServer:
+                        if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1(MAX)");
+                        else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+                        break;
+                    case DataType.PostgreSQL:
+                    case DataType.OdbcPostgreSQL:
+                    case DataType.CustomPostgreSQL:
+                    case DataType.KingbaseES:
+                    case DataType.OdbcKingbaseES:
+                    case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
+                        colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
+                        break;
+                    case DataType.Oracle:
+                    case DataType.CustomOracle:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.Dameng:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.OdbcOracle:
+                    case DataType.OdbcDameng:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.Sqlite:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.MsAccess:
+                        if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+                        break;
+                    case DataType.Firebird:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.GBase:
+                        colattr.DbType = $"BYTE{strNotNull}";
+                        break;
+                }
+            }
+            if (colattr.MapType.NullableTypeOrThis() == typeof(decimal) && (colattr.Precision > 0 || colattr.Scale > 0))
+            {
+                if (colattr.Precision <= 0) colattr.Precision = 10;
+                if (colattr.Scale <= 0) colattr.Scale = 0;
+                var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
+                colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
+            }
 
-			if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception(CoreStrings.Duplicate_ColumnAttribute(colattr.Name));
-			if (trytb.ColumnsByCs.ContainsKey(csName)) throw new Exception(CoreStrings.Duplicate_PropertyName(csName));
+            if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception(CoreStrings.Duplicate_ColumnAttribute(colattr.Name));
+            if (trytb.ColumnsByCs.ContainsKey(csName)) throw new Exception(CoreStrings.Duplicate_PropertyName(csName));
 
             return col;
-		}
+        }
         public static void AuditTableInfo(TableInfo trytb, TableAttribute tbattr, IEnumerable<IndexAttribute> indexes, List<ColumnInfo> columnsList, CommonUtils common)
         {
-			trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
-			if (trytb.VersionColumn != null)
-			{
-				if (trytb.VersionColumn.Attribute.MapType.IsNullableType() ||
-					trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(trytb.VersionColumn.Attribute.MapType))
-					throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
-			}
-			tbattr?.ParseAsTable(trytb);
+            trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
+            if (trytb.VersionColumn != null)
+            {
+                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() ||
+                    trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(trytb.VersionColumn.Attribute.MapType))
+                    throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
+            }
+            tbattr?.ParseAsTable(trytb);
 
-			var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
-			//从数据库查找主键、自增、索引
-			if (common.CodeFirst.IsConfigEntityFromDbFirst)
-			{
-				try
-				{
-					if (common._orm.DbFirst != null)
-					{
-						if (common.dbTables == null)
-							lock (common.dbTablesLock)
-								if (common.dbTables == null)
-									common.dbTables = common._orm.DbFirst.GetTablesByDatabase();
+            var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
+            //从数据库查找主键、自增、索引
+            if (common.CodeFirst.IsConfigEntityFromDbFirst)
+            {
+                try
+                {
+                    if (common._orm.DbFirst != null)
+                    {
+                        if (common.dbTables == null)
+                            lock (common.dbTablesLock)
+                                if (common.dbTables == null)
+                                    common.dbTables = common._orm.DbFirst.GetTablesByDatabase();
 
-						var finddbtbs = common.dbTables.Where(a => string.Compare(a.Name, trytb.CsName, true) == 0 || string.Compare(a.Name, trytb.DbName, true) == 0);
-						foreach (var dbtb in finddbtbs)
-						{
-							foreach (var dbident in dbtb.Identitys)
-							{
-								if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis() ||
-									trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis())
-									trycol.Attribute.IsIdentity = true;
-							}
-							foreach (var dbpk in dbtb.Primarys)
-							{
-								if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis() ||
-									trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis())
-									trycol.Attribute.IsPrimary = true;
-							}
-							foreach (var dbidx in dbtb.IndexesDict)
-							{
-								var indexColumns = new List<IndexColumnInfo>();
-								foreach (var dbcol in dbidx.Value.Columns)
-								{
-									if (trytb.Columns.TryGetValue(dbcol.Column.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis() ||
-										trytb.ColumnsByCs.TryGetValue(dbcol.Column.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis())
-										indexColumns.Add(new IndexColumnInfo
-										{
-											Column = trycol,
-											IsDesc = dbcol.IsDesc
-										});
-								}
-								if (indexColumns.Any() == false) continue;
-								if (indexesDict.ContainsKey(dbidx.Key)) indexesDict.Remove(dbidx.Key);
-								indexesDict.Add(dbidx.Key, new IndexInfo
-								{
-									Name = dbidx.Key,
-									Columns = indexColumns.ToArray(),
-									IsUnique = dbidx.Value.IsUnique,
-									IndexMethod = IndexMethod.B_Tree
-								});
-							}
-						}
-					}
-				}
-				catch { }
-			}
-			//索引和唯一键
-			foreach (var index in indexes)
-			{
-				var val = index.Fields?.Trim(' ', '\t', ',');
-				if (string.IsNullOrEmpty(val)) continue;
-				var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
-				if (arr.Any() == false) continue;
-				var indexColumns = new List<IndexColumnInfo>();
-				foreach (var field in arr)
-				{
-					var idxcol = new IndexColumnInfo();
-					if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
-					var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
-					if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
-					{
-						idxcol.Column = trycol;
-						indexColumns.Add(idxcol);
-					}
-				}
-				if (indexColumns.Any() == false) continue;
-				var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
-				if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
-				indexesDict.Add(indexName, new IndexInfo
-				{
-					Name = indexName,
-					Columns = indexColumns.ToArray(),
-					IsUnique = index.IsUnique,
-					IndexMethod = index.IndexMethod
-				});
-			}
-			trytb.Indexes = indexesDict.Values.ToArray();
+                        var finddbtbs = common.dbTables.Where(a => string.Compare(a.Name, trytb.CsName, true) == 0 || string.Compare(a.Name, trytb.DbName, true) == 0);
+                        foreach (var dbtb in finddbtbs)
+                        {
+                            foreach (var dbident in dbtb.Identitys)
+                            {
+                                if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis() ||
+                                    trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis())
+                                    trycol.Attribute.IsIdentity = true;
+                            }
+                            foreach (var dbpk in dbtb.Primarys)
+                            {
+                                if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis() ||
+                                    trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis())
+                                    trycol.Attribute.IsPrimary = true;
+                            }
+                            foreach (var dbidx in dbtb.IndexesDict)
+                            {
+                                var indexColumns = new List<IndexColumnInfo>();
+                                foreach (var dbcol in dbidx.Value.Columns)
+                                {
+                                    if (trytb.Columns.TryGetValue(dbcol.Column.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis() ||
+                                        trytb.ColumnsByCs.TryGetValue(dbcol.Column.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis())
+                                        indexColumns.Add(new IndexColumnInfo
+                                        {
+                                            Column = trycol,
+                                            IsDesc = dbcol.IsDesc
+                                        });
+                                }
+                                if (indexColumns.Any() == false) continue;
+                                if (indexesDict.ContainsKey(dbidx.Key)) indexesDict.Remove(dbidx.Key);
+                                indexesDict.Add(dbidx.Key, new IndexInfo
+                                {
+                                    Name = dbidx.Key,
+                                    Columns = indexColumns.ToArray(),
+                                    IsUnique = dbidx.Value.IsUnique,
+                                    IndexMethod = IndexMethod.B_Tree
+                                });
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+            //索引和唯一键
+            foreach (var index in indexes)
+            {
+                var val = index.Fields?.Trim(' ', '\t', ',');
+                if (string.IsNullOrEmpty(val)) continue;
+                var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+                if (arr.Any() == false) continue;
+                var indexColumns = new List<IndexColumnInfo>();
+                foreach (var field in arr)
+                {
+                    var idxcol = new IndexColumnInfo();
+                    if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
+                    var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
+                    if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
+                    {
+                        idxcol.Column = trycol;
+                        indexColumns.Add(idxcol);
+                    }
+                }
+                if (indexColumns.Any() == false) continue;
+                var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
+                if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
+                indexesDict.Add(indexName, new IndexInfo
+                {
+                    Name = indexName,
+                    Columns = indexColumns.ToArray(),
+                    IsUnique = index.IsUnique,
+                    IndexMethod = index.IndexMethod
+                });
+            }
+            trytb.Indexes = indexesDict.Values.ToArray();
 
-			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
-			if (trytb.Primarys.Any() == false)
-			{
-				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
-				if (trytb.Primarys.Any() == false)
-				{
-					var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
-					if (identcol != null) trytb.Primarys = new[] { identcol };
-					if (trytb.Primarys.Any() == false)
-					{
-						trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
-						if (trytb.Primarys.Any() == false)
-						{
-							trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
-						}
-					}
-				}
-				foreach (var col in trytb.Primarys)
-					col.Attribute.IsPrimary = true;
-			}
-			foreach (var col in trytb.Primarys)
-			{
-				col.Attribute.IsNullable = false;
-				col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-				switch (common._orm.Ado.DataType)
-				{
-					case DataType.Sqlite:
-						col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
-						break;
-				}
-			}
-			foreach (var col in trytb.Columns.Values)
-			{
-				if (col.Attribute.IsPrimary == false && col.Attribute.IsIdentity) col.Attribute.CanUpdate = false;
-				var ltp = @"\(([^\)]+)\)";
-				col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
-				var m = Regex.Match(col.Attribute.DbType, ltp);
-				if (m.Success == false) continue;
-				var sizeStr = m.Groups[1].Value.Trim();
-				if (sizeStr.EndsWith(" BYTE") || sizeStr.EndsWith(" CHAR")) sizeStr = sizeStr.Remove(sizeStr.Length - 5); //ORACLE
-				if (string.Compare(sizeStr, "max", true) == 0)
-				{
-					col.DbSize = -1;
-					continue;
-				}
-				var sizeArr = sizeStr.Split(',');
-				if (int.TryParse(sizeArr[0].Trim(), out var size) == false) continue;
-				if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
-				{
-					col.DbScale = (byte)size;
-					if (col.Attribute.Scale <= 0) col.Attribute.Scale = col.DbScale;
-					continue;
-				}
-				if (sizeArr.Length == 1)
-				{
-					col.DbSize = size;
-					if (col.Attribute.StringLength <= 0) col.Attribute.StringLength = col.DbSize;
-					continue;
-				}
-				if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
-				col.DbPrecision = (byte)size;
-				col.DbScale = scale;
-				if (col.Attribute.Precision <= 0)
-				{
-					col.Attribute.Precision = col.DbPrecision;
-					col.Attribute.Scale = col.DbScale;
-				}
-			}
-			trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
-			trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
-				.Concat(columnsList.Where(a => a.Attribute.Position == 0))
-				.Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
-			trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
-		}
+            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+            if (trytb.Primarys.Any() == false)
+            {
+                trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
+                if (trytb.Primarys.Any() == false)
+                {
+                    var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
+                    if (identcol != null) trytb.Primarys = new[] { identcol };
+                    if (trytb.Primarys.Any() == false)
+                    {
+                        trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
+                        if (trytb.Primarys.Any() == false)
+                        {
+                            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
+                        }
+                    }
+                }
+                foreach (var col in trytb.Primarys)
+                    col.Attribute.IsPrimary = true;
+            }
+            foreach (var col in trytb.Primarys)
+            {
+                col.Attribute.IsNullable = false;
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
+                switch (common._orm.Ado.DataType)
+                {
+                    case DataType.Sqlite:
+                        col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
+                        break;
+                }
+            }
+            foreach (var col in trytb.Columns.Values)
+            {
+                if (col.Attribute.IsPrimary == false && col.Attribute.IsIdentity) col.Attribute.CanUpdate = false;
+                var ltp = @"\(([^\)]+)\)";
+                col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
+                var m = Regex.Match(col.Attribute.DbType, ltp);
+                if (m.Success == false) continue;
+                var sizeStr = m.Groups[1].Value.Trim();
+                if (sizeStr.EndsWith(" BYTE") || sizeStr.EndsWith(" CHAR")) sizeStr = sizeStr.Remove(sizeStr.Length - 5); //ORACLE
+                if (string.Compare(sizeStr, "max", true) == 0)
+                {
+                    col.DbSize = -1;
+                    continue;
+                }
+                var sizeArr = sizeStr.Split(',');
+                if (int.TryParse(sizeArr[0].Trim(), out var size) == false) continue;
+                if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
+                {
+                    col.DbScale = (byte)size;
+                    if (col.Attribute.Scale <= 0) col.Attribute.Scale = col.DbScale;
+                    continue;
+                }
+                if (sizeArr.Length == 1)
+                {
+                    col.DbSize = size;
+                    if (col.Attribute.StringLength <= 0) col.Attribute.StringLength = col.DbSize;
+                    continue;
+                }
+                if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
+                col.DbPrecision = (byte)size;
+                col.DbScale = scale;
+                if (col.Attribute.Precision <= 0)
+                {
+                    col.Attribute.Precision = col.DbPrecision;
+                    col.Attribute.Scale = col.DbScale;
+                }
+            }
+            trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
+            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
+                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
+                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
+        }
         public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NativeTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo> vp, StringBuilder cscode)
         {
             var getMethod = vp?.Item4;
@@ -1687,7 +1685,8 @@ namespace FreeSql.Internal
             //[typeof(JObject)] = true,
             //[typeof(JArray)] = true,
         };
-        internal static ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>> _dicExecuteArrayRowReadClassOrTuple = new ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>>();
+        internal static ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>> _dicExecuteArrayRowReadClassOrTuple
+            = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>>>();
         internal class RowInfo
         {
             public object Value { get; set; }
@@ -2111,7 +2110,7 @@ namespace FreeSql.Internal
         internal static MethodInfo MethodExecuteArrayRowReadClassOrTuple = typeof(Utils).GetMethod("ExecuteArrayRowReadClassOrTuple", BindingFlags.Static | BindingFlags.NonPublic);
         internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.NonPublic);
 
-        static ConcurrentDictionary<string, Action<object, object>> _dicFillPropertyValue = new ConcurrentDictionary<string, Action<object, object>>();
+        static ConcurrentDictionary<string, Action<object, object>> _dicFillPropertyValue = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<string, Action<object, object>>>();
         internal static void FillPropertyValue(object info, string memberAccessPath, object value)
         {
             var typeObj = info.GetType();
@@ -2163,13 +2162,13 @@ namespace FreeSql.Internal
             return str.ToCharArray(0, 1)[0];
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>>();
         static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
         static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
         static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
         static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
         static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
-        static MethodInfo MethodTimeSpanFromSeconds = typeof(TimeSpan).GetMethod("FromSeconds", new[] { typeof(double) } );
+        static MethodInfo MethodTimeSpanFromSeconds = typeof(TimeSpan).GetMethod("FromSeconds", new[] { typeof(double) });
         static MethodInfo MethodSByteTryParse = typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() });
         static MethodInfo MethodShortTryParse = typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(short).MakeByRefType() });
         static MethodInfo MethodIntTryParse = typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(int).MakeByRefType() });
@@ -2198,10 +2197,10 @@ namespace FreeSql.Internal
         static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
 
-        public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = new ConcurrentDictionary<Type, ITypeHandler>();
-        public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
-        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
-        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToBytesIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
+        public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ITypeHandler>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToBytesIfThenElse = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
         {
             var returnTarget = Expression.Label(typeof(object));

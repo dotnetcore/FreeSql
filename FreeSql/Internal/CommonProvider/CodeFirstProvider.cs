@@ -51,13 +51,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         public string GetComparisonDDLStatements<TEntity>() =>
             this.GetComparisonDDLStatements(new TypeSchemaAndName(GetTableByEntity(typeof(TEntity)), ""));
-        public string GetComparisonDDLStatements(params Type[] entityTypes) => entityTypes == null ? null : 
+        public string GetComparisonDDLStatements(params Type[] entityTypes) => entityTypes == null ? null :
             this.GetComparisonDDLStatements(entityTypes.Distinct().Select(a => new TypeSchemaAndName(GetTableByEntity(a), "")).ToArray());
         public string GetComparisonDDLStatements(Type entityType, string tableName) =>
            this.GetComparisonDDLStatements(new TypeSchemaAndName(GetTableByEntity(entityType), GetTableNameLowerOrUpper(tableName)));
-		public string GetComparisonDDLStatements(TableInfo tableSchema, string tableName) =>
-		   this.GetComparisonDDLStatements(new TypeSchemaAndName(tableSchema, GetTableNameLowerOrUpper(tableName)));
-		protected abstract string GetComparisonDDLStatements(params TypeSchemaAndName[] objects);
+        public string GetComparisonDDLStatements(TableInfo tableSchema, string tableName) =>
+           this.GetComparisonDDLStatements(new TypeSchemaAndName(tableSchema, GetTableNameLowerOrUpper(tableName)));
+        protected abstract string GetComparisonDDLStatements(params TypeSchemaAndName[] objects);
         public class TypeSchemaAndName
         {
             public TableInfo tableSchema { get; }
@@ -71,7 +71,7 @@ namespace FreeSql.Internal.CommonProvider
 
         static object syncStructureLock = new object();
         object _dicSycedLock = new object();
-        public ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+        public ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>());
         internal ConcurrentDictionary<string, bool> _dicSycedGetOrAdd(Type entityType)
         {
             if (_dicSynced.TryGetValue(entityType, out var trydic) == false)
@@ -85,26 +85,26 @@ namespace FreeSql.Internal.CommonProvider
 
         public void SyncStructure<TEntity>() =>
             this.SyncStructure(new TypeSchemaAndName(GetTableByEntity(typeof(TEntity)), ""));
-        public void SyncStructure(params Type[] entityTypes) => 
+        public void SyncStructure(params Type[] entityTypes) =>
             this.SyncStructure(entityTypes?.Distinct().Select(a => new TypeSchemaAndName(GetTableByEntity(a), "")).ToArray());
         public void SyncStructure(Type entityType, string tableName, bool isForceSync) =>
             this.SyncStructure(GetTableByEntity(entityType), tableName, isForceSync);
-		public void SyncStructure(TableInfo tableSchema, string tableName, bool isForceSync = false)
+        public void SyncStructure(TableInfo tableSchema, string tableName, bool isForceSync = false)
         {
             tableName = GetTableNameLowerOrUpper(tableName);
-			if (isForceSync && tableSchema?.Type != null && _dicSynced.TryGetValue(tableSchema.Type, out var dic)) dic.TryRemove(tableName, out var old);
-			this.SyncStructure(new TypeSchemaAndName(tableSchema, tableName));
-		}
+            if (isForceSync && tableSchema?.Type != null && _dicSynced.TryGetValue(tableSchema.Type, out var dic)) dic.TryRemove(tableName, out var old);
+            this.SyncStructure(new TypeSchemaAndName(tableSchema, tableName));
+        }
 
         protected void SyncStructure(params TypeSchemaAndName[] objects)
         {
             if (objects == null) return;
             var syncObjects = objects.Where(a => a.tableSchema?.Type != null &&
                     (
-                        a.tableSchema.Type == typeof(object) && a.tableSchema.Columns.Any() 
-                        || 
+                        a.tableSchema.Type == typeof(object) && a.tableSchema.Columns.Any()
+                        ||
                         a.tableSchema.Type != typeof(object) && _dicSycedGetOrAdd(a.tableSchema.Type).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false
-                    ) && 
+                    ) &&
                     a.tableSchema?.DisableSyncStructure == false)
                 .Select(a => new TypeSchemaAndName(a.tableSchema, GetTableNameLowerOrUpper(a.tableName)))
                 .Where(a => !(string.IsNullOrEmpty(a.tableName) == true && a.tableSchema?.AsTableImpl != null))

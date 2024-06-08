@@ -13,8 +13,8 @@ namespace FreeSql
 
         internal static Action<FluentDataFilter> _globalDataFilter;
 
-        static ConcurrentDictionary<Type, Delegate> _dicSetRepositoryDataFilterApplyDataFilterFunc = new ConcurrentDictionary<Type, Delegate>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSetRepositoryDataFilterConvertFilterNotExists = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+        static ConcurrentDictionary<Type, Delegate> _dicSetRepositoryDataFilterApplyDataFilterFunc = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, Delegate>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSetRepositoryDataFilterConvertFilterNotExists = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>>();
         internal static void SetRepositoryDataFilter(object repos, Action<FluentDataFilter> scopedDataFilter)
         {
             if (scopedDataFilter != null)

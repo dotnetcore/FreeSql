@@ -726,7 +726,7 @@ namespace FreeSql.Internal
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _tableRule = _tableRule, diymemexp = diymemexp, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereGlobalFilter = whereGlobalFilter, dbParams = dbParams });
             return GetBoolString(exp, SearchColumnByField(_tables, null, sql), sql);
         }
-        static ConcurrentDictionary<string, Regex> dicRegexAlias = new ConcurrentDictionary<string, Regex>();
+        static ConcurrentDictionary<string, Regex> dicRegexAlias = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, Regex>());
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, SelectTableInfoType tbtype, Expression exp, BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter)
         {
             var tbidx = _tables.Count;
@@ -759,12 +759,12 @@ namespace FreeSql.Internal
                 }
             }
         }
-        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
-        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
-        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicExpressionLambdaToSqlAsSelectAggMethodInfo = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
-        internal static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = new ConcurrentDictionary<Type, PropertyInfo>();
-        static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
+        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectMethodInfo = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo>());
+        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereMethodInfo = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo>());
+        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo>());
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicExpressionLambdaToSqlAsSelectAggMethodInfo = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>());
+        internal static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, PropertyInfo>());
+        static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, Expression>());
         static MethodInfo MethodDateTimeSubtractDateTime = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(DateTime) });
         static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
         static MethodInfo MethodMathFloor = typeof(Math).GetMethod("Floor", new Type[] { typeof(double) });
@@ -962,11 +962,11 @@ namespace FreeSql.Internal
             tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
             return $"{left} {oper} {right}";
         }
-        static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
-        static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
-        static ThreadLocal<List<BaseDiyMemberExpression>> _subSelectParentDiyMemExps = new ThreadLocal<List<BaseDiyMemberExpression>>(); //子查询的所有父自定义查询，比如分组之后的子查询
-        static ConcurrentDictionary<Type, MethodInfo> _dicSelectMethodToSql = new ConcurrentDictionary<Type, MethodInfo>();
+        static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, bool>());
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>());
+        static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, FieldInfo[]>());
+        static ThreadLocal<List<BaseDiyMemberExpression>> _subSelectParentDiyMemExps = Utils.GlobalCacheFactory.CreateCacheItem<ThreadLocal<List<BaseDiyMemberExpression>>>(); //子查询的所有父自定义查询，比如分组之后的子查询
+        static ConcurrentDictionary<Type, MethodInfo> _dicSelectMethodToSql = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo>());
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
         {
             if (exp == null) return "";
@@ -2403,7 +2403,7 @@ namespace FreeSql.Internal
             }
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicGetWhereCascadeSqlError = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicGetWhereCascadeSqlError = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>());
         public string GetWhereCascadeSql(SelectTableInfo tb, IEnumerable<GlobalFilter.Item> filters, bool isMultitb)
         {
             if (filters.Any())

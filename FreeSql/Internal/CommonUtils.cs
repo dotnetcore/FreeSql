@@ -28,7 +28,8 @@ namespace FreeSql.Internal
         public abstract string FormatSql(string sql, params object[] args);
 
         public bool IsQuoteSqlName = true;
-        public string QuoteSqlName(params string[] name) {
+        public string QuoteSqlName(params string[] name)
+        {
             if (IsQuoteSqlName) return QuoteSqlNameAdapter(name);
             if (name == null) return "";
             return string.Join(".", name);
@@ -40,10 +41,10 @@ namespace FreeSql.Internal
         {
             if (string.IsNullOrEmpty(name)) return null;
             if (name.IndexOf(leftQuote) == -1) return name.Split(new[] { '.' }, size);
-            name = Regex.Replace(name, 
-                (leftQuote == '[' ? "\\" : "") + 
+            name = Regex.Replace(name,
+                (leftQuote == '[' ? "\\" : "") +
                 leftQuote + @"([^" + (rightQuote == ']' ? "\\" : "") + rightQuote + @"]+)" +
-                (rightQuote == ']' ? "\\" : "") + 
+                (rightQuote == ']' ? "\\" : "") +
                 rightQuote, m => m.Groups[1].Value.Replace('.', '?'));
             var ret = name.Split(new[] { '.' }, size);
             for (var a = 0; a < ret.Length; a++)
@@ -109,7 +110,7 @@ namespace FreeSql.Internal
             _orm = orm;
         }
 
-        ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = new ConcurrentDictionary<Type, TableAttribute>();
+        ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, TableAttribute>());
         public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity)
         {
             if (entity == null) return _orm.CodeFirst;
@@ -135,7 +136,7 @@ namespace FreeSql.Internal
         }
 
         public MappingPriorityType[] _mappingPriorityTypes = new[] { MappingPriorityType.Aop, MappingPriorityType.FluentApi, MappingPriorityType.Attribute };
-        ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>> dicAopConfigEntityIndex = new ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>>();
+        ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>> dicAopConfigEntityIndex = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>>>();
         public TableAttribute GetEntityTableAttribute(Type type)
         {
             var attr = new TableAttribute();
@@ -156,7 +157,7 @@ namespace FreeSql.Internal
                                     AsTable = attr.AsTable
                                 }
                             };
-                            _orm.Aop.ConfigEntityHandler(_orm, aope); 
+                            _orm.Aop.ConfigEntityHandler(_orm, aope);
                             var tryattr = aope.ModifyResult;
                             if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != type.Name) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
@@ -618,7 +619,8 @@ namespace FreeSql.Internal
 
             string GetByAttribute(object[] attrs, string attributeName)
             {
-                var dyattr = attrs?.Where(a => {
+                var dyattr = attrs?.Where(a =>
+                {
                     return ((a as Attribute)?.TypeId as Type)?.Name == attributeName;
                 }).FirstOrDefault();
                 if (dyattr == null) return null;
@@ -636,8 +638,8 @@ namespace FreeSql.Internal
                 object[] attrs = null;
                 try
                 {
-                    attrs = prop == null ? 
-                        type.GetCustomAttributes(false).ToArray() : 
+                    attrs = prop == null ?
+                        type.GetCustomAttributes(false).ToArray() :
                         prop.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
                 }
                 catch { }

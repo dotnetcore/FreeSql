@@ -35,7 +35,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             try { string ret = string.Format(CultureInfo.InvariantCulture, filter, nparms); return ret; } catch { return filter; }
         }
-        static ConcurrentDictionary<int, Regex> _dicAddslashesReplaceIsNull = new ConcurrentDictionary<int, Regex>();
+        static ConcurrentDictionary<int, Regex> _dicAddslashesReplaceIsNull = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<int, Regex>());
 
         protected string AddslashesIEnumerable(object param, Type mapType, ColumnInfo mapColumn)
         {

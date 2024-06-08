@@ -57,10 +57,10 @@ namespace FreeSql.Dameng
             }
             if (dbfull?.StartsWith("datetime(") == true)
             {
-				_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
-				return DmDbType.DateTime;
+                _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
+                return DmDbType.DateTime;
             }
-			switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
@@ -168,7 +168,7 @@ namespace FreeSql.Dameng
             throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase));
         static DamengDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {

@@ -377,7 +377,7 @@ namespace FreeSql
             else if (_table.Properties.TryGetValue(propertyName, out var prop))
                 action(prop);
         }
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicLazyIsSetField = new ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicLazyIsSetField = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>>();
         object GetItemValue(TEntity item, PropertyInfo prop)
         {
             object propVal = null;
