@@ -31,10 +31,10 @@ namespace FreeSql.DataAnnotations
 public static class FreeSqlMessagePackMapCoreExtensions
 {
     internal static int _isAoped = 0;
-    static ConcurrentDictionary<Type, bool> _dicTypes = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, bool>>();
+    static ConcurrentDictionary<Type, bool> _dicTypes =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, bool>>();
     static MethodInfo MethodMessagePackSerializerDeserialize = typeof(MessagePackSerializer).GetMethod("Deserialize", new[] { typeof(Type), typeof(ReadOnlyMemory<byte>), typeof(MessagePackSerializerOptions), typeof(CancellationToken) });
     static MethodInfo MethodMessagePackSerializerSerialize = typeof(MessagePackSerializer).GetMethod("Serialize", new[] { typeof(Type), typeof(object), typeof(MessagePackSerializerOptions), typeof(CancellationToken) });
-    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMessagePackMapFluentApi = Utils.CacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>>();
+    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMessagePackMapFluentApi =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>>();
     static object _concurrentObj = new object();
 
     public static ColumnFluent MessagePackMap(this ColumnFluent col)

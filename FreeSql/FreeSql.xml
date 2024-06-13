@@ -1104,93 +1104,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
-            <summary>
-            动态创建实体类型
-            </summary>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.#ctor(IFreeSql,System.String,System.Attribute[])">
-            <summary>
-            配置Class
-            </summary>
-            <param name="className">类名</param>
-            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
-            <returns></returns>
-        </member>
-        <member name="P:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.TypeBuilder">
-            <summary>
-            获取类型构建器，可作为要构建的Type来引用
-            </summary>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="isOverride">该属性是否重写父类属性</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Object,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="isOverride">该属性是否重写父类属性</param>
-            <param name="defaultValue">属性默认值</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
-            <summary>
-            配置父类
-            </summary>
-            <param name="superClass">父类类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.OverrideProperty(System.Reflection.Emit.TypeBuilder@,System.Reflection.Emit.MethodBuilder,FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.PropertyMethodEnum,System.String)">
-            <summary>
-            Override属性
-            </summary>
-            <param name="typeBuilder"></param>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
-            <summary>
-            Emit动态创建出Class - Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.BuildJustType">
-            <summary>
-            Emit动态创建出Class - Type，不附带获取TableInfo
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
-            <summary>
-            首字母小写
-            </summary>
-            <param name="input"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
-            <summary>
-            首字母大写
-            </summary>
-            <param name="input"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
@@ -1482,6 +1395,13 @@
             解决多实例下相同类型映射到不同表的问题
             </summary>
             <param name="factory"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseCacheFactory(FreeSql.Interface.IGlobalCacheFactory)">
+            <summary>
+            解决多实例下相同类型映射到不同表的问题，可以覆盖为从自定义缓存中构建
+            </summary>
+            <param name="cacheFactory">自定义缓存策略，参考 <see cref="T:FreeSql.Internal.DefaultCacheFactory"/> </param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseAdoConnectionPool(System.Boolean)">
@@ -5081,11 +5001,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="F:FreeSql.Internal.Utils.ChacheTableEntityFactory">
-            <summary>
-            用于解决多实例情况下的静态集合缓存问题
-            </summary>
-        </member>
         <member name="T:FreeSql.CoreStrings">
             <summary>
                 <para>
@@ -5908,28 +5823,6 @@
             请使用 fsql.InsertDict(dict) 方法插入字典数据
             </summary>
         </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,System.Attribute[])">
-            <summary>
-            动态构建Class Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateInstance(FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Object})">
-            <summary>
-            根据字典，创建 table 对应的实体对象
-            </summary>
-            <param name="table"></param>
-            <param name="dict"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
-            <summary>
-            根据实体对象，创建 table 对应的字典
-            </summary>
-            <param name="table"></param>
-            <param name="instance"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>
             C#： that >= between &amp;&amp; that &lt;= and<para></para>
@@ -6323,6 +6216,130 @@
             插入数据，传入实体数组
             </summary>
             <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.InsertOrUpdate``1">
+            <summary>
+            插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+            MySql 5.6+: on duplicate key update<para></para>
+            PostgreSQL 9.4+: on conflict do update<para></para>
+            SqlServer 2008+: merge into<para></para>
+            Oracle 11+: merge into<para></para>
+            Sqlite: replace into<para></para>
+            达梦: merge into<para></para>
+            人大金仓：on conflict do update<para></para>
+            神通：merge into<para></para>
+            MsAccess：不支持<para></para>
+            注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1">
+            <summary>
+            修改数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:IFreeSql.Ado">
+            <summary>
+            数据库访问对象
+            </summary>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+
             <param name="source"></param>
             <returns></returns>
         </member>

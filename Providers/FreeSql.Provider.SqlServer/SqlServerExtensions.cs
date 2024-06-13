@@ -134,7 +134,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         _dicSetGlobalSelectWithLock.AddOrUpdate(that.Ado.Identifier, value, (_, __) => value);
         return that;
     }
-    internal static ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>> _dicSetGlobalSelectWithLock = Utils.CacheFactory.CreateCacheItem(new ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>>());
+    internal static ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>> _dicSetGlobalSelectWithLock = FreeSql.Internal.Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Guid, NativeTuple<SqlServerLock, Dictionary<Type, bool>>>());
 
     #region ExecuteSqlBulkCopy
     /// <summary>
