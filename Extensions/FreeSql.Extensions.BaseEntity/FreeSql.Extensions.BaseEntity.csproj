@@ -19,7 +19,7 @@
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
 		<LangVersion>latest</LangVersion>
-		<Version>3.2.825</Version>
+		<Version>3.2.830</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
