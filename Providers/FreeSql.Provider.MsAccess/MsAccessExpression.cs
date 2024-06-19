@@ -279,9 +279,9 @@ namespace FreeSql.MsAccess
                         if (args0Value == "NULL") return $"({left}) IS NULL";
                         if (args0Value.Contains("%"))
                         {
-                            if (exp.Method.Name == "StartsWith") return $"instr({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"instr({args0Value}, {left}) = len({args0Value})";
-                            return $"instr({args0Value}, {left}) > 0";
+                            if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}) = len({left})-len({args0Value})+1";
+                            return $"instr({left}, {args0Value}) > 0";
                         }
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value}+'%')")}";
                         if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+{args0Value})")}";

@@ -306,7 +306,7 @@ namespace FreeSql.GBase
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"instr({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"instr({args0Value}, {left}) = char_length({args0Value})";
+                            if (exp.Method.Name == "EndsWith") return $"instr({args0Value}, {left}) = char_length({left})-char_length({args0Value})+1";
                             return $"instr({args0Value}, {left}) > 0";
                         }
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value})||'%'")}";

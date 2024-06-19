@@ -345,10 +345,9 @@ namespace FreeSql.QuestDb
                         if (args0Value == "NULL") return $"({left}) IS NULL";
                         if (args0Value.Contains("%"))
                         {
-                            if (exp.Method.Name == "StartsWith") return $"strpos({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith")
-                                return $"strpos({args0Value}, {left}) = length({args0Value})";
-                            return $"strpos({args0Value}, {left}) > 0";
+                            if (exp.Method.Name == "StartsWith") return $"strpos({left}, {args0Value}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"strpos({left}, {args0Value}) = length({left})-length({args0Value})+1";
+                            return $"strpos({left}, {args0Value}) > 0";
                         }
 
                         var likeOpt = "LIKE";

@@ -339,7 +339,7 @@ namespace FreeSql.Custom.SqlServer
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"charindex({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"charindex({args0Value}, {left}) = len({args0Value})";
+                            if (exp.Method.Name == "EndsWith") return $"charindex({args0Value}, {left}) = len({left})-len({args0Value})+1";
                             return $"charindex({args0Value}, {left}) > 0";
                         }
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar(max))+'%')")}";

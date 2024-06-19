@@ -318,9 +318,9 @@ namespace FreeSql.Odbc.Dameng
                         if (args0Value == "NULL") return $"({left}) IS NULL";
                         if (args0Value.Contains("%"))
                         {
-                            if (exp.Method.Name == "StartsWith") return $"instr({args0Value}, {left}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"instr({args0Value}, {left}) = length({args0Value})";
-                            return $"instr({args0Value}, {left}) > 0";
+                            if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}, 1, 1) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}, 1, 1) = length({left})-length({args0Value})+1";
+                            return $"instr({left}, {args0Value}, 1, 1) > 0";
                         }
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(to_char({args0Value})||'%')")}";
                         if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'||to_char({args0Value}))")}";
