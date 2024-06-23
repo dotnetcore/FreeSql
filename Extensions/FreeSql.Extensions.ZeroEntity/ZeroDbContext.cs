@@ -84,6 +84,16 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             }
         }
 
+        /// <summary>
+        /// 初始化一个 ZeroDbContext 对象，暂不指定任何Schema
+        /// </summary>
+        /// <param name="orm"></param>
+        public ZeroDbContext(IFreeSql orm)
+        {
+            _orm = orm;
+            _tables = new List<ZeroTableInfo>();
+        }
+
         public SchemaValidationResult ValidateSchema(IEnumerable<TableDescriptor> schemas)
         {
             try
