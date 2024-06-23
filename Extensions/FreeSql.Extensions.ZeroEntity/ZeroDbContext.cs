@@ -105,6 +105,13 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 _orm.CodeFirst.SyncStructure(table, table.DbName, false);
         }
 
+        public void SyncStructure(TableDescriptor[] schemas)
+        {
+            _tables = ValidateSchemaToInfoInternal(_orm, schemas);
+            foreach (var table in _tables)
+                _orm.CodeFirst.SyncStructure(table, table.DbName, false);
+        }
+
         /// <summary>
         /// 同步指定表结构
         /// </summary>
