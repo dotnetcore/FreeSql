@@ -6,7 +6,7 @@ namespace FreeSql.Extensions.ZeroEntity.Models
 {
     public class SchemaValidationResult
     {
-        public readonly static SchemaValidationResult _schemaValidationResult = new SchemaValidationResult();
+        public readonly static SchemaValidationResult _schemaValidationResult = new SchemaValidationResult("");
 
         public static SchemaValidationResult SuccessedResult => _schemaValidationResult;
 

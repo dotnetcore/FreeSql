@@ -4,6 +4,27 @@
         <name>FreeSql.Extensions.ZeroEntity</name>
     </assembly>
     <members>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.#ctor(IFreeSql,FreeSql.Extensions.ZeroEntity.TableDescriptor[],System.Boolean)">
+            <summary>
+            创建新的ZeroDbCotext实例
+            </summary>
+            <param name="orm">IfreeSql 对象</param>
+            <param name="schemas">动态表结构描述</param>
+            <param name="syncStructure">是否强制同步表结构</param>
+            <exception cref="T:FreeSql.Extensions.ZeroEntity.Models.SchemaValidationResult"> Schema 未验证通过时抛出验证异常</exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.#ctor(IFreeSql)">
+            <summary>
+            初始化一个 ZeroDbContext 对象，暂不指定任何Schema
+            </summary>
+            <param name="orm"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SyncTableStructure(System.String)">
+            <summary>
+            同步指定表结构
+            </summary>
+            <param name="name"></param>
+        </member>
         <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.Select">
             <summary>
             【有状态管理】自动 Include 查询
