@@ -505,7 +505,7 @@ namespace FreeSql.Internal.CommonProvider
             if (transaction == null && connection == null)
             {
                 //读写分离规则
-                if (this.SlavePools.Any() && IsFromSlave(cmdText))
+                if (this.SlavePools.Any() && IsFromSlave(cmdText, cmdType))
                 {
                     var availables = slaveUnavailables == 0 ?
                         //查从库

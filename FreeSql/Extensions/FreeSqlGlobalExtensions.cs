@@ -833,7 +833,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
 #endif
 
         var nsselsb = new StringBuilder();
-        if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(' '); //读写分离规则，如果强制读主库，则在前面加个空格
+        if (AdoProvider.IsFromSlave(select._select, CommandType.Text) == false) nsselsb.Append(' '); //读写分离规则，如果强制读主库，则在前面加个空格
         nsselsb.Append("WITH ");
         switch (select._orm.Ado.DataType)
         {
