@@ -619,6 +619,14 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var sqlt001 = fsql.Select<User1>()
+                .Where(u => u.Id == Guid.Empty)
+                .ToSql(u => u.GroupId / (u.Sort * 60));
+
+            sqlt001 = fsql.Select<User1>()
+                .Where(u => u.Id == Guid.Empty)
+                .ToSql(u => u.GroupId - (u.Sort + 2));
+
             var enumToString = fsql.Select<JoinTest01>().First(s => new
             {
                 State = ((int)s.JoinTest01Enum2).ToString()

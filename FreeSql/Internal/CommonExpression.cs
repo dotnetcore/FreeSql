@@ -946,10 +946,11 @@ namespace FreeSql.Internal
             if (right == "NULL") oper = oper == "=" ? " IS " : " IS NOT ";
             switch (oper)
             {
-                case "%": return _common.Mod(left, right, leftExp.Type, rightExp.Type);
+                case "*": return $"({left} {oper} {right})";
+                case "%": return $"({_common.Mod(left, right, leftExp.Type, rightExp.Type)})";
                 case "/":
-                    if (leftExp.Type.IsIntegerType() && rightExp.Type.IsIntegerType()) return _common.Div(left, right, leftExp.Type, rightExp.Type);
-                    break;
+                    if (leftExp.Type.IsIntegerType() && rightExp.Type.IsIntegerType()) return $"({_common.Div(left, right, leftExp.Type, rightExp.Type)})";
+                    return $"({left} {oper} {right})";
                 case "AND":
                 case "OR":
                     if (leftMapColumn != null) left = $"{left} = {formatSql(true, leftMapColumn.Attribute.MapType, null, null)}";
