@@ -1144,6 +1144,19 @@ SELECT ");
             _updateProvider._tempPrimarys = GetPrimarys(_updateProvider._table, primarys);
             return this;
         }
+        /// <summary>
+        /// 原生sql语法条件，Where("col = @xxx", new { xxx = 1 })<para></para>
+        /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+        /// </summary>
+        /// <param name="sql">sql语法条件</param>
+        /// <param name="parms">参数</param>
+        /// <returns></returns>
+        public UpdateDictImpl Where(string sql, object parms = null)
+        {
+            _updateProvider.Where(sql, parms);
+            return this;
+        }
+
         public static ColumnInfo[] GetPrimarys(TableInfo table, params string[] primarys)
         {
             if (primarys?.Any() != true) throw new ArgumentException(nameof(primarys));
@@ -1318,6 +1331,19 @@ SELECT ");
         public DeleteDictImpl AsTable(string tableName)
         {
             _deleteProvider.AsTable(tableName);
+            return this;
+        }
+
+        /// <summary>
+        /// 原生sql语法条件，Where("col = @xxx", new { xxx = 1 })<para></para>
+        /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+        /// </summary>
+        /// <param name="sql">sql语法条件</param>
+        /// <param name="parms">参数</param>
+        /// <returns></returns>
+        public DeleteDictImpl Where(string sql, object parms = null)
+        {
+            _deleteProvider.Where(sql, parms);
             return this;
         }
 

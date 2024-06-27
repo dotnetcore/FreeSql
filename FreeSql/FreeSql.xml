@@ -6112,6 +6112,24 @@
             <param name="source"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.UpdateDictImpl.Where(System.String,System.Object)">
+            <summary>
+            原生sql语法条件，Where("col = @xxx", new { xxx = 1 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="sql">sql语法条件</param>
+            <param name="parms">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.DeleteDictImpl.Where(System.String,System.Object)">
+            <summary>
+            原生sql语法条件，Where("col = @xxx", new { xxx = 1 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="sql">sql语法条件</param>
+            <param name="parms">参数</param>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式
