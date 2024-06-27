@@ -13,10 +13,15 @@ namespace FreeSql
         /// </summary>
         AsIndex,
 
-        
+
         /// <summary>
         /// 使用属性名作为字段别名
         /// </summary>
-        AsProperty
+        AsProperty,
+
+        /// <summary>
+        /// 没有字段别名
+        /// </summary>
+        AsEmpty,
     }
 }
