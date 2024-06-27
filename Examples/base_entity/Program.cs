@@ -619,6 +619,10 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            
+            fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID }).Count();
+
+
             var sqlt001 = fsql.Select<User1>()
                 .Where(u => u.Id == Guid.Empty)
                 .ToSql(u => u.GroupId / (u.Sort * 60));
@@ -3266,4 +3270,13 @@ public partial class ProjectItem
 
 
 
+}
+
+[Table(Name = "t_account")]
+public class Account
+{
+    [Column(Name = "FID")]
+    public int ID { get; set; }
+    [Column(Name = "FName")]
+    public string Name { get; set; }
 }

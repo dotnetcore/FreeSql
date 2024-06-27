@@ -2057,7 +2057,7 @@
         </member>
         <member name="F:FreeSql.FieldAliasOptions.AsEmpty">
             <summary>
-            没有别名
+            没有字段别名
             </summary>
         </member>
         <member name="M:FreeSql.ISelect0`2.Cancel(System.Func{System.Boolean})">
