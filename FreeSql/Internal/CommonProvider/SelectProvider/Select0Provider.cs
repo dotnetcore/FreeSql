@@ -444,7 +444,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName :
-             (fieldAlias == FieldAliasOptions.AsIndex ? 0 : CommonExpression.ReadAnonymousFieldAsCsNameGroupBy);
+             (fieldAlias == FieldAliasOptions.AsEmpty ? CommonExpression.ReadAnonymousFieldAsCsNameGroupBy : 0);
 
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
