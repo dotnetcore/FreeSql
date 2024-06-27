@@ -443,7 +443,8 @@ namespace FreeSql.Internal.CommonProvider
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
-            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
+            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName :
+             (fieldAlias == FieldAliasOptions.AsEmpty ? CommonExpression.ReadAnonymousFieldAsCsNameGroupBy : 0);
 
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
@@ -1362,7 +1363,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 var countField = "1";
-                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsProperty).field}";
+                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsEmpty).field}";
                 return this.ToList<int>($"count({countField}){_commonUtils.FieldAsAlias("as1")}").Sum(); //这里的 Sum 为了分表查询
             }
             finally
@@ -1425,7 +1426,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 var countField = "1";
-                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsProperty).field}";
+                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsEmpty).field}";
                 return (await this.ToListAsync<int>($"count({countField}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum(); //这里的 Sum 为了分表查询
             }
             finally

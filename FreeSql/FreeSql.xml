@@ -2055,6 +2055,11 @@
             使用属性名作为字段别名
             </summary>
         </member>
+        <member name="F:FreeSql.FieldAliasOptions.AsEmpty">
+            <summary>
+            没有别名
+            </summary>
+        </member>
         <member name="M:FreeSql.ISelect0`2.Cancel(System.Func{System.Boolean})">
             <summary>
             控制取消本次查询<para></para>
