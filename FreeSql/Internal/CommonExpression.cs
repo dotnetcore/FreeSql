@@ -1194,7 +1194,10 @@ namespace FreeSql.Internal
                     {
                         switch (exp3.Method.Name)
                         {
-                            case "Count": return exp3.Arguments.Count == 0 ? "count(1)" : $"count({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
+                            case "Count":
+                                if (exp3.Arguments.Count == 0) return "count(1)";
+                                if (exp3.Arguments[0].Type == typeof(bool)) return $"sum({_common.IIF(ExpressionLambdaToSql(exp3.Arguments[0], tsc), "1", "0")})";
+                                return $"count({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Sum": return $"sum({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Avg": return $"avg({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Max": return $"max({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";

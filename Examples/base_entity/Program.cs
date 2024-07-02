@@ -619,7 +619,18 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            
+
+            var sqlc001 = fsql.Select<User1>()
+                .GroupBy(a => a.GroupId)
+                .ToSql(g => new
+                {
+                    cou1 = g.Count(),
+                    cou2 = g.Count(g.Value.Nickname),
+                    cou3 = g.Count(g.Value.Nickname == "xx"),
+                    cou4 = g.Count(g.Value.Sort > 50),
+                    cou5 = g.Count(g.Value.Sort > 50 || g.Value.Username == "xx"),
+                });
+
             fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID }).Count();
 
 
