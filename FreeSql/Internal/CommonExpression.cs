@@ -270,14 +270,16 @@ namespace FreeSql.Internal
                         if (diymemexp != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
                             field.Append(diymemexp._field);
-                            // string dbNestedField = null;
                             if (diymemexp._map.Childs.Any() == false) //处理 GroupBy(a => a.Title) ToSql(g => new { tit = a.Key }, FieldAliasOptions.AsProperty) 问题
                             {
                                 LocalSetFieldAlias(parent, ref index, false);
                             }
                             var parentProp = parent.Property;
+                            var dbNestedField = parent.DbNestedField;
                             diymemexp._map.CopyTo(parent); //可能会清空 parent.DbNestedField、CsName 值
                             parent.Property = parentProp; //若不加此行，会引用 GroupBy(..).ToList(a => new Dto { key = a.Key }) null 错误，CopyTo 之后 Property 变为 null
+                            if (string.IsNullOrWhiteSpace(dbNestedField) == false)
+                                parent.DbNestedField = dbNestedField;
                             return false;
                         }
                         if (parent.CsType == null) parent.CsType = exp.Type;
