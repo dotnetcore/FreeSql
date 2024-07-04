@@ -64,29 +64,30 @@ namespace FreeSql.Internal
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select,
             BaseDiyMemberExpression diymemexp, List<GlobalFilter.Item> whereGlobalFilter, List<string> findIncludeMany, List<Expression> findSubSelectMany, bool isAllDtoMap)
         {
-            void LocalSetFieldAlias(ref int localIndex, bool isdiymemexp)
+            void LocalSetFieldAlias(ReadAnonymousTypeInfo typeInfo, ref int localIndex, bool isdiymemexp)
             {
                 if (localIndex >= 0)
                 {
-                    parent.DbNestedField = $"as{++localIndex}";
-                    field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                    typeInfo.DbNestedField = $"as{++localIndex}";
+                    field.Append(_common.FieldAsAlias(typeInfo.DbNestedField));
                 }
                 else if (isdiymemexp && diymemexp?.ParseExpMapResult != null)
                 {
-                    parent.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
-                    if (EndsWithDbNestedField(parent.DbField, $" {parent.DbNestedField}") == false && //#1510 group by 产生的 DbField 自带 alias，因此需要此行判断
-                        string.IsNullOrEmpty(parent.CsName) == false && localIndex == ReadAnonymousFieldAsCsName)
+                    typeInfo.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
+                    if (EndsWithDbNestedField(typeInfo.DbField, $" {typeInfo.DbNestedField}") == false && //#1510 group by 产生的 DbField 自带 alias，因此需要此行判断
+                        string.IsNullOrEmpty(typeInfo.CsName) == false && localIndex == ReadAnonymousFieldAsCsName)
                     {
-                        parent.DbNestedField = GetFieldAsCsName(parent.CsName);
-                        if (EndsWithDbNestedField(parent.DbField, parent.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
-                            field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                        typeInfo.DbNestedField = GetFieldAsCsName(typeInfo.CsName);
+                        if (EndsWithDbNestedField(typeInfo.DbField, typeInfo.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
+                            field.Append(_common.FieldAsAlias(typeInfo.DbNestedField));
                     }
                 }
-                else if (string.IsNullOrEmpty(parent.CsName) == false)
+                else if (string.IsNullOrEmpty(typeInfo.CsName) == false)
                 {
-                    parent.DbNestedField = GetFieldAsCsName(parent.CsName);
-                    if (localIndex == ReadAnonymousFieldAsCsName && EndsWithDbNestedField(parent.DbField, parent.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
-                        field.Append(_common.FieldAsAlias(parent.DbNestedField));
+                    typeInfo.DbNestedField = GetFieldAsCsName(typeInfo.CsName);
+                    var dbField = typeInfo.DbField ?? diymemexp?._field;
+                    if (localIndex == ReadAnonymousFieldAsCsName && EndsWithDbNestedField(dbField, typeInfo.DbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
+                        field.Append(_common.FieldAsAlias(typeInfo.DbNestedField));
                 }
             }
             var isGroupAddField = true;
@@ -112,7 +113,7 @@ namespace FreeSql.Internal
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index, false);
+                    LocalSetFieldAlias(parent, ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Convert: return ReadAnonymousField(_tables, _tableRule, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
@@ -131,7 +132,7 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index, false);
+                    LocalSetFieldAlias(parent, ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Conditional:
@@ -160,7 +161,7 @@ namespace FreeSql.Internal
                     else
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                     field.Append(", ").Append(parent.DbField);
-                    LocalSetFieldAlias(ref index, false);
+                    LocalSetFieldAlias(parent, ref index, false);
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Parameter:
@@ -187,11 +188,7 @@ namespace FreeSql.Internal
                                     if (withTempQueryParser != null)
                                         child.DbField = $"{withTempQueryParser.ParseExpMatchedTable.Alias}.{child.DbNestedField}";
                                     field.Append(", ").Append(child.DbField);
-                                    if (index >= 0)
-                                    {
-                                        child.DbNestedField = $"as{++index}";
-                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
-                                    }
+                                    LocalSetFieldAlias(child, ref index, false);
                                 }
                                 return false;
                             }
@@ -213,11 +210,7 @@ namespace FreeSql.Internal
                                 MapType = map[idx].Column.Attribute.MapType
                             };
                             field.Append(", ").Append(_common.RereadColumn(map[idx].Column, child.DbField));
-                            if (index >= 0)
-                            {
-                                child.DbNestedField = $"as{++index}";
-                                field.Append(_common.FieldAsAlias(child.DbNestedField));
-                            }
+                            LocalSetFieldAlias(child, ref index, false);
                             parent.Childs.Add(child);
                         }
                         if (_tables?.Count > 1)
@@ -277,26 +270,14 @@ namespace FreeSql.Internal
                         if (diymemexp != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
                             field.Append(diymemexp._field);
-                            string dbNestedField = null;
+                            // string dbNestedField = null;
                             if (diymemexp._map.Childs.Any() == false) //处理 GroupBy(a => a.Title) ToSql(g => new { tit = a.Key }, FieldAliasOptions.AsProperty) 问题
                             {
-                                if (index >= 0)
-                                {
-                                    dbNestedField = $"as{++index}";
-                                    field.Append(_common.FieldAsAlias(dbNestedField));
-                                }
-                                else if (string.IsNullOrEmpty(parent.CsName) == false)
-                                {
-                                    dbNestedField = GetFieldAsCsName(parent.CsName);
-                                    if (index == ReadAnonymousFieldAsCsName && EndsWithDbNestedField(diymemexp._field, dbNestedField) == false) //DbField 和 CsName 相同的时候，不处理
-                                        field.Append(_common.FieldAsAlias(dbNestedField));
-                                }
+                                LocalSetFieldAlias(parent, ref index, false);
                             }
                             var parentProp = parent.Property;
                             diymemexp._map.CopyTo(parent); //可能会清空 parent.DbNestedField、CsName 值
                             parent.Property = parentProp; //若不加此行，会引用 GroupBy(..).ToList(a => new Dto { key = a.Key }) null 错误，CopyTo 之后 Property 变为 null
-                            if (string.IsNullOrWhiteSpace(dbNestedField) == false)
-                                parent.DbNestedField = dbNestedField;
                             return false;
                         }
                         if (parent.CsType == null) parent.CsType = exp.Type;
@@ -310,7 +291,7 @@ namespace FreeSql.Internal
                                 if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
                             }
                             field.Append(", ").Append(pdbfield);
-                            LocalSetFieldAlias(ref index, _tables != null ||
+                            LocalSetFieldAlias(parent, ref index, _tables != null ||
                                 SelectGroupingProvider._ParseExpOnlyDbField.Value != pdbfield);
                         }
                         finally
@@ -373,11 +354,7 @@ namespace FreeSql.Internal
                                                     diychild.DbField = $"{dtTb.Alias}.{diymemexp.ParseExpMapResult.DbNestedField}";
                                                     diychild.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
                                                     field.Append(", ").Append(diychild.DbField);
-                                                    if (index >= 0)
-                                                    {
-                                                        diychild.DbNestedField = $"as{++index}";
-                                                        field.Append(_common.FieldAsAlias(diychild.DbNestedField));
-                                                    }
+                                                    LocalSetFieldAlias(diychild, ref index, false);
                                                     isBreaked = true;
                                                     break;
                                                 }
@@ -407,11 +384,7 @@ namespace FreeSql.Internal
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
                                     child.DbNestedField = _common.QuoteSqlName(trydtocol.Attribute.Name);
                                     field.Append(", ").Append(_common.RereadColumn(trydtocol, child.DbField));
-                                    if (index >= 0)
-                                    {
-                                        child.DbNestedField = $"as{++index}";
-                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
-                                    }
+                                    LocalSetFieldAlias(child, ref index, false);
                                 }
                                 break;
                             }
@@ -505,11 +478,7 @@ namespace FreeSql.Internal
                                                     diychild.DbField = $"{dtTb.Alias}.{diymemexp.ParseExpMapResult.DbNestedField}";
                                                     diychild.DbNestedField = diymemexp.ParseExpMapResult.DbNestedField;
                                                     field.Append(", ").Append(diychild.DbField);
-                                                    if (index >= 0)
-                                                    {
-                                                        diychild.DbNestedField = $"as{++index}";
-                                                        field.Append(_common.FieldAsAlias(diychild.DbNestedField));
-                                                    }
+                                                    LocalSetFieldAlias(diychild, ref index, false);
                                                     isBreaked = true;
                                                     break;
                                                 }
@@ -538,11 +507,7 @@ namespace FreeSql.Internal
                                     child.DbField = _common.RereadColumn(trydtocol, $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}");
                                     child.DbNestedField = _common.QuoteSqlName(trydtocol.Attribute.Name);
                                     field.Append(", ").Append(child.DbField);
-                                    if (index >= 0)
-                                    {
-                                        child.DbNestedField = $"as{++index}";
-                                        field.Append(_common.FieldAsAlias(child.DbNestedField));
-                                    }
+                                    LocalSetFieldAlias(child, ref index, false);
                                 }
                                 break;
                             }
@@ -553,7 +518,7 @@ namespace FreeSql.Internal
             }
             parent.DbField = ExpressionLambdaToSql(exp, getTSC()); //解决 new { a = id + 1 } 翻译后 ((id+1)) 问题
             field.Append(", ").Append(parent.DbField);
-            LocalSetFieldAlias(ref index, false);
+            LocalSetFieldAlias(parent, ref index, false);
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
             if (isGroupAddField == false && isGroupAddFieldProvider != null) isGroupAddFieldProvider._addFieldAlias = true;
             return false;
