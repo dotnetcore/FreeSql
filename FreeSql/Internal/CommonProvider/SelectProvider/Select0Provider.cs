@@ -877,7 +877,7 @@ namespace FreeSql.Internal.CommonProvider
                 DateTime? DateTimeAsTableImplStart = null, DateTimeAsTableImplEnd = null;
                 string[] LocalGetTableNames(SelectTableInfo tb)
                 {
-                    var trname = trs[0](tb.Table.Type, tb.Table.AsTableImpl != null ? null : tb.Table.DbName);
+                    var trname = trs[0](tb.Table.Type, tb.Table.AsTableImpl != null ? null : _commonUtils.GetEntityTableAopName(tb.Table, false));
                     if (tb.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trname) == true)
                     {
                         var aret = tb.Table.AsTableImpl.GetTableNamesBySqlWhere(_where.Length == 0 ? null : _where.ToString(), _params, tb, _commonUtils);

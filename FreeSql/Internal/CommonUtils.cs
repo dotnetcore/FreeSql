@@ -134,6 +134,35 @@ namespace FreeSql.Internal
             return dicConfigEntity.TryGetValue(type, out var trytb) ? trytb : null;
         }
 
+        public string GetEntityTableAopName(TableInfo table, bool flag1)
+        {
+            if (table != null && _orm.Aop.ConfigEntityHandler != null && _mappingPriorityTypes.LastOrDefault() == MappingPriorityType.Aop)
+            {
+                var newname = table.DbName;
+                var aope = new Aop.ConfigEntityEventArgs(table.Type)
+                {
+                    ModifyResult = new TableAttribute
+                    {
+                        Name = table.DbName,
+                        _DisableSyncStructure = table.DisableSyncStructure,
+                    }
+                };
+                _orm.Aop.ConfigEntityHandler(_orm, aope);
+                var tryattr = aope.ModifyResult;
+                if (!string.IsNullOrEmpty(tryattr.Name)) newname = tryattr.Name;
+
+                if (newname == table.DbName) return table.DbName;
+                if (string.IsNullOrEmpty(newname)) return table.DbName;
+                if (flag1)
+                {
+                    if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
+                    if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+                    if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(table.Type, newname);
+                }
+                return newname;
+            }
+            return table?.DbName;
+        }
         public MappingPriorityType[] _mappingPriorityTypes = new[] { MappingPriorityType.Aop, MappingPriorityType.FluentApi, MappingPriorityType.Attribute };
         ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>> dicAopConfigEntityIndex = new ConcurrentDictionary<Type, Dictionary<string, IndexAttribute>>();
         public TableAttribute GetEntityTableAttribute(Type type)
@@ -158,7 +187,7 @@ namespace FreeSql.Internal
                             };
                             _orm.Aop.ConfigEntityHandler(_orm, aope); 
                             var tryattr = aope.ModifyResult;
-                            if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != type.Name) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
                             if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
                             if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
@@ -239,7 +268,7 @@ namespace FreeSql.Internal
                             };
                             _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
                             var tryattr = aope.ModifyResult;
-                            if (!string.IsNullOrEmpty(tryattr.Name) && tryattr.Name != proto.Name) attr.Name = tryattr.Name;
+                            if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
                             if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
                             if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
                             if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;

@@ -565,7 +565,7 @@ namespace base_entity
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 //.UseNameConvert(NameConvertType.ToLower)
-                //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
+                .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
@@ -619,6 +619,18 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Aop.ConfigEntity += (_, e) =>
+            {
+                e.ModifyResult.Name = Guid.NewGuid().ToString("n");
+            };
+
+
+
+            FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(DateTimeOffset), new DateTimeOffsetTypeHandler());
+
+            fsql.Insert(new Account { Name = DateTime.Now.ToString(), Join = DateTimeOffset.Now }).ExecuteAffrows();
+            var dtslist01 = fsql.Select<Account>().As("aaa").Where(p => p.ID >= 1).AsQueryable().Select(p => new { p.Name, p.ID, p.Join }).ToList();
+            fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID, p.Join }).Count();
 
             var sqlc001 = fsql.Select<User1>()
                 .GroupBy(a => a.GroupId)
@@ -631,7 +643,6 @@ namespace base_entity
                     cou5 = g.Count(g.Value.Sort > 50 || g.Value.Username == "xx"),
                 });
 
-            fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID }).Count();
 
 
             var sqlt001 = fsql.Select<User1>()
@@ -3286,8 +3297,22 @@ public partial class ProjectItem
 [Table(Name = "t_account")]
 public class Account
 {
-    [Column(Name = "FID")]
+    [Column(Name = "FID", IsIdentity = true)]
     public int ID { get; set; }
     [Column(Name = "FName")]
     public string Name { get; set; }
+
+    [JsonProperty, Column(Name = "join", DbType = "date", MapType = typeof(string))]  // 数据库类型也可以是datetime
+    public DateTimeOffset Join { get; set; }
+}
+class DateTimeOffsetTypeHandler : TypeHandler<DateTimeOffset>
+{
+    public override object Serialize(DateTimeOffset value)
+    {
+        return value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss");
+    }
+    public override DateTimeOffset Deserialize(object value)
+    {
+        return DateTimeOffset.TryParse((string)value, out var dts) ? dts : DateTimeOffset.MinValue;
+    }
 }
