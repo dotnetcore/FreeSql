@@ -619,12 +619,6 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            fsql.Aop.ConfigEntity += (_, e) =>
-            {
-                e.ModifyResult.Name = Guid.NewGuid().ToString("n");
-            };
-
-
 
             FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(DateTimeOffset), new DateTimeOffsetTypeHandler());
 

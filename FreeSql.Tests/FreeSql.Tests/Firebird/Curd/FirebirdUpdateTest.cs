@@ -146,20 +146,20 @@ namespace FreeSql.Tests.Firebird
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"TITLE\" = @p_0, \"CREATETIME\" = @p_1 WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(coalesce(\"CLICKS\", 0) * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((coalesce(\"CLICKS\", 0) * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             int incrv = 10;
             sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(coalesce(\"CLICKS\", 0) * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((coalesce(\"CLICKS\", 0) * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(\"CLICKS\" * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((\"CLICKS\" * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             var dt2000 = DateTime.Parse("2000-01-01");
             sql = update.Set(a => a.Clicks == (a.CreateTime > dt2000 ? 1 : 2)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
