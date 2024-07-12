@@ -976,20 +976,21 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     if (tb.Type == SelectTableInfoType.Parent) continue;
                     if (dict.ContainsKey(tb.Table.Type)) continue;
-                    var name = tr?.Invoke(tb.Table.Type, tb.Table.DbName);
-                    if (string.IsNullOrEmpty(name)) name = tb.Table.DbName;
+                    var tbname = _commonUtils.GetEntityTableAopName(tb.Table, true);
+                    var newname = tr?.Invoke(tb.Table.Type, tbname);
+                    if (string.IsNullOrEmpty(newname)) newname = tbname;
                     else
                     {
-                        if (name.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                        if (newname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
                         {
-                            if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
-                            if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
-                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
+                            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, newname);
                         }
                         else
-                            name = name.Replace(" \r\n", " \r\n    ");
+                            newname = newname.Replace(" \r\n", " \r\n    ");
                     }
-                    dict.Add(tb.Table.Type, name);
+                    dict.Add(tb.Table.Type, newname);
                 }
                 unions.Add(dict);
             }
