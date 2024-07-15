@@ -91,7 +91,7 @@ namespace FreeSql.Odbc.Default
 partial class FreeSqlOdbcGlobalExtensions
 {
     internal static OdbcAdapter DefaultOdbcAdapter = new OdbcAdapter();
-    internal static ConcurrentDictionary<Guid, OdbcAdapter> _dicOdbcAdater = new ConcurrentDictionary<Guid, OdbcAdapter>();
+    internal static ConcurrentDictionary<Guid, OdbcAdapter> _dicOdbcAdater = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Guid, OdbcAdapter>>();
     public static void SetOdbcAdapter(this IFreeSql that, OdbcAdapter adapter) => _dicOdbcAdater.AddOrUpdate(that.Ado.Identifier, adapter, (fsql, old) => adapter);
     internal static OdbcAdapter GetOdbcAdapter(this IFreeSql that) => _dicOdbcAdater.TryGetValue(that.Ado.Identifier, out var tryada) ? tryada : DefaultOdbcAdapter;
 }

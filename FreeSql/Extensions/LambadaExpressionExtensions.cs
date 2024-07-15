@@ -240,7 +240,6 @@ namespace System.Linq.Expressions
             return test.Result;
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public static bool IsStringJoin(this MethodCallExpression exp, out Expression tolistObjectExpOut, out MethodInfo toListMethodOut, out LambdaExpression toListArgs0Out)
         {
             if (exp.Arguments.Count == 2 &&

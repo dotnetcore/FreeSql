@@ -74,7 +74,7 @@ namespace FreeSql.MySql
                 return ret;
             });
 
-        static ConcurrentDictionary<Type, Dictionary<string, int>> _dicEnumNames = new ConcurrentDictionary<Type, Dictionary<string, int>>();
+        static ConcurrentDictionary<Type, Dictionary<string, int>> _dicEnumNames = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, Dictionary<string, int>>());
         static long EnumValueToMySql(object value) //mysqlConnector 不支持 enumString 作为参数化传递，所以要计算出下标值，mysql 下标从 1 开始，并且 c# 设置了枚举元素值会影响下标
         {
             if (value == null) return 0;

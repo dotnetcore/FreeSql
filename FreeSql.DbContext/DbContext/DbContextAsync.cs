@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace FreeSql
             return SaveChangesSuccess();
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>> _dicFlushCommandDbSetBatchAsync = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>> _dicFlushCommandDbSetBatchAsync = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>>>();
         internal async Task FlushCommandAsync(CancellationToken cancellationToken)
         {
             if (isFlushCommanding) return;

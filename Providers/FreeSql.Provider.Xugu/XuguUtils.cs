@@ -55,16 +55,16 @@ namespace FreeSql.Xugu
             { typeof(ushort).FullName, a => int.Parse(string.Concat(a)) }, { typeof(ushort[]).FullName, a => getParamterArrayValue(typeof(int), a, 0) }, { typeof(ushort?[]).FullName, a => getParamterArrayValue(typeof(int?), a, null) },
             { typeof(byte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(byte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(byte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
             { typeof(sbyte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(sbyte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(sbyte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
-            { typeof(char).FullName, a => string.Concat(a).Replace('\0', ' ').ToCharArray().FirstOrDefault() }, 
+            { typeof(char).FullName, a => string.Concat(a).Replace('\0', ' ').ToCharArray().FirstOrDefault() },
             { typeof(BigInteger).FullName, a => BigInteger.Parse(string.Concat(a), System.Globalization.NumberStyles.Any) }, { typeof(BigInteger[]).FullName, a => getParamterArrayValue(typeof(BigInteger), a, 0) }, { typeof(BigInteger?[]).FullName, a => getParamterArrayValue(typeof(BigInteger?), a, null) },
 
-         
+
             { typeof((IPAddress Address, int Subnet)).FullName, a => {
                 var inet = ((IPAddress Address, int Subnet))a;
                 if (inet.Address == null) return (IPAddress.Any, inet.Subnet);
                 return inet;
-            } }, 
-            { typeof((IPAddress Address, int Subnet)[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)), a, (IPAddress.Any, 0)) }, 
+            } },
+            { typeof((IPAddress Address, int Subnet)[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)), a, (IPAddress.Any, 0)) },
             { typeof((IPAddress Address, int Subnet)?[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)?), a, null) },
         };
         static object getParamterValue(Type type, object value, int level = 0)
@@ -93,17 +93,17 @@ namespace FreeSql.Xugu
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value != null) value = getParamterValue(type, value);
             var ret = new XGParameters { ParameterName = parameterName, Value = value };
-      
-            var tp = _orm.CodeFirst.GetDbInfo(type)?.type; 
+
+            var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (col != null)
             {
                 var dbtype = (XGDbType?)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
                 if (dbtype != null)
-                { 
+                {
                     if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
                     if (col.DbScale != 0) ret.Scale = col.DbScale;
                 }
-            } 
+            }
             _params?.Add(ret);
             return ret;
         }
@@ -113,14 +113,14 @@ namespace FreeSql.Xugu
             {
                 if (value != null) value = getParamterValue(type, value);
                 var ret = new XGParameters { ParameterName = name, Value = value };
-             
+
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-               
+
                 return ret;
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatXuguSQL(args);
- 
+
         public override string TrimQuoteSqlName(string name)
         {
             var nametrim = name.Trim();
@@ -140,12 +140,12 @@ namespace FreeSql.Xugu
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
 
-        static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = new ConcurrentDictionary<Type, bool>();
+        static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, bool>>();
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value)
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-     
+
             value = getParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";

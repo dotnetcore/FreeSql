@@ -76,7 +76,7 @@ namespace FreeSql.Oracle
         public int CheckAvailableInterval { get; set; } = 2;
         public int Weight { get; set; } = 1;
 
-        static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, int> dicConnStrIncr =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase));
         private string _connectionString;
         public string ConnectionString
         {

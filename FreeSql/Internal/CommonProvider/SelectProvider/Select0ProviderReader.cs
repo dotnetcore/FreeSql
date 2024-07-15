@@ -395,7 +395,7 @@ namespace FreeSql.Internal.CommonProvider
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
         protected List<TReturn> ToListMapReader<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivate<TReturn>(af, null);
-        static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
+        static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>());
         public class GetAllFieldExpressionTreeInfo
         {
             public string Field { get; set; }
@@ -760,7 +760,7 @@ namespace FreeSql.Internal.CommonProvider
                                     Expression.Call(retExp, propGetSetMethod, drvalExp),
                                     Expression.Catch(typeof(Exception),
                                         Expression.Call(retExp, propGetSetMethod, Expression.Convert(drvalExpCatch, col.CsType))
-                                        //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
+                                    //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
                                     )));
                             }
                             else
@@ -769,7 +769,7 @@ namespace FreeSql.Internal.CommonProvider
                                     Expression.Call(retExp, propGetSetMethod, drvalExp),
                                     Expression.Catch(typeof(Exception),
                                         Expression.Call(retExp, propGetSetMethod, Expression.Default(col.CsType))
-                                        //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
+                                    //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
                                     )));
                             }
                         }
@@ -1001,7 +1001,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = -10000; //临时规则，不返回 as1
 
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
-            
+
             var childs = map.Childs;
             if (childs.Any() == false) throw new ArgumentException(CoreStrings.InsertInto_No_Property_Selected(typeof(TTargetEntity).DisplayCsharp()));
             foreach (var col in tb.Columns.Values)
@@ -1388,7 +1388,7 @@ namespace FreeSql.Internal.CommonProvider
             return (await ToListQfPrivateAsync<decimal>(sql, field, cancellationToken)).Sum();
         }
 
-        static ConcurrentDictionary<Type, MethodInfo[]> _dicGetMethodsByName = new ConcurrentDictionary<Type, MethodInfo[]>();
+        static ConcurrentDictionary<Type, MethodInfo[]> _dicGetMethodsByName = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, MethodInfo[]>());
         async protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select, CancellationToken cancellationToken)
         {
             //【注意】：此异步有特别逻辑，因为要处理子查询集合 ToList -> ToListAsync，原因是 LambdaExpression 表达式树内不支持 await Async
@@ -1449,7 +1449,8 @@ namespace FreeSql.Internal.CommonProvider
                         return newexpParm;
                     }).ToArray();
                     var newexpCallExp = (newexp as MethodCallExpression);
-                    if (newexpCallExp?.Object != null) {
+                    if (newexpCallExp?.Object != null)
+                    {
                         var asyncMethods = _dicGetMethodsByName.GetOrAdd(newexpCallExp.Object.Type, dgmbn => dgmbn.GetMethods().Where(c => c.Name == $"{newexpCallExp.Method.Name}Async")
                             .Concat(dgmbn.GetInterfaces().SelectMany(b => b.GetMethods().Where(c => c.Name == $"{newexpCallExp.Method.Name}Async"))).ToArray());
                         var asyncMethod = asyncMethods.Length == 1 ? asyncMethods.First() : null;

@@ -40,5 +40,5 @@ public static partial class FreeSqlDbContextExtensions
         _dicSetDbContextOptions.AddOrUpdate(that.Ado.Identifier, cfg, (t, o) => cfg);
         return that;
     }
-    internal static ConcurrentDictionary<Guid, DbContextOptions> _dicSetDbContextOptions = new ConcurrentDictionary<Guid, DbContextOptions>();
+    internal static ConcurrentDictionary<Guid, DbContextOptions> _dicSetDbContextOptions = FreeSql.Internal.Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Guid, DbContextOptions>>();
 }

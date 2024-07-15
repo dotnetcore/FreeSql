@@ -86,11 +86,11 @@ namespace FreeSql.Custom
 public static class FreeSqlCustomAdapterGlobalExtensions
 {
     internal static CustomAdapter DefaultAdapter = new CustomAdapter();
-    internal static ConcurrentDictionary<Guid, CustomAdapter> _dicCustomAdater = new ConcurrentDictionary<Guid, CustomAdapter>();
+    internal static ConcurrentDictionary<Guid, CustomAdapter> _dicCustomAdater = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Guid, CustomAdapter>>();
     public static void SetCustomAdapter(this IFreeSql that, CustomAdapter adapter) => _dicCustomAdater.AddOrUpdate(that.Ado.Identifier, adapter, (fsql, old) => adapter);
     internal static CustomAdapter GetCustomAdapter(this IFreeSql that) => _dicCustomAdater.TryGetValue(that.Ado.Identifier, out var tryada) ? tryada : DefaultAdapter;
 
-    internal static ConcurrentDictionary<Guid, DbProviderFactory> _dicDbProviderFactory = new ConcurrentDictionary<Guid, DbProviderFactory>();
+    internal static ConcurrentDictionary<Guid, DbProviderFactory> _dicDbProviderFactory = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Guid, DbProviderFactory>>();
     public static void SetDbProviderFactory(this IFreeSql that, DbProviderFactory factory) => _dicDbProviderFactory.AddOrUpdate(that.Ado.Identifier, factory, (fsql, old) => factory);
     internal static DbProviderFactory GetDbProviderFactory(this IFreeSql that) => _dicDbProviderFactory.TryGetValue(that.Ado.Identifier, out var trydbpf) ? trydbpf : throw new Exception("需要先设置 fsql.SetDbProviderFactory(..) 方法");
 }

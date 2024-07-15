@@ -10,10 +10,10 @@ using System.Threading;
 public static class FreeSqlJsonMapCoreExtensions
 {
     static int _isAoped = 0;
-    static ConcurrentDictionary<Type, bool> _dicTypes = new ConcurrentDictionary<Type, bool>();
+    static ConcurrentDictionary<Type, bool> _dicTypes =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, bool>>();
     static MethodInfo MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
     static MethodInfo MethodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
-    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicJsonMapFluentApi = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicJsonMapFluentApi =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>>();
     static object _concurrentObj = new object();
 
     public static ColumnFluent JsonMap(this ColumnFluent col)

@@ -213,7 +213,7 @@ namespace FreeSql.Oracle
         }
 #endif
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase));
         static OracleDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {

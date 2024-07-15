@@ -164,7 +164,7 @@ namespace FreeSql.PostgreSQL
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
 
-        static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = new ConcurrentDictionary<Type, bool>();
+        static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<Type, bool>());
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value)
         {
             if (value == null) return "NULL";

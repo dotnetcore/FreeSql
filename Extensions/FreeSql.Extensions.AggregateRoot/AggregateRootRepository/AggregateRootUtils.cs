@@ -18,7 +18,8 @@ namespace FreeSql
 {
     public class AggregateRootUtils
     {
-        static ConcurrentDictionary<PropertyInfo, ConcurrentDictionary<string, AggregateRootBoundaryAttribute>> _dicGetPropertyBoundaryAttribute = new ConcurrentDictionary<PropertyInfo, ConcurrentDictionary<string, AggregateRootBoundaryAttribute>>();
+        static ConcurrentDictionary<PropertyInfo, ConcurrentDictionary<string, AggregateRootBoundaryAttribute>> _dicGetPropertyBoundaryAttribute
+            = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<PropertyInfo, ConcurrentDictionary<string, AggregateRootBoundaryAttribute>>>();
         public static AggregateRootBoundaryAttribute GetPropertyBoundaryAttribute(PropertyInfo prop, string boundaryName)
         {
             if (boundaryName == null) return null;
@@ -161,7 +162,7 @@ namespace FreeSql
                     {
                         if (dictAfter.ContainsKey(key) == false)
                             dictAfter.Add(key, item);
-                        else if (key == "0" && table.Primarys.Length == 1 && 
+                        else if (key == "0" && table.Primarys.Length == 1 &&
                             new[] { typeof(long), typeof(int) }.Contains(table.Primarys[0].CsType))
                             tracking.InsertLog.Add(NativeTuple.Create(elementType, item));
                     }
@@ -215,8 +216,9 @@ namespace FreeSql
             if (propvalBefore == null && propvalAfter != null) return false;
             if (propvalBefore != null && propvalAfter == null) return false;
 
-            if (FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(type)) {
-                if (type.FullName.StartsWith("Newtonsoft.")) 
+            if (FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(type))
+            {
+                if (type.FullName.StartsWith("Newtonsoft."))
                     return object.Equals(propvalBefore.ToString(), propvalAfter.ToString());
 
                 if (typeof(IDictionary).IsAssignableFrom(type))
@@ -261,7 +263,7 @@ namespace FreeSql
 
                 if (type.FullName.StartsWith("System.") ||
                     type.FullName.StartsWith("Npgsql.") ||
-                    type.FullName.StartsWith("NetTopologySuite.")) 
+                    type.FullName.StartsWith("NetTopologySuite."))
                     return object.Equals(propvalBefore, propvalAfter);
 
                 if (type.IsClass)
@@ -434,7 +436,8 @@ namespace FreeSql
             }
         }
 
-        static ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>> _dicGetAutoIncludeQuery = new ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>>();
+        static ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>> _dicGetAutoIncludeQuery 
+            = Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<string, ConcurrentDictionary<Type, ConcurrentDictionary<Type, Action<ISelect0>>>>>();
         public static ISelect<TEntity> GetAutoIncludeQuery<TEntity>(string boundaryName, ISelect<TEntity> select)
         {
             var select0p = select as Select0Provider;
@@ -644,8 +647,8 @@ namespace FreeSql
                 case TableRefType.ManyToOne:
                     for (var idx = 0; idx < tbref.RefColumns.Count; idx++)
                     {
-                        var colval = rightItem == null ? 
-                            tbref.Columns[idx].CsType.CreateInstanceGetDefaultValue() : 
+                        var colval = rightItem == null ?
+                            tbref.Columns[idx].CsType.CreateInstanceGetDefaultValue() :
                             Utils.GetDataReaderValue(tbref.Columns[idx].CsType, EntityUtilExtensions.GetEntityValueWithPropertyName(orm, tbref.RefEntityType, rightItem, tbref.RefColumns[idx].CsName));
                         EntityUtilExtensions.SetEntityValueWithPropertyName(orm, leftType, leftItem, tbref.Columns[idx].CsName, colval);
                     }

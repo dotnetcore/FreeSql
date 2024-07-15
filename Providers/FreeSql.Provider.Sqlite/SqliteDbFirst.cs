@@ -105,7 +105,7 @@ namespace FreeSql.Sqlite
             throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = Utils.GlobalCacheFactory.CreateCacheItem(new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase));
         static SqliteDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {

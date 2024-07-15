@@ -20,7 +20,7 @@ public class MessagePackMap01
     [Key(0)]
     public string name { get; set; }
     [Key(1)]
-    public string address { get;set; }
+    public string address { get; set; }
 }
 
 namespace FreeSql.DataAnnotations
@@ -31,10 +31,10 @@ namespace FreeSql.DataAnnotations
 public static class FreeSqlMessagePackMapCoreExtensions
 {
     internal static int _isAoped = 0;
-    static ConcurrentDictionary<Type, bool> _dicTypes = new ConcurrentDictionary<Type, bool>();
+    static ConcurrentDictionary<Type, bool> _dicTypes =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, bool>>();
     static MethodInfo MethodMessagePackSerializerDeserialize = typeof(MessagePackSerializer).GetMethod("Deserialize", new[] { typeof(Type), typeof(ReadOnlyMemory<byte>), typeof(MessagePackSerializerOptions), typeof(CancellationToken) });
     static MethodInfo MethodMessagePackSerializerSerialize = typeof(MessagePackSerializer).GetMethod("Serialize", new[] { typeof(Type), typeof(object), typeof(MessagePackSerializerOptions), typeof(CancellationToken) });
-    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMessagePackMapFluentApi = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+    static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMessagePackMapFluentApi =FreeSql.Internal. Utils.GlobalCacheFactory.CreateCacheItem<ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>>();
     static object _concurrentObj = new object();
 
     public static ColumnFluent MessagePackMap(this ColumnFluent col)
@@ -55,7 +55,7 @@ public static class FreeSqlMessagePackMapCoreExtensions
         {
             FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
             {
-                if (_dicTypes.ContainsKey(type)) 
+                if (_dicTypes.ContainsKey(type))
                     return Expression.IfThenElse(
                     Expression.TypeIs(valueExp, type),
                     Expression.Return(returnTarget, valueExp),
