@@ -533,32 +533,6 @@
             <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.Enable(System.String[])">
-            <summary>
-            开启过滤器，若使用 using 则使用完后，恢复为原有状态
-            </summary>
-            <param name="filterName">过滤器名称</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDataFilter`1.EnableAll">
-            <summary>
-            开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDataFilter`1.Disable(System.String[])">
-            <summary>
-            禁用过滤器，若使用 using 则使用完后，恢复为原有状态
-            </summary>
-            <param name="filterName"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDataFilter`1.DisableAll">
-            <summary>
-            禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
             <summary>
             动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
@@ -826,12 +800,11 @@
             <param name="that"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
             <summary>
             批量注入 Repository，可以参考代码自行调整
             </summary>
             <param name="services"></param>
-            <param name="globalDataFilter"></param>
             <param name="assemblies"></param>
             <returns></returns>
         </member>

@@ -39,7 +39,6 @@ namespace FreeSql
     public interface IBaseRepository<TEntity> : IBaseRepository
         where TEntity : class
     {
-        IDataFilter<TEntity> DataFilter { get; }
         ISelect<TEntity> Select { get; }
 
         ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp);

@@ -17,26 +17,12 @@ namespace FreeSql
         internal RepositoryDbSet<TEntity> _dbsetPriv;
         internal RepositoryDbSet<TEntity> _dbset => _dbsetPriv ?? (_dbsetPriv = _db.Set<TEntity>() as RepositoryDbSet<TEntity>);
 
-        public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
         internal Func<Type, string, string> _asTablePriv;
-
-        protected void ApplyDataFilter(string name, Expression<Func<TEntity, bool>> exp) => DataFilter.Apply(name, exp);
 
         protected BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null)
         {
             _ormScoped = DbContextScopedFreeSql.Create(fsql, () => _db, () => UnitOfWork);
-            DataFilterUtil.SetRepositoryDataFilter(this, null);
-            DataFilter.Apply("", filter);
             AsTable(asTable);
-
-            fsql?.GlobalFilter?.GetAllFilters().ForEach(gf =>
-            {
-                (DataFilter as DataFilter<TEntity>)._filtersByOrm.TryAdd(gf.Name, new DataFilter<TEntity>.FilterItemByOrm
-                {
-                    Filter = gf,
-                    IsEnabled = true
-                });
-            });
         }
 
         ~BaseRepository() => this.Dispose();
@@ -48,7 +34,6 @@ namespace FreeSql
             {
                 _dbsetPriv?.Dispose();
                 _dbPriv?.Dispose();
-                this.DataFilter?.Dispose();
             }
             finally
             {
