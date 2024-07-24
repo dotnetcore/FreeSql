@@ -11,9 +11,10 @@ partial class FreeSqlDbContextExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="that"></param>
     /// <returns></returns>
-    public static IBaseRepository<TEntity> GetRepository<TEntity>(this IFreeSql that) where TEntity : class
+    public static IBaseRepository<TEntity> GetRepository<TEntity>(this IFreeSql that) where TEntity : class => GetRepository<TEntity, int>(that);
+    public static IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>(this IFreeSql that) where TEntity : class
     {
-        return new DefaultRepository<TEntity, int>(that);
+        return new DefaultRepository<TEntity, TKey>(that);
     }
 
     /// <summary>

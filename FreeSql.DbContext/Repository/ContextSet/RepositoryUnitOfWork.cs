@@ -21,9 +21,10 @@ namespace FreeSql
         {
         }
 
-        public IBaseRepository<TEntity> GetRepository<TEntity>() where TEntity : class
+        public IBaseRepository<TEntity> GetRepository<TEntity>() where TEntity : class => GetRepository<TEntity, int>();
+        public IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class
         {
-            var repo = new DefaultRepository<TEntity, int>(_fsql);
+            var repo = new DefaultRepository<TEntity, TKey>(_fsql);
             repo.UnitOfWork = this;
             return repo;
         }

@@ -614,7 +614,7 @@ namespace FreeSql.Tests
         {
             g.sqlite.Insert(new AddUpdateInfo()).ExecuteAffrows();
 
-            var repos = g.sqlite.GetGuidRepository<object>();
+            var repos = g.sqlite.GetRepository<object, Guid>();
             repos.AsType(typeof(AddUpdateInfo));
 
             var item = new AddUpdateInfo();
@@ -627,7 +627,6 @@ namespace FreeSql.Tests
             var item2 = repos.Find(item.Id) as AddUpdateInfo;
             Assert.Equal(item.Clicks, item2.Clicks);
 
-            repos.DataFilter.Apply("xxx", a => (a as AddUpdateInfo).Clicks == 2);
             Assert.Null(repos.Find(item.Id));
         }
 

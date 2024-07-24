@@ -162,18 +162,5 @@ namespace FreeSql
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.InsertOrUpdate(this as TEntity);
         }
-
-        /// <summary>
-        /// To completely save the navigation properties of the entity in the form of sub-tables. <br />
-        /// 【完整】保存导航属性，子表
-        /// </summary>
-        /// <param name="navigatePropertyName">Navigation property name</param>
-        public virtual void SaveMany(string navigatePropertyName)
-        {
-            if (Repository == null) 
-                Repository = Orm.GetRepository<TEntity>();
-            Repository.UnitOfWork = _resolveUow?.Invoke();
-            Repository.SaveMany(this as TEntity, navigatePropertyName);
-        }
     }
 }
