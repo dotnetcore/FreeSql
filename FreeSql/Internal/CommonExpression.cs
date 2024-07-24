@@ -1899,7 +1899,15 @@ namespace FreeSql.Internal
                             finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type && a.Alias == alias).ToArray();
                             if (finds.Any() == false && alias.Contains("__") == false)
                                 finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
-                            if (finds.Any()) finds = new[] { finds.First() };
+                            if (finds.Any())
+                            {
+                                if (finds.Length > 1 && isa && parmExp != null) //非 a,b,c 多表查询时 #1830
+                                {
+                                    var tmpFinds = tsc._tables.Where(a => a.Parameter == parmExp).ToArray();
+                                    if (tmpFinds.Any()) finds = tmpFinds;
+                                }
+                                if (finds.Any()) finds = new[] { finds.First() };
+                            }
                         }
                         if (finds.Length != 1 && isa && parmExp != null)
                             finds = tsc._tables.Where(a => a.Parameter == parmExp).ToArray();

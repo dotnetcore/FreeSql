@@ -22,6 +22,22 @@ namespace FreeSql.Tests.DbContext2
         }
 
         [Fact]
+        public void Test3()
+        {
+            using (var fsql = g.CreateMemory())
+            {
+                var sql01 = fsql.Select<Order, OrderDetail, OrderDetail>()
+                    .InnerJoin((x, y, z) => y.OrderId == x.Id)
+                    .InnerJoin((x, y, z) => z.OrderId == x.Id)
+                    .ToSql((x, y, z) => new { x, y, z });
+                Assert.Equal(@"SELECT a.""Id"" as1, a.""Field2"" as2, b.""Id"" as3, b.""OrderId"" as4, b.""Field4"" as5, c.""Id"" as6, c.""OrderId"" as7, c.""Field4"" as8 
+FROM ""Order"" a 
+INNER JOIN ""OrderDetail"" b ON b.""OrderId"" = a.""Id"" 
+INNER JOIN ""OrderDetail"" c ON c.""OrderId"" = a.""Id""", sql01);
+            }
+        }
+        
+        [Fact]
         public void Test2()
         {
             using (var fsql = g.CreateMemory())

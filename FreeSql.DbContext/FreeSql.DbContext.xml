@@ -480,6 +480,13 @@
             FreeSql.Repository Update 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，更新的数据不符合{entityString}
             </summary>
         </member>
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1">
+            <summary>
+            在工作单元内创建联合主键的仓储类，工作单元下的仓储操作具有事务特点
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
             <summary>
             动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
