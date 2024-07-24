@@ -12,6 +12,7 @@ namespace FreeSql
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         IBaseRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
+        IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class;
     }
 
     class RepositoryUnitOfWork : UnitOfWork, IRepositoryUnitOfWork

@@ -22,8 +22,8 @@ partial class FreeSqlDbContextExtensions
     /// </summary>
     /// <param name="that"></param>
     /// <returns></returns>
-    public static IUnitOfWork CreateUnitOfWork(this IFreeSql that)
+    public static IRepositoryUnitOfWork CreateUnitOfWork(this IFreeSql that)
     {
-        return new UnitOfWork(that);
+        return new RepositoryUnitOfWork(that);
     }
 }

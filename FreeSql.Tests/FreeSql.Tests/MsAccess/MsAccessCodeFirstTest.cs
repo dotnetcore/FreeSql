@@ -169,8 +169,8 @@ namespace FreeSql.Tests.MsAccess
         {
 
             //秀一波 FreeSql.Repository 扩展包，dotnet add package FreeSql.Repository
-            var topicRepository = g.msaccess.GetGuidRepository<Topic>();
-            var commentRepository = g.msaccess.GetGuidRepository<Comment>();
+            var topicRepository = g.msaccess.GetRepository<Topic, Guid>();
+            var commentRepository = g.msaccess.GetRepository<Comment, Guid>();
 
             //添加测试文章
             var topic = topicRepository.Insert(new Topic

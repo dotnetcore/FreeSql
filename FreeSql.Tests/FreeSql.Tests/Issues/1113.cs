@@ -40,7 +40,7 @@ namespace FreeSql.Tests.Issues
                     new Material{Code="TEST2",Units=new List<Unit>{new Unit{Code = "KG"}}}
                 };
 
-                var repo1 = freeSql.GetGuidRepository<Material>();
+                var repo1 = freeSql.GetRepository<Material, Guid>();
                 repo1.DbContextOptions.EnableCascadeSave = true;
                 repo1.Insert(materials);
 
@@ -56,7 +56,7 @@ namespace FreeSql.Tests.Issues
                     }
                 };
 
-                var repo2 = freeSql.GetGuidRepository<Order>();
+                var repo2 = freeSql.GetRepository<Order, Guid>();
                 repo2.DbContextOptions.EnableCascadeSave = true;
                 repo2.Insert(order);
 
@@ -138,7 +138,7 @@ namespace FreeSql.Tests.Issues
                     new Material{Code="TEST2",Units=new List<Unit>{new Unit{Code = "KG"}}}
                 };
 
-                var repo1 = freeSql.GetGuidRepository<Material>();
+                var repo1 = freeSql.GetRepository<Material, Guid>();
                 repo1.DbContextOptions.EnableCascadeSave = true;
                 repo1.Insert(materials);
 
@@ -154,7 +154,7 @@ namespace FreeSql.Tests.Issues
                     }
                 };
 
-                var repo2 = freeSql.GetGuidRepository<Order>();
+                var repo2 = freeSql.GetRepository<Order, Guid>();
                 repo2.DbContextOptions.EnableCascadeSave = true;
                 repo2.Insert(order);
 

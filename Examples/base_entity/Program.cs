@@ -198,7 +198,7 @@ namespace base_entity
 
         public class SongRepository : BaseRepository<TUserImg, int>
         {
-            public SongRepository(IFreeSql fsql) : base(fsql, null, null)
+            public SongRepository(IFreeSql fsql) : base(fsql)
             {
                 //fsql.CodeFirst.Entity<TUserImg>(a =>
                 //    {
@@ -706,7 +706,6 @@ namespace base_entity
             var testRepo = fsql2.GetRepository<object>();
             testRepo.AsType(table.Type);
             testRepo.Insert(area1);
-            testRepo.SaveMany(area1, "children");
 
 
 
