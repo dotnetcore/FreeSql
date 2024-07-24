@@ -25,16 +25,6 @@ namespace FreeSql
         public bool EnableCascadeSave { get; set; } = false;
 
         /// <summary>
-        /// 因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave
-        /// </summary>
-        [Obsolete("因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave")]
-        public bool EnableAddOrUpdateNavigateList
-        {
-            get => EnableCascadeSave;
-            set => EnableCascadeSave = value;
-        }
-
-        /// <summary>
         /// 使用无参数化设置（对应 IInsert/IUpdate）
         /// </summary>
         public bool? NoneParameter { get; set; }

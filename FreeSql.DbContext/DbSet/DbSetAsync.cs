@@ -149,64 +149,6 @@ namespace FreeSql
                     await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
         }
 
-        async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)
-        {
-            if (item == null) return;
-            if (string.IsNullOrEmpty(propertyName)) return;
-            if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextStrings.NotFound_Property(_table.Type.FullName, propertyName));
-            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
-
-            var tref = _table.GetTableRef(propertyName, true, false);
-            if (tref == null) return;
-            switch (tref.RefType)
-            {
-                case TableRefType.OneToOne:
-                case TableRefType.ManyToOne:
-                case TableRefType.PgArrayToMany:
-                    throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
-            }
-
-            await DbContextFlushCommandAsync(cancellationToken);
-            var oldEnable = _db.Options.EnableCascadeSave;
-            _db.Options.EnableCascadeSave = false;
-            try
-            {
-                await AddOrUpdateNavigateAsync(item, false, propertyName, cancellationToken);
-                if (tref.RefType == TableRefType.OneToMany)
-                {
-                    await DbContextFlushCommandAsync(cancellationToken);
-                    //删除没有保存的数据，求出主体的条件
-                    var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
-                    Expression whereParentExp = null;
-                    for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
-                    {
-                        var whereExp = Expression.Equal(
-                            Expression.MakeMemberAccess(Expression.Convert(deleteWhereParentParam, tref.RefEntityType), tref.RefColumns[colidx].Table.Properties[tref.RefColumns[colidx].CsName]),
-                            Expression.Constant(
-                                FreeSql.Internal.Utils.GetDataReaderValue(
-                                    tref.Columns[colidx].CsType,
-                                    _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName)), tref.RefColumns[colidx].CsType)
-                            );
-                        if (whereParentExp == null) whereParentExp = whereExp;
-                        else whereParentExp = Expression.AndAlso(whereParentExp, whereExp);
-                    }
-                    var propValEach = GetItemValue(item, prop) as IEnumerable;
-                    var subDelete = _db.OrmOriginal.Delete<object>().AsType(tref.RefEntityType)
-                        .WithTransaction(_uow?.GetOrBeginTransaction())
-                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam));
-                    foreach (var propValItem in propValEach)
-                    {
-                        subDelete.WhereDynamic(propValEach, true);
-                        break;
-                    }
-                    await subDelete.ExecuteAffrowsAsync(cancellationToken);
-                }
-            }
-            finally
-            {
-                _db.Options.EnableCascadeSave = oldEnable;
-            }
-        }
         async Task AddOrUpdateNavigateAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
         {
             Func<PropertyInfo, Task> action = async prop =>

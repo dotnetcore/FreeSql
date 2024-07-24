@@ -277,17 +277,6 @@ namespace FreeSql
             return affrows;
         }
 
-        public virtual void SaveMany(TEntity entity, string propertyName)
-        {
-            var tracking = new AggregateRootTrackingChangeInfo();
-            var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
-            if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
-            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
-            SaveTrackingChange(tracking);
-            Attach(entity); //应该只存储 propertyName 内容
-        }
-
-
         int SaveTrackingChange(AggregateRootTrackingChangeInfo tracking)
         {
             var affrows = 0;

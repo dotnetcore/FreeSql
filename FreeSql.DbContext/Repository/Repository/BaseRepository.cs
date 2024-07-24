@@ -19,10 +19,9 @@ namespace FreeSql
 
         internal Func<Type, string, string> _asTablePriv;
 
-        protected BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null)
+        protected BaseRepository(IFreeSql fsql)
         {
             _ormScoped = DbContextScopedFreeSql.Create(fsql, () => _db, () => UnitOfWork);
-            AsTable(asTable);
         }
 
         ~BaseRepository() => this.Dispose();
@@ -143,12 +142,6 @@ namespace FreeSql
             return entity;
         }
 
-        public virtual void SaveMany(TEntity entity, string propertyName)
-        {
-            _dbset.SaveMany(entity, propertyName);
-            _db.SaveChanges();
-        }
-
         public virtual void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
         public virtual int EndEdit(List<TEntity> data = null)
         {
@@ -184,7 +177,7 @@ namespace FreeSql
     public abstract partial class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IBaseRepository<TEntity, TKey>
         where TEntity : class
     {
-        public BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base(fsql, filter, asTable) { }
+        public BaseRepository(IFreeSql fsql) : base(fsql) { }
 
         TEntity CheckTKeyAndReturnIdEntity(TKey id)
         {
