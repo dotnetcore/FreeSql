@@ -556,11 +556,30 @@ namespace FreeSql.Internal
             }
         }
 
-        public string WhereItems<TEntity>(ColumnInfo[] primarys, string aliasAndDot, IEnumerable<TEntity> items)
+        public string WhereItems<TEntity>(ColumnInfo[] primarys, string aliasAndDot, IEnumerable<TEntity> items, List<DbParameter> dbParams)
         {
             if (items == null || items.Any() == false) return null;
             if (primarys.Any() == false) return null;
             var its = items.Where(a => a != null).ToArray();
+
+            if (its.Length == 1) //v3.5.100 单条支持参数化
+            {
+                var filter = "";
+                foreach (var pk in primarys)
+                {
+                    var pkval = pk.GetDbValue(its[0]);
+                    if (pkval == null) return null;
+                    if (primarys.Length > 1) filter += " AND ";
+                    filter += $"{aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = ";
+                    if (CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null) //v3.5.100 单条支持参数化
+                    {
+                        AppendParamter(dbParams, null, primarys[0], primarys[0].Attribute.MapType, pkval);
+                        filter += QuoteWriteParamterAdapter(primarys[0].Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}"));
+                    }
+                    filter += RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pkval));
+                }
+                return primarys.Length > 1 ? filter.Remove(0, 5) : filter;
+            }
 
             var pk1 = primarys.FirstOrDefault();
             if (primarys.Length == 1)
@@ -568,25 +587,19 @@ namespace FreeSql.Internal
                 var indt = its.Select(a => pk1.GetDbValue(a)).Where(a => a != null).ToArray();
                 if (indt.Any() == false) return null;
                 var sbin = new StringBuilder();
-                sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
-                if (indt.Length == 1) sbin.Append(" = ").Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, indt.First())));
-                else
+                sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN (");
+                var idx = 0;
+                foreach (var z in indt)
                 {
-                    sbin.Append(" IN (");
-                    var idx = 0;
-                    foreach (var z in indt)
+                    if (++idx > 500)
                     {
-                        if (++idx > 500)
-                        {
-                            sbin.Append(") OR ").Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //500元素分割
-                            idx = 1;
-                        }
-                        if (idx > 1) sbin.Append(",");
-                        sbin.Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, z)));
+                        sbin.Append(") OR ").Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //500元素分割
+                        idx = 1;
                     }
-                    sbin.Append(')');
+                    if (idx > 1) sbin.Append(",");
+                    sbin.Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, z)));
                 }
-                return sbin.ToString();
+                return sbin.Append(')').ToString();
             }
             var dicpk = its.Length > 5 ? new Dictionary<string, bool>() : null;
             var sb = its.Length > 5 ? null : new StringBuilder();

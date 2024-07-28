@@ -28,8 +28,8 @@ namespace FreeSql.Internal.CommonProvider
         public List<GlobalFilter.Item> _whereGlobalFilter;
         public StringBuilder _set = new StringBuilder();
         public StringBuilder _setIncr = new StringBuilder();
-        public List<DbParameter> _params = new List<DbParameter>();
-        public List<DbParameter> _paramsSource = new List<DbParameter>();
+        public List<DbParameter> _params = new List<DbParameter>(); //已经固定的
+        public List<DbParameter> _paramsSource = new List<DbParameter>(); //每次ToSql重新生成的
         public bool _noneParameter;
         public int _batchRowsLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
@@ -798,7 +798,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
-        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items));
+        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items, _params));
         public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
             this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
             this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
@@ -1232,7 +1232,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_source.Any())
             {
                 if (_tempPrimarys.Any() == false) throw new ArgumentException(CoreStrings.NoPrimaryKey_UseSetDto(_table.Type.DisplayCsharp()));
-                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
+                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source, _paramsSource)).Append(')');
                 andTimes++;
             }
 

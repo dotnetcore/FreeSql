@@ -951,7 +951,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
             {
                 var del = _orm.Delete<object>().WithTransaction(_transaction).CommandTimeout(_commandTimeout).AsTable(tracking.DeleteLog[a].Item1.DbName);
-                var where = (del as DeleteProvider)._commonUtils.WhereItems(tracking.DeleteLog[a].Item1.Primarys, "", tracking.DeleteLog[a].Item2);
+                var where = (del as DeleteProvider)._commonUtils.WhereItems(tracking.DeleteLog[a].Item1.Primarys, "", tracking.DeleteLog[a].Item2, (del as DeleteProvider)._params);
                 _cascadeAffrows += del.Where(where).ExecuteAffrows();
                 _changeReport?.AddRange(tracking.DeleteLog[a].Item2.Select(x =>
                     new ChangeReport.ChangeInfo

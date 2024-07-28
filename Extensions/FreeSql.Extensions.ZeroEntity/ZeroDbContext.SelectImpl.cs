@@ -581,7 +581,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			{
 				var alias = _tableAlias.Where(a => a.Table == _tables[_mainTableIndex]).FirstOrDefault()?.Alias;
 				if (!string.IsNullOrWhiteSpace(alias)) alias = $"{alias}.";
-				var where = _common.WhereItems(_tables[_mainTableIndex].Primarys, alias, items);
+				var where = _common.WhereItems(_tables[_mainTableIndex].Primarys, alias, items, _selectProvider._params);
 				_select.Where(where);
 				return this;
 			}

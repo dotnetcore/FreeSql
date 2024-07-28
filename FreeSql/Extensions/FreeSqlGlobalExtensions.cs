@@ -1017,7 +1017,7 @@ SELECT ");
         var deleteDict = new DeleteDictImpl(freesql);
         UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(source, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
         var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, source.Keys.ToArray());
-        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }));
+        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }, deleteDict._deleteProvider._params));
         return deleteDict;
     }
     /// <summary>
@@ -1035,7 +1035,7 @@ SELECT ");
             var sourceFirst = source.FirstOrDefault();
             UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(sourceFirst, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
             var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, sourceFirst.Keys.ToArray());
-            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source));
+            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source, deleteDict._deleteProvider._params));
             return deleteDict;
         }
         foreach (var item in source)

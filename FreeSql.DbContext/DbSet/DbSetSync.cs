@@ -1,4 +1,5 @@
 ﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;
@@ -699,7 +700,8 @@ namespace FreeSql
                                 }
                                 return refitem;
                             }).ToList();
-                            var refitems = refset.Select.Where(commonUtils.WhereItems(oto.Item1.RefColumns.ToArray(), "a.", refwhereItems)).ToList();
+                            var refsetSelect = refset.Select;
+                            var refitems = refsetSelect.Where(commonUtils.WhereItems(oto.Item1.RefColumns.ToArray(), "a.", refwhereItems, (refsetSelect as Select0Provider)._params)).ToList();
                             LocalEach(refset, refitems, false);
                         }
                     }
@@ -739,7 +741,8 @@ namespace FreeSql
                                 }
                                 return refitem;
                             }).ToList();
-                            var childs = refset.Select.Where(commonUtils.WhereItems(otm.Item1.RefColumns.ToArray(), "a.", refwhereItems)).ToList();
+                            var refsetSelect = refset.Select;
+                            var childs = refsetSelect.Where(commonUtils.WhereItems(otm.Item1.RefColumns.ToArray(), "a.", refwhereItems, (refsetSelect as Select0Provider)._params)).ToList();
                             LocalEach(refset, childs, true);
                         }
                     }
@@ -794,7 +797,8 @@ namespace FreeSql
                                 }
                                 return refitem;
                             }).ToList();
-                            var childs = midset.Select.Where(commonUtils.WhereItems(mtm.Item1.MiddleColumns.Take(mtm.Item1.Columns.Count).ToArray(), "a.", miditems)).ToList();
+                            var midsetSelect = midset.Select;
+                            var childs = midsetSelect.Where(commonUtils.WhereItems(mtm.Item1.MiddleColumns.Take(mtm.Item1.Columns.Count).ToArray(), "a.", miditems, (midsetSelect as Select0Provider)._params)).ToList();
                             LocalEach(midset, childs, true);
                         }
                     }
