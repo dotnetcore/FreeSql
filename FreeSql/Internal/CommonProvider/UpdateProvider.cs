@@ -182,7 +182,7 @@ namespace FreeSql.Internal.CommonProvider
             _versionColumn = _table?.VersionColumn;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere));
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
@@ -800,8 +800,8 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
         public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items, _params));
         public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
-            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params)) :
+            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere, _params)})");
 		public IUpdate<T1> WhereDynamicFilter(DynamicFilterInfo filter)
 		{
 			var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);

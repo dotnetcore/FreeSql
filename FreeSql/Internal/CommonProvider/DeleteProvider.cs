@@ -37,7 +37,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere));
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
@@ -118,8 +118,8 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> Where(T1 item) => this.Where(new[] { item });
         public IDelete<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items, _params));
         public IDelete<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
-            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params)) :
+            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere, _params)})");
 		public IDelete<T1> WhereDynamicFilter(DynamicFilterInfo filter)
         {
             var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);

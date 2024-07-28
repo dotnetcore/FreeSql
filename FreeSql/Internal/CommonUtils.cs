@@ -458,35 +458,53 @@ namespace FreeSql.Internal
             }
             return ret.Values.ToArray();
         }
-
-        public string WhereObject(TableInfo table, string aliasAndDot, object dywhere)
+        public string WhereObject(TableInfo table, string aliasAndDot, object dywhere, List<DbParameter> dbParams)
         {
+            string LocalGetFilterSql(ColumnInfo[] cols, object[] objs)
+            {
+                string filter = "";
+                var colidx = 0;
+                foreach (var col in cols)
+                {
+                    var colval = Utils.GetDataReaderValue(col.Attribute.MapType, objs[colidx]);
+                    filter += $"{(colidx > 0 ? " AND " : "")}{aliasAndDot}{this.QuoteSqlName(col.Attribute.Name)} = ";
+                    if (CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null) //v3.5.100 单条支持参数化
+                    {
+                        AppendParamter(dbParams, null, col, col.Attribute.MapType, colval);
+                        filter += RewriteColumn(col, QuoteWriteParamterAdapter(col.Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}")));
+                    }
+                    else
+                        filter += RewriteColumn(col, GetNoneParamaterSqlValue(null, null, col, col.Attribute.MapType, colval));
+                    ++colidx;
+                }
+                return filter;
+            }
+            object LocalGetSingleElement(IEnumerable ie)
+            {
+                var idx = 0;
+                object firstElement = null;
+                foreach (var i in ie)
+                {
+                    if (i == null) continue;
+                    if (idx == 0) firstElement = i;
+                    ++idx;
+                    if (idx > 1) break;
+                }
+                return idx == 1 ? firstElement : null;
+            }
+
             if (dywhere == null) return "";
             var type = dywhere.GetType();
             var primarys = table.Primarys;
             var pk1 = primarys.FirstOrDefault();
             if (primarys.Length == 1 && (type == pk1.CsType || type.IsNumberType() && pk1.CsType.IsNumberType()))
-            {
-                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere)))}";
-            }
-            else if (primarys.Length > 0 && (type == table.Type || type.BaseType == table.Type))
-            {
-                var sb = new StringBuilder();
-                var pkidx = 0;
-                foreach (var pk in primarys)
-                {
-                    if (pkidx > 0) sb.Append(" AND ");
-                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk.Attribute.Name)).Append(" = ");
-                    sb.Append(RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pk.GetDbValue(dywhere))));
-                    ++pkidx;
-                }
-                return sb.ToString();
-            }
-            else if (primarys.Length == 1 && type == typeof(string))
-            {
-                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere)))}";
-            }
-            else if (primarys.Length == 1 && dywhere is IEnumerable)
+                return LocalGetFilterSql(primarys, new object[] { dywhere });
+            if (primarys.Length > 0 && (type == table.Type || type.BaseType == table.Type))
+                return LocalGetFilterSql(primarys, primarys.Select(pk => pk.GetDbValue(dywhere)).ToArray());
+            if (primarys.Length == 1 && type == typeof(string))
+                return LocalGetFilterSql(primarys, new object[] { dywhere });
+
+            if (primarys.Length == 1 && dywhere is IEnumerable)
             {
                 var sb = new StringBuilder();
                 var ie = dywhere as IEnumerable;
@@ -509,25 +527,27 @@ namespace FreeSql.Internal
                         idx = 1;
                     }
                     if (idx > 1) sb.Append(",");
-                    var val = isEntityType ? RewriteColumn(primarys[0], GetNoneParamaterSqlValue(null, null, primarys[0], primarys[0].Attribute.MapType, primarys[0].GetDbValue(i))) :
-                        RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
-                    sb.Append(val);
-                    if (ieidx == 0) ieidx1ret = $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {val}";
-                    ieidx++;
+                    var pkval = isEntityType ? pk1.GetDbValue(i) : i;
+                    if (ieidx == 0) ieidx1ret = LocalGetFilterSql(new[] { pk1 }, new object[] { pkval });
+                    sb.Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, pkval)));
+                    ++ieidx;
                 }
                 if (ieidx == 0) return "";
                 if (ieidx == 1) return ieidx1ret;
                 sb.Append(')');
                 return sb.ToString();
             }
-            else if (dywhere is IEnumerable)
+            if (dywhere is IEnumerable)
             {
+
                 var sb = new StringBuilder();
                 var ie = dywhere as IEnumerable;
+                var ieSingle = LocalGetSingleElement(ie);
+                if (ieSingle != null) return WhereObject(table, aliasAndDot, ieSingle, dbParams);
                 var ieidx = 0;
                 foreach (var i in ie)
                 {
-                    var fw = WhereObject(table, aliasAndDot, i);
+                    var fw = WhereObject(table, aliasAndDot, i, dbParams);
                     if (string.IsNullOrEmpty(fw)) continue;
                     if (ieidx > 0) sb.Append(" OR ");
                     sb.Append(fw);
@@ -547,8 +567,7 @@ namespace FreeSql.Internal
                     if (trycol == null) continue;
 
                     if (psidx > 0) sb.Append(" AND ");
-                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name)).Append(" = ");
-                    sb.Append(RewriteColumn(trycol, GetNoneParamaterSqlValue(null, null, trycol, trycol.Attribute.MapType, Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere, null)))));
+                    sb.Append(LocalGetFilterSql(new[] { trycol }, new object[] { p.GetValue(dywhere, null) }));
                     ++psidx;
                 }
                 if (psidx == 0) return "";
@@ -574,9 +593,10 @@ namespace FreeSql.Internal
                     if (CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null) //v3.5.100 单条支持参数化
                     {
                         AppendParamter(dbParams, null, primarys[0], primarys[0].Attribute.MapType, pkval);
-                        filter += QuoteWriteParamterAdapter(primarys[0].Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}"));
+                        filter += RewriteColumn(pk, QuoteWriteParamterAdapter(primarys[0].Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}")));
                     }
-                    filter += RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pkval));
+                    else
+                        filter += RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pkval));
                 }
                 return primarys.Length > 1 ? filter.Remove(0, 5) : filter;
             }

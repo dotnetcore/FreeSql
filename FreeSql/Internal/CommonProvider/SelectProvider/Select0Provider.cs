@@ -564,7 +564,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
-            this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
+            this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere, _params));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
         }
 
