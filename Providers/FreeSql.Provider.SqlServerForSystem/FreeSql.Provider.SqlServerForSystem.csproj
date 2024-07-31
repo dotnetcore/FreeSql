@@ -23,12 +23,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net45' and '$(TargetFramework)' != 'net40'">
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
 	</ItemGroup>
 
 	<ItemGroup>
