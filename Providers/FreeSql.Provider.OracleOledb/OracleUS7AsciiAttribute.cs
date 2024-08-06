@@ -2,7 +2,7 @@
 
 namespace FreeSql.DataAnnotations
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class OracleUS7AsciiAttribute : Attribute
     {
         public OracleUS7AsciiAttribute() { }
