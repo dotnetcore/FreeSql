@@ -36,8 +36,7 @@ QQ群：561616019(在线)、4336577(已满)、8578575(已满)、52508226(已满)
 > FreeSql 提供多种使用习惯，请根据实际情况选择团队合适的一种：
 
 - 要么 FreeSql，原始用法；
-- 要么 [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository)，仓储+工作单元习惯；
-- 要么 [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像 EFCore 的使用习惯；
+- 要么 [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/Repository)，仓储+工作单元习惯；
 - 要么 [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，求简单使用这个；
 
 > 示范项目
@@ -45,7 +44,6 @@ QQ群：561616019(在线)、4336577(已满)、8578575(已满)、52508226(已满)
 - [zhontai.net Admin 后台管理系统](https://github.com/zhontai/Admin.Core)
 - [A simple and practical CMS implemented by .NET Core](https://github.com/luoyunchong/lin-cms-dotnetcore)
 - [AIBPM 一个开源的工作流引擎](https://github.com/leooneone/aibpm.plus)
-- [EasyCms 企业建站，事业单位使用的CMS管理系统](https://github.com/jasonyush/EasyCMS)
 
 <p align="center">
   <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions13.png"/>

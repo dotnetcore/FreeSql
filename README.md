@@ -36,8 +36,7 @@ QQ Groups：**561616019(available)**、4336577(full)、8578575(full)、52508226(
 > Please select a development mode:
 
 - Use FreeSql, keep the original usage.
-- Use [FreeSql.Repository](https://github.com/dotnetcore/FreeSql/wiki/Repository), Repository + UnitOfWork.
-- Use [FreeSql.DbContext](https://github.com/dotnetcore/FreeSql/wiki/DbContext), Like efcore.
+- Use [FreeSql.DbContext](https://github.com/dotnetcore/FreeSql/wiki/Repository), Repository + UnitOfWork.
 - Use [FreeSql.BaseEntity](https://github.com/dotnetcore/FreeSql/tree/master/Examples/base_entity), Simple mode.
 
 > Some open source projects that use FreeSql:
