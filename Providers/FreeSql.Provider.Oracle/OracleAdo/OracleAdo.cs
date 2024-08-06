@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
@@ -6,6 +7,7 @@ using System;
 using System.Collections;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 
 namespace FreeSql.Oracle
@@ -50,7 +52,17 @@ namespace FreeSql.Oracle
             else if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string)
+            {
+#if oledb
+                if (mapColumn?.Table != null && mapColumn.Table.Properties.TryGetValue(mapColumn.CsName, out var prop))
+                {
+                    var us7attr = prop.GetCustomAttributes(typeof(OracleUS7AsciiAttribute), false)?.FirstOrDefault() as OracleUS7AsciiAttribute;
+                    if (us7attr != null) return OracleUtils.StringToAscii(param as string, us7attr.Encoding);
+                }
+#endif
+
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+            }
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
