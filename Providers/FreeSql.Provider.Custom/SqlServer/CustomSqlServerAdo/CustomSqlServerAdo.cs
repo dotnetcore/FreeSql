@@ -71,7 +71,10 @@ namespace FreeSql.Custom.SqlServer
                 return string.Concat("'", ((DateTimeOffset)param).ToString("yyyy-MM-dd HH:mm:ss.fff zzzz"), "'");
             }
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).TotalSeconds;
+            {
+                var ts = (TimeSpan)param;
+                return $"'{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}'";
+            }
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable)

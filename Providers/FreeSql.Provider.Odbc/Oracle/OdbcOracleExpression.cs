@@ -235,35 +235,6 @@ namespace FreeSql.Odbc.Oracle
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "numtodsinterval(0,'second')";
-                    case "MinValue": return "numtodsinterval(-233720368.5477580,'second')";
-                    case "MaxValue": return "numtodsinterval(233720368.5477580,'second')";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"extract(day from {left})";
-                case "Hours": return $"extract(hour from {left})";
-                case "Milliseconds": return $"cast(substr(extract(second from {left})-floor(extract(second from {left})),3,3) as number)";
-                case "Minutes": return $"extract(minute from {left})";
-                case "Seconds": return $"floor(extract(second from {left}))";
-                case "Ticks": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))*10000000";
-                case "TotalDays": return $"extract(day from {left})";
-                case "TotalHours": return $"(extract(day from {left})*24+extract(hour from {left}))";
-                case "TotalMilliseconds": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))*1000";
-                case "TotalMinutes": return $"(extract(day from {left})*1440+extract(hour from {left})*60+extract(minute from {left}))";
-                case "TotalSeconds": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -439,7 +410,6 @@ namespace FreeSql.Odbc.Oracle
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"({left}+{args1})";
                     case "AddDays": return $"({left}+{args1})";
                     case "AddHours": return $"({left}+({args1})/24)";
                     case "AddMilliseconds": return $"({left}+({args1})/86400000)";
@@ -514,42 +484,6 @@ namespace FreeSql.Odbc.Oracle
                         }
                         if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"numtodsinterval(({getExp(exp.Arguments[0])})*{(long)60 * 60 * 24},'second')";
-                    case "FromHours": return $"numtodsinterval(({getExp(exp.Arguments[0])})*{(long)60 * 60},'second')";
-                    case "FromMilliseconds": return $"numtodsinterval(({getExp(exp.Arguments[0])})/1000,'second')";
-                    case "FromMinutes": return $"numtodsinterval(({getExp(exp.Arguments[0])})*60,'second')";
-                    case "FromSeconds": return $"numtodsinterval(({getExp(exp.Arguments[0])}),'second')";
-                    case "FromTicks": return $"numtodsinterval(({getExp(exp.Arguments[0])})/10000000,'second')";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to second(7))";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to second(7))";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"extract(day from ({left}-({args1})))";
-                    case "ToString": return $"to_char({left})";
                 }
             }
             return null;

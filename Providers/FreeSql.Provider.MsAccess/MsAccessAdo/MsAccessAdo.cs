@@ -35,8 +35,8 @@ namespace FreeSql.MsAccess
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new OleDbConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                        new MsAccessConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new OleDbConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new MsAccessConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }
@@ -74,7 +74,10 @@ namespace FreeSql.MsAccess
             }
 
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).TotalSeconds;
+            {
+                var ts = (TimeSpan)param;
+                return $"'{ts.Hours}:{ts.Minutes}:{ts.Seconds}'";
+            }
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable)

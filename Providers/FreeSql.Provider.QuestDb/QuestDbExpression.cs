@@ -247,39 +247,6 @@ namespace FreeSql.QuestDb
             return null;
         }
 
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-
-                return null;
-            }
-
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"floor(({left})/{60 * 60 * 24})";
-                case "Hours": return $"floor(({left})/{60 * 60}%24)";
-                case "Milliseconds": return $"0";
-                case "Minutes": return $"(floor(({left})/60)%60)";
-                case "Seconds": return $"(({left})%60)";
-                case "Ticks": return $"(({left})*{(long)1000000 * 10})";
-                case "TotalDays": return $"(({left})/{60 * 60 * 24})";
-                case "TotalHours": return $"(({left})/{60 * 60})";
-                case "TotalMilliseconds": return $"(({left})*1000)";
-                case "TotalMinutes": return $"(({left})/60)";
-                case "TotalSeconds": return $"({left})";
-            }
-
-            return null;
-        }
-
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -476,7 +443,6 @@ namespace FreeSql.QuestDb
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"dateadd('s',{args1},{left})";
                     case "AddDays": return $"dateadd('d',{args1},{left})";
                     case "AddHours": return $"dateadd('h',{args1},{left})";
                     case "AddMilliseconds": return $"dateadd('s',{args1}/1000,{left})";
@@ -540,44 +506,6 @@ namespace FreeSql.QuestDb
                             return m.Groups[0].Value;
                         });
                         return isMatched == false ? args1 : $"({args1})";
-                }
-            }
-
-            return null;
-        }
-
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})/1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*60)";
-                    case "FromSeconds": return $"({getExp(exp.Arguments[0])})";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10000000)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as long)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as long)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as string)";
                 }
             }
 

@@ -1157,7 +1157,6 @@ namespace FreeSql.Internal
                         case "System.String": other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); break;
                         case "System.Math": other3Exp = ExpressionLambdaToSqlCallMath(exp3, tsc); break;
                         case "System.DateTime": other3Exp = ExpressionLambdaToSqlCallDateTime(exp3, tsc); break;
-                        case "System.TimeSpan": other3Exp = ExpressionLambdaToSqlCallTimeSpan(exp3, tsc); break;
                         case "System.Convert": other3Exp = ExpressionLambdaToSqlCallConvert(exp3, tsc); break;
                     }
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
@@ -1756,7 +1755,6 @@ namespace FreeSql.Internal
                         {
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
-                            case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, tsc); break;
                         }
                         if (string.IsNullOrEmpty(extRet) == false) return extRet;
                         var other4Exp = ExpressionLambdaToSqlOther(exp4, tsc);
@@ -2219,11 +2217,9 @@ namespace FreeSql.Internal
 
         public abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, ExpTSC tsc);
-        public abstract string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc);
-        public abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);
         public string ExpressionConstDateTime(Expression exp) => exp is ConstantExpression operandExpConst ? formatSql(Utils.GetDataReaderValue(typeof(DateTime), operandExpConst.Value), null, null, null) : null;

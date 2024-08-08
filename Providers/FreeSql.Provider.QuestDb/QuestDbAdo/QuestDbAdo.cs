@@ -38,8 +38,8 @@ namespace FreeSql.QuestDb
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new NpgsqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                        new QuestDbConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new NpgsqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new QuestDbConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }
@@ -70,7 +70,10 @@ namespace FreeSql.QuestDb
                 return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
 
             else if (param is TimeSpan || param is TimeSpan?)
-                return (long)((TimeSpan)param).TotalSeconds;
+            {
+                var ts = (TimeSpan)param;
+                return $"'{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}'";
+            }
             else if (param is byte[])
                 return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is JToken || param is JObject || param is JArray)

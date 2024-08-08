@@ -222,35 +222,6 @@ namespace FreeSql.GBase
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "interval(0) day(9) to fraction"; //秒 Ticks / 1000,000,0
-                    case "MaxValue": return "interval(99 23:59:59.999) day(9) to fraction";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"({left})::interval day(9) to day::varchar(40)::int8";
-                case "Hours": return $"substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8";
-                case "Milliseconds": return $"substring_index(({left})::varchar(40),'.',-1)::int8";
-                case "Minutes": return $"substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8";
-                case "Seconds": return $"substr(substring_index(({left})::varchar(40),' ',-1),7,2)::int8";
-                case "Ticks": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24*60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8 *60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8 *60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),7,2)::int8 *1000 + substring_index(({left})::varchar(40),'.',-1)::int8) * 10000";
-                case "TotalDays": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8) /24.0";
-                case "TotalHours": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24*60 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8 *60 + substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8) /60.0";
-                case "TotalMilliseconds": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24*60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8 *60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8 *60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),7,2)::int8 *1000 + substring_index(({left})::varchar(40),'.',-1)::int8)";
-                case "TotalMinutes": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24*60*60 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8 *60*60 + substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8 *60 + substr(substring_index(({left})::varchar(40),' ',-1),7,2)::int8) /60.0";
-                case "TotalSeconds": return $"(({left})::interval day(9) to day::varchar(40)::int8 *24*60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),1,2)::int8 *60*60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),4,2)::int8 *60*1000 + substr(substring_index(({left})::varchar(40),' ',-1),7,2)::int8 *1000 + substring_index(({left})::varchar(40),'.',-1)::int8) /1000.0";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -424,7 +395,6 @@ namespace FreeSql.GBase
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"({left} + ({args1}))";
                     case "AddDays": return $"({left} + ({args1}) units day)";
                     case "AddHours": return $"({left} + ({args1}) units hour)";
                     case "AddMilliseconds": return $"({left} + ({args1})/1000 units fraction)";
@@ -509,42 +479,6 @@ namespace FreeSql.GBase
                         }
                         if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])} - ({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])}) units day)";
-                    case "FromHours": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])}) units hour)";
-                    case "FromMilliseconds": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])})/1000 units fraction)";
-                    case "FromMinutes": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])}) units minute)";
-                    case "FromSeconds": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])}) units second)";
-                    case "FromTicks": return $"(interval(0) day(9) to fraction + ({getExp(exp.Arguments[0])})/10000000 units fraction)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to fraction)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to fraction)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left} + {args1})";
-                    case "Subtract": return $"({left} - ({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left} - ({args1}))";
-                    case "ToString": return $"cast({left} as varchar(50))";
                 }
             }
             return null;

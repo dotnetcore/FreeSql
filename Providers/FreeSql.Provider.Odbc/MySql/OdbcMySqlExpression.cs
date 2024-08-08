@@ -231,35 +231,6 @@ namespace FreeSql.Odbc.MySql
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"(({left}) div {(long)1000000 * 60 * 60 * 24})";
-                case "Hours": return $"(({left}) div {(long)1000000 * 60 * 60} mod 24)";
-                case "Milliseconds": return $"(({left}) div 1000 mod 1000)";
-                case "Minutes": return $"(({left}) div {(long)1000000 * 60} mod 60)";
-                case "Seconds": return $"(({left}) div 1000000 mod 60)";
-                case "Ticks": return $"(({left}) * 10)";
-                case "TotalDays": return $"(({left}) / {(long)1000000 * 60 * 60 * 24})";
-                case "TotalHours": return $"(({left}) / {(long)1000000 * 60 * 60})";
-                case "TotalMilliseconds": return $"(({left}) / 1000)";
-                case "TotalMinutes": return $"(({left}) / {(long)1000000 * 60})";
-                case "TotalSeconds": return $"(({left}) / 1000000)";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -434,7 +405,6 @@ namespace FreeSql.Odbc.MySql
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"date_add({left}, interval ({args1}) microsecond)";
                     case "AddDays": return $"date_add({left}, interval ({args1}) day)";
                     case "AddHours": return $"date_add({left}, interval ({args1}) hour)";
                     case "AddMilliseconds": return $"date_add({left}, interval ({args1})*1000 microsecond)";
@@ -508,42 +478,6 @@ namespace FreeSql.Odbc.MySql
                         }
                         if (argsSpts.Length > 0) args1 = $"concat({string.Join(", ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "%m").Replace("%_a2", "%s");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})*1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60})";
-                    case "FromSeconds": return $"(({getExp(exp.Arguments[0])})*1000000)";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as signed)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as signed)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as char)";
                 }
             }
             return null;
