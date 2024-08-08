@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FreeSql
 {
@@ -99,9 +100,7 @@ namespace FreeSql
             catch (Exception ex)
             {
                 _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             return _tran;
         }
@@ -125,9 +124,7 @@ namespace FreeSql
             {
                 if (isCommited == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             finally
             {
@@ -151,9 +148,7 @@ namespace FreeSql
             {
                 if (isRollbacked == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             finally
             {
@@ -181,5 +176,95 @@ namespace FreeSql
                 GC.SuppressFinalize(this);
             }
         }
+
+#if NETCOREAPP3_1_OR_GREATER
+        public async Task<DbTransaction> GetOrBeginTransactionAsync(bool isCreate = true, CancellationToken cancellationToken = default)
+        {
+            if (_tran != null) return _tran;
+            if (isCreate == false) return null;
+            if (!Enable) return null;
+            if (_conn != null) _fsql.Ado.MasterPool.Return(_conn);
+
+            _tranBefore = new Aop.TraceBeforeEventArgs("BeginTransactionAsync", IsolationLevel);
+            _fsql?.Aop.TraceBeforeHandler?.Invoke(this, _tranBefore);
+            try
+            {
+                _conn = await _fsql.Ado.MasterPool.GetAsync();
+                try
+                {
+                    _tran = IsolationLevel == null ?
+                       await _conn.Value.BeginTransactionAsync(cancellationToken) :
+                       await _conn.Value.BeginTransactionAsync(IsolationLevel.Value, cancellationToken);
+
+                    this.Id = $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}_{Interlocked.Increment(ref _seed)}";
+                    DebugBeingUsed.TryAdd(this.Id, this);
+                }
+                catch
+                {
+                    ReturnObject();
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "失败", ex));
+                throw;
+            }
+            return _tran;
+        }
+
+        public async Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            var isCommited = false;
+            try
+            {
+                if (_tran != null)
+                {
+                    if (_tran.Connection != null) await _tran.CommitAsync(cancellationToken);
+                    isCommited = true;
+                    _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交", null));
+
+                    if (EntityChangeReport != null && EntityChangeReport.OnChange != null && EntityChangeReport.Report.Any() == true)
+                        EntityChangeReport.OnChange.Invoke(EntityChangeReport.Report);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (isCommited == false)
+                    _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交失败", ex));
+                throw;
+            }
+            finally
+            {
+                ReturnObject();
+                _tranBefore = null;
+            }
+        }
+
+        public async Task RollbackAsync(CancellationToken cancellationToken = default)
+        {
+            var isRollbacked = false;
+            try
+            {
+                if (_tran != null)
+                {
+                    if (_tran.Connection != null) await _tran.RollbackAsync(cancellationToken);
+                    isRollbacked = true;
+                    _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚", null));
+                }
+            }
+            catch (Exception ex)
+            {
+                if (isRollbacked == false)
+                    _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚失败", ex));
+                throw;
+            }
+            finally
+            {
+                ReturnObject();
+                _tranBefore = null;
+            }
+        }
+#endif
     }
 }
