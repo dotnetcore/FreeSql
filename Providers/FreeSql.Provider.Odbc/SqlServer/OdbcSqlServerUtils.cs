@@ -92,11 +92,6 @@ namespace FreeSql.Odbc.SqlServer
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
-            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}";
-            }
             return string.Format(CultureInfo.InvariantCulture, "{0}", (_orm.Ado as AdoProvider).AddslashesProcessParam(value, type, col));
         }
     }

@@ -149,12 +149,7 @@ namespace FreeSql.Xugu
             value = getParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
-            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
-            }
-            else if (dicGetParamterValue.ContainsKey(type2.FullName))
+            if (dicGetParamterValue.ContainsKey(type2.FullName))
             {
                 value = string.Concat(value);
             }

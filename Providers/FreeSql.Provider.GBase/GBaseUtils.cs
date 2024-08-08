@@ -95,11 +95,6 @@ namespace FreeSql.GBase
                 var pam = AppendParamter(specialParams, "", null, type, value);
                 return pam.ParameterName;
             }
-            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                return $"interval({ts.Days} {ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}) day(9) to fraction";
-            }
             if (type == typeof(DateTime))
             {
                 if (Utils.TypeHandlers.TryGetValue(typeof(DateTime), out var typeHandler)) return FormatSql("{0}", typeHandler.Serialize(value), 1);
