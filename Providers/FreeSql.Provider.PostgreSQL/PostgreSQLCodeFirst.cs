@@ -46,6 +46,11 @@ namespace FreeSql.PostgreSQL
                 { typeof(TimeSpan).FullName, CsToDb.New(NpgsqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(NpgsqlDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
+#if net60
+                { typeof(TimeOnly).FullName, CsToDb.New(NpgsqlDbType.Time, "time", "time NOT NULL", false, false, 0) },{ typeof(TimeOnly?).FullName, CsToDb.New(NpgsqlDbType.Time, "time", "time", false, true, null) },
+                { typeof(DateOnly).FullName, CsToDb.New(NpgsqlDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(NpgsqlDbType.Date, "date", "date", false, true, null) },
+#endif
+
                 { typeof(bool).FullName, CsToDb.New(NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(NpgsqlDbType.Boolean, "bool","bool", null, true, null) },
                 { typeof(Byte[]).FullName, CsToDb.New(NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
                 { typeof(BitArray).FullName, CsToDb.New(NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },

@@ -96,7 +96,10 @@ namespace FreeSql.SqlServer
                 return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
             }
             else if (param is TimeOnly || param is TimeOnly?)
-                return ((TimeOnly)param).ToTimeSpan().TotalSeconds;
+            {
+                var ts = (TimeOnly)param;
+                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}.{ts.Millisecond}'";
+            }
 #endif
             else if (param is TimeSpan || param is TimeSpan?)
             {
