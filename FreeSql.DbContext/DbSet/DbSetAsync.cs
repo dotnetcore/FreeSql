@@ -55,7 +55,7 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
-                            Attach(data);
+                            AttachPriv(new[] { data }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
@@ -66,7 +66,7 @@ namespace FreeSql
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
-                            Attach(newval);
+                            AttachPriv(new[] { newval }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
@@ -79,7 +79,7 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
-                            Attach(data);
+                            AttachPriv(new[] { data }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                             return;
@@ -88,7 +88,7 @@ namespace FreeSql
                 }
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
-            Attach(data);
+            AttachPriv(new[] { data }, false);
             if (_db.Options.EnableCascadeSave)
                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
         }
@@ -123,7 +123,7 @@ namespace FreeSql
                         foreach (var s in data)
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
-                        AttachRange(rets);
+                        AttachPriv(rets, false);
                         if (_db.Options.EnableCascadeSave)
                             foreach (var item in data)
                                 await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
@@ -141,7 +141,7 @@ namespace FreeSql
             //进入队列，等待 SaveChanges 时执行
             foreach (var item in data)
                 EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
-            AttachRange(data);
+            AttachPriv(data, false);
             if (_db.Options.EnableCascadeSave)
                 foreach (var item in data)
                     await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
