@@ -80,14 +80,12 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                 case DataType.ShenTong:
                     InterceptPostgreSQL?.Invoke(); break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
-                case DataType.OdbcDameng:
                 case DataType.Firebird:
                     InterceptMergeInto?.Invoke(); break;
                 case DataType.GBase:
@@ -216,7 +214,6 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                 case DataType.ShenTong:
                     break;
                 default:

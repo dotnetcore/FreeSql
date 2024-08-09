@@ -331,10 +331,11 @@ namespace FreeSql.ClickHouse
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (exp.Method.Name == "StartsWith") return $"positionCaseInsensitive({left}, {args0Value}) = 1";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
                         return $"positionCaseInsensitive({left}, {args0Value}) > 0";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";

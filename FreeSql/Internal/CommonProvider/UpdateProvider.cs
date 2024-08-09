@@ -84,7 +84,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcOracle:
                         case DataType.CustomOracle:
                         case DataType.Dameng:
-                        case DataType.OdbcDameng:
                             return fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
                     }
                     var affrows = fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
@@ -146,7 +145,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcOracle:
                         case DataType.CustomOracle:
                         case DataType.Dameng:
-                        case DataType.OdbcDameng:
                             return await fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
                     }
                     var affrows = await fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
@@ -1198,7 +1196,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcPostgreSQL:
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                             vcvalue = $"{_tableAlias}.{vcname}";  //set name = b.name
                             break;

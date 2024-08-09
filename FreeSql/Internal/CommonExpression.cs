@@ -1333,7 +1333,6 @@ namespace FreeSql.Internal
                                                     case DataType.OdbcOracle:
                                                     case DataType.CustomOracle:
                                                     case DataType.Dameng:
-                                                    case DataType.OdbcDameng:
                                                     case DataType.GBase:
                                                         break;
                                                     default:
@@ -2726,7 +2725,6 @@ namespace FreeSql.Internal
                             case DataType.OdbcOracle:
                             case DataType.CustomOracle:
                             case DataType.Dameng:
-                            case DataType.OdbcDameng:
                             case DataType.GBase:
                                 break;
                             default:
@@ -2849,7 +2847,6 @@ namespace FreeSql.Internal
                                 case DataType.OdbcOracle:
                                 case DataType.CustomOracle:
                                 case DataType.Dameng:
-                                case DataType.OdbcDameng:
                                 case DataType.GBase:
                                     break;
                                 default:

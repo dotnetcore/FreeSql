@@ -285,18 +285,19 @@ namespace FreeSql.Custom.Oracle
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}, 1, 1) = 1";
                             if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}, 1, 1) = length({left})-length({args0Value})+1";
                             return $"instr({left}, {args0Value}, 1, 1) > 0";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(to_char({args0Value})||'%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'||to_char({args0Value}))")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE ('%'||to_char({args0Value})||'%')";
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(to_char({args0Value})||'%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'||to_char({args0Value}))")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE ('%'||to_char({args0Value})||'%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":

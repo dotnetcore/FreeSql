@@ -750,7 +750,6 @@ namespace FreeSql.Extensions.ZeroEntity
 					case DataType.OdbcOracle:
 					case DataType.CustomOracle:
 					case DataType.Dameng:
-					case DataType.OdbcDameng:
 					case DataType.GBase:
 						query.Limit(-1);
 						break;

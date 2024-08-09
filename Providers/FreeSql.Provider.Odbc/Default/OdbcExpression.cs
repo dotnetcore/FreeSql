@@ -260,12 +260,13 @@ namespace FreeSql.Odbc.Default
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({_common.StringConcat(new string[] { args0Value, "'%'" }, new[] { typeof(int), typeof(string) })})")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"({_common.StringConcat(new string[] { "'%'", args0Value }, new[] { typeof(string), typeof(int) })})")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE ({_common.StringConcat(new string[] { "'%'", args0Value, "'%'" }, new[] { typeof(string), typeof(int), typeof(string)})})";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({_common.StringConcat(new string[] { args0Value, "'%'" }, new[] { typeof(int), typeof(string) })})")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"({_common.StringConcat(new string[] { "'%'", args0Value }, new[] { typeof(string), typeof(int) })})")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE ({_common.StringConcat(new string[] { "'%'", args0Value, "'%'" }, new[] { typeof(string), typeof(int), typeof(string) })})";
                     case "ToLower": return _utils.Adapter.LambdaString_ToLower(left);
                     case "ToUpper": return _utils.Adapter.LambdaString_ToUpper(left);
                     case "Substring":

@@ -702,7 +702,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.OdbcPostgreSQL:
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                         case DataType.Firebird: //firebird 只支持单条插入 returning
                             if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
@@ -758,7 +757,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.OdbcPostgreSQL:
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                             var rets = OrmInsert(table).AppendData(data).ExecuteInserted();
                             _cascadeAffrows += rets.Count;
@@ -811,7 +809,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.OdbcPostgreSQL:
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                         case DataType.ClickHouse:
                             return true;

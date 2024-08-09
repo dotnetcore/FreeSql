@@ -744,7 +744,6 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                 case DataType.ShenTong: //神通测试未通过
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
@@ -841,7 +840,6 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.OdbcPostgreSQL:
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
-            case DataType.OdbcKingbaseES:
             case DataType.ShenTong: //神通测试未通过
             case DataType.MySql:
             case DataType.OdbcMySql:
@@ -857,7 +855,6 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
-            case DataType.OdbcDameng:
             case DataType.GBase:
                 nsselsb.Append($"(cte_level, {(pathSelector == null ? "" : "cte_path, ")}{sql2Field.Replace("wct2.", "")})");
                 break;
@@ -899,14 +896,12 @@ SELECT ");
             case DataType.OdbcPostgreSQL:
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
-            case DataType.OdbcKingbaseES:
             case DataType.ShenTong:
                 return that.OrderBy("random()");
             case DataType.Oracle:
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng:
-            case DataType.OdbcDameng:
                 return that.OrderBy("dbms_random.value");
             case DataType.Sqlite:
                 return that.OrderBy("random()");

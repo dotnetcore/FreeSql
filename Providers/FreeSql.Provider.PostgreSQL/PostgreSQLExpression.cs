@@ -405,8 +405,9 @@ namespace FreeSql.PostgreSQL
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"strpos({left}, {args0Value}) = 1";
@@ -419,10 +420,10 @@ namespace FreeSql.PostgreSQL
                             if (exp.Arguments[1].Type == typeof(bool) ||
                                 exp.Arguments[1].Type == typeof(StringComparison)) likeOpt = "ILIKE";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::text || '%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) {likeOpt} ('%' || ({args0Value})::text || '%')";
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::text || '%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} {likeOpt} ('%' || ({args0Value})::text || '%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":

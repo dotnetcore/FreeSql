@@ -306,11 +306,6 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Default.OdbcProvider<>");
                         break;
 
-                    case DataType.OdbcDameng:
-                        type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Dameng.OdbcDamengProvider<>");
-                        break;
-
                     case DataType.MsAccess:
                         type = Type.GetType("FreeSql.MsAccess.MsAccessProvider`1,FreeSql.Provider.MsAccess")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.MsAccess.dll", "FreeSql.MsAccess.MsAccessProvider<>");
@@ -319,11 +314,6 @@ namespace FreeSql
                     case DataType.Dameng:
                         type = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Dameng.dll", "FreeSql.Dameng.DamengProvider<>");
-                        break;
-
-                    case DataType.OdbcKingbaseES:
-                        type = Type.GetType("FreeSql.Odbc.KingbaseES.OdbcKingbaseESProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.KingbaseES.OdbcKingbaseESProvider<>");
                         break;
 
                     case DataType.ShenTong:

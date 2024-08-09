@@ -305,7 +305,6 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.OdbcOracle:
                     case DataType.Oracle:
                     case DataType.CustomOracle:
-                    case DataType.OdbcDameng:
                     case DataType.Dameng:
                     case DataType.GBase:
                         sb.Append(" FROM dual");

@@ -354,7 +354,6 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
                     case DataType.ClickHouse:
                         return true;

@@ -2,7 +2,6 @@
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
-using FreeSql.Odbc.Dameng;
 using System;
 using System.Collections;
 using System.Data.Common;

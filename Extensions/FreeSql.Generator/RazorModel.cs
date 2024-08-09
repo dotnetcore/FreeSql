@@ -132,7 +132,6 @@ public class RazorModel
 					case DataType.PostgreSQL:
 					case DataType.OdbcPostgreSQL:
 					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong:
 						switch (col.DbTypeTextFull.ToLower())
 						{
@@ -157,7 +156,6 @@ public class RazorModel
 						}
 						break;
 					case DataType.Dameng:
-					case DataType.OdbcDameng:
 						switch (col.DbTypeTextFull.ToLower())
 						{
 							case "text": sb.Add("StringLength = -2"); break;
@@ -245,7 +243,7 @@ public class RazorModel
 		if ((cstype == typeof(string) && defval.StartsWith("'") && defval.EndsWith("'::character varying") ||
 			cstype == typeof(Guid) && defval.StartsWith("'") && defval.EndsWith("'::uuid")
 			) && (fsql.Ado.DataType == DataType.PostgreSQL || fsql.Ado.DataType == DataType.OdbcPostgreSQL ||
-				fsql.Ado.DataType == DataType.KingbaseES || fsql.Ado.DataType == DataType.OdbcKingbaseES ||
+				fsql.Ado.DataType == DataType.KingbaseES ||
 				fsql.Ado.DataType == DataType.ShenTong))
 		{
 			defval = defval.Substring(1, defval.LastIndexOf("'::") - 1).Replace("''", "'");

@@ -393,7 +393,6 @@ namespace FreeSql.Internal
 					case DataType.OdbcPostgreSQL:
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong:
 						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
@@ -411,7 +410,6 @@ namespace FreeSql.Internal
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
 						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
@@ -467,19 +465,15 @@ namespace FreeSql.Internal
 					case DataType.OdbcPostgreSQL:
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
 						colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
 						break;
 					case DataType.Oracle:
-					case DataType.CustomOracle:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.Dameng:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
 					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
+					case DataType.CustomOracle:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.Dameng:
 						colattr.DbType = $"BLOB{strNotNull}";
 						break;
 					case DataType.Sqlite:

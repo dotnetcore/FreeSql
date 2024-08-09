@@ -46,7 +46,6 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
@@ -115,7 +114,6 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
                         await DbContextFlushCommandAsync(cancellationToken);
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken);

@@ -753,8 +753,7 @@ namespace FreeSql.Internal.CommonProvider
             var old_selectVal = _select;
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -810,8 +809,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -845,8 +843,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -1294,14 +1291,12 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
-                case DataType.OdbcDameng:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Sqlite:
