@@ -1,11 +1,17 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using KdbndpTypes;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.KingbaseES
 {
@@ -36,22 +42,58 @@ namespace FreeSql.KingbaseES
                 { typeof(TimeSpan).FullName, CsToDb.New(KdbndpDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
+#if net60
+                { typeof(TimeOnly).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time NOT NULL", false, false, 0) },{ typeof(TimeOnly?).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time", false, true, null) },
+                { typeof(DateOnly).FullName, CsToDb.New(KdbndpDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(KdbndpDbType.Date, "date", "date", false, true, null) },
+#endif
+
                 { typeof(bool).FullName, CsToDb.New(KdbndpDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(KdbndpDbType.Boolean, "bool","bool", null, true, null) },
                 { typeof(Byte[]).FullName, CsToDb.New(KdbndpDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
 
+                { typeof(BitArray).FullName, CsToDb.New(KdbndpDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },
+                { typeof(BigInteger).FullName, CsToDb.New(KdbndpDbType.Numeric, "numeric", "numeric(78,0) NOT NULL", false, false, 0) },{ typeof(BigInteger?).FullName, CsToDb.New(KdbndpDbType.Numeric, "numeric", "numeric(78,0)", false, true, null) },
+
+                { typeof(KdbndpPoint).FullName, CsToDb.New(KdbndpDbType.Point, "point", "point NOT NULL", false, false, new KdbndpPoint(0, 0)) },{ typeof(KdbndpPoint?).FullName, CsToDb.New(KdbndpDbType.Point, "point", "point", false, true, null) },
+                { typeof(KdbndpLine).FullName, CsToDb.New(KdbndpDbType.Line, "line", "line NOT NULL", false, false, new KdbndpLine(0, 0, 1)) },{ typeof(KdbndpLine?).FullName, CsToDb.New(KdbndpDbType.Line, "line", "line", false, true, null) },
+                { typeof(KdbndpLSeg).FullName, CsToDb.New(KdbndpDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new KdbndpLSeg(0, 0, 0, 0)) },{ typeof(KdbndpLSeg?).FullName, CsToDb.New(KdbndpDbType.LSeg, "lseg", "lseg", false, true, null) },
+                { typeof(KdbndpBox).FullName, CsToDb.New(KdbndpDbType.Box, "box", "box NOT NULL", false, false, new KdbndpBox(0, 0, 0, 0)) },{ typeof(KdbndpBox?).FullName, CsToDb.New(KdbndpDbType.Box, "box", "box", false, true, null) },
+                { typeof(KdbndpPath).FullName, CsToDb.New(KdbndpDbType.Path, "path", "path NOT NULL", false, false, new KdbndpPath(new KdbndpPoint(0, 0))) },{ typeof(KdbndpPath?).FullName, CsToDb.New(KdbndpDbType.Path, "path", "path", false, true, null) },
+                { typeof(KdbndpPolygon).FullName, CsToDb.New(KdbndpDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new KdbndpPolygon(new KdbndpPoint(0, 0), new KdbndpPoint(0, 0))) },{ typeof(KdbndpPolygon?).FullName, CsToDb.New(KdbndpDbType.Polygon, "polygon", "polygon", false, true, null) },
+                { typeof(KdbndpCircle).FullName, CsToDb.New(KdbndpDbType.Circle, "circle", "circle NOT NULL", false, false, new KdbndpCircle(0, 0, 0)) },{ typeof(KdbndpCircle?).FullName, CsToDb.New(KdbndpDbType.Circle, "circle", "circle", false, true, null) },
+
+                { typeof((IPAddress Address, int Subnet)).FullName, CsToDb.New(KdbndpDbType.Cidr, "cidr", "cidr NOT NULL", false, false, (IPAddress.Any, 0)) },{ typeof((IPAddress Address, int Subnet)?).FullName, CsToDb.New(KdbndpDbType.Cidr, "cidr", "cidr", false, true, null) },
+                { typeof(IPAddress).FullName, CsToDb.New(KdbndpDbType.Inet, "inet", "inet", false, null, IPAddress.Any) },
+                { typeof(PhysicalAddress).FullName, CsToDb.New(KdbndpDbType.MacAddr, "macaddr", "macaddr", false, null, PhysicalAddress.None) },
+
+                { typeof(JToken).FullName, CsToDb.New(KdbndpDbType.Jsonb, "jsonb", "jsonb", false, null, JToken.Parse("{}")) },
+                { typeof(JObject).FullName, CsToDb.New(KdbndpDbType.Jsonb, "jsonb", "jsonb", false, null, JObject.Parse("{}")) },
+                { typeof(JArray).FullName, CsToDb.New(KdbndpDbType.Jsonb, "jsonb", "jsonb", false, null, JArray.Parse("[]")) },
                 { typeof(Guid).FullName, CsToDb.New(KdbndpDbType.Uuid, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(KdbndpDbType.Uuid, "uuid", "uuid", false, true, null) },
+
+                { typeof(KdbndpRange<int>).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Integer, "int4range", "int4range NOT NULL", false, false, KdbndpRange<int>.Empty) },{ typeof(KdbndpRange<int>?).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Integer, "int4range", "int4range", false, true, null) },
+                { typeof(KdbndpRange<long>).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Bigint, "int8range", "int8range NOT NULL", false, false, KdbndpRange<long>.Empty) },{ typeof(KdbndpRange<long>?).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Bigint, "int8range", "int8range", false, true, null) },
+                { typeof(KdbndpRange<decimal>).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Numeric, "numrange", "numrange NOT NULL", false, false, KdbndpRange<decimal>.Empty) },{ typeof(KdbndpRange<decimal>?).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Numeric, "numrange", "numrange", false, true, null) },
+                { typeof(KdbndpRange<DateTime>).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Timestamp, "tsrange", "tsrange NOT NULL", false, false, KdbndpRange<DateTime>.Empty) },{ typeof(KdbndpRange<DateTime>?).FullName, CsToDb.New(KdbndpDbType.Range | KdbndpDbType.Timestamp, "tsrange", "tsrange", false, true, null) },
+
+                { typeof(Dictionary<string, string>).FullName, CsToDb.New(KdbndpDbType.Hstore, "hstore", "hstore", false, null, new Dictionary<string, string>()) },
             };
 
         public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
+            var isarray = type.FullName != "System.Byte[]" && type.IsArray;
+            var elementType = isarray ? type.GetElementType() : type;
+            var info = GetDbInfoNoneArray(elementType);
+            if (info == null) return null;
+            if (isarray == false) return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
+            var dbtypefull = Regex.Replace(info.dbtypeFull, $@"{info.dbtype}(\s*\([^\)]+\))?", "$0[]").Replace(" NOT NULL", "");
+            return new DbInfoResult((int)(info.type | KdbndpDbType.Array), $"{info.dbtype}[]", dbtypefull, null, Array.CreateInstance(elementType, 0));
+        }
+        CsToDb<KdbndpDbType> GetDbInfoNoneArray(Type type)
+        {
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return trydc;
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
-            if (enumType == null && type.IsNullableType())
-            {
-                var genericTypes = type.GetGenericArguments();
-                if (genericTypes.Length == 1 && genericTypes.First().IsEnum) enumType = genericTypes.First();
-            }
+            if (enumType == null && type.IsNullableType() && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
@@ -65,7 +107,7 @@ namespace FreeSql.KingbaseES
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
+                return newItem;
             }
             return null;
         }

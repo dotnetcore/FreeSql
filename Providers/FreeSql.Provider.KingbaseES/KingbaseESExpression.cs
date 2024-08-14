@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,10 +99,10 @@ namespace FreeSql.KingbaseES
                                     var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
                                     tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                     return enumStr;
-								}
-								var value = ExpressionGetValue(callExp.Object, out var success);
-								if (success) return formatSql(value, typeof(string), null, null);
-								return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::text" : null;
+                                }
+                                var value = ExpressionGetValue(callExp.Object, out var success);
+                                if (success) return formatSql(value, typeof(string), null, null);
+                                return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::text" : null;
                             }
                             return null;
                     }
@@ -131,6 +132,36 @@ namespace FreeSql.KingbaseES
                     if (objType != null || objType.IsArrayOrList())
                     {
                         string left = null;
+                        switch (objType.FullName)
+                        {
+                            case "Newtonsoft.Json.Linq.JToken":
+                            case "Newtonsoft.Json.Linq.JObject":
+                            case "Newtonsoft.Json.Linq.JArray":
+                                left = objExp == null ? null : getExp(objExp);
+                                switch (callExp.Method.Name)
+                                {
+                                    case "get_Item": return $"{left}->{getExp(callExp.Arguments[argIndex])}";
+                                    case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
+                                    case "Contains":
+                                        var json = getExp(callExp.Arguments[argIndex]);
+                                        if (objType == typeof(JArray))
+                                            return $"(coalesce({left},'[]') ? ({json})::text)";
+                                        if (json.StartsWith("'") && json.EndsWith("'"))
+                                            return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
+                                        return $"(coalesce({left},'{{}}') @> ({json})::jsonb)";
+                                    case "ContainsKey": return $"(coalesce({left},'{{}}') ? {getExp(callExp.Arguments[argIndex])})";
+                                    case "Concat":
+                                        var right2 = getExp(callExp.Arguments[argIndex]);
+                                        return $"(coalesce({left},'{{}}') || {right2})";
+                                    case "LongCount":
+                                    case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+                                    case "Parse":
+                                        var json2 = getExp(callExp.Arguments[argIndex]);
+                                        if (json2.StartsWith("'") && json2.EndsWith("'")) return _common.FormatSql("{0}", JToken.Parse(json2.Trim('\'')));
+                                        return $"({json2})::jsonb";
+                                }
+                                break;
+                        }
                         if (objType == typeof(Dictionary<string, string>))
                         {
                             left = objExp == null ? null : getExp(objExp);
@@ -165,14 +196,14 @@ namespace FreeSql.KingbaseES
                                 tsc.isNotSetMapColumnTmp = false;
                                 tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                 if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
-								//判断 in 或 array @> array
-								if (left.StartsWith("array[") && left.EndsWith("]"))
-									return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
-								if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
-									return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
-								if (args1.StartsWith("(") && args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
-								else args1 = $"array[{args1}]";
-								if (objExp != null)
+                                //判断 in 或 array @> array
+                                if (left.StartsWith("array[") && left.EndsWith("]"))
+                                    return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
+                                if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                    return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
+                                if (args1.StartsWith("(") && args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
+                                else args1 = $"array[{args1}]";
+                                if (objExp != null)
                                 {
                                     var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
                                     if (dbinfo != null) args1 = $"{args1}::{dbinfo.dbtype}";
@@ -208,6 +239,28 @@ namespace FreeSql.KingbaseES
                             {
                                 case "Length":
                                 case "Count": return $"case when {left} is null then 0 else array_length({left},1) end";
+                            }
+                        }
+                        switch (memParentExp.FullName)
+                        {
+                            case "Newtonsoft.Json.Linq.JToken":
+                            case "Newtonsoft.Json.Linq.JObject":
+                            case "Newtonsoft.Json.Linq.JArray":
+                                var left = getExp(memExp.Expression);
+                                switch (memExp.Member.Name)
+                                {
+                                    case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+                                }
+                                break;
+                        }
+                        if (memParentExp == typeof(Dictionary<string, string>))
+                        {
+                            var left = getExp(memExp.Expression);
+                            switch (memExp.Member.Name)
+                            {
+                                case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
+                                case "Keys": return $"akeys({left})";
+                                case "Values": return $"avals({left})";
                             }
                         }
                     }
@@ -316,7 +369,7 @@ namespace FreeSql.KingbaseES
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
@@ -395,6 +448,8 @@ namespace FreeSql.KingbaseES
                             if (exp.Method.Name == "TrimStart") return $"ltrim({left})";
                             if (exp.Method.Name == "TrimEnd") return $"rtrim({left})";
                         }
+                        var trimArg1 = "";
+                        var trimArg2 = "";
                         foreach (var argsTrim02 in exp.Arguments)
                         {
                             var argsTrim01s = new[] { argsTrim02 };
@@ -405,11 +460,14 @@ namespace FreeSql.KingbaseES
                             }
                             foreach (var argsTrim01 in argsTrim01s)
                             {
-                                if (exp.Method.Name == "Trim") left = $"trim(both {getExp(argsTrim01)} from {left})";
-                                if (exp.Method.Name == "TrimStart") left = $"ltrim({left},{getExp(argsTrim01)})";
-                                if (exp.Method.Name == "TrimEnd") left = $"rtrim({left},{getExp(argsTrim01)})";
+                                var trimChr = getExp(argsTrim01).Trim('\'');
+                                if (trimChr.Length == 1) trimArg1 += trimChr;
+                                else trimArg2 += $" || ({trimChr})";
                             }
                         }
+                        if (exp.Method.Name == "Trim") left = $"trim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
+                        if (exp.Method.Name == "TrimStart") left = $"ltrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
+                        if (exp.Method.Name == "TrimEnd") left = $"rtrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
                         return left;
                     case "Replace": return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     case "CompareTo": return $"case when {left} = {getExp(exp.Arguments[0])} then 0 when {left} > {getExp(exp.Arguments[0])} then 1 else -1 end";
