@@ -158,7 +158,7 @@ public class g
     public static IFreeSql shentong => shentongLazy.Value;
 
     static Lazy<IFreeSql> kingbaseESLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.KingbaseES, "Server=121.36.59.173;Port=54321;UID=system;PWD=abc.123;database=test;max pool size=4")
+        .UseConnectionString(FreeSql.DataType.KingbaseES, "Server=123.57.239.39;Port=54322;UID=system;PWD=123456;database=test;max pool size=4")
         //.UseConnectionFactory(FreeSql.DataType.KingbaseES, () => new Kdbndp.KdbndpConnection("Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TDB2"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)

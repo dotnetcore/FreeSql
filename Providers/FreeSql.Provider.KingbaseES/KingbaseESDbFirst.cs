@@ -355,7 +355,8 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then 0 else 1 end as is_nullable,
 --e.adsrc as is_identity, pg12以下
-(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity,
+--(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity, pg10以下
+case when a.attidentity = 'd' then '1' else '0' end is_identity,
 d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
@@ -381,7 +382,8 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && (string.Concat(row[6]).EndsWith(@"'::REGCLASS)") || string.Concat(row[6]).EndsWith(@"')"));
+                    var is_identity = string.Concat(row[6]) == "1"; //pg10+
+                    //var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && (string.Concat(row[6]).EndsWith(@"'::REGCLASS)") || string.Concat(row[6]).EndsWith(@"')"));
                     var comment = string.Concat(row[7]);
                     var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
@@ -634,6 +636,25 @@ where a.typtype = 'e' and ns.nspname in (SELECT schema_name FROM information_sch
                 if (labels.ContainsKey(key) == false) labels.Add(key, dr.label);
             }
             return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
+        }
+
+        public static NativeTuple<bool, int, int> ParsePgVersion(string versionString, int v1, int v2)
+        {
+            int[] version = new int[] { 0, 0 };
+            var vmatch = Regex.Match(versionString, @"(\d+)\.(\d+)");
+            if (vmatch.Success)
+            {
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+                version[1] = int.Parse(vmatch.Groups[2].Value);
+            }
+            else
+            {
+                vmatch = Regex.Match(versionString, @"(\d+)");
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+            }
+            if (version[0] > v1) return NativeTuple.Create(true, version[0], version[1]);
+            if (version[0] == v1 && version[1] >= v2) return NativeTuple.Create(true, version[0], version[1]);
+            return NativeTuple.Create(false, version[0], version[1]);
         }
     }
 }

@@ -247,8 +247,9 @@ t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem > 0 and t.typinput::varchar = 'ARRAY_IN' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
---e.adsrc,
-(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid limit 1) is_identity,
+--e.adsrc as is_identity, pg12以下
+--case when a.attidentity = 'd' the(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid limit 1) is_identity, pg10以下
+case when a.attidentity = 'd' then '1' else '0' end is_identity,
 a.attndims,
 d.description as comment
 from {pg_}class c
@@ -284,7 +285,8 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                         sqlType = string.Concat(sqlType),
                         max_length = long.Parse(string.Concat(a[2])),
                         is_nullable = string.Concat(a[4]) == "1",
-                        is_identity = string.Concat(a[5]).StartsWith(@"NEXTVAL('") && (string.Concat(a[5]).EndsWith(@"'::REGCLASS)") || string.Concat(a[5]).EndsWith(@"')")),
+                        is_identity = string.Concat(a[5]) == "1", //pg10+
+                        //is_identity = string.Concat(a[5]).StartsWith(@"NEXTVAL('") && (string.Concat(a[5]).EndsWith(@"'::REGCLASS)") || string.Concat(a[5]).EndsWith(@"')")),
                         attndims,
                         comment = string.Concat(a[7])
                     };
