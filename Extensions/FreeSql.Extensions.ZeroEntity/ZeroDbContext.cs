@@ -703,6 +703,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.ShenTong:
+                        case DataType.DuckDB:
                         case DataType.Firebird: //firebird 只支持单条插入 returning
                             if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                             {
@@ -758,6 +759,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.ShenTong:
+                        case DataType.DuckDB:
                             var rets = OrmInsert(table).AppendData(data).ExecuteInserted();
                             _cascadeAffrows += rets.Count;
                             if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_orm.Ado.DataType} 的返回数据，与添加的数目不匹配");
@@ -810,6 +812,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.ShenTong:
+                        case DataType.DuckDB:
                         case DataType.ClickHouse:
                             return true;
                         default:

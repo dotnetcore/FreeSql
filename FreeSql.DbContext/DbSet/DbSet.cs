@@ -344,6 +344,7 @@ namespace FreeSql
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                     case DataType.ClickHouse:
                         return true;
                     default:

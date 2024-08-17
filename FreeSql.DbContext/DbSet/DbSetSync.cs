@@ -46,6 +46,7 @@ namespace FreeSql
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
@@ -118,6 +119,7 @@ namespace FreeSql
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                         DbContextFlushCommand();
                         var rets = this.OrmInsert(data).ExecuteInserted();
                         if (rets.Count != data.Count()) throw new Exception(DbContextStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));

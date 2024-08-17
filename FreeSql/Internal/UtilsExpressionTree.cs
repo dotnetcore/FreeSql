@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -394,7 +395,7 @@ namespace FreeSql.Internal
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
@@ -416,7 +417,8 @@ namespace FreeSql.Internal
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Sqlite:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                    case DataType.DuckDB:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
@@ -477,7 +479,8 @@ namespace FreeSql.Internal
 						colattr.DbType = $"BLOB{strNotNull}";
 						break;
 					case DataType.Sqlite:
-						colattr.DbType = $"BLOB{strNotNull}";
+                    case DataType.DuckDB:
+                        colattr.DbType = $"BLOB{strNotNull}";
 						break;
 					case DataType.MsAccess:
 						if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
@@ -2137,7 +2140,12 @@ namespace FreeSql.Internal
         {
             if (obj == null) return null;
             if (obj is bool || obj is bool?) return (bool)obj == true ? "1" : "0";
-            return string.Concat(obj);
+            return string.Format(CultureInfo.InvariantCulture, "{0}", obj);
+        }
+        public static bool ValueIsEnumAndTargetIsNumber(object value, Type targetType)
+        {
+            if (value == null || targetType == null) return false;
+            return value.GetType().IsEnum && targetType.IsNumberType();
         }
         public static byte[] GuidToBytes(Guid guid)
         {
@@ -2207,6 +2215,7 @@ namespace FreeSql.Internal
         static MethodInfo MethodDateTimeTryParse = typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() });
         static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
         static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
+        static MethodInfo MethodValueIsEnumAndTargetIsNumber = typeof(Utils).GetMethod("ValueIsEnumAndTargetIsNumber", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object), typeof(Type) }, null);
         static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
@@ -2555,8 +2564,12 @@ namespace FreeSql.Internal
                             Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
                         )
                     );
-                    // BigInteger/bool -> int
-                    //defaultRetExp = Expression.Return(returnTarget, Expression.Call(MethodGetDataReaderValue, Expression.Constant(type), Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))));
+                    //BigInteger/bool/Enum -> int
+                    defaultRetExp = Expression.IfThenElse(
+                        Expression.Call(MethodValueIsEnumAndTargetIsNumber, valueExp, Expression.Constant(type)),
+                        defaultRetExp,
+                        Expression.Return(returnTarget, Expression.Call(MethodGetDataReaderValue, Expression.Constant(type), Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))))
+                    );
                 }
                 else if (tryparseBooleanExp != null)
                     switchExp = Expression.Switch(
