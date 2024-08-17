@@ -750,6 +750,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.CustomSqlServer:
                 case DataType.Firebird:
                 case DataType.ClickHouse:
+                case DataType.DuckDB:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
                         Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
@@ -845,6 +846,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.OdbcMySql:
             case DataType.CustomMySql:
             case DataType.Firebird:
+            case DataType.DuckDB:
                 nsselsb.Append("RECURSIVE ");
                 break;
         }
@@ -874,7 +876,7 @@ SELECT ");
     #region OrderBy Random 随机排序
     /// <summary>
     /// 随机排序<para></para>
-    /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
+    /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/DuckDB/达梦/金仓/神通<para></para>
     /// 不支持：MsAcess
     /// </summary>
     /// <returns></returns>
@@ -897,6 +899,7 @@ SELECT ");
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
             case DataType.ShenTong:
+            case DataType.DuckDB:
                 return that.OrderBy("random()");
             case DataType.Oracle:
             case DataType.OdbcOracle:
@@ -980,6 +983,7 @@ SELECT ");
     /// SqlServer 2008+: merge into<para></para>
     /// Oracle 11+: merge into<para></para>
     /// Sqlite: replace into<para></para>
+    /// DuckDB: on conflict do update<para></para>
     /// 达梦: merge into<para></para>
     /// 人大金仓：on conflict do update<para></para>
     /// 神通：merge into<para></para>

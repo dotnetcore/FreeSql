@@ -1,17 +1,18 @@
 ﻿using FreeSql.Internal;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace FreeSql.Sqlite
+namespace FreeSql.Duckdb
 {
-    class SqliteExpression : CommonExpression
+    class DuckdbExpression : CommonExpression
     {
 
-        public SqliteExpression(CommonUtils common) : base(common) { }
+        public DuckdbExpression(CommonUtils common) : base(common) { }
 
         public override string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc)
         {
@@ -20,8 +21,10 @@ namespace FreeSql.Sqlite
             {
                 case ExpressionType.ArrayLength:
                     var arrOper = (exp as UnaryExpression)?.Operand;
-                    if (arrOper.Type == typeof(byte[])) return $"length({getExp(arrOper)})";
-                    break;
+                    var arrOperExp = getExp(arrOper);
+                    if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"len([{arrOperExp.TrimStart('(').TrimEnd(')')}])";
+                    if (arrOper.Type == typeof(byte[])) return $"octet_length({getExp(arrOper)})";
+                    return $"case when {arrOperExp} is null then 0 else len({arrOperExp}) end";
                 case ExpressionType.Convert:
                     var operandExp = (exp as UnaryExpression)?.Operand;
                     var gentype = exp.Type.NullableTypeOrThis();
@@ -30,21 +33,21 @@ namespace FreeSql.Sqlite
                         switch (exp.Type.NullableTypeOrThis().ToString())
                         {
                             case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
-                            case "System.Byte": return $"cast({getExp(operandExp)} as int2)";
-                            case "System.Char": return $"substr(cast({getExp(operandExp)} as character), 1, 1)";
-                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"datetime({getExp(operandExp)})";
+                            case "System.Byte": return $"cast({getExp(operandExp)} as utinyint)";
+                            case "System.Char": return $"substr(cast({getExp(operandExp)} as char), 1, 1)";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as timestamp)";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
                             case "System.Double": return $"cast({getExp(operandExp)} as double)";
-                            case "System.Int16":
-                            case "System.Int32":
-                            case "System.Int64":
-                            case "System.SByte": return $"cast({getExp(operandExp)} as smallint)";
+                            case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
+                            case "System.Int32": return $"cast({getExp(operandExp)} as integer)";
+                            case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
+                            case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
                             case "System.Single": return $"cast({getExp(operandExp)} as float)";
-                            case "System.String": return $"cast({getExp(operandExp)} as character)";
-                            case "System.UInt16": return $"cast({getExp(operandExp)} as unsigned)";
-                            case "System.UInt32": return $"cast({getExp(operandExp)} as decimal(10,0))";
-                            case "System.UInt64": return $"cast({getExp(operandExp)} as decimal(21,0))";
-                            case "System.Guid": return $"substr(cast({getExp(operandExp)} as character), 1, 36)";
+                            case "System.String": return $"cast({getExp(operandExp)} as text)";
+                            case "System.UInt16": return $"cast({getExp(operandExp)} as usmallint)";
+                            case "System.UInt32": return $"cast({getExp(operandExp)} as uinteger)";
+                            case "System.UInt64": return $"cast({getExp(operandExp)} as ubigint)";
+                            case "System.Guid": return $"cast({getExp(operandExp)} as uuid)";
                         }
                     }
                     break;
@@ -58,20 +61,20 @@ namespace FreeSql.Sqlite
                             switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString())
                             {
                                 case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
-                                case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as int2)";
-                                case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as character), 1, 1)";
-                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"datetime({getExp(callExp.Arguments[0])})";
+                                case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as utinyint)";
+                                case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as char), 1, 1)";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as timestamp)";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as double)";
-                                case "System.Int16":
-                                case "System.Int32":
-                                case "System.Int64":
-                                case "System.SByte": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
+                                case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
+                                case "System.Int32": return $"cast({getExp(callExp.Arguments[0])} as integer)";
+                                case "System.Int64": return $"cast({getExp(callExp.Arguments[0])} as bigint)";
+                                case "System.SByte": return $"cast({getExp(callExp.Arguments[0])} as tinyint)";
                                 case "System.Single": return $"cast({getExp(callExp.Arguments[0])} as float)";
-                                case "System.UInt16": return $"cast({getExp(callExp.Arguments[0])} as unsigned)";
-                                case "System.UInt32": return $"cast({getExp(callExp.Arguments[0])} as decimal(10,0))";
-                                case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as decimal(21,0))";
-                                case "System.Guid": return $"substr(cast({getExp(callExp.Arguments[0])} as character), 1, 36)";
+                                case "System.UInt16": return $"cast({getExp(callExp.Arguments[0])} as usmallint)";
+                                case "System.UInt32": return $"cast({getExp(callExp.Arguments[0])} as uinteger)";
+                                case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as ubigint)";
+                                case "System.Guid": return $"cast({getExp(callExp.Arguments[0])} as uuid)";
                             }
                             return null;
                         case "NewGuid":
@@ -98,7 +101,7 @@ namespace FreeSql.Sqlite
 								}
 								var value = ExpressionGetValue(callExp.Object, out var success);
 								if (success) return formatSql(value, typeof(string), null, null);
-								return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as character)" : null;
+								return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::text" : null;
                             }
                             return null;
                     }
@@ -120,43 +123,81 @@ namespace FreeSql.Sqlite
                             {
                                 case "First":
                                 case "FirstOrDefault":
-                                    return $"substr({getExp(callExp.Arguments[0])}, 1, 1)";
+                                    return $"substring({getExp(callExp.Arguments[0])}, 1, 1)";
                             }
                         }
                     }
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
-                        if (argIndex >= callExp.Arguments.Count) break;
-                        tsc.SetMapColumnTmp(null);
-                        var args1 = getExp(callExp.Arguments[argIndex]);
-                        var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
-                        tsc.isNotSetMapColumnTmp = true;
-                        var left = objExp == null ? null : getExp(objExp);
-                        tsc.isNotSetMapColumnTmp = false;
-                        tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
+                        string left = null;
                         switch (callExp.Method.Name)
                         {
+                            case "Any":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"[{left.TrimStart('(').TrimEnd(')')}]";
+                                return $"(case when {left} is null then 0 else len({left}) end > 0)";
                             case "Contains":
-                                //判断 in //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
-                                return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
+                                tsc.SetMapColumnTmp(null);
+                                var args1 = getExp(callExp.Arguments[argIndex]);
+                                var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
+                                var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                                tsc.isNotSetMapColumnTmp = true;
+                                left = objExp == null ? null : getExp(objExp);
+                                tsc.isNotSetMapColumnTmp = false;
+                                tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
+                                //判断 in 或 array @> array
+                                if (left.StartsWith("[") && left.EndsWith("]"))
+                                    return $"({args1}) in ({left.TrimStart('[').TrimEnd(']')})";
+                                if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                    return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
+                                return $"list_contains({left}, {args1})";
+                            case "Concat":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"[{left.TrimStart('(').TrimEnd(')')}]";
+                                var right2 = getExp(callExp.Arguments[argIndex]);
+                                if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"[{right2.TrimStart('(').TrimEnd(')')}]";
+                                return $"list_concat({left}, {right2})";
+                            case "GetLength":
+                            case "GetLongLength":
+                            case "Length":
+                            case "Count":
+                                left = objExp == null ? null : getExp(objExp);
+                                if (left.StartsWith("(") || left.EndsWith(")")) left = $"[{left.TrimStart('(').TrimEnd(')')}]";
+                                return $"case when {left} is null then 0 else len({left}) end";
+                        }
+                    }
+                    break;
+                case ExpressionType.MemberAccess:
+                    var memExp = exp as MemberExpression;
+                    var memParentExp = memExp.Expression?.Type;
+                    if (memParentExp?.FullName == "System.Byte[]") return null;
+                    if (memParentExp != null)
+                    {
+                        if (memParentExp.IsArrayOrList())
+                        {
+                            var left = getExp(memExp.Expression);
+                            if (left.StartsWith("(") || left.EndsWith(")")) left = $"[{left.TrimStart('(').TrimEnd(')')}]";
+                            switch (memExp.Member.Name)
+                            {
+                                case "Length":
+                                case "Count": return $"case when {left} is null then 0 else len({left}) end";
+                            }
                         }
                     }
                     break;
                 case ExpressionType.NewArrayInit:
                     var arrExp = exp as NewArrayExpression;
                     var arrSb = new StringBuilder();
-                    arrSb.Append("(");
+                    arrSb.Append("[");
                     for (var a = 0; a < arrExp.Expressions.Count; a++)
                     {
                         if (a > 0) arrSb.Append(",");
-                        if (a % 500 == 499) arrSb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                         arrSb.Append(getExp(arrExp.Expressions[a]));
                     }
                     if (arrSb.Length == 1) arrSb.Append("NULL");
-                    return arrSb.Append(")").ToString();
+                    return arrSb.Append("]").ToString();
                 case ExpressionType.ListInit:
                     var listExp = exp as ListInitExpression;
                     var listSb = new StringBuilder();
@@ -207,27 +248,26 @@ namespace FreeSql.Sqlite
                 {
                     case "Now": return _common.Now;
                     case "UtcNow": return _common.NowUtc;
-                    case "Today": return "date(current_timestamp,'localtime')";
-                    case "MinValue": return "datetime('0001-01-01 00:00:00.000')";
-                    case "MaxValue": return "datetime('9999-12-31 23:59:59.999')";
+                    case "Today": return "current_date";
+                    case "MinValue": return "timestamp '0001-01-01 00:00:00.000'";
+                    case "MaxValue": return "timestamp '9999-12-31 23:59:59.999'";
                 }
                 return null;
             }
             var left = ExpressionLambdaToSql(exp.Expression, tsc);
             switch (exp.Member.Name)
             {
-                case "Date": return $"date({left})";
-                case "TimeOfDay": return $"strftime('%H:%M:%S',{left})";
-                case "DayOfWeek": return $"CAST(strftime('%w',{left}) AS INTEGER) ";
-                case "Day": return $"CAST(strftime('%d',{left}) AS INTEGER) ";
-                case "DayOfYear": return $"CAST(strftime('%j',{left}) AS INTEGER) ";
-                case "Month": return $"CAST(strftime('%m',{left}) AS INTEGER) ";
-                case "Year": return $"CAST(strftime('%Y',{left}) AS INTEGER) ";
-                case "Hour": return $"CAST(strftime('%H',{left}) AS INTEGER) ";
-                case "Minute": return $"CAST(strftime('%M',{left}) AS INTEGER) ";
-                case "Second": return $"CAST(strftime('%S',{left}) AS INTEGER) ";
-                case "Millisecond": return $"CAST(strftime('%f',{left})*1000.0%1000.0 AS INTEGER)";
-                case "Ticks": return $"CAST(((strftime( '%J',{left}) - 1721425.5 ) * {TimeSpan.TicksPerDay} ) AS INTEGER ) ";//精度到毫秒
+                case "Date": return $"({left})::date";
+                case "TimeOfDay": return $"strftime({left},'%H:%M:%S')::time";
+                case "DayOfWeek": return $"dayofweek({left})";
+                case "Day": return $"day({left})";
+                case "DayOfYear": return $"dayofyear({left})";
+                case "Month": return $"month({left})";
+                case "Year": return $"year({left})";
+                case "Hour": return $"hour({left})";
+                case "Minute": return $"minute({left})";
+                case "Second": return $"second({left})";
+                case "Millisecond": return $"millisecond({left})";
             }
             return null;
         }
@@ -250,12 +290,17 @@ namespace FreeSql.Sqlite
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
                         //4个 {} 时，Arguments[1] 只能解析这个出来，然后里面是 NewArray []
-                        var expArgs = expArgsHack.Select(a => $"'||{_common.IsNull(ExpressionLambdaToSql(a, tsc), "''")}||'").ToArray();
+                        var expArgs = expArgsHack.Select(a =>
+                        {
+                            var atype = (a as UnaryExpression)?.Operand.Type.NullableTypeOrThis() ?? a.Type.NullableTypeOrThis();
+                            if (atype == typeof(string)) return $"'||{_common.IsNull(ExpressionLambdaToSql(a, tsc), "''")}||'";
+                            return $"'||{_common.IsNull($"({ExpressionLambdaToSql(a, tsc)})::text", "''")}||'";
+                        }).ToArray();
                         return string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs);
                     case "Join":
                         if (exp.IsStringJoin(out var tolistObjectExp, out var toListMethod, out var toListArgs1))
@@ -263,7 +308,7 @@ namespace FreeSql.Sqlite
                             var newToListArgs0 = Expression.Call(tolistObjectExp, toListMethod,
                                 Expression.Lambda(
                                     Expression.Call(
-                                        typeof(SqlExtExtensions).GetMethod("StringJoinSqliteGroupConcat"),
+                                        typeof(SqlExtExtensions).GetMethod("StringJoinPgsqlGroupConcat"),
                                         Expression.Convert(toListArgs1.Body, typeof(object)),
                                         Expression.Convert(exp.Arguments[0], typeof(object))),
                                     toListArgs1.Parameters));
@@ -284,24 +329,23 @@ namespace FreeSql.Sqlite
                         var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"{leftLike} IS NULL";
+                        if (exp.Method.Name == "StartsWith") return $"{left} ^@ ({args0Value})";
                         if (args0Value.Contains("%"))
                         {
-                            if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}) = 1";
-                            if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}) = length({left})-length({args0Value})+1";
-                            return $"instr({left}, {args0Value}) > 0";
+                            if (exp.Method.Name == "EndsWith") return $"strpos({left}, {args0Value}) = length({left})-length({args0Value})+1";
+                            return $"strpos({left}, {args0Value}) > 0";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value})||'%'")}";
-                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"'%'||({args0Value})")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
                         if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"{leftLike} LIKE '%'||({args0Value})||'%'";
+                        return $"{leftLike} LIKE ('%' || ({args0Value})::text || '%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
                         var substrArgs1 = getExp(exp.Arguments[0]);
                         if (long.TryParse(substrArgs1, out var testtrylng1)) substrArgs1 = (testtrylng1 + 1).ToString();
                         else substrArgs1 += "+1";
-                        if (exp.Arguments.Count == 1) return $"substr({left}, {substrArgs1})";
-                        return $"substr({left}, {substrArgs1}, {getExp(exp.Arguments[1])})";
+                        if (exp.Arguments.Count == 1) return $"substring({left}, {substrArgs1})";
+                        return $"substring({left}, {substrArgs1}, {getExp(exp.Arguments[1])})";
                     case "IndexOf":
                         var indexOfFindStr = getExp(exp.Arguments[0]);
                         //if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") {
@@ -310,14 +354,13 @@ namespace FreeSql.Sqlite
                         //  else locateArgs1 += "+1";
                         //  return $"(instr({left}, {indexOfFindStr}, {locateArgs1})-1)";
                         //}
-                        return $"(instr({left}, {indexOfFindStr})-1)";
+                        return $"(strpos({left}, {indexOfFindStr})-1)";
                     case "PadLeft":
-                        if (exp.Arguments.Count == 1) return $"padl({left}, {getExp(exp.Arguments[0])})";
-                        return $"leftstr(REPLACE(padl({left}, {getExp(exp.Arguments[0])}),' ',{getExp(exp.Arguments[1])}),{getExp(exp.Arguments[0])}-length({left}))||{left}";
+                        if (exp.Arguments.Count == 1) return $"lpad({left}, {getExp(exp.Arguments[0])}, ' ')";
+                        return $"lpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     case "PadRight":
-                        var totalWidthValue = getExp(exp.Arguments[0]);
-                        if (exp.Arguments.Count == 1) return $"padr({left}, {totalWidthValue})";
-                        return $"{left}||rightstr(REPLACE(padr({left},{totalWidthValue}),' ',{getExp(exp.Arguments[1])}),CASE WHEN {totalWidthValue}-length({left})<=0 THEN 0 ELSE {totalWidthValue}-length({left})END)";
+                        if (exp.Arguments.Count == 1) return $"rpad({left}, {getExp(exp.Arguments[0])}, ' ')";
+                        return $"rpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     case "Trim":
                     case "TrimStart":
                     case "TrimEnd":
@@ -362,24 +405,11 @@ namespace FreeSql.Sqlite
             {
                 case "Abs": return $"abs({getExp(exp.Arguments[0])})";
                 case "Sign": return $"sign({getExp(exp.Arguments[0])})";
-#if MicrosoftData
-                case "Floor":
-                    {
-                        var funExp = getExp(exp.Arguments[0]);
-                        return $"cast({funExp} as int) - ({funExp} < cast({funExp} as int))";
-                    };
-                case "Ceiling":
-                    {
-                        var funExp = getExp(exp.Arguments[0]);
-                        return $"cast ({funExp} as int ) + ({funExp} > cast ({funExp} as int ))";
-                    };
-#else
                 case "Floor": return $"floor({getExp(exp.Arguments[0])})";
                 case "Ceiling": return $"ceiling({getExp(exp.Arguments[0])})";
-#endif
                 case "Round":
                     if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") return $"round({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
-                    return $"round({getExp(exp.Arguments[0])})";
+                    return $"round({getExp(exp.Arguments[0])}, 2)";
                 case "Exp": return $"exp({getExp(exp.Arguments[0])})";
                 case "Log": return $"log({getExp(exp.Arguments[0])})";
                 case "Log10": return $"log10({getExp(exp.Arguments[0])})";
@@ -392,7 +422,7 @@ namespace FreeSql.Sqlite
                 case "Asin": return $"asin({getExp(exp.Arguments[0])})";
                 case "Atan": return $"atan({getExp(exp.Arguments[0])})";
                 case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
-                    //case "Truncate": return $"truncate({getExp(exp.Arguments[0])}, 0)";
+                case "Truncate": return $"trunc({getExp(exp.Arguments[0])})";
             }
             return null;
         }
@@ -403,18 +433,18 @@ namespace FreeSql.Sqlite
             {
                 switch (exp.Method.Name)
                 {
-                    case "Compare": return $"(strftime('%s',{getExp(exp.Arguments[0])}) -strftime('%s',{getExp(exp.Arguments[1])}))";
-                    case "DaysInMonth": return $"strftime('%d',date({getExp(exp.Arguments[0])}||'-01-01',{getExp(exp.Arguments[1])}||' months','-1 days'))";
+                    case "Compare": return $"(epoch({getExp(exp.Arguments[0])})-epoch({getExp(exp.Arguments[1])}))";
+                    case "DaysInMonth": return $"day(last_day(cast({getExp(exp.Arguments[0])}||'-'||{getExp(exp.Arguments[1])}||'-01' as date)))";
                     case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
 
                     case "IsLeapYear":
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                 }
             }
             else
@@ -423,39 +453,39 @@ namespace FreeSql.Sqlite
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "AddDays": return $"datetime({left},({args1})||' days')";
-                    case "AddHours": return $"datetime({left},({args1})||' hours')";
-                    case "AddMilliseconds": return $"datetime({left},(({args1})/1000)||' seconds')";
-                    case "AddMinutes": return $"datetime({left},({args1})||' minutes')";
-                    case "AddMonths": return $"datetime({left},({args1})||' months')";
-                    case "AddSeconds": return $"datetime({left},({args1})||' seconds')";
-                    case "AddTicks": return $"datetime({left},(({args1})/10000000)||' seconds')";
-                    case "AddYears": return $"datetime({left},({args1})||' years')";
+                    case "AddDays": return $"date_add({left},cast(({args1})||' days' as interval))";
+                    case "AddHours": return $"date_add({left},cast(({args1})||' hours' as interval))";
+                    case "AddMilliseconds": return $"date_add({left},cast(({args1})||' milliseconds' as interval))";
+                    case "AddMinutes": return $"date_add({left},cast(({args1})||' minutes' as interval))";
+                    case "AddMonths": return $"date_add({left},cast(({args1})||' months' as interval))";
+                    case "AddSeconds": return $"date_add({left},cast(({args1})||' seconds' as interval))";
+                    case "AddTicks": return $"date_add({left},cast((({args1})/10)||' microseconds' as interval))";
+                    case "AddYears": return $"date_add({left},cast(({args1})||' years' as interval))";
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
-                            case "System.TimeSpan": return $"datetime({left},(({args1})*-1)||' seconds')";
+                            case "System.DateTime": return $"cast((epoch({left})-epoch({args1}))||' seconds' as interval)";
+                            case "System.TimeSpan": return $"date_add({left},{args1})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
+                    case "CompareTo": return $"(epoch({left})-epoch({args1}))";
                     case "ToString":
-                        if (exp.Arguments.Count == 0) return $"strftime('%Y-%m-%d %H:%M:%S',{left})";
+                        if (exp.Arguments.Count == 0) return $"strftime({left},'%Y-%m-%d %H:%M:%S')";
                         switch (args1)
                         {
-                            case "'yyyy-MM-dd HH:mm:ss'": return $"strftime('%Y-%m-%d %H:%M:%S',{left})";
-                            case "'yyyy-MM-dd HH:mm'": return $"strftime('%Y-%m-%d %H:%M',{left})";
-                            case "'yyyy-MM-dd HH'": return $"strftime('%Y-%m-%d %H',{left})";
-                            case "'yyyy-MM-dd'": return $"strftime('%Y-%m-%d',{left})";
-                            case "'yyyy-MM'": return $"strftime('%Y-%m',{left})";
-                            case "'yyyyMMddHHmmss'": return $"strftime('%Y%m%d%H%M%S',{left})";
-                            case "'yyyyMMddHHmm'": return $"strftime('%Y%m%d%H%M',{left})";
-                            case "'yyyyMMddHH'": return $"strftime('%Y%m%d%H',{left})";
-                            case "'yyyyMMdd'": return $"strftime('%Y%m%d',{left})";
-                            case "'yyyyMM'": return $"strftime('%Y%m',{left})";
-                            case "'yyyy'": return $"strftime('%Y',{left})";
-                            case "'HH:mm:ss'": return $"strftime('%H:%M:%S',{left})";
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"strftime({left},'%Y-%m-%d %H:%M:%S')";
+                            case "'yyyy-MM-dd HH:mm'": return $"strftime({left},'%Y-%m-%d %H:%M')";
+                            case "'yyyy-MM-dd HH'": return $"strftime({left},'%Y-%m-%d %H')";
+                            case "'yyyy-MM-dd'": return $"strftime({left},'%Y-%m-%d')";
+                            case "'yyyy-MM'": return $"strftime({left},'%Y-%m')";
+                            case "'yyyyMMddHHmmss'": return $"strftime({left},'%Y%m%d%H%M%S')";
+                            case "'yyyyMMddHHmm'": return $"strftime({left},'%Y%m%d%H%M')";
+                            case "'yyyyMMddHH'": return $"strftime({left},'%Y%m%d%H')";
+                            case "'yyyyMMdd'": return $"strftime({left},'%Y%m%d')";
+                            case "'yyyyMM'": return $"strftime({left},'%Y%m')";
+                            case "'yyyy'": return $"strftime({left},'%Y')";
+                            case "'HH:mm:ss'": return $"strftime({left},'%H:%M:%S')";
                         }
                         args1 = Regex.Replace(args1, "(yyyy|MM|dd|HH|mm|ss)", m =>
                         {
@@ -476,21 +506,21 @@ namespace FreeSql.Sqlite
                         {
                             switch (argsSpts[a])
                             {
-                                case "yy": argsSpts[a] = $"substr(strftime('%Y',{left}),3,2)"; break;
-                                case "M": argsSpts[a] = $"ltrim(strftime('%m',{left}),'0')"; break;
-                                case "d": argsSpts[a] = $"ltrim(strftime('%d',{left}),'0')"; break;
-                                case "H": argsSpts[a] = $"case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end"; break;
-                                case "hh": argsSpts[a] = $"case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end"; break;
-                                case "h": argsSpts[a] = $"case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end"; break;
-                                case "m": argsSpts[a] = $"case when substr(strftime('%M',{left}),1,1) = '0' then substr(strftime('%M',{left}),2,1) else strftime('%M',{left}) end"; break;
-                                case "s": argsSpts[a] = $"case when substr(strftime('%S',{left}),1,1) = '0' then substr(strftime('%S',{left}),2,1) else strftime('%S',{left}) end"; break;
-                                case "tt": argsSpts[a] = $"case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'PM' else 'AM' end"; break;
-                                case "t": argsSpts[a] = $"case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'P' else 'A' end"; break;
+                                case "yy": argsSpts[a] = $"substr(strftime({left},'%Y'),3,2)"; break;
+                                case "M": argsSpts[a] = $"strftime({left},'%-m')"; break;
+                                case "d": argsSpts[a] = $"strftime({left},'%-d')"; break;
+                                case "H": argsSpts[a] = $"strftime({left},'%-H')"; break;
+                                case "hh": argsSpts[a] = $"strftime({left},'%I')"; break;
+                                case "h": argsSpts[a] = $"strftime({left},'%-I')"; break;
+                                case "m": argsSpts[a] = $"strftime({left},'%-M')"; break;
+                                case "s": argsSpts[a] = $"strftime({left},'%-S')"; break;
+                                case "tt": argsSpts[a] = $"strftime({left},'%p')"; break;
+                                case "t": argsSpts[a] = $"substr(strftime({left},'%p'),1,1)"; break;
                                 default:
                                     var argsSptsA = argsSpts[a];
                                     if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
                                     if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
-                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"strftime('{argsSptsA}',{left})" : $"'{argsSptsA}'";
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"strftime({left},'{argsSptsA}')" : $"'{argsSptsA}'";
                                     break;
                             }
                         }
@@ -508,20 +538,20 @@ namespace FreeSql.Sqlite
                 switch (exp.Method.Name)
                 {
                     case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
-                    case "ToByte": return $"cast({getExp(exp.Arguments[0])} as int2)";
-                    case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as character), 1, 1)";
-                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
+                    case "ToByte": return $"cast({getExp(exp.Arguments[0])} as utinyint)";
+                    case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as char), 1, 1)";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as decimal(36,18))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as double)";
-                    case "ToInt16":
-                    case "ToInt32":
-                    case "ToInt64":
-                    case "ToSByte": return $"cast({getExp(exp.Arguments[0])} as smallint)";
+                    case "ToInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";
+                    case "ToInt32": return $"cast({getExp(exp.Arguments[0])} as integer)";
+                    case "ToInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
+                    case "ToSByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
                     case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as float)";
-                    case "ToString": return $"cast({getExp(exp.Arguments[0])} as character)";
-                    case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as unsigned)";
-                    case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as decimal(10,0))";
-                    case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as decimal(21,0))";
+                    case "ToString": return $"cast({getExp(exp.Arguments[0])} as text)";
+                    case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as usmallint)";
+                    case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as uinteger)";
+                    case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as ubigint)";
                 }
             }
             return null;

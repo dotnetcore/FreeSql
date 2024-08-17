@@ -81,6 +81,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.ShenTong:
+                case DataType.DuckDB:
                     InterceptPostgreSQL?.Invoke(); break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:

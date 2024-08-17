@@ -1,31 +1,27 @@
-﻿using FreeSql.Internal.ObjectPool;
+﻿using DuckDB.NET.Data;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Data;
 using System.Data.Common;
-#if MicrosoftData
-using Microsoft.Data.Sqlite;
-#else
-using System.Data.SQLite;
-#endif
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FreeSql.Sqlite
+namespace FreeSql.Duckdb
 {
 
-    class SqliteConnectionPool : ObjectPool<DbConnection>
+    class DuckdbConnectionPool : ObjectPool<DbConnection>
     {
 
         internal Action availableHandler;
         internal Action unavailableHandler;
 
-        public SqliteConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
+        public DuckdbConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
             this.availableHandler = availableHandler;
             this.unavailableHandler = unavailableHandler;
-            policy = new SqliteConnectionPoolPolicy
+            policy = new DuckdbConnectionPoolPolicy
             {
                 _pool = this,
                 Name = name
@@ -39,25 +35,21 @@ namespace FreeSql.Sqlite
             base.Return(obj, isRecreate);
         }
 
-        internal SqliteConnectionPoolPolicy policy;
+        internal DuckdbConnectionPoolPolicy policy;
 
         public static DbConnection CreateConnection(string connectionString)
         {
-#if MicrosoftData
-            var conn = new SqliteConnection(connectionString);
-#else
-            var conn = new SQLiteConnection(connectionString);
-#endif
+            var conn = new DuckDBConnection(connectionString);
             return conn;
         }
     }
 
-    class SqliteConnectionPoolPolicy : IPolicy<DbConnection>
+    class DuckdbConnectionPoolPolicy : IPolicy<DbConnection>
     {
 
-        internal SqliteConnectionPool _pool;
-        public string Name { get; set; } = $"Sqlite SQLiteConnection {CoreStrings.S_ObjectPool}";
-        public int PoolSize { get; set; } = 100;
+        internal DuckdbConnectionPool _pool;
+        public string Name { get; set; } = $"Duckdb DuckDBConnection {CoreStrings.S_ObjectPool}";
+        public int PoolSize { get; set; } = 1;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
         public int AsyncGetCapacity { get; set; } = 10000;
@@ -75,55 +67,30 @@ namespace FreeSql.Sqlite
             {
                 _connectionString = value ?? "";
 
+                PoolSize = 1;
                 var minPoolSize = 1;
-                var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
 
-                pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
+                if (Regex.IsMatch(_connectionString, @"ACCESS_MODE\s*=\s*READ_ONLY", RegexOptions.IgnoreCase))
                 {
-                    PoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
+                    //One process can both read and write to the database.
+                    //Multiple processes can read from the database, but no processes can write (access_mode = 'READ_ONLY').
 
-                pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    IdleTimeout = TimeSpan.FromSeconds(int.Parse(m.Groups[1].Value));
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
+                    var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+                    var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                    if (m.Success)
+                    {
+                        minPoolSize = int.Parse(m.Groups[1].Value);
+                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    }
 
-                var att = Regex.Split(_connectionString, @"Pooling\s*=\s*", RegexOptions.IgnoreCase);
-                if (att.Length == 2)
-                {
-                    var idx = att[1].IndexOf(';');
-                    _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
+                    pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+                    m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                    if (m.Success)
+                    {
+                        PoolSize = int.Parse(m.Groups[1].Value);
+                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    }
                 }
-
-                att = Regex.Split(_connectionString, @"Attachs\s*=\s*", RegexOptions.IgnoreCase);
-                if (att.Length == 2)
-                {
-                    var idx = att[1].IndexOf(';');
-                    Attaches = (idx == -1 ? att[1] : att[1].Substring(0, idx)).Split(',');
-                    _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
-                }
-
-                if (_connectionString.ToLower().Contains(":memory:"))
-                {
-                    //内存模式
-                    PoolSize = 1;
-                }
-
-#if ns20
-                minPoolSize = 1;
-#endif
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
 
             }
@@ -136,15 +103,10 @@ namespace FreeSql.Sqlite
             return obj.Value.Ping(true);
         }
 
-        public DbConnection OnCreate() => SqliteConnectionPool.CreateConnection(_connectionString);
+        public DbConnection OnCreate() => DuckdbConnectionPool.CreateConnection(_connectionString);
 
         public void OnDestroy(DbConnection obj)
         {
-#if MicrosoftData
-			if (obj is SqliteConnection sqlconn && sqlconn != null) SqliteConnection.ClearPool(sqlconn);
-#else
-            if (obj is SQLiteConnection sqlconn && sqlconn != null) SQLiteConnection.ClearPool(sqlconn);
-#endif
 			if (obj.State != ConnectionState.Closed) obj.Close();
             obj.Dispose();
         }

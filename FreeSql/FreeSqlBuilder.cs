@@ -377,6 +377,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider<>");
                         break;
 
+                    case DataType.DuckDB:
+                        type = Type.GetType("FreeSql.Duckdb.DuckdbProvider`1,FreeSql.Provider.Duckdb")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Duckdb.dll", "FreeSql.Duckdb.DuckdbProvider<>");
+                        break;
+
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }

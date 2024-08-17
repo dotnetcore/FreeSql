@@ -2103,7 +2103,7 @@ namespace FreeSql.Internal
         }
 
         internal static MethodInfo MethodExecuteArrayRowReadClassOrTuple = typeof(Utils).GetMethod("ExecuteArrayRowReadClassOrTuple", BindingFlags.Static | BindingFlags.NonPublic);
-        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.Public);
 
         static ConcurrentDictionary<string, Action<object, object>> _dicFillPropertyValue = new ConcurrentDictionary<string, Action<object, object>>();
         internal static void FillPropertyValue(object info, string memberAccessPath, object value)
@@ -2136,6 +2136,7 @@ namespace FreeSql.Internal
         public static string ToStringConcat(object obj)
         {
             if (obj == null) return null;
+            if (obj is bool || obj is bool?) return (bool)obj == true ? "1" : "0";
             return string.Concat(obj);
         }
         public static byte[] GuidToBytes(Guid guid)
@@ -2156,10 +2157,37 @@ namespace FreeSql.Internal
             if (string.IsNullOrEmpty(str)) return default(char);
             return str.ToCharArray(0, 1)[0];
         }
+        public static BitArray StringToBitArray(string str1010)
+        {
+            if (str1010 == null) return null;
+            BitArray ret = new BitArray(str1010.Length);
+            for (int a = 0; a < str1010.Length; a++) ret[a] = str1010[a] == '1';
+            return ret;
+        }
+        public static TElement[] ListOrArrayToArray<TElement>(object listOrArray)
+        {
+            if (listOrArray is TElement[] arr2) return arr2;
+            if (listOrArray is Array arr)
+            {
+                var len = arr.GetLength(0);
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), arr.GetValue(a));
+                return arr2;
+            }
+            if (listOrArray is IList list)
+            {
+                var len = list.Count;
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), list[a]);
+                return arr2;
+            }
+            return null;
+        }
+        public static List<TElement> ListOrArrayToList<TElement>(object listOrArray) => ListOrArrayToArray<TElement>(listOrArray)?.ToList();
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
-        static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
-        static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
         static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
         static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
         static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
@@ -2188,8 +2216,11 @@ namespace FreeSql.Internal
         static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
         static MethodInfo MethodStringToCharArray = typeof(string).GetMethod("ToCharArray", new Type[0]);
         static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
+        static MethodInfo MethodStringToBitArray = typeof(Utils).GetMethod("StringToBitArray", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
         static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
+        static MethodInfo MethodListOrArrayToArray = typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToArray").FirstOrDefault();
+        static MethodInfo MethodListOrArrayToList = typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToList").FirstOrDefault();
 
 
         public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = new ConcurrentDictionary<Type, ITypeHandler>();
@@ -2234,47 +2265,25 @@ namespace FreeSql.Internal
                                 )
                             );
                     }
-                    var elementType = type.GetElementType();
-                    var arrNewExp = Expression.Variable(type, "arrNew");
-                    var arrExp = Expression.Variable(typeof(Array), "arr");
-                    var arrLenExp = Expression.Variable(typeof(int), "arrLen");
-                    var arrXExp = Expression.Variable(typeof(int), "arrX");
-                    var arrReadValExp = Expression.Variable(typeof(object), "arrReadVal");
-                    var label = Expression.Label(typeof(int));
                     return Expression.IfThenElse(
                         Expression.TypeEqual(valueExp, type),
                         Expression.Return(returnTarget, valueExp),
                         Expression.IfThenElse(
                             Expression.TypeEqual(valueExp, typeof(string)), //JSON
                             LocalFuncGetExpression(true),
-                            Expression.Block(
-                                new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
-                                Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
-                                Expression.IfThenElse(
-                                    Expression.Equal(arrExp, Expression.Constant(null)),
-                                    Expression.Assign(arrLenExp, Expression.Constant(0)),
-                                    Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
-                                ),
-                                Expression.Assign(arrXExp, Expression.Constant(0)),
-                                Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
-                                Expression.Loop(
-                                    Expression.IfThenElse(
-                                        Expression.LessThan(arrXExp, arrLenExp),
-                                        Expression.Block(
-                                            Expression.Assign(arrReadValExp, GetDataReaderValueBlockExpression(elementType, Expression.Call(arrExp, MethodArrayGetValue, arrXExp))),
-                                            Expression.IfThenElse(
-                                                Expression.Equal(arrReadValExp, Expression.Constant(null)),
-                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Default(elementType)),
-                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Convert(arrReadValExp, elementType))
-                                            ),
-                                            Expression.PostIncrementAssign(arrXExp)
-                                        ),
-                                        Expression.Break(label, arrXExp)
-                                    ),
-                                    label
-                                ),
-                                Expression.Return(returnTarget, arrNewExp)
-                            )
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToArray.MakeGenericMethod(type.GetElementType()), valueExp))
+                        )
+                    );
+                }
+                if (!ignoreArray && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    return Expression.IfThenElse(
+                        Expression.TypeEqual(valueExp, type),
+                        Expression.Return(returnTarget, valueExp),
+                        Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, typeof(string)), //JSON
+                            LocalFuncGetExpression(true),
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToList.MakeGenericMethod(type.GetGenericArguments().FirstOrDefault()), valueExp))
                         )
                     );
                 }
@@ -2503,6 +2512,16 @@ namespace FreeSql.Internal
                             typeof(object))
                         );
                         break;
+                    case "System.Collections.BitArray":
+                            return Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, typeof(string)),
+                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Convert(valueExp, typeof(string))), typeof(object))),
+                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Call(MethodToString, valueExp)), typeof(object)))
+                                )
+                            );
                     default:
                         if (type.IsEnum && TypeHandlers.ContainsKey(type) == false)
                             return Expression.Block(
@@ -2525,6 +2544,7 @@ namespace FreeSql.Internal
                 Expression switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
                 Expression defaultRetExp = switchExp;
                 if (tryparseExp != null)
+                {
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
                         Expression.SwitchCase(tryparseExp,
@@ -2535,6 +2555,9 @@ namespace FreeSql.Internal
                             Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
                         )
                     );
+                    // BigInteger/bool -> int
+                    //defaultRetExp = Expression.Return(returnTarget, Expression.Call(MethodGetDataReaderValue, Expression.Constant(type), Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))));
+                }
                 else if (tryparseBooleanExp != null)
                     switchExp = Expression.Switch(
                         Expression.Constant(type),

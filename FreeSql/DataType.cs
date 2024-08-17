@@ -63,6 +63,8 @@ namespace FreeSql
         /// </summary>
         Xugu,
 
-        CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL
+        CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL,
+
+        DuckDB
     }
 }

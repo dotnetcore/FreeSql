@@ -51,6 +51,7 @@ public interface IFreeSql : IDisposable
     /// SqlServer 2008+: merge into<para></para>
     /// Oracle 11+: merge into<para></para>
     /// Sqlite: replace into<para></para>
+    /// DuckDB: on conflict do update<para></para>
     /// 达梦: merge into<para></para>
     /// 人大金仓：on conflict do update<para></para>
     /// 神通：merge into<para></para>
