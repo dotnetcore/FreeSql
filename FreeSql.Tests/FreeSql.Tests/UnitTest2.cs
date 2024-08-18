@@ -382,6 +382,16 @@ namespace FreeSql.Tests
             var gft2 = g.mysql.Select<gf_t2>().Where(a => a.id == Guid.NewGuid()).ToList();
             var gft3 = g.mysql.Select<gf_t3>().Where(a => a.id == Guid.NewGuid()).ToList();
 
+            var repo1 = g.mysql.GetRepository<gf_t1, Guid>();
+            using (repo1.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo1.Get(Guid.NewGuid());
+            var repo2 = g.mysql.GetRepository<gf_t2, Guid>();
+            using (repo2.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo2.Get(Guid.NewGuid());
+            var repo3 = g.mysql.GetRepository<gf_t3, Guid>();
+            using (repo3.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo3.Get(Guid.NewGuid());
+
             g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
             g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
             g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();

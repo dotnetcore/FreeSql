@@ -43,6 +43,18 @@ namespace restful.Controllers
             Console.Write(reposTest.Select.ToSql());
 
             _songRepository = repos4;
+
+            //test code
+            var curd1 = fsql.GetRepository<Song, int>();
+            var curd2 = fsql.GetRepository<Song, string>();
+            var curd3 = fsql.GetRepository<Song, Guid>();
+
+            Console.WriteLine(reposSong.Select.ToSql());
+
+            using (reposSong.DataFilter.DisableAll())
+            {
+                Console.WriteLine(reposSong.Select.ToSql());
+            }
         }
 
         [HttpGet]
