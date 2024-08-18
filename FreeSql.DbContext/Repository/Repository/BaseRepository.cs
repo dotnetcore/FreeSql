@@ -22,6 +22,14 @@ namespace FreeSql
         protected BaseRepository(IFreeSql fsql)
         {
             _ormScoped = DbContextScopedFreeSql.Create(fsql, () => _db, () => UnitOfWork);
+            fsql?.GlobalFilter?.GetAllFilters().ForEach(gf =>
+            {
+                DataFilter._filtersByOrm.TryAdd(gf.Name, new RepositoryDataFilter.FilterItemByOrm
+                {
+                    Filter = gf,
+                    IsEnabled = true
+                });
+            });
         }
 
         ~BaseRepository() => this.Dispose();
@@ -55,6 +63,7 @@ namespace FreeSql
 			_asTablePriv = rule;
 		}
 		public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
+        public RepositoryDataFilter DataFilter { get; set; } = new RepositoryDataFilter();
 
         internal DbContextScopedFreeSql _ormScoped;
         internal IFreeSql OrmOriginal => _ormScoped?._originalFsql;

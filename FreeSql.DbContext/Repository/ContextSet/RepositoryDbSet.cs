@@ -32,6 +32,8 @@ namespace FreeSql
         {
             var select = base.OrmSelect(dywhere);
             if (_repo._asTablePriv != null) select.AsTable(_repo._asTablePriv);
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter);
             return select;
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
@@ -39,6 +41,8 @@ namespace FreeSql
         {
             var update = base.OrmUpdate(entitys);
 			if (_repo._asTablePriv != null) update.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter);
             return update;
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
@@ -46,6 +50,8 @@ namespace FreeSql
         {
             var delete = base.OrmDelete(dywhere);
 			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter);
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);

@@ -487,6 +487,32 @@
             <typeparam name="TEntity"></typeparam>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.RepositoryDataFilter.Disable(System.String[])">
+            <summary>
+            开启过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <param name="filterName">过滤器名称</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.RepositoryDataFilter.DisableAll">
+            <summary>
+            开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.RepositoryDataFilter.Enable(System.String[])">
+            <summary>
+            禁用过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <param name="filterName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.RepositoryDataFilter.EnableAll">
+            <summary>
+            禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
             <summary>
             动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
@@ -509,6 +535,11 @@
         <member name="P:FreeSql.IBaseRepository.DbContextOptions">
             <summary>
             设置 DbContext 选项
+            </summary>
+        </member>
+        <member name="P:FreeSql.IBaseRepository.DataFilter">
+            <summary>
+            GlobalFilter 禁用/启用控制
             </summary>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.FlushState">

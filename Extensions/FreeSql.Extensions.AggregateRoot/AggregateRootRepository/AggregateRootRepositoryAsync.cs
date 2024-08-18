@@ -210,6 +210,7 @@ namespace FreeSql
             var affrows = 0;
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
 			{
+                if (tracking.DeleteLog[a].Item2.Any() == false) continue;
 				var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
 				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
 				affrows += await delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrowsAsync(cancellationToken);
@@ -240,6 +241,7 @@ namespace FreeSql
 
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
 			{
+                if (tracking.DeleteLog[a].Item2.Any() == false) continue;
 				var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
 				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
 				affrows += await delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrowsAsync(cancellationToken);

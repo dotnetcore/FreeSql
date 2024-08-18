@@ -470,8 +470,9 @@ namespace FreeSql.Internal
                     filter += $"{(colidx > 0 ? " AND " : "")}{aliasAndDot}{this.QuoteSqlName(col.Attribute.Name)} = ";
                     if (CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null) //v3.5.100 单条支持参数化
                     {
-                        AppendParamter(dbParams, null, col, col.Attribute.MapType, colval);
-                        filter += RewriteColumn(col, QuoteWriteParamterAdapter(col.Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}")));
+                        var paramName = $"exp_{dbParams.Count}";
+                        AppendParamter(dbParams, paramName, col, col.Attribute.MapType, colval);
+                        filter += RewriteColumn(col, QuoteWriteParamterAdapter(col.Attribute.MapType, QuoteParamterName(paramName)));
                     }
                     else
                         filter += RewriteColumn(col, GetNoneParamaterSqlValue(null, null, col, col.Attribute.MapType, colval));
@@ -592,8 +593,9 @@ namespace FreeSql.Internal
                     filter += $"{aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = ";
                     if (CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null) //v3.5.100 单条支持参数化
                     {
-                        AppendParamter(dbParams, null, primarys[0], primarys[0].Attribute.MapType, pkval);
-                        filter += RewriteColumn(pk, QuoteWriteParamterAdapter(primarys[0].Attribute.MapType, QuoteParamterName($"exp_{dbParams.Count}")));
+                        var paramName = $"exp_{dbParams.Count}";
+                        AppendParamter(dbParams, paramName, primarys[0], primarys[0].Attribute.MapType, pkval);
+                        filter += RewriteColumn(pk, QuoteWriteParamterAdapter(primarys[0].Attribute.MapType, QuoteParamterName(paramName)));
                     }
                     else
                         filter += RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pkval));

@@ -34,6 +34,10 @@ namespace FreeSql
 		/// 设置 DbContext 选项
 		/// </summary>
 		DbContextOptions DbContextOptions { get; set; }
+        /// <summary>
+        /// GlobalFilter 禁用/启用控制
+        /// </summary>
+        RepositoryDataFilter DataFilter { get; }
     }
 
     public interface IBaseRepository<TEntity> : IBaseRepository
