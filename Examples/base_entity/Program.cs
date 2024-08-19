@@ -579,7 +579,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 				//.UseAdoConnectionPool(false)
 				//.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
 				////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -619,6 +619,9 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.UseJsonMap();
+
+            fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
 
             var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
             usergroupRepository.Delete(a => true);
@@ -3311,4 +3314,16 @@ class DateTimeOffsetTypeHandler : TypeHandler<DateTimeOffset>
     {
         return DateTimeOffset.TryParse((string)value, out var dts) ? dts : DateTimeOffset.MinValue;
     }
+}
+class Table11
+{
+    public int Id { get; set; }
+
+    [JsonMap, Column(DbType = "json")]
+    public TableOptions Options { get; set; }
+}
+class TableOptions
+{
+    public int Value1 { get; set; }
+    public string Value2 { get; set; }
 }

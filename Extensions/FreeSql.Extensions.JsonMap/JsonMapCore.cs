@@ -93,11 +93,6 @@ public static class FreeSqlJsonMapCoreExtensions
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng:
-            case DataType.PostgreSQL:
-            case DataType.OdbcPostgreSQL:
-            case DataType.CustomPostgreSQL:
-            case DataType.KingbaseES:
-            case DataType.ShenTong:
                 fsql.Aop.ParseExpression += (_, e) =>
                 {
                     //if (e.Expression is MethodCallExpression callExp)
@@ -170,13 +165,7 @@ public static class FreeSqlJsonMapCoreExtensions
                                             StyleJsonValue();
                                             return;
                                     }
-                                    while (parentMemExps.Any())
-                                    {
-                                        memExp = parentMemExps.Pop();
-                                        var opt = parentMemExps.Any() ? "->" : $"->>{(memExp.Type.IsArrayOrList() ? "/*json array*/" : "")}";
-                                        result = $"{result}{opt}'{memExp.Member.Name}'";
-                                    }
-                                    e.Result = result;
+                                    StylePgJson();
                                     return;
 
                                     void StyleJsonExtract()
@@ -196,6 +185,16 @@ public static class FreeSqlJsonMapCoreExtensions
                                             jsonPath = $"{jsonPath}.{memExp.Member.Name}";
                                         }
                                         e.Result = $"json_value({result},'${jsonPath}')";
+                                    }
+                                    void StylePgJson()
+                                    {
+                                        while (parentMemExps.Any())
+                                        {
+                                            memExp = parentMemExps.Pop();
+                                            var opt = parentMemExps.Any() ? "->" : $"->>{(memExp.Type.IsArrayOrList() ? "/*json array*/" : "")}";
+                                            result = $"{result}{opt}'{memExp.Member.Name}'";
+                                        }
+                                        e.Result = result;
                                     }
                             }
                         }
