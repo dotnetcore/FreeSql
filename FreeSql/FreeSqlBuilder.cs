@@ -613,6 +613,7 @@ namespace FreeSql
                 {
                     if (e.Property.PropertyType == typeHandler.Type)
                     {
+                        typeHandler.FluentApi(new ColumnFluent(e.ModifyResult, e.Property, e.EntityType));
                         if (_dicTypeHandlerTypes.ContainsKey(e.Property.PropertyType)) return;
                         if (e.Property.PropertyType.NullableTypeOrThis() != typeof(DateTime) &&
                             FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
