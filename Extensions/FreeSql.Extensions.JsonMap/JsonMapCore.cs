@@ -1,7 +1,9 @@
-﻿using FreeSql.DataAnnotations;
+﻿using FreeSql;
+using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -19,7 +21,7 @@ public static class FreeSqlJsonMapCoreExtensions
     public static ColumnFluent JsonMap(this ColumnFluent col)
     {
         _dicJsonMapFluentApi.GetOrAdd(col._entityType, et => new ConcurrentDictionary<string, bool>())
-                            .GetOrAdd(col._property.Name, pn => true);
+            .GetOrAdd(col._property.Name, pn => true);
         return col;
     }
 
@@ -28,12 +30,12 @@ public static class FreeSqlJsonMapCoreExtensions
     /// 当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
     /// </summary>
     /// <returns></returns>
-    public static void UseJsonMap(this IFreeSql that)
+    public static void UseJsonMap(this IFreeSql fsql)
     {
-        UseJsonMap(that, JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings());
+        UseJsonMap(fsql, JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings());
     }
 
-    public static void UseJsonMap(this IFreeSql that, JsonSerializerSettings settings)
+    public static void UseJsonMap(this IFreeSql fsql, JsonSerializerSettings settings)
     {
         if (Interlocked.CompareExchange(ref _isAoped, 1, 0) == 0)
         {
@@ -48,7 +50,7 @@ public static class FreeSqlJsonMapCoreExtensions
             });
         }
 
-        that.Aop.ConfigEntityProperty += (s, e) =>
+        fsql.Aop.ConfigEntityProperty += (s, e) =>
         {
             var isJsonMap = e.Property.GetCustomAttributes(typeof(JsonMapAttribute), false).Any() || _dicJsonMapFluentApi.TryGetValue(e.EntityType, out var tryjmfu) && tryjmfu.ContainsKey(e.Property.Name);
             if (isJsonMap)
@@ -57,8 +59,11 @@ public static class FreeSqlJsonMapCoreExtensions
                     FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
                     return; //基础类型使用 JsonMap 无效
 
-                e.ModifyResult.MapType = typeof(string);
-                e.ModifyResult.StringLength = -2;
+                if (e.ModifyResult.MapType == null)
+                {
+                    e.ModifyResult.MapType = typeof(string);
+                    e.ModifyResult.StringLength = -2;
+                }
                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))
                 {
                     lock (_concurrentObj)
@@ -75,5 +80,128 @@ public static class FreeSqlJsonMapCoreExtensions
                 }
             }
         };
+        switch (fsql.Ado.DataType)
+        {
+            case DataType.Sqlite:
+            case DataType.MySql:
+            case DataType.OdbcMySql:
+            case DataType.CustomMySql:
+            case DataType.SqlServer:
+            case DataType.OdbcSqlServer:
+            case DataType.CustomSqlServer:
+            case DataType.Oracle:
+            case DataType.OdbcOracle:
+            case DataType.CustomOracle:
+            case DataType.Dameng:
+            case DataType.PostgreSQL:
+            case DataType.OdbcPostgreSQL:
+            case DataType.CustomPostgreSQL:
+            case DataType.KingbaseES:
+            case DataType.ShenTong:
+                fsql.Aop.ParseExpression += (_, e) =>
+                {
+                    //if (e.Expression is MethodCallExpression callExp)
+                    //{
+                    //    var objExp = callExp.Object;
+                    //    var objType = objExp?.Type;
+                    //    if (objType?.FullName == "System.Byte[]") return;
+
+                    //    if (objType == null && callExp.Method.DeclaringType == typeof(Enumerable))
+                    //    {
+                    //        objExp = callExp.Arguments.FirstOrDefault();
+                    //        objType = objExp?.Type;
+                    //    }
+                    //    if (objType == null) objType = callExp.Method.DeclaringType;
+                    //    if (objType != null || objType.IsArrayOrList())
+                    //    {
+                    //        string left = null;
+                    //        switch (callExp.Method.Name)
+                    //        {
+                    //            case "Any":
+                    //                left = objExp == null ? null : getExp(objExp);
+                    //                if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+                    //                return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
+                    //            case "Contains":
+                    //        }
+                    //    }
+                    //}
+                    //解析 POCO Json   a.Customer.Name
+                    if (e.Expression is MemberExpression memExp)
+                    {
+                        if (e.Expression.IsParameter() == false) return;
+                        var parentMemExps = new Stack<MemberExpression>();
+                        parentMemExps.Push(memExp);
+                        while (true)
+                        {
+                            switch (memExp.Expression.NodeType)
+                            {
+                                case ExpressionType.MemberAccess:
+                                    memExp = memExp.Expression as MemberExpression;
+                                    if (memExp == null) return;
+                                    parentMemExps.Push(memExp);
+                                    break;
+                                case ExpressionType.Parameter:
+                                    var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
+                                    if (tb == null) return;
+                                    if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
+                                    if (_dicTypes.ContainsKey(trycol.CsType) == false) return;
+                                    var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[trycol.CsName]));
+                                    if (parentMemExps.Any() == false)
+                                    {
+                                        e.Result = result;
+                                        return;
+                                    }
+                                    var jsonPath = "";
+                                    switch (fsql.Ado.DataType)
+                                    {
+                                        case DataType.Sqlite:
+                                        case DataType.MySql:
+                                        case DataType.OdbcMySql:
+                                        case DataType.CustomMySql:
+                                            StyleJsonExtract();
+                                            return;
+                                        case DataType.SqlServer:
+                                        case DataType.OdbcSqlServer:
+                                        case DataType.CustomSqlServer:
+                                        case DataType.Oracle:
+                                        case DataType.OdbcOracle:
+                                        case DataType.CustomOracle:
+                                        case DataType.Dameng:
+                                            StyleJsonValue();
+                                            return;
+                                    }
+                                    while (parentMemExps.Any())
+                                    {
+                                        memExp = parentMemExps.Pop();
+                                        var opt = parentMemExps.Any() ? "->" : $"->>{(memExp.Type.IsArrayOrList() ? "/*json array*/" : "")}";
+                                        result = $"{result}{opt}'{memExp.Member.Name}'";
+                                    }
+                                    e.Result = result;
+                                    return;
+
+                                    void StyleJsonExtract()
+                                    {
+                                        while (parentMemExps.Any())
+                                        {
+                                            memExp = parentMemExps.Pop();
+                                            jsonPath = $"{jsonPath}.{memExp.Member.Name}";
+                                        }
+                                        e.Result = $"json_extract({result},'${jsonPath}')";
+                                    }
+                                    void StyleJsonValue()
+                                    {
+                                        while (parentMemExps.Any())
+                                        {
+                                            memExp = parentMemExps.Pop();
+                                            jsonPath = $"{jsonPath}.{memExp.Member.Name}";
+                                        }
+                                        e.Result = $"json_value({result},'${jsonPath}')";
+                                    }
+                            }
+                        }
+                    }
+                };
+                break;
+        }
     }
 }
