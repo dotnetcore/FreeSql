@@ -312,16 +312,19 @@ namespace FreeSql
                         break;
 
                     case DataType.Dameng:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Dameng.dll", "FreeSql.Dameng.DamengProvider<>");
                         break;
 
                     case DataType.ShenTong:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.ShenTong.ShenTongProvider`1,FreeSql.Provider.ShenTong")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.ShenTong.dll", "FreeSql.ShenTong.ShenTongProvider<>");
                         break;
 
                     case DataType.KingbaseES:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.KingbaseES.KingbaseESProvider`1,FreeSql.Provider.KingbaseES")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.KingbaseES.dll", "FreeSql.KingbaseES.KingbaseESProvider<>");
                         break;
