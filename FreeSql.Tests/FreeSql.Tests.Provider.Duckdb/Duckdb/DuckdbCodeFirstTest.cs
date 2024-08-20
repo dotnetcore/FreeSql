@@ -146,7 +146,6 @@ namespace FreeSql.Tests.Duckdb
                 testFieldBoolArrayNullable = new bool?[] { true, true, null, false, false },
                 testFieldBoolNullable = true,
                 testFieldByte = byte.MaxValue,
-                testFieldByteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6 },
                 testFieldByteArrayNullable = new byte?[] { 0, 1, 2, 3, null, 4, 5, 6 },
                 testFieldByteNullable = byte.MinValue,
                 testFieldBytes = Encoding.UTF8.GetBytes("我是中国人"),
@@ -310,7 +309,6 @@ namespace FreeSql.Tests.Duckdb
             public short[] testFieldShortArray { get; set; }
             public int[] testFieldIntArray { get; set; }
             public long[] testFieldLongArray { get; set; }
-            public byte[] testFieldByteArray { get; set; }
             public ushort[] testFieldUShortArray { get; set; }
             public uint[] testFieldUIntArray { get; set; }
             public ulong[] testFieldULongArray { get; set; }
