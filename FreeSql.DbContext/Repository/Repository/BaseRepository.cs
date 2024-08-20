@@ -151,6 +151,12 @@ namespace FreeSql
             return entity;
         }
 
+        public virtual void SaveMany(TEntity entity, string propertyName)
+        {
+            _dbset.SaveMany(entity, propertyName);
+            _db.SaveChanges();
+        }
+
         public virtual void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
         public virtual int EndEdit(List<TEntity> data = null)
         {
