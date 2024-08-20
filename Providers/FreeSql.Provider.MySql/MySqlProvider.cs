@@ -18,6 +18,10 @@ namespace FreeSql.MySql
         {
             if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
             {
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
                 Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPoint)] = true;
                 Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisLineString)] = true;
                 Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPolygon)] = true;

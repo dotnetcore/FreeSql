@@ -43,7 +43,7 @@ namespace FreeSql.KingbaseES
                 { typeof(DateTime).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(KdbndpDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
 #if net60
-                { typeof(TimeOnly).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time NOT NULL", false, false, 0) },{ typeof(TimeOnly?).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time", false, true, null) },
+                { typeof(TimeOnly).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time NOT NULL", false, false, TimeOnly.MinValue) },{ typeof(TimeOnly?).FullName, CsToDb.New(KdbndpDbType.Time, "time", "time", false, true, null) },
                 { typeof(DateOnly).FullName, CsToDb.New(KdbndpDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(KdbndpDbType.Date, "date", "date", false, true, null) },
 #endif
 

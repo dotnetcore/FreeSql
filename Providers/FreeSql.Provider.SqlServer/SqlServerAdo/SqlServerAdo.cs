@@ -90,15 +90,24 @@ namespace FreeSql.SqlServer
                 return string.Concat("'", ((DateTimeOffset)param).ToString("yyyy-MM-dd HH:mm:ss.fff zzzz"), "'");
             }
 #if net60
-            else if (param is DateOnly || param is DateOnly?)
+            else if (param is DateOnly)
             {
+                var result = AddslashesTypeHandler(typeof(DateOnly), param);
+                if (result != null) return result;
+                if (param.Equals(DateOnly.MinValue) == true) param = new DateOnly(1970, 1, 1);
+                return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
+            }
+            else if (param is DateOnly?)
+            {
+                var result = AddslashesTypeHandler(typeof(DateOnly?), param);
+                if (result != null) return result;
                 if (param.Equals(DateOnly.MinValue) == true) param = new DateOnly(1970, 1, 1);
                 return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
             }
             else if (param is TimeOnly || param is TimeOnly?)
             {
                 var ts = (TimeOnly)param;
-                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}.{ts.Millisecond}'";
+                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}'";
             }
 #endif
             else if (param is TimeSpan || param is TimeSpan?)

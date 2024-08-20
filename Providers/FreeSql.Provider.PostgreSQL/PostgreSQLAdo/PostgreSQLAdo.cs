@@ -73,7 +73,7 @@ namespace FreeSql.PostgreSQL
             else if (param is TimeOnly || param is TimeOnly?)
             {
                 var ts = (TimeOnly)param;
-                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}.{ts.Millisecond}'";
+                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}'";
             }
 #endif
 

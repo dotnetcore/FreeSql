@@ -44,7 +44,7 @@ namespace FreeSql.MySql
                 { typeof(DateTime).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
 
 #if net60
-                { typeof(TimeOnly).FullName, CsToDb.New(MySqlDbType.Time, "time", "time NOT NULL", false, false, 0) },{ typeof(TimeOnly?).FullName, CsToDb.New(MySqlDbType.Time, "time", "time", false, true, null) },
+                { typeof(TimeOnly).FullName, CsToDb.New(MySqlDbType.Time, "time", "time NOT NULL", false, false, TimeOnly.MinValue) },{ typeof(TimeOnly?).FullName, CsToDb.New(MySqlDbType.Time, "time", "time", false, true, null) },
                 { typeof(DateOnly).FullName, CsToDb.New(MySqlDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(MySqlDbType.Date, "date", "date", false, true, null) },
 #endif
 

@@ -41,7 +41,7 @@ namespace FreeSql.Duckdb
                 { typeof(DateTime).FullName, CsToDb.New(DuckDBType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(DuckDBType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
 #if net60
-                { typeof(TimeOnly).FullName, CsToDb.New(DuckDBType.Time, "time", "time NOT NULL", false, false, 0) },{ typeof(TimeOnly?).FullName, CsToDb.New(DuckDBType.Time, "time", "time", false, true, null) },
+                { typeof(TimeOnly).FullName, CsToDb.New(DuckDBType.Time, "time", "time NOT NULL", false, false, TimeOnly.MinValue) },{ typeof(TimeOnly?).FullName, CsToDb.New(DuckDBType.Time, "time", "time", false, true, null) },
                 { typeof(DateOnly).FullName, CsToDb.New(DuckDBType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(DuckDBType.Date, "date", "date", false, true, null) },
 #endif
 
@@ -53,17 +53,47 @@ namespace FreeSql.Duckdb
 
                 { typeof(BitArray).FullName, CsToDb.New(DuckDBType.Bit, "bit", "bit", false, null, new BitArray(new byte[64])) },
                 { typeof(BigInteger).FullName, CsToDb.New(DuckDBType.HugeInt, "hugeint","hugeint NOT NULL", false, false, 0) },{ typeof(BigInteger?).FullName, CsToDb.New(DuckDBType.HugeInt, "hugeint","hugeint", false, true, null) },
+
+                { typeof(Dictionary<string, object>).FullName, CsToDb.New(DuckDBType.Struct, "struct", "struct", false, null, new Dictionary<string, object>()) },
             };
 
         public override DbInfoResult GetDbInfo(Type type)
         {
+            //int[]..List<int>
             var isarray = type.FullName != "System.Byte[]" && type.IsArray;
-            var elementType = isarray ? type.GetElementType() : type;
+            Type elementType = isarray ? type.GetElementType().NullableTypeOrThis() : type;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                isarray = true;
+                elementType = type.GenericTypeArguments[0].NullableTypeOrThis();
+            }
             var info = GetDbInfoNoneArray(elementType);
             if (info == null) return null;
-            if (isarray == false) return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
-            var dbtypefull = Regex.Replace(info.dbtypeFull, $@"{info.dbtype}(\s*\([^\)]+\))?", "$0[]").Replace(" NOT NULL", "");
-            return new DbInfoResult((int)(info.type | DuckDBType.Array), $"{info.dbtype}[]", dbtypefull, null, Array.CreateInstance(elementType, 0));
+            if (isarray)
+            {
+                var dbtypefull = Regex.Replace(info.dbtypeFull, $@"{info.dbtype}(\s*\([^\)]+\))?", "$0[]").Replace(" NOT NULL", "");
+                return new DbInfoResult((int)(info.type | DuckDBType.Array), $"{info.dbtype}[]", dbtypefull, null, Array.CreateInstance(elementType, 0));
+            }
+            if (type.IsGenericType)
+            {
+                var typeDefinition = type.GetGenericTypeDefinition();
+                //struct
+                if (typeDefinition == typeof(Dictionary<string, object>))
+                {
+
+                }
+                //map
+                if (typeDefinition == typeof(Dictionary<,>))
+                {
+                    var tkeyInfo = GetDbInfoNoneArray(type.GenericTypeArguments[0].NullableTypeOrThis());
+                    if (tkeyInfo == null) return null;
+                    var tvalInfo = GetDbInfoNoneArray(type.GenericTypeArguments[1].NullableTypeOrThis());
+                    if (tvalInfo == null) return null;
+                    var dbtype = $"map({tkeyInfo.dbtype},{tvalInfo.dbtype})";
+                    return new DbInfoResult((int)(info.type | DuckDBType.Array), dbtype, dbtype, null, Array.CreateInstance(elementType, 0));
+                }
+            }
+            return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
         }
         CsToDb<DuckDBType> GetDbInfoNoneArray(Type type)
         {

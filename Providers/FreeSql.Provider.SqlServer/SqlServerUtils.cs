@@ -30,6 +30,10 @@ namespace FreeSql.SqlServer
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+            else if (value?.Equals(DateTimeOffset.MinValue) == true) value = new DateTime(1970, 1, 1);
+#if net60
+            else if (value?.Equals(DateOnly.MinValue) == true) value = new DateTime(1970, 1, 1);
+#endif
             var ret = new SqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
@@ -52,6 +56,10 @@ namespace FreeSql.SqlServer
             Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
                 if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+                else if (value?.Equals(DateTimeOffset.MinValue) == true) value = new DateTime(1970, 1, 1);
+#if net60
+                else if (value?.Equals(DateOnly.MinValue) == true) value = new DateTime(1970, 1, 1);
+#endif
                 var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;

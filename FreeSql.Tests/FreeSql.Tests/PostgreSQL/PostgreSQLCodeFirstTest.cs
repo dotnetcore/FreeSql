@@ -28,20 +28,21 @@ namespace FreeSql.Tests.PostgreSQL
 
             var newitem = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item.Id).ToOne();
 
+            var now = DateTime.Parse("2024-8-20 23:00:11");
             var item2 = new test_DateOnlyTimeOnly01
             {
-                testFieldDateTime = DateTime.Now,
-                testFieldDateTimeArray = new[] { DateTime.Now, DateTime.Now.AddHours(2) },
-                testFieldDateTimeArrayNullable = new DateTime?[] { DateTime.Now, null, DateTime.Now.AddHours(2) },
-                testFieldDateTimeNullable = DateTime.Now.AddDays(-1),
-                testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now),
-                testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(DateTime.Now), DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
-                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(DateTime.Now), null, DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
-                testFieldDateOnlyNullable = DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
+                testFieldDateTime = now,
+                testFieldDateTimeArray = new[] { now, now.AddHours(2) },
+                testFieldDateTimeArrayNullable = new DateTime?[] { now, null, now.AddHours(2) },
+                testFieldDateTimeNullable = now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(now),
+                testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(now), DateOnly.FromDateTime(now.AddHours(2)) },
+                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(now), null, DateOnly.FromDateTime(now.AddHours(2)) },
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(now.AddDays(-1)),
                 
-                testFieldTimeSpan = TimeSpan.FromDays(1),
-                testFieldTimeSpanArray = new[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
-                testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
+                testFieldTimeSpan = TimeSpan.FromHours(16),
+                testFieldTimeSpanArray = new[] { TimeSpan.FromHours(16), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromHours(16), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
                 testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
                 testFieldTimeOnlyArray = new[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
@@ -51,15 +52,37 @@ namespace FreeSql.Tests.PostgreSQL
 
             var sqlPar = fsql.Insert(item2).ToSql();
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            var item3NP = fsql.Insert(item2).NoneParameter().ExecuteInserted();
+            var item3NP = fsql.Insert(item2).NoneParameter().ExecuteInserted()[0];
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
 
             var item3 = fsql.Insert(item2).ExecuteInserted().First();
-            var newitem2 = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
-            Assert.True(item2.testFieldDateTime.Subtract( newitem2.testFieldDateTime).TotalSeconds <= 0);
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
 
             item3 = fsql.Insert(item2).NoneParameter().ExecuteInserted().First();
-            newitem2 = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
-            Assert.True(item3.testFieldDateTime.Subtract(newitem2.testFieldDateTime).TotalSeconds <= 0);
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
 
             var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
             var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();

@@ -69,6 +69,12 @@ namespace FreeSql.PostgreSQL
             } }, 
             { typeof((IPAddress Address, int Subnet)[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)), a, (IPAddress.Any, 0)) }, 
             { typeof((IPAddress Address, int Subnet)?[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)?), a, null) },
+#if net60
+            { typeof(DateOnly[]).FullName, a => getParamterArrayValue(typeof(DateTime), a, null) },
+            { typeof(DateOnly?[]).FullName, a => getParamterArrayValue(typeof(DateTime?), a, null) },
+            { typeof(TimeOnly[]).FullName, a => getParamterArrayValue(typeof(TimeSpan), a, null) },
+            { typeof(TimeOnly?[]).FullName, a => getParamterArrayValue(typeof(TimeSpan?), a, null) },
+#endif
         };
         static object getParamterValue(Type type, object value, int level = 0)
         {
@@ -87,6 +93,10 @@ namespace FreeSql.PostgreSQL
             }
             if (type.IsNullableType()) type = type.GenericTypeArguments.First();
             if (type.IsEnum) return (int)value;
+#if net60
+            if (type == typeof(DateOnly)) return ((DateOnly)value).ToDateTime(TimeOnly.MinValue);
+            if (type == typeof(TimeOnly)) return ((TimeOnly)value).ToTimeSpan();
+#endif
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
             return value;
         }

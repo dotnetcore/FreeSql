@@ -17,6 +17,10 @@ namespace FreeSql.Duckdb
         {
             if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
             {
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
                 Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BigInteger)] = true;
                 Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
                 Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });

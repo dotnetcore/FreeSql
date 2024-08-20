@@ -2522,23 +2522,45 @@ namespace FreeSql.Internal
                         );
                         break;
                     case "System.Collections.BitArray":
-                            return Expression.IfThenElse(
-                                Expression.TypeEqual(valueExp, type),
-                                Expression.Return(returnTarget, valueExp),
-                                Expression.IfThenElse(
-                                    Expression.TypeEqual(valueExp, typeof(string)),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Convert(valueExp, typeof(string))), typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Call(MethodToString, valueExp)), typeof(object)))
-                                )
-                            );
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Convert(valueExp, typeof(string))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Call(MethodToString, valueExp)), typeof(object)))
+                            )
+                        );
+                    case "System.DateOnly":
+                        var MethodDateOnlyFromDateTime = type.GetMethod("FromDateTime", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(DateTime) }, null);
+                        var MethodDateOnlyParse = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null);
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTime)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyFromDateTime, Expression.Convert(valueExp, typeof(DateTime))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
+                    case "System.TimeOnly":
+                        var MethodTimeOnlyFromTimeSpan = type.GetMethod("FromTimeSpan", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(TimeSpan) }, null);
+                        var MethodTimeOnlyParse = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null);
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(TimeSpan)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyFromTimeSpan, Expression.Convert(valueExp, typeof(TimeSpan))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
                     default:
                         if (type.IsEnum && TypeHandlers.ContainsKey(type) == false)
-                            return Expression.Block(
-                                Expression.IfThenElse(
-                                    Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
-                                )
+                            return Expression.IfThenElse(
+                                Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
                             );
                         foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
                         {

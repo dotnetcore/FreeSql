@@ -16,6 +16,68 @@ namespace FreeSql.Tests.Duckdb
     {
         IFreeSql fsql => g.duckdb;
 
+
+        [Fact]
+        public void DateOnlyTimeOnly()
+        {
+            var item = new test_DateOnlyTimeOnly01 { testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now) };
+            item.Id = (int)fsql.Insert(item).ExecuteIdentity();
+
+            var newitem = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item.Id).ToOne();
+
+            var now = DateTime.Parse("2024-8-20 23:00:11");
+            var item2 = new test_DateOnlyTimeOnly01
+            {
+                testFieldDateTime = now,
+                testFieldDateTimeNullable = now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(now),
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(now.AddDays(-1)),
+
+                testFieldTimeSpan = TimeSpan.FromHours(16),
+                testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
+                testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
+                testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
+            };
+
+            var sqlPar = fsql.Insert(item2).ToSql();
+            var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
+            Assert.Equal(sqlText, "INSERT INTO \"test_dateonlytimeonly01\"(\"testfieldtimespan\", \"testfieldtimeonly\", \"testfielddatetime\", \"testfielddateonly\", \"testfieldtimespannullable\", \"testfieldtimeonlynullable\", \"testfielddatetimenullable\", \"testfielddateonlynullable\") VALUES(time '16:0:0.0', time '11:0:0', current_timestamp, date '2024-08-20', time '0:1:30.0', time '0:1:30', current_timestamp, date '2024-08-19')");
+            item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
+            var item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
+            var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();
+        }
+        class test_DateOnlyTimeOnly01
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public TimeSpan testFieldTimeSpan { get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime testFieldDateTime { get; set; }
+            public DateOnly testFieldDateOnly { get; set; }
+
+            public TimeSpan? testFieldTimeSpanNullable { get; set; }
+            public TimeOnly? testFieldTimeOnlyNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime? testFieldDateTimeNullable { get; set; }
+            public DateOnly? testFieldDateOnlyNullable { get; set; }
+        }
+
         [Fact]
         public void UInt256Crud2()
         {

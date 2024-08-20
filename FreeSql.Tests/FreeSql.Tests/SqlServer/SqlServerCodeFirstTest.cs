@@ -12,6 +12,81 @@ namespace FreeSql.Tests.SqlServer
 {
     public class SqlServerCodeFirstTest
     {
+
+        [Fact]
+        public void DateOnlyTimeOnly()
+        {
+            var fsql = g.sqlserver;
+
+            var item = new test_DateOnlyTimeOnly01 { testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now) };
+            item.Id = (int)fsql.Insert(item).ExecuteIdentity();
+
+            fsql.Aop.AuditDataReader += (s, e) =>
+            {
+                ;
+            };
+
+            var newitem = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item.Id).ToOne();
+
+            var now = DateTime.Parse("2024-8-20 23:00:11");
+            var item2 = new test_DateOnlyTimeOnly01
+            {
+                testFieldDateTime = now,
+                testFieldDateTimeNullable = now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(now),
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(now.AddDays(-1)),
+
+                testFieldTimeSpan = TimeSpan.FromHours(16),
+                testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
+                testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
+                testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
+            };
+
+            var sqlPar = fsql.Insert(item2).ToSql();
+            var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
+            Assert.Equal(sqlText, "INSERT INTO [test_DateOnlyTimeOnly01]([testFieldTimeSpan], [testFieldTimeOnly], [testFieldDateTime], [testFieldDateOnly], [testFieldTimeSpanNullable], [testFieldTimeOnlyNullable], [testFieldDateTimeNullable], [testFieldDateOnlyNullable]) VALUES('16:0:0.0', '11:0:0', getdate(), '2024-08-20', '0:1:30.0', '0:1:30', getdate(), '2024-08-19')");
+            var item3NP = fsql.Insert(item2).NoneParameter().ExecuteInserted();
+            Assert.Equal(item3NP[0].testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP[0].testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var item3 = fsql.Insert(item2).ExecuteInserted().First();
+            var newitem2 = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP[0].testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP[0].testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            item3 = fsql.Insert(item2).NoneParameter().ExecuteInserted().First();
+            newitem2 = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP[0].testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP[0].testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP[0].testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
+            var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();
+        }
+        class test_DateOnlyTimeOnly01
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public TimeSpan testFieldTimeSpan { get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime testFieldDateTime { get; set; }
+            public DateOnly testFieldDateOnly { get; set; }
+
+            public TimeSpan? testFieldTimeSpanNullable { get; set; }
+            public TimeOnly? testFieldTimeOnlyNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime? testFieldDateTimeNullable { get; set; }
+            public DateOnly? testFieldDateOnlyNullable { get; set; }
+        }
+
         [Fact]
         public void VersionInt()
         {

@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.CommonProvider;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.SqlServer.Curd;
 using System;
 using System.Data.Common;
@@ -14,6 +15,10 @@ namespace FreeSql.SqlServer
         {
             if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
             {
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
                 Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
             }
         }
