@@ -53,8 +53,6 @@ namespace FreeSql.Duckdb
 
                 { typeof(BitArray).FullName, CsToDb.New(DuckDBType.Bit, "bit", "bit", false, null, new BitArray(new byte[64])) },
                 { typeof(BigInteger).FullName, CsToDb.New(DuckDBType.HugeInt, "hugeint","hugeint NOT NULL", false, false, 0) },{ typeof(BigInteger?).FullName, CsToDb.New(DuckDBType.HugeInt, "hugeint","hugeint", false, true, null) },
-
-                { typeof(Dictionary<string, object>).FullName, CsToDb.New(DuckDBType.Struct, "struct", "struct", false, null, new Dictionary<string, object>()) },
             };
 
         public override DbInfoResult GetDbInfo(Type type)
@@ -77,11 +75,6 @@ namespace FreeSql.Duckdb
             if (type.IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                //struct
-                if (typeDefinition == typeof(Dictionary<string, object>))
-                {
-
-                }
                 //map
                 if (typeDefinition == typeof(Dictionary<,>))
                 {

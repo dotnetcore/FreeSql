@@ -1,11 +1,12 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.Duckdb.Curd;
+using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
-using FreeSql.Duckdb.Curd;
 using System;
-using System.Data.Common;
-using System.Threading;
 using System.Collections;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Numerics;
+using System.Threading;
 
 namespace FreeSql.Duckdb
 {
@@ -45,6 +46,16 @@ namespace FreeSql.Duckdb
             this.CodeFirst = new DuckdbCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.DbFirst = new DuckdbDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             if (connectionFactory != null) this.CodeFirst.IsNoneCommandParameter = true;
+
+            this.Aop.ConfigEntityProperty += (s, e) =>
+            {
+                //duckdb map 类型
+                if (e.Property.PropertyType.IsGenericType && e.Property.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                {
+                    Utils.dicExecuteArrayRowReadClassOrTuple[e.Property.PropertyType] = true;
+                    e.ModifyResult.DbType = CodeFirst.GetDbInfo(e.Property.PropertyType)?.dbtype;
+                }
+            };
         }
 
         ~DuckdbProvider() => this.Dispose();

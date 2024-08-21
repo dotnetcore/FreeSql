@@ -93,6 +93,7 @@ public static class FreeSqlJsonMapCoreExtensions
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng:
+            case DataType.DuckDB:
                 fsql.Aop.ParseExpression += (_, e) =>
                 {
                     //if (e.Expression is MethodCallExpression callExp)
@@ -164,6 +165,9 @@ public static class FreeSqlJsonMapCoreExtensions
                                         case DataType.Dameng:
                                             StyleJsonValue();
                                             return;
+                                        case DataType.DuckDB:
+                                            StyleDotAccess();
+                                            return;
                                     }
                                     StylePgJson();
                                     return;
@@ -185,6 +189,15 @@ public static class FreeSqlJsonMapCoreExtensions
                                             jsonPath = $"{jsonPath}.{memExp.Member.Name}";
                                         }
                                         e.Result = $"json_value({result},'${jsonPath}')";
+                                    }
+                                    void StyleDotAccess()
+                                    {
+                                        while (parentMemExps.Any())
+                                        {
+                                            memExp = parentMemExps.Pop();
+                                            result = $"{result}['{memExp.Member.Name}']";
+                                        }
+                                        e.Result = result;
                                     }
                                     void StylePgJson()
                                     {

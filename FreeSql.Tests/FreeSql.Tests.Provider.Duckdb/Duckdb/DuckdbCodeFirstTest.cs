@@ -635,6 +635,224 @@ namespace FreeSql.Tests.Duckdb
             public TableAllTypeEnumType2?[] testFieldEnum2ArrayNullable { get; set; }
         }
 
+        #region List<T> 测试代码，暂时不提供该功能，建议使用 T[]
+        //[Fact]
+        //public void BasicListTypeCrud()
+        //{
+        //    var item = new test_BasicListTypeCrud { };
+        //    item.Id = (int)fsql.Insert(item).ExecuteIdentity();
+
+        //    var newitem = fsql.Select<test_BasicListTypeCrud>().Where(a => a.Id == item.Id).ToOne();
+
+        //    var now = DateTime.Parse("2024-8-20 23:00:11");
+        //    var newGuid = Guid.Parse("9e461804-7ed6-4a66-a609-408b2c195abf");
+        //    var item2 = new test_BasicListTypeCrud
+        //    {
+        //        testFieldByteArrayNullable = new List<byte?> { 0, 1, 2, 3, null, 4, 5, 6 },
+        //        testFieldShortArray = new List<short> { 1, 2, 3, 4, 5 },
+        //        testFieldShortArrayNullable = new List<short?> { 1, 2, 3, null, 4, 5 },
+        //        testFieldIntArray = new List<int> { 1, 2, 3, 4, 5 },
+        //        testFieldIntArrayNullable = new List<int?> { 1, 2, 3, null, 4, 5 },
+        //        testFieldLongArray = new List<long> { 10, 20, 30, 40, 50 },
+        //        testFieldLongArrayNullable = new List<long?> { 500, 600, 700, null, 999, 1000 },
+
+        //        testFieldSByteArray = new List<sbyte> { 1, 2, 3, 4, 5 },
+        //        testFieldSByteArrayNullable = new List<sbyte?> { 1, 2, 3, null, 4, 5 },
+        //        testFieldUShortArray = new List<ushort> { 11, 12, 13, 14, 15 },
+        //        testFieldUShortArrayNullable = new List<ushort?> { 11, 12, 13, null, 14, 15 },
+        //        testFieldUIntArray = new List<uint> { 1, 2, 3, 4, 5 },
+        //        testFieldUIntArrayNullable = new List<uint?> { 1, 2, 3, null, 4, 5 },
+        //        testFieldULongArray = new List<ulong> { 10, 20, 30, 40, 50 },
+        //        testFieldULongArrayNullable = new List<ulong?> { 10, 20, 30, null, 40, 50 },
+
+        //        testFieldDoubleArray = new List<double> { 888.81, 888.82, 888.83 },
+        //        testFieldDoubleArrayNullable = new List<double?> { 888.11, 888.12, null, 888.13 },
+        //        testFieldFloatArray = new List<float> { 777.71F, 777.72F, 777.73F },
+        //        testFieldFloatArrayNullable = new List<float?> { 777.71F, 777.72F, null, 777.73F },
+        //        testFieldDecimalArray = new List<decimal> { 999.91M, 999.92M, 999.93M },
+        //        testFieldDecimalArrayNullable = new List<decimal?> { 998.11M, 998.12M, null, 998.13M },
+
+        //        testFieldBoolArray = new List<bool> { true, true, false, false },
+        //        testFieldBoolArrayNullable = new List<bool?> { true, true, null, false, false },
+        //        testFieldBytesArray = new List<byte[]> { Encoding.UTF8.GetBytes("我是中国人"), Encoding.UTF8.GetBytes("我是中国人") },
+        //        testFieldGuidArray = new List<Guid> { newGuid, newGuid },
+        //        testFieldGuidArrayNullable = new List<Guid?> { newGuid, null, newGuid },
+        //        testFieldStringArray = new List<string> { "我是中国人String1", "我是中国人String2", null, "我是中国人String3" },
+
+        //        testFieldEnum1Array = new List<TableAllTypeEnumType1> { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, TableAllTypeEnumType1.e1 },
+        //        testFieldEnum1ArrayNullable = new List<TableAllTypeEnumType1?> { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, null, TableAllTypeEnumType1.e1 },
+        //        testFieldEnum2Array = new List<TableAllTypeEnumType2> { TableAllTypeEnumType2.f3, TableAllTypeEnumType2.f1 },
+        //        testFieldEnum2ArrayNullable = new List<TableAllTypeEnumType2?> { TableAllTypeEnumType2.f3, null, TableAllTypeEnumType2.f1 },
+
+        //        testFieldDateTimeArray = new List<DateTime> { now, now.AddHours(2) },
+        //        testFieldDateTimeArrayNullable = new List<DateTime?> { now, null, now.AddHours(2) },
+        //        testFieldDateOnlyArray = new List<DateOnly> { DateOnly.FromDateTime(now), DateOnly.FromDateTime(now.AddHours(2)) },
+        //        testFieldDateOnlyArrayNullable = new List<DateOnly?> { DateOnly.FromDateTime(now), null, DateOnly.FromDateTime(now.AddHours(2)) },
+
+        //        testFieldTimeSpanArray = new List<TimeSpan> { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
+        //        testFieldTimeSpanArrayNullable = new List<TimeSpan?> { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
+        //        testFieldTimeOnlyArray = new List<TimeOnly> { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+        //        testFieldTimeOnlyArrayNullable = new List<TimeOnly?> { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+        //    };
+
+        //    var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
+        //    Assert.Equal("INSERT INTO \"test_basiclisttypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\", \"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\", \"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,NULL,4,5], [1,2,3,NULL,4,5], [1,2,3,NULL,4,5], [500,600,700,NULL,999,1000], [0,1,2,3,NULL,4,5,6], [11,12,13,NULL,14,15], [1,2,3,NULL,4,5], [10,20,30,NULL,40,50], [888.11,888.12,NULL,888.13], [777.71,777.72,NULL,777.73], [998.11,998.12,NULL,998.13], [true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,NULL,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf',NULL,'9e461804-7ed6-4a66-a609-408b2c195abf'], [3,1,0], [3,1,NULL,0], [2,0], [2,NULL,0], [time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',NULL,time '0:1:0.0'], [time '11:0:0',time '0:0:10',NULL,time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',NULL,timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',NULL,date '2024-08-21'])", sqlText);
+        //    item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
+        //    var item3NP = fsql.Select<test_BasicListTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
+        //    Assert.Equal(item3NP.Id, item2.Id);
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldSByteArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldShortArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldIntArray));
+        //    Assert.Equal("10, 20, 30, 40, 50", string.Join(", ", item3NP.testFieldLongArray));
+        //    Assert.Equal("11, 12, 13, 14, 15", string.Join(", ", item3NP.testFieldUShortArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldUIntArray));
+        //    Assert.Equal("10, 20, 30, 40, 50", string.Join(", ", item3NP.testFieldULongArray));
+        //    Assert.Equal("888.81, 888.82, 888.83", string.Join(", ", item3NP.testFieldDoubleArray));
+        //    Assert.Equal("777.71, 777.72, 777.73", string.Join(", ", item3NP.testFieldFloatArray));
+        //    Assert.Equal("999.91, 999.92, 999.93", string.Join(", ", item3NP.testFieldDecimalArray));
+
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldSByteArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldShortArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldIntArrayNullable));
+        //    Assert.Equal("500, 600, 700, 0, 999, 1000", string.Join(", ", item3NP.testFieldLongArrayNullable));
+        //    Assert.Equal("0, 1, 2, 3, 0, 4, 5, 6", string.Join(", ", item3NP.testFieldByteArrayNullable));
+        //    Assert.Equal("11, 12, 13, 0, 14, 15", string.Join(", ", item3NP.testFieldUShortArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldUIntArrayNullable));
+        //    Assert.Equal("10, 20, 30, 0, 40, 50", string.Join(", ", item3NP.testFieldULongArrayNullable));
+        //    Assert.Equal("888.11, 888.12, 0, 888.13", string.Join(", ", item3NP.testFieldDoubleArrayNullable));
+        //    Assert.Equal("777.71, 777.72, 0, 777.73", string.Join(", ", item3NP.testFieldFloatArrayNullable));
+        //    Assert.Equal("998.11, 998.12, 0, 998.13", string.Join(", ", item3NP.testFieldDecimalArrayNullable));
+
+        //    Assert.Equal("True, True, False, False", string.Join(", ", item3NP.testFieldBoolArray));
+        //    Assert.Equal("True, True, False, False, False", string.Join(", ", item3NP.testFieldBoolArrayNullable));
+        //    Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6", string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
+        //    Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArray));
+        //    Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArrayNullable));
+        //    Assert.Equal("我是中国人String1, 我是中国人String2, , 我是中国人String3", string.Join(", ", item3NP.testFieldStringArray));
+
+        //    Assert.Equal("e5, e2, e1", string.Join(", ", item3NP.testFieldEnum1Array));
+        //    Assert.Equal("e5, e2, e1, e1", string.Join(", ", item3NP.testFieldEnum1ArrayNullable));
+        //    Assert.Equal("f3, f1", string.Join(", ", item3NP.testFieldEnum2Array));
+        //    Assert.Equal("f3, f1, f1", string.Join(", ", item3NP.testFieldEnum2ArrayNullable));
+
+        //    Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
+        //    Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
+        //    Assert.Equal("2024-08-20, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
+        //    Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
+
+        //    Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArray.Select(a => $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArrayNullable.Select(a => $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArray.Select(a => $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArrayNullable.Select(a => $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
+
+        //    sqlText = fsql.Insert(item2).ToSql();
+        //    Assert.Equal("INSERT INTO \"test_basiclisttypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\", \"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\", \"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,NULL,4,5], [1,2,3,NULL,4,5], [1,2,3,NULL,4,5], [500,600,700,NULL,999,1000], [0,1,2,3,NULL,4,5,6], [11,12,13,NULL,14,15], [1,2,3,NULL,4,5], [10,20,30,NULL,40,50], [888.11,888.12,NULL,888.13], [777.71,777.72,NULL,777.73], [998.11,998.12,NULL,998.13], [true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,NULL,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf',NULL,'9e461804-7ed6-4a66-a609-408b2c195abf'], [3,1,0], [3,1,NULL,0], [2,0], [2,NULL,0], [time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',NULL,time '0:1:0.0'], [time '11:0:0',time '0:0:10',NULL,time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',NULL,timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',NULL,date '2024-08-21'])", sqlText);
+        //    item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
+        //    item3NP = fsql.Select<test_BasicListTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
+        //    Assert.Equal(item3NP.Id, item2.Id);
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldSByteArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldShortArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldIntArray));
+        //    Assert.Equal("10, 20, 30, 40, 50", string.Join(", ", item3NP.testFieldLongArray));
+        //    Assert.Equal("11, 12, 13, 14, 15", string.Join(", ", item3NP.testFieldUShortArray));
+        //    Assert.Equal("1, 2, 3, 4, 5", string.Join(", ", item3NP.testFieldUIntArray));
+        //    Assert.Equal("10, 20, 30, 40, 50", string.Join(", ", item3NP.testFieldULongArray));
+        //    Assert.Equal("888.81, 888.82, 888.83", string.Join(", ", item3NP.testFieldDoubleArray));
+        //    Assert.Equal("777.71, 777.72, 777.73", string.Join(", ", item3NP.testFieldFloatArray));
+        //    Assert.Equal("999.91, 999.92, 999.93", string.Join(", ", item3NP.testFieldDecimalArray));
+
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldSByteArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldShortArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldIntArrayNullable));
+        //    Assert.Equal("500, 600, 700, 0, 999, 1000", string.Join(", ", item3NP.testFieldLongArrayNullable));
+        //    Assert.Equal("0, 1, 2, 3, 0, 4, 5, 6", string.Join(", ", item3NP.testFieldByteArrayNullable));
+        //    Assert.Equal("11, 12, 13, 0, 14, 15", string.Join(", ", item3NP.testFieldUShortArrayNullable));
+        //    Assert.Equal("1, 2, 3, 0, 4, 5", string.Join(", ", item3NP.testFieldUIntArrayNullable));
+        //    Assert.Equal("10, 20, 30, 0, 40, 50", string.Join(", ", item3NP.testFieldULongArrayNullable));
+        //    Assert.Equal("888.11, 888.12, 0, 888.13", string.Join(", ", item3NP.testFieldDoubleArrayNullable));
+        //    Assert.Equal("777.71, 777.72, 0, 777.73", string.Join(", ", item3NP.testFieldFloatArrayNullable));
+        //    Assert.Equal("998.11, 998.12, 0, 998.13", string.Join(", ", item3NP.testFieldDecimalArrayNullable));
+
+        //    Assert.Equal("True, True, False, False", string.Join(", ", item3NP.testFieldBoolArray));
+        //    Assert.Equal("True, True, False, False, False", string.Join(", ", item3NP.testFieldBoolArrayNullable));
+        //    Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6", string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
+        //    Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArray));
+        //    Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArrayNullable));
+        //    Assert.Equal("我是中国人String1, 我是中国人String2, , 我是中国人String3", string.Join(", ", item3NP.testFieldStringArray));
+
+        //    Assert.Equal("e5, e2, e1", string.Join(", ", item3NP.testFieldEnum1Array));
+        //    Assert.Equal("e5, e2, e1, e1", string.Join(", ", item3NP.testFieldEnum1ArrayNullable));
+        //    Assert.Equal("f3, f1", string.Join(", ", item3NP.testFieldEnum2Array));
+        //    Assert.Equal("f3, f1, f1", string.Join(", ", item3NP.testFieldEnum2ArrayNullable));
+
+        //    Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
+        //    Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
+        //    Assert.Equal("2024-08-20, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
+        //    Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
+
+        //    Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArray.Select(a => $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArrayNullable.Select(a => $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArray.Select(a => $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
+        //    Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArrayNullable.Select(a => $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
+
+
+        //    var items = fsql.Select<test_BasicListTypeCrud>().ToList();
+        //    var itemstb = fsql.Select<test_BasicListTypeCrud>().ToDataTable();
+        //}
+        //class test_BasicListTypeCrud
+        //{
+        //    [Column(IsIdentity = true, IsPrimary = true)]
+        //    public int Id { get; set; }
+
+        //    public List<sbyte> testFieldSByteArray { get; set; }
+        //    public List<short> testFieldShortArray { get; set; }
+        //    public List<int> testFieldIntArray { get; set; }
+        //    public List<long> testFieldLongArray { get; set; }
+        //    public List<ushort> testFieldUShortArray { get; set; }
+        //    public List<uint> testFieldUIntArray { get; set; }
+        //    public List<ulong> testFieldULongArray { get; set; }
+        //    public List<double> testFieldDoubleArray { get; set; }
+        //    public List<float> testFieldFloatArray { get; set; }
+        //    public List<decimal> testFieldDecimalArray { get; set; }
+
+        //    public List<sbyte?> testFieldSByteArrayNullable { get; set; }
+        //    public List<short?> testFieldShortArrayNullable { get; set; }
+        //    public List<int?> testFieldIntArrayNullable { get; set; }
+        //    public List<long?> testFieldLongArrayNullable { get; set; }
+        //    public List<byte?> testFieldByteArrayNullable { get; set; }
+        //    public List<ushort?> testFieldUShortArrayNullable { get; set; }
+        //    public List<uint?> testFieldUIntArrayNullable { get; set; }
+        //    public List<ulong?> testFieldULongArrayNullable { get; set; }
+        //    public List<double?> testFieldDoubleArrayNullable { get; set; }
+        //    public List<float?> testFieldFloatArrayNullable { get; set; }
+        //    public List<decimal?> testFieldDecimalArrayNullable { get; set; }
+
+        //    public List<bool> testFieldBoolArray { get; set; }
+        //    public List<byte[]> testFieldBytesArray { get; set; }
+        //    public List<string> testFieldStringArray { get; set; }
+        //    public List<Guid> testFieldGuidArray { get; set; }
+
+        //    public List<bool?> testFieldBoolArrayNullable { get; set; }
+        //    public List<Guid?> testFieldGuidArrayNullable { get; set; }
+
+        //    public List<TableAllTypeEnumType1> testFieldEnum1Array { get; set; }
+        //    public List<TableAllTypeEnumType1?> testFieldEnum1ArrayNullable { get; set; }
+        //    public List<TableAllTypeEnumType2> testFieldEnum2Array { get; set; }
+        //    public List<TableAllTypeEnumType2?> testFieldEnum2ArrayNullable { get; set; }
+
+        //    public List<TimeSpan> testFieldTimeSpanArray { get; set; }
+        //    public List<TimeOnly> testFieldTimeOnlyArray { get; set; }
+        //    public List<DateTime> testFieldDateTimeArray { get; set; }
+        //    public List<DateOnly> testFieldDateOnlyArray { get; set; }
+
+        //    public List<TimeSpan?> testFieldTimeSpanArrayNullable { get; set; }
+        //    public List<TimeOnly?> testFieldTimeOnlyArrayNullable { get; set; }
+        //    public List<DateTime?> testFieldDateTimeArrayNullable { get; set; }
+        //    public List<DateOnly?> testFieldDateOnlyArrayNullable { get; set; }
+
+        //}
+        #endregion
+
         IInsert<TableAllType> insert => fsql.Insert<TableAllType>();
         ISelect<TableAllType> select => fsql.Select<TableAllType>();
 

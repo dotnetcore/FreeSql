@@ -167,6 +167,20 @@ namespace FreeSql.Duckdb
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"[{left.TrimStart('(').TrimEnd(')')}]";
                                 return $"case when {left} is null then 0 else len({left}) end";
                         }
+                        if (objType.IsGenericType && objType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                        {
+                            left = objExp == null ? null : getExp(objExp);
+                            switch (callExp.Method.Name)
+                            {
+                                case "get_Item": return $"element_at({left},{getExp(callExp.Arguments[argIndex])})[1]";
+                                case "ContainsKey": return $"len(element_at({left},{getExp(callExp.Arguments[argIndex])})) > 0";
+                                case "GetLength":
+                                case "GetLongLength":
+                                case "Count": return $"cardinality({left})";
+                                case "Keys": return $"map_keys({left})";
+                                case "Values": return $"map_values({left})";
+                            }
+                        }
                     }
                     break;
                 case ExpressionType.MemberAccess:
@@ -183,6 +197,16 @@ namespace FreeSql.Duckdb
                             {
                                 case "Length":
                                 case "Count": return $"case when {left} is null then 0 else len({left}) end";
+                            }
+                        }
+                        if (memParentExp.IsGenericType && memParentExp.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                        {
+                            var left = getExp(memExp.Expression);
+                            switch (memExp.Member.Name)
+                            {
+                                case "Count": return $"cardinality({left})";
+                                case "Keys": return $"map_keys({left})";
+                                case "Values": return $"map_values({left})";
                             }
                         }
                     }

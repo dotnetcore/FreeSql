@@ -184,23 +184,23 @@ namespace FreeSql.Duckdb
                     return sb.ToString();
                 }
                 //struct
-                if (typeDefinition == typeof(Dictionary<string, object>))
-                {
-                    var dict = value as Dictionary<string, object>;
-                    if (dict.Count == 0) return "NULL";
-                    var sb = new StringBuilder("{");
-                    var idx = 0;
-                    foreach (var key in dict.Keys)
-                    {
-                        var val = dict[key];
-                        if (val == null) continue;
-                        if (idx > 0) sb.Append(",");
-                        sb.Append("'").Append(FormatSql("{0}", val, 1)).Append("':");
-                        sb.Append(GetNoneParamaterSqlValue(specialParams, specialParamFlag, col, val.GetType(), val));
-                        idx++;
-                    }
-                    return sb.Append("}").ToString();
-                }
+                //if (typeDefinition == typeof(Dictionary<string, object>))
+                //{
+                //    var dict = value as Dictionary<string, object>;
+                //    if (dict.Count == 0) return "NULL";
+                //    var sb = new StringBuilder("{");
+                //    var idx = 0;
+                //    foreach (var key in dict.Keys)
+                //    {
+                //        var val = dict[key];
+                //        if (val == null) continue;
+                //        if (idx > 0) sb.Append(",");
+                //        sb.Append("'").Append(FormatSql("{0}", val, 1)).Append("':");
+                //        sb.Append(GetNoneParamaterSqlValue(specialParams, specialParamFlag, col, val.GetType(), val));
+                //        idx++;
+                //    }
+                //    return sb.Append("}").ToString();
+                //}
                 //map
                 if (typeDefinition == typeof(Dictionary<,>))
                 {
