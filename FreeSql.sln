@@ -131,6 +131,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Duckdb", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Duckdb", "FreeSql.Tests\FreeSql.Tests.Provider.Duckdb\FreeSql.Tests.Provider.Duckdb.csproj", "{DE79C012-15B1-40EC-AD19-CBD7D489DB8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.TDengine", "Providers\FreeSql.Provider.TDengine\FreeSql.Provider.TDengine.csproj", "{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -789,6 +791,18 @@ Global
 		{DE79C012-15B1-40EC-AD19-CBD7D489DB8E}.Release|x64.Build.0 = Release|Any CPU
 		{DE79C012-15B1-40EC-AD19-CBD7D489DB8E}.Release|x86.ActiveCfg = Release|Any CPU
 		{DE79C012-15B1-40EC-AD19-CBD7D489DB8E}.Release|x86.Build.0 = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|x64.Build.0 = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Debug|x86.Build.0 = Debug|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|Any CPU.Build.0 = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x64.ActiveCfg = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x64.Build.0 = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x86.ActiveCfg = Release|Any CPU
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -831,6 +845,7 @@ Global
 		{8064870C-22EA-4A58-972D-DBD57D096D91} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D9419896-BFB0-47C1-BEFD-A6C48394643B} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{4871434E-481D-4306-B6DD-73595C61A473} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_NeutralResourcesLanguage = en-US
