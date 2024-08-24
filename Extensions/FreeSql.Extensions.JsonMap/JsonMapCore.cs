@@ -132,6 +132,12 @@ public static class FreeSqlJsonMapCoreExtensions
                             switch (memExp.Expression.NodeType)
                             {
                                 case ExpressionType.MemberAccess:
+                                case ExpressionType.Parameter: break;
+                                default: return;
+                            }
+                            switch (memExp.Expression.NodeType)
+                            {
+                                case ExpressionType.MemberAccess:
                                     memExp = memExp.Expression as MemberExpression;
                                     if (memExp == null) return;
                                     parentMemExps.Push(memExp);
