@@ -40,8 +40,8 @@ namespace FreeSql.SqlServer
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new SqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                        new SqlServerConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new SqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new SqlServerConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }
@@ -90,16 +90,31 @@ namespace FreeSql.SqlServer
                 return string.Concat("'", ((DateTimeOffset)param).ToString("yyyy-MM-dd HH:mm:ss.fff zzzz"), "'");
             }
 #if net60
-            else if (param is DateOnly || param is DateOnly?)
+            else if (param is DateOnly)
             {
+                var result = AddslashesTypeHandler(typeof(DateOnly), param);
+                if (result != null) return result;
+                if (param.Equals(DateOnly.MinValue) == true) param = new DateOnly(1970, 1, 1);
+                return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
+            }
+            else if (param is DateOnly?)
+            {
+                var result = AddslashesTypeHandler(typeof(DateOnly?), param);
+                if (result != null) return result;
                 if (param.Equals(DateOnly.MinValue) == true) param = new DateOnly(1970, 1, 1);
                 return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
             }
             else if (param is TimeOnly || param is TimeOnly?)
-                return ((TimeOnly)param).ToTimeSpan().TotalSeconds;
+            {
+                var ts = (TimeOnly)param;
+                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}'";
+            }
 #endif
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).TotalSeconds;
+            {
+                var ts = (TimeSpan)param;
+                return $"'{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}'";
+            }
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable)

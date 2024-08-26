@@ -217,7 +217,7 @@ namespace FreeSql.Sqlite
             switch (exp.Member.Name)
             {
                 case "Date": return $"date({left})";
-                case "TimeOfDay": return $"strftime('%H:%M:%f',{left})";
+                case "TimeOfDay": return $"strftime('%H:%M:%S',{left})";
                 case "DayOfWeek": return $"CAST(strftime('%w',{left}) AS INTEGER) ";
                 case "Day": return $"CAST(strftime('%d',{left}) AS INTEGER) ";
                 case "DayOfYear": return $"CAST(strftime('%j',{left}) AS INTEGER) ";
@@ -228,35 +228,6 @@ namespace FreeSql.Sqlite
                 case "Second": return $"CAST(strftime('%S',{left}) AS INTEGER) ";
                 case "Millisecond": return $"CAST(strftime('%f',{left})*1000.0%1000.0 AS INTEGER)";
                 case "Ticks": return $"CAST(((strftime( '%J',{left}) - 1721425.5 ) * {TimeSpan.TicksPerDay} ) AS INTEGER ) ";//精度到毫秒
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685.477580"; //秒 Ticks / 1000,000,0
-                    case "MaxValue": return "922337203685.477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"floor(({left})/{60 * 60 * 24})";
-                case "Hours": return $"floor(({left})/{60 * 60}%24)";
-                case "Milliseconds": return $"(cast({left} as bigint)*1000)";
-                case "Minutes": return $"floor(({left})/60%60)";
-                case "Seconds": return $"(({left})%60)";
-                case "Ticks": return $"(cast({left} as bigint)*10000000)";
-                case "TotalDays": return $"(({left})/{60 * 60 * 24})";
-                case "TotalHours": return $"(({left})/{60 * 60})";
-                case "TotalMilliseconds": return $"(cast({left} as bigint)*1000)";
-                case "TotalMinutes": return $"(({left})/60)";
-                case "TotalSeconds": return $"({left})";
             }
             return null;
         }
@@ -310,18 +281,19 @@ namespace FreeSql.Sqlite
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}) = 1";
                             if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}) = length({left})-length({args0Value})+1";
                             return $"instr({left}, {args0Value}) > 0";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value})||'%'")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"'%'||({args0Value})")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE '%'||({args0Value})||'%'";
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value})||'%'")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"'%'||({args0Value})")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE '%'||({args0Value})||'%'";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
@@ -451,7 +423,6 @@ namespace FreeSql.Sqlite
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"datetime({left},({args1})||' seconds')";
                     case "AddDays": return $"datetime({left},({args1})||' days')";
                     case "AddHours": return $"datetime({left},({args1})||' hours')";
                     case "AddMilliseconds": return $"datetime({left},(({args1})/1000)||' seconds')";
@@ -470,7 +441,7 @@ namespace FreeSql.Sqlite
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
                     case "ToString":
-                        if (exp.Arguments.Count == 0) return $"strftime('%Y-%m-%d %H:%M:%f',{left})";
+                        if (exp.Arguments.Count == 0) return $"strftime('%Y-%m-%d %H:%M:%S',{left})";
                         switch (args1)
                         {
                             case "'yyyy-MM-dd HH:mm:ss'": return $"strftime('%Y-%m-%d %H:%M:%S',{left})";
@@ -525,42 +496,6 @@ namespace FreeSql.Sqlite
                         }
                         if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "%m").Replace("%_a2", "%d").Replace("%_a3", "%H").Replace("%_a4", "%M");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})/1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*60)";
-                    case "FromSeconds": return $"(({getExp(exp.Arguments[0])}))";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10000000)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as bigint)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as bigint)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as character)";
                 }
             }
             return null;

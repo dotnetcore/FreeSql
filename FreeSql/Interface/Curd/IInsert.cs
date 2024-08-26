@@ -156,7 +156,7 @@ namespace FreeSql
         long ExecuteIdentity();
         /// <summary>
         /// 执行SQL语句，返回插入后的记录<para></para>
-        /// 注意：此方法只有 Postgresql/SqlServer 有效果
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();

@@ -280,35 +280,6 @@ namespace FreeSql.ClickHouse
                 return true;
             return DateTime.TryParse(date, out var time);
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"intDiv(({left})/{60 * 60 * 24})";
-                case "Hours": return $"intDiv(({left})/{60 * 60}%24)";
-                case "Milliseconds": return $"(cast({left} as Int64)*1000)";
-                case "Minutes": return $"intDiv(({left})/60%60)";
-                case "Seconds": return $"(({left})%60)";
-                case "Ticks": return $"(intDiv({left} as Int64)*10000000)";
-                case "TotalDays": return $"(({left})/{60 * 60 * 24})";
-                case "TotalHours": return $"(({left})/{60 * 60})";
-                case "TotalMilliseconds": return $"(cast({left} as Int64)*1000)";
-                case "TotalMinutes": return $"(({left})/60)";
-                case "TotalSeconds": return $"({left})";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -360,10 +331,11 @@ namespace FreeSql.ClickHouse
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (exp.Method.Name == "StartsWith") return $"positionCaseInsensitive({left}, {args0Value}) = 1";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
                         return $"positionCaseInsensitive({left}, {args0Value}) > 0";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
@@ -477,7 +449,6 @@ namespace FreeSql.ClickHouse
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"addSeconds(toDateTime({left}), {args1})";
                     case "AddDays": return $"addDays(toDateTime({left}), {args1})";
                     case "AddHours": return $"addHours(toDateTime({left}), {args1})";
                     case "AddMilliseconds": return $"addSeconds(toDateTime({left}), {args1}/1000)";
@@ -551,42 +522,6 @@ namespace FreeSql.ClickHouse
                         }
                         if (argsSpts.Length > 0) args1 = $"concat({string.Join(", ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "%m").Replace("%_a2", "%S");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})*1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60})";
-                    case "FromSeconds": return $"(({getExp(exp.Arguments[0])})*1000000)";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as Int64)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as Int64)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as String)";
                 }
             }
             return null;

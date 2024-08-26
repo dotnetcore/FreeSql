@@ -564,8 +564,8 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
+            if (_tableRule == null && _table.AsTableImpl == null) return _commonUtils.GetEntityTableAopName(_table, true);
             var tbname = _table?.DbName ?? "";
-            if (_tableRule == null && _table.AsTableImpl == null) return tbname;
             string newname = null;
             if (_table.AsTableImpl != null)
             {
@@ -574,10 +574,10 @@ namespace FreeSql.Internal.CommonProvider
                 else if (_tableRule == null)
                     newname = _table.AsTableImpl.GetTableNameByColumnValue(DateTime.Now);
                 else
-                    newname = _tableRule(_table.DbName);
+                    newname = _tableRule(tbname);
             }
             else
-                newname = _tableRule(_table.DbName);
+                newname = _tableRule(tbname);
             if (newname == tbname) return tbname;
             if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();

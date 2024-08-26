@@ -30,6 +30,10 @@ namespace FreeSql.SqlServer
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+            else if (value?.Equals(DateTimeOffset.MinValue) == true) value = new DateTime(1970, 1, 1);
+#if net60
+            else if (value?.Equals(DateOnly.MinValue) == true) value = new DateTime(1970, 1, 1);
+#endif
             var ret = new SqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
@@ -52,6 +56,10 @@ namespace FreeSql.SqlServer
             Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
                 if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+                else if (value?.Equals(DateTimeOffset.MinValue) == true) value = new DateTime(1970, 1, 1);
+#if net60
+                else if (value?.Equals(DateOnly.MinValue) == true) value = new DateTime(1970, 1, 1);
+#endif
                 var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
@@ -108,18 +116,6 @@ namespace FreeSql.SqlServer
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
-            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}";
-            }
-#if net60
-            if (type == typeof(TimeOnly) || type == typeof(TimeOnly?))
-            {
-                var ts = (TimeOnly)value;
-                value = $"{ts.Hour}:{ts.Minute}:{ts.Second}.{ts.Millisecond}";
-            }
-#endif
             return string.Format(CultureInfo.InvariantCulture, "{0}", (_orm.Ado as AdoProvider).AddslashesProcessParam(value, type, col));
         }
     }

@@ -183,20 +183,6 @@ namespace FreeSql
             CheckEntityTypeOrThrow(typeof(TEntity));
             this.Set<TEntity>().AddOrUpdate(data);
         }
-        /// <summary>
-        /// 保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-        /// 场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-        /// 例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-        /// 当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-        /// 当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-        /// </summary>
-        /// <param name="data">实体对象</param>
-        /// <param name="propertyName">属性名</param>
-        public void SaveMany<TEntity>(TEntity data, string propertyName) where TEntity : class
-        {
-            CheckEntityTypeOrThrow(typeof(TEntity));
-            this.Set<TEntity>().SaveMany(data, propertyName);
-        }
 
         /// <summary>
         /// 附加实体，可用于不查询就更新或删除
@@ -252,11 +238,6 @@ namespace FreeSql
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
             return this.Set<TEntity>().AddOrUpdateAsync(data, cancellationToken);
-        }
-        public Task SaveManyAsync<TEntity>(TEntity data, string propertyName, CancellationToken cancellationToken = default) where TEntity : class
-        {
-            CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().SaveManyAsync(data, propertyName, cancellationToken);
         }
 #endif
         #endregion

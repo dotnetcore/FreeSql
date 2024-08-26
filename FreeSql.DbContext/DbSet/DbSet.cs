@@ -69,24 +69,13 @@ namespace FreeSql
         protected virtual IInsert<TEntity> OrmInsert(TEntity entity)
         {
             var insert = OrmInsert();
-            if (entity != null)
-            {
-                (insert as InsertProvider<TEntity>)._source.Add(entity); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValue != null) 
-                    _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, entity));
-            }
+            if (entity != null) (insert as InsertProvider<TEntity>)._source.Add(entity); //防止 Aop.AuditValue 触发两次
             return insert;
         }
         protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys)
         {
             var insert = OrmInsert();
-            if (entitys != null)
-            {
-                (insert as InsertProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValue != null)
-                    foreach (var item in entitys)
-                        _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, item));
-            }
+            if (entitys != null) (insert as InsertProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
             return insert;
         }
 
@@ -95,13 +84,7 @@ namespace FreeSql
             var update = _db.OrmOriginal.Update<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
             if (_db.Options.NoneParameter != null) update.NoneParameter(_db.Options.NoneParameter.Value);
             if (_db.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
-            if (entitys != null)
-            {
-                (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
-                if (_db.Options.AuditValue != null)
-                    foreach (var item in entitys)
-                        _db.Options.AuditValue(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
-            }
+            if (entitys != null) (update as UpdateProvider<TEntity>)._source.AddRange(entitys.Where(a => a != null)); //防止 Aop.AuditValue 触发两次
             return update;
         }
         protected virtual IDelete<TEntity> OrmDelete(object dywhere)
@@ -232,14 +215,19 @@ namespace FreeSql
         /// 附加实体，可用于不查询就更新或删除
         /// </summary>
         /// <param name="data"></param>
-        public void Attach(TEntity data) => AttachRange(new[] { data });
-        public void AttachRange(IEnumerable<TEntity> data)
+        public void Attach(TEntity data) => AttachPriv(new[] { data }, true);
+        public void AttachRange(IEnumerable<TEntity> data) => AttachPriv(data, true);
+        void AttachPriv(IEnumerable<TEntity> data, bool isAuditValue)
         {
             if (data == null || data.Any() == false) return;
             if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAttach_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
             foreach (var item in data)
             {
-                FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, item, _db.OrmOriginal, _table, null); //与 CanUpdate 同步
+                if (isAuditValue)
+                {
+                    FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, item, _db.OrmOriginal, _table, null); //与 CanUpdate 同步
+                    _db.Options.AuditValue?.Invoke(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
+                }
                 var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
                 if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.CannotAttach_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, item)));
 
@@ -342,6 +330,7 @@ namespace FreeSql
                 return false;
             }
             FreeSql.Internal.CommonProvider.InsertProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
+            _db.Options.AuditValue?.Invoke(new DbContextAuditValueEventArgs(Aop.AuditValueType.Insert, _table.Type, data));
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, true);
             if (string.IsNullOrEmpty(key))
             {
@@ -354,8 +343,8 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                     case DataType.ClickHouse:
                         return true;
                     default:
@@ -408,6 +397,7 @@ namespace FreeSql
                 return false;
             }
             FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
+            _db.Options.AuditValue?.Invoke(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, data));
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {

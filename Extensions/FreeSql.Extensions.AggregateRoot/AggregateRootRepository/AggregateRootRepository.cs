@@ -56,6 +56,7 @@ namespace FreeSql
                 _repository.DbContextOptions.EnableCascadeSave = false;
             }
         }
+        public RepositoryDataFilter DataFilter => _repository.DataFilter;
         public void AsType(Type entityType) => _repository.AsType(entityType); 
         Func<Type, string, string> _asTableRule;
         public void AsTable(Func<string, string> rule)
@@ -74,7 +75,6 @@ namespace FreeSql
 			_asTableRule = rule;
 		}
 		public Type EntityType => _repository.EntityType;
-        public IDataFilter<TEntity> DataFilter => _repository.DataFilter;
 
         public void Attach(TEntity entity)
         {
@@ -131,6 +131,7 @@ namespace FreeSql
             repo.UnitOfWork = UnitOfWork;
             repo.DbContextOptions = DbContextOptions;
             repo.DbContextOptions.EnableCascadeSave = false;
+            (repo as BaseRepository<object>).DataFilter = DataFilter;
             repo.AsTable(_asTableRule);
             return repo;
         }

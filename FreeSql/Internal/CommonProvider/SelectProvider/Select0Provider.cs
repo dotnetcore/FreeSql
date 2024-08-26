@@ -564,7 +564,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
-            this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
+            this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere, _params));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
         }
 
@@ -753,8 +753,7 @@ namespace FreeSql.Internal.CommonProvider
             var old_selectVal = _select;
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -810,8 +809,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -845,8 +843,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             switch (_orm.Ado.DataType)
             {
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //达梦不能这样
+                case DataType.Dameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
@@ -877,7 +874,7 @@ namespace FreeSql.Internal.CommonProvider
                 DateTime? DateTimeAsTableImplStart = null, DateTimeAsTableImplEnd = null;
                 string[] LocalGetTableNames(SelectTableInfo tb)
                 {
-                    var trname = trs[0](tb.Table.Type, tb.Table.AsTableImpl != null ? null : tb.Table.DbName);
+                    var trname = trs[0](tb.Table.Type, tb.Table.AsTableImpl != null ? null : _commonUtils.GetEntityTableAopName(tb.Table, false));
                     if (tb.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trname) == true)
                     {
                         var aret = tb.Table.AsTableImpl.GetTableNamesBySqlWhere(_where.Length == 0 ? null : _where.ToString(), _params, tb, _commonUtils);
@@ -976,20 +973,21 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     if (tb.Type == SelectTableInfoType.Parent) continue;
                     if (dict.ContainsKey(tb.Table.Type)) continue;
-                    var name = tr?.Invoke(tb.Table.Type, tb.Table.DbName);
-                    if (string.IsNullOrEmpty(name)) name = tb.Table.DbName;
+                    var tbname = _commonUtils.GetEntityTableAopName(tb.Table, true);
+                    var newname = tr?.Invoke(tb.Table.Type, tbname);
+                    if (string.IsNullOrEmpty(newname)) newname = tbname;
                     else
                     {
-                        if (name.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                        if (newname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
                         {
-                            if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
-                            if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
-                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
+                            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, newname);
                         }
                         else
-                            name = name.Replace(" \r\n", " \r\n    ");
+                            newname = newname.Replace(" \r\n", " \r\n    ");
                     }
-                    dict.Add(tb.Table.Type, name);
+                    dict.Add(tb.Table.Type, newname);
                 }
                 unions.Add(dict);
             }
@@ -1293,14 +1291,12 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
-                case DataType.OdbcDameng:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Sqlite:

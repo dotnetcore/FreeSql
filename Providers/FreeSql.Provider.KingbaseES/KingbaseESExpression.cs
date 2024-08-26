@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,10 +99,10 @@ namespace FreeSql.KingbaseES
                                     var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
                                     tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                     return enumStr;
-								}
-								var value = ExpressionGetValue(callExp.Object, out var success);
-								if (success) return formatSql(value, typeof(string), null, null);
-								return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::text" : null;
+                                }
+                                var value = ExpressionGetValue(callExp.Object, out var success);
+                                if (success) return formatSql(value, typeof(string), null, null);
+                                return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::text" : null;
                             }
                             return null;
                     }
@@ -131,6 +132,36 @@ namespace FreeSql.KingbaseES
                     if (objType != null || objType.IsArrayOrList())
                     {
                         string left = null;
+                        switch (objType.FullName)
+                        {
+                            case "Newtonsoft.Json.Linq.JToken":
+                            case "Newtonsoft.Json.Linq.JObject":
+                            case "Newtonsoft.Json.Linq.JArray":
+                                left = objExp == null ? null : getExp(objExp);
+                                switch (callExp.Method.Name)
+                                {
+                                    case "get_Item": return $"{left}->{getExp(callExp.Arguments[argIndex])}";
+                                    case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
+                                    case "Contains":
+                                        var json = getExp(callExp.Arguments[argIndex]);
+                                        if (objType == typeof(JArray))
+                                            return $"(coalesce({left},'[]') ? ({json})::text)";
+                                        if (json.StartsWith("'") && json.EndsWith("'"))
+                                            return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
+                                        return $"(coalesce({left},'{{}}') @> ({json})::jsonb)";
+                                    case "ContainsKey": return $"(coalesce({left},'{{}}') ? {getExp(callExp.Arguments[argIndex])})";
+                                    case "Concat":
+                                        var right2 = getExp(callExp.Arguments[argIndex]);
+                                        return $"(coalesce({left},'{{}}') || {right2})";
+                                    case "LongCount":
+                                    case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+                                    case "Parse":
+                                        var json2 = getExp(callExp.Arguments[argIndex]);
+                                        if (json2.StartsWith("'") && json2.EndsWith("'")) return _common.FormatSql("{0}", JToken.Parse(json2.Trim('\'')));
+                                        return $"({json2})::jsonb";
+                                }
+                                break;
+                        }
                         if (objType == typeof(Dictionary<string, string>))
                         {
                             left = objExp == null ? null : getExp(objExp);
@@ -165,14 +196,14 @@ namespace FreeSql.KingbaseES
                                 tsc.isNotSetMapColumnTmp = false;
                                 tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                 if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
-								//判断 in 或 array @> array
-								if (left.StartsWith("array[") && left.EndsWith("]"))
-									return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
-								if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
-									return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
-								if (args1.StartsWith("(") && args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
-								else args1 = $"array[{args1}]";
-								if (objExp != null)
+                                //判断 in 或 array @> array
+                                if (left.StartsWith("array[") && left.EndsWith("]"))
+                                    return $"({args1}) in ({left.Substring(6, left.Length - 7)})";
+                                if (left.StartsWith("(") && left.EndsWith(")")) //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                    return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
+                                if (args1.StartsWith("(") && args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
+                                else args1 = $"array[{args1}]";
+                                if (objExp != null)
                                 {
                                     var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
                                     if (dbinfo != null) args1 = $"{args1}::{dbinfo.dbtype}";
@@ -208,6 +239,28 @@ namespace FreeSql.KingbaseES
                             {
                                 case "Length":
                                 case "Count": return $"case when {left} is null then 0 else array_length({left},1) end";
+                            }
+                        }
+                        switch (memParentExp.FullName)
+                        {
+                            case "Newtonsoft.Json.Linq.JToken":
+                            case "Newtonsoft.Json.Linq.JObject":
+                            case "Newtonsoft.Json.Linq.JArray":
+                                var left = getExp(memExp.Expression);
+                                switch (memExp.Member.Name)
+                                {
+                                    case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+                                }
+                                break;
+                        }
+                        if (memParentExp == typeof(Dictionary<string, string>))
+                        {
+                            var left = getExp(memExp.Expression);
+                            switch (memExp.Member.Name)
+                            {
+                                case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
+                                case "Keys": return $"akeys({left})";
+                                case "Values": return $"avals({left})";
                             }
                         }
                     }
@@ -297,35 +350,6 @@ namespace FreeSql.KingbaseES
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"floor(({left})/{(long)1000000 * 60 * 60 * 24})";
-                case "Hours": return $"floor(({left})/{(long)1000000 * 60 * 60}%24)";
-                case "Milliseconds": return $"(floor(({left})/1000)::int8%1000)";
-                case "Minutes": return $"(floor(({left})/{(long)1000000 * 60})::int8%60)";
-                case "Seconds": return $"(floor(({left})/1000000)::int8%60)";
-                case "Ticks": return $"(({left})*10)";
-                case "TotalDays": return $"(({left})/{(long)1000000 * 60 * 60 * 24})";
-                case "TotalHours": return $"(({left})/{(long)1000000 * 60 * 60})";
-                case "TotalMilliseconds": return $"(({left})/1000)";
-                case "TotalMinutes": return $"(({left})/{(long)1000000 * 60})";
-                case "TotalSeconds": return $"(({left})/1000000)";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -345,7 +369,7 @@ namespace FreeSql.KingbaseES
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
@@ -381,8 +405,9 @@ namespace FreeSql.KingbaseES
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (args0Value.Contains("%"))
                         {
                             if (exp.Method.Name == "StartsWith") return $"strpos({left}, {args0Value}) = 1";
@@ -395,10 +420,10 @@ namespace FreeSql.KingbaseES
                             if (exp.Arguments[1].Type == typeof(bool) ||
                                 exp.Arguments[1].Type == typeof(StringComparison)) likeOpt = "ILIKE";
                         }
-                        if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::text || '%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) {likeOpt} ('%' || ({args0Value})::text || '%')";
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::text || '%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} {likeOpt} ('%' || ({args0Value})::text || '%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
@@ -423,6 +448,8 @@ namespace FreeSql.KingbaseES
                             if (exp.Method.Name == "TrimStart") return $"ltrim({left})";
                             if (exp.Method.Name == "TrimEnd") return $"rtrim({left})";
                         }
+                        var trimArg1 = "";
+                        var trimArg2 = "";
                         foreach (var argsTrim02 in exp.Arguments)
                         {
                             var argsTrim01s = new[] { argsTrim02 };
@@ -433,11 +460,14 @@ namespace FreeSql.KingbaseES
                             }
                             foreach (var argsTrim01 in argsTrim01s)
                             {
-                                if (exp.Method.Name == "Trim") left = $"trim(both {getExp(argsTrim01)} from {left})";
-                                if (exp.Method.Name == "TrimStart") left = $"ltrim({left},{getExp(argsTrim01)})";
-                                if (exp.Method.Name == "TrimEnd") left = $"rtrim({left},{getExp(argsTrim01)})";
+                                var trimChr = getExp(argsTrim01).Trim('\'');
+                                if (trimChr.Length == 1) trimArg1 += trimChr;
+                                else trimArg2 += $" || ({trimChr})";
                             }
                         }
+                        if (exp.Method.Name == "Trim") left = $"trim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
+                        if (exp.Method.Name == "TrimStart") left = $"ltrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
+                        if (exp.Method.Name == "TrimEnd") left = $"rtrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
                         return left;
                     case "Replace": return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     case "CompareTo": return $"case when {left} = {getExp(exp.Arguments[0])} then 0 when {left} > {getExp(exp.Arguments[0])} then 1 else -1 end";
@@ -503,7 +533,6 @@ namespace FreeSql.KingbaseES
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"(({left})::timestamp+((({args1})/1000)||' milliseconds')::interval)";
                     case "AddDays": return $"(({left})::timestamp+(({args1})||' day')::interval)";
                     case "AddHours": return $"(({left})::timestamp+(({args1})||' hour')::interval)";
                     case "AddMilliseconds": return $"(({left})::timestamp+(({args1})||' milliseconds')::interval)";
@@ -578,42 +607,6 @@ namespace FreeSql.KingbaseES
                         }
                         if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})*1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60})";
-                    case "FromSeconds": return $"(({getExp(exp.Arguments[0])})*1000000)";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10)";
-                    case "Parse": return $"({getExp(exp.Arguments[0])})::int8";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"({getExp(exp.Arguments[0])})::int8";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"({left})::varchar";
                 }
             }
             return null;

@@ -59,12 +59,7 @@ namespace repository_01
             services.AddControllersWithViews();
             services.AddSingleton<IFreeSql>(Fsql);
 
-            services.AddFreeRepository(filter =>
-            {
-                filter
-                  //.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
-                  .Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false);
-            }, this.GetType().Assembly);
+            services.AddFreeRepository(this.GetType().Assembly);
         }
 
         public void Configure(IApplicationBuilder app)

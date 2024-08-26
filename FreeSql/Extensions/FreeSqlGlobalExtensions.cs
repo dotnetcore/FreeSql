@@ -744,13 +744,13 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
-                case DataType.OdbcKingbaseES:
                 case DataType.ShenTong: //神通测试未通过
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.CustomSqlServer:
                 case DataType.Firebird:
                 case DataType.ClickHouse:
+                case DataType.DuckDB:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
                         Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
@@ -841,12 +841,12 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.OdbcPostgreSQL:
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
-            case DataType.OdbcKingbaseES:
             case DataType.ShenTong: //神通测试未通过
             case DataType.MySql:
             case DataType.OdbcMySql:
             case DataType.CustomMySql:
             case DataType.Firebird:
+            case DataType.DuckDB:
                 nsselsb.Append("RECURSIVE ");
                 break;
         }
@@ -857,7 +857,6 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
-            case DataType.OdbcDameng:
             case DataType.GBase:
                 nsselsb.Append($"(cte_level, {(pathSelector == null ? "" : "cte_path, ")}{sql2Field.Replace("wct2.", "")})");
                 break;
@@ -877,7 +876,7 @@ SELECT ");
     #region OrderBy Random 随机排序
     /// <summary>
     /// 随机排序<para></para>
-    /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
+    /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/DuckDB/达梦/金仓/神通<para></para>
     /// 不支持：MsAcess
     /// </summary>
     /// <returns></returns>
@@ -899,14 +898,13 @@ SELECT ");
             case DataType.OdbcPostgreSQL:
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
-            case DataType.OdbcKingbaseES:
             case DataType.ShenTong:
+            case DataType.DuckDB:
                 return that.OrderBy("random()");
             case DataType.Oracle:
             case DataType.OdbcOracle:
             case DataType.CustomOracle:
             case DataType.Dameng:
-            case DataType.OdbcDameng:
                 return that.OrderBy("dbms_random.value");
             case DataType.Sqlite:
                 return that.OrderBy("random()");
@@ -985,6 +983,7 @@ SELECT ");
     /// SqlServer 2008+: merge into<para></para>
     /// Oracle 11+: merge into<para></para>
     /// Sqlite: replace into<para></para>
+    /// DuckDB: on conflict do update<para></para>
     /// 达梦: merge into<para></para>
     /// 人大金仓：on conflict do update<para></para>
     /// 神通：merge into<para></para>
@@ -1017,7 +1016,7 @@ SELECT ");
         var deleteDict = new DeleteDictImpl(freesql);
         UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(source, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
         var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, source.Keys.ToArray());
-        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }));
+        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }, deleteDict._deleteProvider._params));
         return deleteDict;
     }
     /// <summary>
@@ -1035,7 +1034,7 @@ SELECT ");
             var sourceFirst = source.FirstOrDefault();
             UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(sourceFirst, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
             var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, sourceFirst.Keys.ToArray());
-            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source));
+            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source, deleteDict._deleteProvider._params));
             return deleteDict;
         }
         foreach (var item in source)

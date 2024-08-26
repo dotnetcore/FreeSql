@@ -82,7 +82,7 @@ namespace FreeSql.Tests
             public string Title { get; set; }
             public override Task Persistent(IRepositoryUnitOfWork uof)
             {
-                uof.GetGuidRepository<TestEntity>().Insert(this);
+                uof.GetRepository<TestEntity, Guid>().Insert(this);
                 return Task.CompletedTask;
             }
             public override Task Persistent()
@@ -826,7 +826,7 @@ namespace FreeSql.Tests
 
 
             g.sqlite.SetDbContextOptions(opt => opt.EnableCascadeSave = true);
-            var trepo = g.sqlite.GetGuidRepository<TaskBuild>();
+            var trepo = g.sqlite.GetRepository<TaskBuild, Guid>();
             trepo.Insert(new TaskBuild
             {
                 TaskName = "tt11",

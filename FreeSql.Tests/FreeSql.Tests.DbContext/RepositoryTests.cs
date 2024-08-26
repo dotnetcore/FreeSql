@@ -421,7 +421,7 @@ namespace FreeSql.Tests
             var item3 = new AddUpdateInfo();
             g.mysql.Insert(item3).ExecuteAffrows();
 
-            var repos = g.mysql.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.mysql.GetRepository<AddUpdateInfo, Guid>();
             var items = repos.Select.WhereDynamic(new[] { item1, item2, item3 }).ToList();
             items[0].Title = "88";
             //items[1].Title = "88";
@@ -433,7 +433,7 @@ namespace FreeSql.Tests
         [Fact]
         public void AddUpdate()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = repos.Insert(new AddUpdateInfo());
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
@@ -462,7 +462,7 @@ namespace FreeSql.Tests
         [Fact]
         public void UpdateAttach()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = Guid.NewGuid() };
             repos.Attach(item);
@@ -485,7 +485,7 @@ namespace FreeSql.Tests
         [Fact]
         public void UpdateWhenNotExists()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = Guid.NewGuid() };
             item.Title = "xxx";
@@ -497,7 +497,7 @@ namespace FreeSql.Tests
         {
             g.sqlite.Insert(new AddUpdateInfo()).ExecuteAffrows();
 
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = g.sqlite.Select<AddUpdateInfo>().First().Id };
 
@@ -614,7 +614,7 @@ namespace FreeSql.Tests
         {
             g.sqlite.Insert(new AddUpdateInfo()).ExecuteAffrows();
 
-            var repos = g.sqlite.GetGuidRepository<object>();
+            var repos = g.sqlite.GetRepository<object, Guid>();
             repos.AsType(typeof(AddUpdateInfo));
 
             var item = new AddUpdateInfo();
@@ -627,7 +627,6 @@ namespace FreeSql.Tests
             var item2 = repos.Find(item.Id) as AddUpdateInfo;
             Assert.Equal(item.Clicks, item2.Clicks);
 
-            repos.DataFilter.Apply("xxx", a => (a as AddUpdateInfo).Clicks == 2);
             Assert.Null(repos.Find(item.Id));
         }
 
@@ -675,7 +674,6 @@ namespace FreeSql.Tests
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -738,13 +736,11 @@ namespace FreeSql.Tests
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
 
             cts2 = repo.Select.WhereDynamic(cts).ToList();
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
         }
         [Table(Name = "EAUNL_OTM_CTLD")]
         public class CagetoryLD
@@ -761,58 +757,6 @@ namespace FreeSql.Tests
             public Guid Id { get; set; }
             public Guid CagetoryId { get; set; }
             public string Name { get; set; }
-        }
-
-        [Fact]
-        public void SaveMany_OneToMany()
-        {
-            var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableCascadeSave = false; //关闭级联保存功能
-            var cts = new[] {
-                new Cagetory
-                {
-                    Name = "分类1",
-                    Goodss = new List<Goods>(new[]
-                    {
-                        new Goods { Name = "商品1" },
-                        new Goods { Name = "商品2" },
-                        new Goods { Name = "商品3" }
-                    })
-                },
-                new Cagetory
-                {
-                    Name = "分类2",
-                    Goodss = new List<Goods>(new[]
-                    {
-                        new Goods { Name = "商品4" },
-                        new Goods { Name = "商品5" }
-                    })
-                }
-            };
-            repo.Insert(cts);
-            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
-            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
-            cts[0].Goodss.RemoveAt(1);
-            cts[1].Goodss.RemoveAt(1);
-            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
-            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
-
-            cts[0].Name = "分类11";
-            cts[0].Goodss.Clear();
-            cts[1].Name = "分类22";
-            cts[1].Goodss.Clear();
-            repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
-            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
-            cts[0].Name = "分类111";
-            cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new Goods { Name = "商品33" });
-            cts[1].Name = "分类222";
-            cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new Goods { Name = "商品55" });
-            repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
-            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
         }
 
         [Fact]
@@ -906,7 +850,6 @@ namespace FreeSql.Tests
             repo.Insert(ss);
 
             ss[0].Tags[0].TagName = "流行101";
-            repo.SaveMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
 
             ss[0].Name = "爱你一万年.mp5";
             ss[0].Tags.Clear();

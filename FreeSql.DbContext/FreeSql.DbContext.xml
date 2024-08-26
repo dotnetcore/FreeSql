@@ -37,17 +37,6 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.DbContext.SaveMany``1(``0,System.String)">
-            <summary>
-            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-            </summary>
-            <param name="data">实体对象</param>
-            <param name="propertyName">属性名</param>
-        </member>
         <member name="M:FreeSql.DbContext.Attach``1(``0)">
             <summary>
             附加实体，可用于不查询就更新或删除
@@ -108,11 +97,6 @@
             【多对多】模型下，对中间表的保存是完整对比操作，对外部实体的只作新增操作（*注意不会更新）<para></para>
             - 属性集合为空时(!=null)，删除他们的所有关联数据（中间表）<para></para>
             - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
-            </summary>
-        </member>
-        <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
-            <summary>
-            因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave
             </summary>
         </member>
         <member name="P:FreeSql.DbContextOptions.NoneParameter">
@@ -187,17 +171,6 @@
             </summary>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.DbSet`1.SaveMany(`0,System.String)">
-            <summary>
-            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-            </summary>
-            <param name="item">实体对象</param>
-            <param name="propertyName">属性名</param>
-        </member>
         <member name="M:FreeSql.DbSet`1.Update(`0)">
             <summary>
             更新
@@ -247,6 +220,17 @@
             </summary>
             <param name="predicate"></param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSql.DbSet`1.SaveMany(`0,System.String)">
+            <summary>
+            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
+            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
+            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
+            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
+            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
+            </summary>
+            <param name="item">实体对象</param>
+            <param name="propertyName">属性名</param>
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreColumnFluent.Help">
             <summary>
@@ -507,53 +491,34 @@
             FreeSql.Repository Update 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，更新的数据不符合{entityString}
             </summary>
         </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``2(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
-            <summary>
-            在工作单元内创建默认仓库类，工作单元下的仓储操作具有事务特点
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="TKey"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1">
             <summary>
             在工作单元内创建联合主键的仓储类，工作单元下的仓储操作具有事务特点
             </summary>
             <typeparam name="TEntity"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetGuidRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
-            <summary>
-            在工作单元内创建仓库类，工作单元下的仓储操作具有事务特点
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
-            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDataFilter`1.Enable(System.String[])">
+        <member name="M:FreeSql.RepositoryDataFilter.Disable(System.String[])">
             <summary>
             开启过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <param name="filterName">过滤器名称</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.EnableAll">
+        <member name="M:FreeSql.RepositoryDataFilter.DisableAll">
             <summary>
             开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.Disable(System.String[])">
+        <member name="M:FreeSql.RepositoryDataFilter.Enable(System.String[])">
             <summary>
             禁用过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <param name="filterName"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.DisableAll">
+        <member name="M:FreeSql.RepositoryDataFilter.EnableAll">
             <summary>
             禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
@@ -583,6 +548,11 @@
             设置 DbContext 选项
             </summary>
         </member>
+        <member name="P:FreeSql.IBaseRepository.DataFilter">
+            <summary>
+            GlobalFilter 禁用/启用控制
+            </summary>
+        </member>
         <member name="M:FreeSql.IBaseRepository`1.FlushState">
             <summary>
             清空状态数据
@@ -607,6 +577,13 @@
             <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
             <returns>key: 属性名, value: [旧值, 新值]</returns>
         </member>
+        <member name="M:FreeSql.IBaseRepository`1.DeleteCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IBaseRepository`1.SaveMany(`0,System.String)">
             <summary>
             保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
@@ -617,13 +594,6 @@
             </summary>
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
-        </member>
-        <member name="M:FreeSql.IBaseRepository`1.DeleteCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.BeginEdit(System.Collections.Generic.List{`0})">
             <summary>
@@ -790,40 +760,27 @@
             <param name="that"></param>
             <param name="options"></param>
         </member>
-        <member name="M:FreeSqlDbContextExtensions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
-            <summary>
-            返回默认仓库类
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="TKey"></typeparam>
-            <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlDbContextExtensions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlDbContextExtensions.GetRepository``1(IFreeSql)">
             <summary>
             返回默认仓库类，适用联合主键的仓储类
             </summary>
             <typeparam name="TEntity"></typeparam>
             <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlDbContextExtensions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
-            <summary>
-            返回仓库类
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
-            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            创建基于工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

@@ -153,12 +153,7 @@ namespace FreeSql.ClickHouse
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
-            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
-            }
-            else if (value is Array)
+            if (value is Array)
 			{
 				var valueArr = value as Array;
 				var eleType = type.GetElementType();

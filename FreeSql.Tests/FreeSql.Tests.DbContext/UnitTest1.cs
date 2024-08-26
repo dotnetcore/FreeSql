@@ -35,7 +35,6 @@ namespace FreeSql.Tests
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                     new DEPARTMENTS { deptid = 3, deptcode = "03" , deptname = ""},
                 });
-            user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
@@ -43,13 +42,11 @@ namespace FreeSql.Tests
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                     new DEPARTMENTS { deptid = 4, deptcode = "04", deptname = "" },
                 });
-            user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                 });
-            user.SaveMany("depts");
 
             g.sqlite.CodeFirst.SyncStructure<Song_tag>();
             g.sqlite.CodeFirst.SyncStructure<Tag>();

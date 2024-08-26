@@ -84,14 +84,9 @@ namespace FreeSql.Custom.PostgreSQL
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
 
-            var isPg95 = true;
-            var isPg96 = true;
             var isPg10 = (_orm.DbFirst as CustomPostgreSQLDbFirst).IsPg10;
-            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
-            {
-                isPg95 = CustomPostgreSQLDbFirst.ParsePgVersion(conn.Value.ServerVersion, 9, 5).Item1;
-                isPg96 = CustomPostgreSQLDbFirst.ParsePgVersion(conn.Value.ServerVersion, 9, 6).Item1;
-            }
+            var isPg95 = (_orm.DbFirst as CustomPostgreSQLDbFirst).IsPg95;
+            var isPg96 = (_orm.DbFirst as CustomPostgreSQLDbFirst).IsPg96;
 
             foreach (var obj in objects)
             {

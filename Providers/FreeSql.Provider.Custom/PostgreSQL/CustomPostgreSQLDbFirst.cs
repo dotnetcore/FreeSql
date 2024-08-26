@@ -23,6 +23,8 @@ namespace FreeSql.Custom.PostgreSQL
         }
 
         public bool IsPg10 => ServerVersion >= 10;
+        public bool IsPg95 { get; private set; }
+        public bool IsPg96 { get; private set; }
         public int ServerVersion
         {
             get
@@ -33,6 +35,8 @@ namespace FreeSql.Custom.PostgreSQL
                         try
                         {
                             _ServerVersionValue = ParsePgVersion(conn.Value.ServerVersion, 10, 0).Item2;
+                            IsPg95 = ParsePgVersion(conn.Value.ServerVersion, 9, 5).Item1;
+                            IsPg96 = ParsePgVersion(conn.Value.ServerVersion, 9, 6).Item1;
                         }
                         catch
                         {

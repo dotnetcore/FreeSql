@@ -91,6 +91,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Xugu", "Pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{4367B7AC-604F-4503-A1D4-643ADBFCF703}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Duckdb", "Providers\FreeSql.Provider.Duckdb\FreeSql.Provider.Duckdb.csproj", "{02CFB50A-D8C4-470D-AC93-5540D6029430}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Duckdb", "FreeSql.Tests\FreeSql.Tests.Provider.Duckdb\FreeSql.Tests.Provider.Duckdb.csproj", "{B9787A81-D537-45ED-B413-61BF03C8FEBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -509,6 +513,30 @@ Global
 		{4367B7AC-604F-4503-A1D4-643ADBFCF703}.Release|x64.Build.0 = Release|Any CPU
 		{4367B7AC-604F-4503-A1D4-643ADBFCF703}.Release|x86.ActiveCfg = Release|Any CPU
 		{4367B7AC-604F-4503-A1D4-643ADBFCF703}.Release|x86.Build.0 = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|x64.Build.0 = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Debug|x86.Build.0 = Debug|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|x64.ActiveCfg = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|x64.Build.0 = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|x86.ActiveCfg = Release|Any CPU
+		{02CFB50A-D8C4-470D-AC93-5540D6029430}.Release|x86.Build.0 = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|x64.Build.0 = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Debug|x86.Build.0 = Debug|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|x64.ActiveCfg = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|x64.Build.0 = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|x86.ActiveCfg = Release|Any CPU
+		{B9787A81-D537-45ED-B413-61BF03C8FEBE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -544,10 +572,11 @@ Global
 		{FEE501EB-60D1-4370-BC65-F939BCA7F32E} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{353F3732-0704-40F2-972B-036E9CC01881} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{4367B7AC-604F-4503-A1D4-643ADBFCF703} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
+		{02CFB50A-D8C4-470D-AC93-5540D6029430} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal

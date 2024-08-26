@@ -198,7 +198,7 @@ namespace base_entity
 
         public class SongRepository : BaseRepository<TUserImg, int>
         {
-            public SongRepository(IFreeSql fsql) : base(fsql, null, null)
+            public SongRepository(IFreeSql fsql) : base(fsql)
             {
                 //fsql.CodeFirst.Entity<TUserImg>(a =>
                 //    {
@@ -565,7 +565,7 @@ namespace base_entity
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 //.UseNameConvert(NameConvertType.ToLower)
-                //.UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
+                .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
                 .UseAdoConnectionPool(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
@@ -577,7 +577,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
 				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 				//.UseAdoConnectionPool(false)
@@ -619,6 +619,60 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.UseJsonMap();
+
+            fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
+
+            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
+            usergroupRepository.Delete(a => true);
+            usergroupRepository.Insert(new[]{
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group1",
+                    UpdateTime = DateTime.Now,
+                    Sort = 1,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
+                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
+                    }
+                },
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group2",
+                    UpdateTime = DateTime.Now,
+                    Sort = 2,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
+                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
+                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                    }
+                },
+            });
+            var ugroupFirst = usergroupRepository.Select.First();
+            ugroupFirst.Sort++;
+            usergroupRepository.Update(ugroupFirst);
+            var userRepository = fsql.GetAggregateRootRepository<User1>();
+
+            var testsublist1 = fsql.Select<UserGroup>()
+                .First(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
+
+
+
+            FreeSql.Internal.Utils.TypeHandlers.TryAdd(typeof(DateTimeOffset), new DateTimeOffsetTypeHandler());
+
+            fsql.Insert(new Account { Name = DateTime.Now.ToString(), Join = DateTimeOffset.Now }).ExecuteAffrows();
+            var dtslist01 = fsql.Select<Account>().As("aaa").Where(p => p.ID >= 1).AsQueryable().Select(p => new { p.Name, p.ID, p.Join }).ToList();
+            fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID, p.Join }).Count();
 
             var sqlc001 = fsql.Select<User1>()
                 .GroupBy(a => a.GroupId)
@@ -631,7 +685,6 @@ namespace base_entity
                     cou5 = g.Count(g.Value.Sort > 50 || g.Value.Username == "xx"),
                 });
 
-            fsql.Select<Account>().As("aaa").Where(p => p.ID == 1).AsQueryable().Distinct().Select(p => new { p.Name, p.ID }).Count();
 
 
             var sqlt001 = fsql.Select<User1>()
@@ -701,7 +754,6 @@ namespace base_entity
             var testRepo = fsql2.GetRepository<object>();
             testRepo.AsType(table.Type);
             testRepo.Insert(area1);
-            testRepo.SaveMany(area1, "children");
 
 
 
@@ -1293,48 +1345,6 @@ var sql11111 = fsql.Select<Class1111>()
 
 
 
-            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
-            usergroupRepository.Delete(a => true);
-            usergroupRepository.Insert(new[]{
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group1",
-                    UpdateTime = DateTime.Now,
-                    Sort = 1,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
-                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
-                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
-                    }
-                },
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group2",
-                    UpdateTime = DateTime.Now,
-                    Sort = 2,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
-                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
-                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
-                    }
-                },
-            });
-            var ugroupFirst = usergroupRepository.Select.First();
-            ugroupFirst.Sort++;
-            usergroupRepository.Update(ugroupFirst);
-            var userRepository = fsql.GetAggregateRootRepository<User1>();
-
-            var testsublist1 = fsql.Select<UserGroup>()
-                .First(a => new
-                {
-                    a.Id,
-                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
-                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
-                });
 
             //fsql.CodeFirst.GetTableByEntity(typeof(User1)).Columns.Values.ToList().ForEach(col =>
             //{
@@ -3286,8 +3296,34 @@ public partial class ProjectItem
 [Table(Name = "t_account")]
 public class Account
 {
-    [Column(Name = "FID")]
+    [Column(Name = "FID", IsIdentity = true)]
     public int ID { get; set; }
     [Column(Name = "FName")]
     public string Name { get; set; }
+
+    [JsonProperty, Column(Name = "join", DbType = "date", MapType = typeof(string))]  // 数据库类型也可以是datetime
+    public DateTimeOffset Join { get; set; }
+}
+class DateTimeOffsetTypeHandler : TypeHandler<DateTimeOffset>
+{
+    public override object Serialize(DateTimeOffset value)
+    {
+        return value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss");
+    }
+    public override DateTimeOffset Deserialize(object value)
+    {
+        return DateTimeOffset.TryParse((string)value, out var dts) ? dts : DateTimeOffset.MinValue;
+    }
+}
+class Table11
+{
+    public int Id { get; set; }
+
+    [JsonMap, Column(DbType = "json")]
+    public TableOptions Options { get; set; }
+}
+class TableOptions
+{
+    public int Value1 { get; set; }
+    public string Value2 { get; set; }
 }

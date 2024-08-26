@@ -125,7 +125,7 @@ namespace FreeSql
         int ExecuteAffrows();
         /// <summary>
         /// 执行SQL语句，返回被删除的记录<para></para>
-        /// 注意：此方法只有 Postgresql/SqlServer 有效果
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteDeleted();

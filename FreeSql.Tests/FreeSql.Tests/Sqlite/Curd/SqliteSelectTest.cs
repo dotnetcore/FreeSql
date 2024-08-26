@@ -1154,8 +1154,10 @@ FROM ""TestTypeParentInfo_01"" a", asTableSubSql);
             var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
 
             var tenantId = 1;
-            var reposTopic = g.sqlite.GetGuidRepository<Topic>(null, oldname => $"{oldname}_{tenantId}");
-            var reposType = g.sqlite.GetGuidRepository<TestTypeInfo>(null, oldname => $"{oldname}_{tenantId}");
+            var reposTopic = g.sqlite.GetRepository<Topic, Guid>();
+            var reposType = g.sqlite.GetRepository<TestTypeInfo, Guid>();
+            reposTopic.AsTable(oldname => $"{oldname}_{tenantId}");
+            reposType.AsTable(oldname => $"{oldname}_{tenantId}");
 
             //reposTopic.Delete(Guid.Empty);
             //reposTopic.Find(Guid.Empty);

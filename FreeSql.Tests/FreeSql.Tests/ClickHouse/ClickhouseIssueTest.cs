@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FreeSql.DataAnnotations;
-using FreeSql.Provider.ClickHouse.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 

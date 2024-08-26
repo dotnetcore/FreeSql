@@ -32,11 +32,8 @@ namespace FreeSql
         {
             var select = base.OrmSelect(dywhere);
             if (_repo._asTablePriv != null) select.AsTable(_repo._asTablePriv);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) select.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
-            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
-            if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter.ToArray());
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter);
             return select;
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
@@ -44,11 +41,8 @@ namespace FreeSql
         {
             var update = base.OrmUpdate(entitys);
 			if (_repo._asTablePriv != null) update.AsTable(old => _repo._asTablePriv(_entityType, old));
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) update.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
-            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
-            if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter.ToArray());
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter);
             return update;
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
@@ -56,11 +50,8 @@ namespace FreeSql
         {
             var delete = base.OrmDelete(dywhere);
 			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
-			var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) delete.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
-            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
-            if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter.ToArray());
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter);
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
@@ -77,14 +68,6 @@ namespace FreeSql
         {
             var insert = base.OrmInsert(entitys);
 			if (_repo._asTablePriv != null) insert.AsTable(old => _repo._asTablePriv(_entityType, old));
-			var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
-            foreach (var filter in filters)
-            {
-                if (entitys != null)
-                    foreach (var entity in entitys)
-                        if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception(DbContextStrings.InsertError_Filter(filter.Key, filter.Value.Expression, _db.OrmOriginal.GetEntityString(_entityType, entity)));
-            }
             return insert;
         }
         internal IInsert<TEntity> OrmInsertInternal(TEntity entity) => OrmInsert(entity);

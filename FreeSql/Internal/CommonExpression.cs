@@ -1124,7 +1124,7 @@ namespace FreeSql.Internal
                         case "System.String": other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); break;
                         case "System.Math": other3Exp = ExpressionLambdaToSqlCallMath(exp3, tsc); break;
                         case "System.DateTime": other3Exp = ExpressionLambdaToSqlCallDateTime(exp3, tsc); break;
-                        case "System.TimeSpan": other3Exp = ExpressionLambdaToSqlCallTimeSpan(exp3, tsc); break;
+                        case "System.TimeSpan": throw new Exception(CoreStrings.Unable_Parse_ExpressionMethod(callType.FullName));
                         case "System.Convert": other3Exp = ExpressionLambdaToSqlCallConvert(exp3, tsc); break;
                     }
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
@@ -1301,7 +1301,6 @@ namespace FreeSql.Internal
                                                     case DataType.OdbcOracle:
                                                     case DataType.CustomOracle:
                                                     case DataType.Dameng:
-                                                    case DataType.OdbcDameng:
                                                     case DataType.GBase:
                                                         break;
                                                     default:
@@ -1723,7 +1722,7 @@ namespace FreeSql.Internal
                         {
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
-                            case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, tsc); break;
+                            case "System.TimeSpan": throw new Exception(CoreStrings.Unable_Parse_Expression(exp4));
                         }
                         if (string.IsNullOrEmpty(extRet) == false) return extRet;
                         var other4Exp = ExpressionLambdaToSqlOther(exp4, tsc);
@@ -1778,7 +1777,7 @@ namespace FreeSql.Internal
                         }
                         break;
                     }
-                    if (expStack.First().NodeType != ExpressionType.Parameter)
+                    if (exp4.IsParameter() == false && expStack.First().NodeType != ExpressionType.Parameter)
                     {
                         if (expStackConstOrMemberCount == expStack.Count)
                         {
@@ -1866,7 +1865,15 @@ namespace FreeSql.Internal
                             finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type && a.Alias == alias).ToArray();
                             if (finds.Any() == false && alias.Contains("__") == false)
                                 finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
-                            if (finds.Any()) finds = new[] { finds.First() };
+                            if (finds.Any())
+                            {
+                                if (finds.Length > 1 && isa && parmExp != null) //非 a,b,c 多表查询时 #1830
+                                {
+                                    var tmpFinds = tsc._tables.Where(a => a.Parameter == parmExp).ToArray();
+                                    if (tmpFinds.Any()) finds = tmpFinds;
+                                }
+                                if (finds.Any()) finds = new[] { finds.First() };
+                            }
                         }
                         if (finds.Length != 1 && isa && parmExp != null)
                             finds = tsc._tables.Where(a => a.Parameter == parmExp).ToArray();
@@ -1986,6 +1993,7 @@ namespace FreeSql.Internal
                                     }
                                     name2 = col2.Attribute.Name;
                                     tsc.SetMapColumnTmp(col2);
+                                    if (expStack.Count > 0) throw new Exception(CoreStrings.Unable_Parse_Expression(expStack.Pop()));
                                     break;
                                 }
                                 //判断 [JsonMap] 并非导航对象，所以在上面提前判断 ColumnsByCs
@@ -2178,11 +2186,9 @@ namespace FreeSql.Internal
 
         public abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, ExpTSC tsc);
-        public abstract string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc);
-        public abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);
         public string ExpressionConstDateTime(Expression exp) => exp is ConstantExpression operandExpConst ? formatSql(Utils.GetDataReaderValue(typeof(DateTime), operandExpConst.Value), null, null, null) : null;
@@ -2689,7 +2695,6 @@ namespace FreeSql.Internal
                             case DataType.OdbcOracle:
                             case DataType.CustomOracle:
                             case DataType.Dameng:
-                            case DataType.OdbcDameng:
                             case DataType.GBase:
                                 break;
                             default:
@@ -2812,7 +2817,6 @@ namespace FreeSql.Internal
                                 case DataType.OdbcOracle:
                                 case DataType.CustomOracle:
                                 case DataType.Dameng:
-                                case DataType.OdbcDameng:
                                 case DataType.GBase:
                                     break;
                                 default:

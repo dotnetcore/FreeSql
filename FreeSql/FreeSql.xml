@@ -695,18 +695,7 @@
         </member>
         <member name="F:FreeSql.DataType.Odbc">
             <summary>
-            通用的 Odbc 实现，只能做基本的 Crud 操作 <para></para>
-            不支持实体结构迁移、不支持分页（只能 Take 查询） <para></para>
-            
-            通用实现为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库<para></para>
-            默认适配 SqlServer，可以继承后重新适配 FreeSql.Odbc.Default.OdbcAdapter，最好去看下代码 <para></para>
-            
-            适配新的 OdbcAdapter，请在 FreeSqlBuilder.Build 之后调用 IFreeSql.SetOdbcAdapter 方法设置
-            </summary>
-        </member>
-        <member name="F:FreeSql.DataType.OdbcDameng">
-            <summary>
-            武汉达梦数据库有限公司，基于 Odbc 的实现
+            通用的 Odbc 访问数据库 https://freesql.net/guide/freesql-provider-odbc.html
             </summary>
         </member>
         <member name="F:FreeSql.DataType.MsAccess">
@@ -717,11 +706,6 @@
         <member name="F:FreeSql.DataType.Dameng">
             <summary>
             武汉达梦数据库有限公司，基于 DmProvider.dll 的实现
-            </summary>
-        </member>
-        <member name="F:FreeSql.DataType.OdbcKingbaseES">
-            <summary>
-            北京人大金仓信息技术股份有限公司，基于 Odbc 的实现
             </summary>
         </member>
         <member name="F:FreeSql.DataType.ShenTong">
@@ -741,8 +725,7 @@
         </member>
         <member name="F:FreeSql.DataType.Custom">
             <summary>
-            自定义适配器，访问任何数据库<para></para>
-            注意：该类型不提供 DbFirst/CodeFirst 功能
+            自定义适配器，访问任何数据库 https://freesql.net/guide/freesql-provider-custom.html
             </summary>
         </member>
         <member name="F:FreeSql.DataType.GBase">
@@ -1648,7 +1631,7 @@
         <member name="M:FreeSql.IDelete`1.ExecuteDeleted">
             <summary>
             执行SQL语句，返回被删除的记录<para></para>
-            注意：此方法只有 Postgresql/SqlServer 有效果
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
             </summary>
             <returns></returns>
         </member>
@@ -1809,7 +1792,7 @@
         <member name="M:FreeSql.IInsert`1.ExecuteInserted">
             <summary>
             执行SQL语句，返回插入后的记录<para></para>
-            注意：此方法只有 Postgresql/SqlServer 有效果
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
             </summary>
             <returns></returns>
         </member>
@@ -3284,7 +3267,7 @@
         <member name="M:FreeSql.IUpdate`1.ExecuteUpdated">
             <summary>
             执行SQL语句，返回更新后的记录<para></para>
-            注意：此方法只有 Postgresql/SqlServer 有效果
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
             </summary>
             <returns></returns>
         </member>
@@ -5940,7 +5923,7 @@
         <member name="M:FreeSqlGlobalExtensions.OrderByRandom``2(FreeSql.ISelect0{``0,``1})">
             <summary>
             随机排序<para></para>
-            支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
+            支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/DuckDB/达梦/金仓/神通<para></para>
             不支持：MsAcess
             </summary>
             <returns></returns>
@@ -5981,6 +5964,7 @@
             SqlServer 2008+: merge into<para></para>
             Oracle 11+: merge into<para></para>
             Sqlite: replace into<para></para>
+            DuckDB: on conflict do update<para></para>
             达梦: merge into<para></para>
             人大金仓：on conflict do update<para></para>
             神通：merge into<para></para>
@@ -6264,6 +6248,7 @@
             SqlServer 2008+: merge into<para></para>
             Oracle 11+: merge into<para></para>
             Sqlite: replace into<para></para>
+            DuckDB: on conflict do update<para></para>
             达梦: merge into<para></para>
             人大金仓：on conflict do update<para></para>
             神通：merge into<para></para>

@@ -43,6 +43,11 @@ namespace FreeSql.MySql
                 { typeof(TimeSpan).FullName, CsToDb.New(MySqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(MySqlDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
 
+#if net60
+                { typeof(TimeOnly).FullName, CsToDb.New(MySqlDbType.Time, "time", "time NOT NULL", false, false, TimeOnly.MinValue) },{ typeof(TimeOnly?).FullName, CsToDb.New(MySqlDbType.Time, "time", "time", false, true, null) },
+                { typeof(DateOnly).FullName, CsToDb.New(MySqlDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(MySqlDbType.Date, "date", "date", false, true, null) },
+#endif
+
                 { typeof(byte[]).FullName, CsToDb.New(MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
                 { typeof(char).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(1)", false, null, '\0') },

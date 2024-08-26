@@ -503,7 +503,7 @@ namespace FreeSql.Internal.CommonProvider
                     .Where(oldwhere)
                     .WhereIf(string.IsNullOrWhiteSpace(newwhere) == false, $"not({newwhere})");
             }
-            var wheresql = _commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere);
+            var wheresql = _commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere, _params);
             return not == false ? this.Where(wheresql) : this.Where($"not({wheresql})");
         }
 

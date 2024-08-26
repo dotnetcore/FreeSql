@@ -37,26 +37,12 @@ namespace FreeSql
                 GetRepositoryDbField(entityType, "_asTablePriv").SetValue(repo,
                     _repo.GetType().GetField("_asTablePriv", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(_repo));
 				    //GetRepositoryDbField(_repo.EntityType, "_asTablePriv").GetValue(_repo));
-
-                if (typeof(IBaseRepository<>).MakeGenericType(_repo.EntityType).IsAssignableFrom(_repo.GetType()))
-                    typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
-                        .Invoke(null, new object[] { repo, _repo });
             }
 
             var sd = Activator.CreateInstance(typeof(RepositoryDbSet<>).MakeGenericType(entityType), repo) as IDbSet;
             _listSet.Add(sd);
             if (entityType != typeof(object)) _dicSet.Add(entityType, sd);
             return sd;
-        }
-
-        public static void SetRepositoryDataFilter<TEntity>(object repo, IBaseRepository<TEntity> baseRepo) where TEntity : class
-        {
-            var filter = baseRepo.DataFilter as DataFilter<TEntity>;
-            DataFilterUtil.SetRepositoryDataFilter(repo, fl =>
-            {
-                foreach (var f in filter._filters)
-                    fl.Apply<TEntity>(f.Key, f.Value.Expression);
-            });
         }
 
         int SaveChangesSuccess()

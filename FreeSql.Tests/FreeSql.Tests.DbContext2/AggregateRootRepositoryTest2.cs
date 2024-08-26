@@ -22,6 +22,67 @@ namespace FreeSql.Tests.DbContext2
         }
 
         [Fact]
+        public void Test41()
+        {
+            using (var fsql = g.CreateMemory())
+            {
+                var repo = fsql.GetRepository<Test4Id>();
+                repo.DbContextOptions.AuditValue += e =>
+                {
+                    if (e.Object is Test4Id item)
+                    {
+                        item.Id = new Random().Next();
+                    }
+                };
+                var item = new Test4Id { Id = 0 };
+                repo.Insert(item);
+                Assert.True(item.Id > 0);
+
+            }
+        }
+        [Fact]
+        public void Test40()
+        {
+            using (var fsql = g.CreateMemory())
+            {
+                fsql.Aop.AuditValue += (s, e) =>
+                {
+                    if (e.Object is Test4Id item)
+                    {
+                        item.Id = new Random().Next();
+                        e.ObjectAuditBreak = true;
+                    }
+                };
+                var repo = fsql.GetRepository<Test4Id>();
+                var item = new Test4Id { Id = 0 };
+                repo.Insert(item);
+                Assert.True(item.Id > 0);
+
+            }
+        }
+        class Test4Id
+        {
+            public int Id { get; set; }
+            public string Field2 { get; set; }
+        }
+
+        [Fact]
+        public void Test3()
+        {
+            using (var fsql = g.CreateMemory())
+            {
+                var sql01 = fsql.Select<Order, OrderDetail, OrderDetail>()
+                    .InnerJoin((x, y, z) => y.OrderId == x.Id)
+                    .InnerJoin((x, y, z) => z.OrderId == x.Id)
+                    .ToSql((x, y, z) => new { x, y, z });
+                Assert.Equal(@"SELECT a.""Id"" as1, a.""Field2"" as2, b.""Id"" as3, b.""OrderId"" as4, b.""Field4"" as5, c.""Id"" as6, c.""OrderId"" as7, c.""Field4"" as8 
+FROM ""Order"" a 
+INNER JOIN ""OrderDetail"" b ON b.""OrderId"" = a.""Id"" 
+INNER JOIN ""OrderDetail"" c ON c.""OrderId"" = a.""Id""", sql01);
+            }
+        }
+        
+        [Fact]
         public void Test2()
         {
             using (var fsql = g.CreateMemory())

@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -393,9 +395,8 @@ namespace FreeSql.Internal
 					case DataType.OdbcPostgreSQL:
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
@@ -411,14 +412,14 @@ namespace FreeSql.Internal
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
 						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
 					case DataType.Sqlite:
-						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                    case DataType.DuckDB:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
@@ -467,23 +468,20 @@ namespace FreeSql.Internal
 					case DataType.OdbcPostgreSQL:
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
-					case DataType.OdbcKingbaseES:
 					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
 						colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
 						break;
 					case DataType.Oracle:
-					case DataType.CustomOracle:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
-					case DataType.Dameng:
-						colattr.DbType = $"BLOB{strNotNull}";
-						break;
 					case DataType.OdbcOracle:
-					case DataType.OdbcDameng:
+					case DataType.CustomOracle:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.Dameng:
 						colattr.DbType = $"BLOB{strNotNull}";
 						break;
 					case DataType.Sqlite:
-						colattr.DbType = $"BLOB{strNotNull}";
+                    case DataType.DuckDB:
+                        colattr.DbType = $"BLOB{strNotNull}";
 						break;
 					case DataType.MsAccess:
 						if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
@@ -2109,7 +2107,7 @@ namespace FreeSql.Internal
         }
 
         internal static MethodInfo MethodExecuteArrayRowReadClassOrTuple = typeof(Utils).GetMethod("ExecuteArrayRowReadClassOrTuple", BindingFlags.Static | BindingFlags.NonPublic);
-        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.Public);
 
         static ConcurrentDictionary<string, Action<object, object>> _dicFillPropertyValue = new ConcurrentDictionary<string, Action<object, object>>();
         internal static void FillPropertyValue(object info, string memberAccessPath, object value)
@@ -2142,7 +2140,13 @@ namespace FreeSql.Internal
         public static string ToStringConcat(object obj)
         {
             if (obj == null) return null;
-            return string.Concat(obj);
+            if (obj is bool || obj is bool?) return (bool)obj == true ? "1" : "0";
+            return string.Format(CultureInfo.InvariantCulture, "{0}", obj);
+        }
+        public static bool ValueIsEnumAndTargetIsNumber(object value, Type targetType)
+        {
+            if (value == null || targetType == null) return false;
+            return value.GetType().IsEnum && targetType.IsNumberType();
         }
         public static byte[] GuidToBytes(Guid guid)
         {
@@ -2162,40 +2166,141 @@ namespace FreeSql.Internal
             if (string.IsNullOrEmpty(str)) return default(char);
             return str.ToCharArray(0, 1)[0];
         }
+        public static BitArray StringToBitArray(string str1010)
+        {
+            if (str1010 == null) return null;
+            BitArray ret = new BitArray(str1010.Length);
+            for (int a = 0; a < str1010.Length; a++) ret[a] = str1010[a] == '1';
+            return ret;
+        }
+        public static byte[] StreamToBytes(Stream stream)
+        {
+            var ms = new MemoryStream();
+            try
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+            finally
+            {
+                ms.Close();
+                ms.Dispose();
+            }
+        }
+        public static TElement[] ListOrArrayToArray<TElement>(object listOrArray)
+        {
+            if (listOrArray is TElement[] arr2) return arr2;
+            if (listOrArray is Array arr)
+            {
+                var len = arr.GetLength(0);
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), arr.GetValue(a));
+                return arr2;
+            }
+            if (listOrArray is IList list)
+            {
+                var len = list.Count;
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), list[a]);
+                return arr2;
+            }
+            return null;
+        }
+        public static List<TElement> ListOrArrayToList<TElement>(object listOrArray) => ListOrArrayToArray<TElement>(listOrArray)?.ToList();
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
-        static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
-        static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
-        static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
-        static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
-        static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
-        static MethodInfo MethodTimeSpanFromSeconds = typeof(TimeSpan).GetMethod("FromSeconds", new[] { typeof(double) } );
-        static MethodInfo MethodSByteTryParse = typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() });
-        static MethodInfo MethodShortTryParse = typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(short).MakeByRefType() });
-        static MethodInfo MethodIntTryParse = typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(int).MakeByRefType() });
-        static MethodInfo MethodLongTryParse = typeof(long).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(long).MakeByRefType() });
-        static MethodInfo MethodByteTryParse = typeof(byte).GetMethod("TryParse", new[] { typeof(string), typeof(byte).MakeByRefType() });
-        static MethodInfo MethodUShortTryParse = typeof(ushort).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ushort).MakeByRefType() });
-        static MethodInfo MethodUIntTryParse = typeof(uint).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(uint).MakeByRefType() });
-        static MethodInfo MethodULongTryParse = typeof(ulong).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ulong).MakeByRefType() });
-        static MethodInfo MethodDoubleTryParse = typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(double).MakeByRefType() });
-        static MethodInfo MethodFloatTryParse = typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(float).MakeByRefType() });
-        static MethodInfo MethodDecimalTryParse = typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(decimal).MakeByRefType() });
-        static MethodInfo MethodTimeSpanTryParse = typeof(TimeSpan).GetMethod("TryParse", new[] { typeof(string), typeof(TimeSpan).MakeByRefType() });
-        static MethodInfo MethodDateTimeTryParse = typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() });
-        static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
-        static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
-        static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
-        static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
-        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
+        static MethodInfo MethodGuidTryParse => LazyManager.MethodGuidTryParse.Value;
+        static MethodInfo MethodEnumParse => LazyManager.MethodEnumParse.Value;
+        static MethodInfo MethodConvertChangeType => LazyManager.MethodConvertChangeType.Value;
+        static MethodInfo MethodTimeSpanFromSeconds => LazyManager.MethodTimeSpanFromSeconds.Value;
+        static MethodInfo MethodSByteTryParse => LazyManager.MethodSByteTryParse.Value;
+        static MethodInfo MethodShortTryParse => LazyManager.MethodShortTryParse.Value;
+        static MethodInfo MethodIntTryParse => LazyManager.MethodIntTryParse.Value;
+        static MethodInfo MethodLongTryParse => LazyManager.MethodLongTryParse.Value;
+        static MethodInfo MethodByteTryParse => LazyManager.MethodByteTryParse.Value;
+        static MethodInfo MethodUShortTryParse => LazyManager.MethodUShortTryParse.Value;
+        static MethodInfo MethodUIntTryParse => LazyManager.MethodUIntTryParse.Value;
+        static MethodInfo MethodULongTryParse => LazyManager.MethodULongTryParse.Value;
+        static MethodInfo MethodDoubleTryParse => LazyManager.MethodDoubleTryParse.Value;
+        static MethodInfo MethodFloatTryParse => LazyManager.MethodFloatTryParse.Value;
+        static MethodInfo MethodDecimalTryParse => LazyManager.MethodDecimalTryParse.Value;
+        static MethodInfo MethodTimeSpanTryParse => LazyManager.MethodTimeSpanTryParse.Value;
+        static MethodInfo MethodDateTimeTryParse => LazyManager.MethodDateTimeTryParse.Value;
+        static MethodInfo MethodDateTimeOffsetTryParse => LazyManager.MethodDateTimeOffsetTryParse.Value;
+        static MethodInfo MethodToString => LazyManager.MethodToString.Value;
+        static MethodInfo MethodBigIntegerParse => LazyManager.MethodBigIntegerParse.Value;
+        static PropertyInfo PropertyDateTimeOffsetDateTime => LazyManager.PropertyDateTimeOffsetDateTime.Value;
+        static PropertyInfo PropertyDateTimeTicks => LazyManager.PropertyDateTimeTicks.Value;
+        static ConstructorInfo CtorDateTimeOffsetArgsTicks => LazyManager.CtorDateTimeOffsetArgsTicks.Value;
         static Encoding DefaultEncoding = Encoding.UTF8;
-        static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
-        static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
-        static MethodInfo MethodStringToCharArray = typeof(string).GetMethod("ToCharArray", new Type[0]);
-        static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
-        static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
+
+        static class LazyManager
+        {
+            internal static Lazy<MethodInfo> MethodGuidTryParse = new Lazy<MethodInfo>(() => typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodEnumParse = new Lazy<MethodInfo>(() => typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) }));
+            internal static Lazy<MethodInfo> MethodConvertChangeType = new Lazy<MethodInfo>(() => typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) }));
+            internal static Lazy<MethodInfo> MethodTimeSpanFromSeconds = new Lazy<MethodInfo>(() => typeof(TimeSpan).GetMethod("FromSeconds", new[] { typeof(double) }));
+            internal static Lazy<MethodInfo> MethodSByteTryParse = new Lazy<MethodInfo>(() => typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodShortTryParse = new Lazy<MethodInfo>(() => typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(short).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodIntTryParse = new Lazy<MethodInfo>(() => typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(int).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodLongTryParse = new Lazy<MethodInfo>(() => typeof(long).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(long).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodByteTryParse = new Lazy<MethodInfo>(() => typeof(byte).GetMethod("TryParse", new[] { typeof(string), typeof(byte).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodUShortTryParse = new Lazy<MethodInfo>(() => typeof(ushort).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ushort).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodUIntTryParse = new Lazy<MethodInfo>(() => typeof(uint).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(uint).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodULongTryParse = new Lazy<MethodInfo>(() => typeof(ulong).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ulong).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDoubleTryParse = new Lazy<MethodInfo>(() => typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(double).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodFloatTryParse = new Lazy<MethodInfo>(() => typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(float).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDecimalTryParse = new Lazy<MethodInfo>(() => typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(decimal).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodTimeSpanTryParse = new Lazy<MethodInfo>(() => typeof(TimeSpan).GetMethod("TryParse", new[] { typeof(string), typeof(TimeSpan).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDateTimeTryParse = new Lazy<MethodInfo>(() => typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDateTimeOffsetTryParse = new Lazy<MethodInfo>(() => typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodToString = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null));
+            internal static Lazy<MethodInfo> MethodBigIntegerParse = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<PropertyInfo> PropertyDateTimeOffsetDateTime = new Lazy<PropertyInfo>(() => typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public));
+            internal static Lazy<PropertyInfo> PropertyDateTimeTicks = new Lazy<PropertyInfo>(() => typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public));
+            internal static Lazy<ConstructorInfo> CtorDateTimeOffsetArgsTicks = new Lazy<ConstructorInfo>(() => typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) }));
+
+            internal static Lazy<MethodInfo> MethodValueIsEnumAndTargetIsNumber = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ValueIsEnumAndTargetIsNumber", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object), typeof(Type) }, null));
+            internal static Lazy<MethodInfo> MethodEncodingGetBytes = new Lazy<MethodInfo>(() => typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) }));
+            internal static Lazy<MethodInfo> MethodEncodingGetString = new Lazy<MethodInfo>(() => typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) }));
+            internal static Lazy<MethodInfo> MethodStringToCharArray = new Lazy<MethodInfo>(() => typeof(string).GetMethod("ToCharArray", new Type[0]));
+            internal static Lazy<MethodInfo> MethodStringToChar = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<MethodInfo> MethodStringToBitArray = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StringToBitArray", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<MethodInfo> MethodGuidToBytes = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null));
+            internal static Lazy<MethodInfo> MethodBytesToGuid = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null));
+            internal static Lazy<MethodInfo> MethodStreamToBytes = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StreamToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Stream) }, null));
+            internal static Lazy<MethodInfo> MethodListOrArrayToArray = new Lazy<MethodInfo>(() => typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToArray").FirstOrDefault());
+            internal static Lazy<MethodInfo> MethodListOrArrayToList = new Lazy<MethodInfo>(() => typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToList").FirstOrDefault());
+            internal static Lazy<Type> TypeTimeOnly = new Lazy<Type>(() => Type.GetType("System.TimeOnly"));
+            internal static Lazy<MethodInfo> MethodTimeOnlyToTimeSpan = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("ToTimeSpan"));
+            internal static Lazy<MethodInfo> MethodTimeOnlyFromTimeSpan = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("FromTimeSpan", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(TimeSpan) }, null));
+            internal static Lazy<MethodInfo> MethodTimeOnlyParse = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null));
+            internal static Lazy<Type> TypeDateOnly = new Lazy<Type>(() => Type.GetType("System.DateOnly"));
+            internal static Lazy<MethodInfo> MethodDateOnlyToDateTime = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("ToDateTime", BindingFlags.Instance | BindingFlags.Public, null, new[] { TypeTimeOnly.Value }, null));
+            internal static Lazy<MethodInfo> MethodDateOnlyFromDateTime = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("FromDateTime", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(DateTime) }, null));
+            internal static Lazy<MethodInfo> MethodDateOnlyParse = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null));
+        }
+        static MethodInfo MethodValueIsEnumAndTargetIsNumber => LazyManager.MethodValueIsEnumAndTargetIsNumber.Value;
+        static MethodInfo MethodEncodingGetBytes => LazyManager.MethodEncodingGetBytes.Value;
+        static MethodInfo MethodEncodingGetString => LazyManager.MethodEncodingGetString.Value;
+        static MethodInfo MethodStringToCharArray => LazyManager.MethodStringToCharArray.Value;
+        static MethodInfo MethodStringToChar => LazyManager.MethodStringToChar.Value;
+        static MethodInfo MethodStringToBitArray => LazyManager.MethodStringToBitArray.Value;
+        static MethodInfo MethodGuidToBytes => LazyManager.MethodGuidToBytes.Value;
+        static MethodInfo MethodBytesToGuid => LazyManager.MethodBytesToGuid.Value;
+        static MethodInfo MethodStreamToBytes => LazyManager.MethodStreamToBytes.Value;
+        static MethodInfo MethodListOrArrayToArray=> LazyManager.MethodListOrArrayToArray.Value;
+        static MethodInfo MethodListOrArrayToList => LazyManager.MethodListOrArrayToList.Value;
+        static Type TypeTimeOnly => LazyManager.TypeTimeOnly.Value;
+        static MethodInfo MethodTimeOnlyToTimeSpan => LazyManager.MethodTimeOnlyToTimeSpan.Value;
+        static MethodInfo MethodTimeOnlyFromTimeSpan => LazyManager.MethodTimeOnlyFromTimeSpan.Value;
+        static MethodInfo MethodTimeOnlyParse => LazyManager.MethodTimeOnlyParse.Value;
+        static Type TypeDateOnly => LazyManager.TypeDateOnly.Value;
+        static MethodInfo MethodDateOnlyToDateTime => LazyManager.MethodDateOnlyToDateTime.Value;
+        static MethodInfo MethodDateOnlyFromDateTime => LazyManager.MethodDateOnlyFromDateTime.Value;
+        static MethodInfo MethodDateOnlyParse => LazyManager.MethodDateOnlyParse.Value;
 
 
         public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = new ConcurrentDictionary<Type, ITypeHandler>();
@@ -2225,7 +2330,11 @@ namespace FreeSql.Internal
                                     Expression.IfThenElse(
                                         Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
                                         Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
-                                        callToBytesExp
+                                        Expression.IfThenElse(
+                                            Expression.TypeIs(valueExp, typeof(Stream)),
+                                            Expression.Return(returnTarget, Expression.Call(MethodStreamToBytes, Expression.Convert(valueExp, typeof(Stream)))),
+                                            callToBytesExp
+                                        )
                                     )
                                 )
                             );
@@ -2240,47 +2349,25 @@ namespace FreeSql.Internal
                                 )
                             );
                     }
-                    var elementType = type.GetElementType();
-                    var arrNewExp = Expression.Variable(type, "arrNew");
-                    var arrExp = Expression.Variable(typeof(Array), "arr");
-                    var arrLenExp = Expression.Variable(typeof(int), "arrLen");
-                    var arrXExp = Expression.Variable(typeof(int), "arrX");
-                    var arrReadValExp = Expression.Variable(typeof(object), "arrReadVal");
-                    var label = Expression.Label(typeof(int));
                     return Expression.IfThenElse(
                         Expression.TypeEqual(valueExp, type),
                         Expression.Return(returnTarget, valueExp),
                         Expression.IfThenElse(
                             Expression.TypeEqual(valueExp, typeof(string)), //JSON
                             LocalFuncGetExpression(true),
-                            Expression.Block(
-                                new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
-                                Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
-                                Expression.IfThenElse(
-                                    Expression.Equal(arrExp, Expression.Constant(null)),
-                                    Expression.Assign(arrLenExp, Expression.Constant(0)),
-                                    Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
-                                ),
-                                Expression.Assign(arrXExp, Expression.Constant(0)),
-                                Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
-                                Expression.Loop(
-                                    Expression.IfThenElse(
-                                        Expression.LessThan(arrXExp, arrLenExp),
-                                        Expression.Block(
-                                            Expression.Assign(arrReadValExp, GetDataReaderValueBlockExpression(elementType, Expression.Call(arrExp, MethodArrayGetValue, arrXExp))),
-                                            Expression.IfThenElse(
-                                                Expression.Equal(arrReadValExp, Expression.Constant(null)),
-                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Default(elementType)),
-                                                Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Convert(arrReadValExp, elementType))
-                                            ),
-                                            Expression.PostIncrementAssign(arrXExp)
-                                        ),
-                                        Expression.Break(label, arrXExp)
-                                    ),
-                                    label
-                                ),
-                                Expression.Return(returnTarget, arrNewExp)
-                            )
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToArray.MakeGenericMethod(type.GetElementType()), valueExp))
+                        )
+                    );
+                }
+                if (!ignoreArray && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    return Expression.IfThenElse(
+                        Expression.TypeEqual(valueExp, type),
+                        Expression.Return(returnTarget, valueExp),
+                        Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, typeof(string)), //JSON
+                            LocalFuncGetExpression(true),
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToList.MakeGenericMethod(type.GetGenericArguments().FirstOrDefault()), valueExp))
                         )
                     );
                 }
@@ -2292,35 +2379,125 @@ namespace FreeSql.Internal
                 switch (type.FullName)
                 {
                     case "System.Guid":
-                        tryparseExp = Expression.Block(
-                           new[] { tryparseVarExp = Expression.Variable(typeof(Guid)) },
-                           new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodGuidTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
-                    case "System.Numerics.BigInteger": return Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBigIntegerParse, Expression.Call(MethodToString, valueExp)), typeof(object)));
-                    case "System.TimeSpan":
-                        ParameterExpression tryparseVarTsExp, valueStrExp;
                         return Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(double)), tryparseVarTsExp = Expression.Variable(typeof(TimeSpan)), valueStrExp = Expression.Variable(typeof(string)) },
-                               new Expression[] {
-                                    Expression.Assign(valueStrExp, Expression.Call(MethodToString, valueExp)),
+                            new[] { tryparseVarExp = Expression.Variable(typeof(Guid)) },
+                            Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodGuidTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
-                                        Expression.IsTrue(Expression.Call(MethodDoubleTryParse, valueStrExp, Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, tryparseVarExp), typeof(object))),
-                                        Expression.IfThenElse(
-                                            Expression.IsTrue(Expression.Call(MethodTimeSpanTryParse, valueStrExp, tryparseVarTsExp)),
-                                            Expression.Return(returnTarget, Expression.Convert(tryparseVarTsExp, typeof(object))),
-                                            Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                        )
+                                        Expression.TypeEqual(valueExp, typeof(byte[])),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
-                               }
-                           );
+                                )
+                            )
+                        );
+                    case "System.Numerics.BigInteger": return Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBigIntegerParse, Expression.Call(MethodToString, valueExp)), typeof(object)));
+
+                    case "System.TimeOnly":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(TimeSpan)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyFromTimeSpan, Expression.Convert(valueExp, typeof(TimeSpan))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
+                    case "System.TimeSpan":
+                        var tryparseVarDblExp = Expression.Variable(typeof(double));
+                        var timeSpanExp = Expression.IfThenElse(
+                                Expression.AndAlso(
+                                    Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(
+                                        Expression.TypeEqual(valueExp, typeof(decimal)), Expression.TypeEqual(valueExp, typeof(int))),
+                                        Expression.TypeEqual(valueExp, typeof(long))), Expression.TypeEqual(valueExp, typeof(short))),
+                                        Expression.TypeEqual(valueExp, typeof(uint))), Expression.TypeEqual(valueExp, typeof(ulong))), Expression.TypeEqual(valueExp, typeof(ushort))),
+                                        Expression.TypeEqual(valueExp, typeof(double))), Expression.TypeEqual(valueExp, typeof(float))),
+                                    Expression.Call(MethodDoubleTryParse, Expression.Call(MethodToString, valueExp), Expression.Constant(NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarDblExp)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, tryparseVarDblExp), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        if (TypeTimeOnly != null) timeSpanExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, TypeTimeOnly),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeTimeOnly), MethodTimeOnlyToTimeSpan), typeof(object))),
+                                timeSpanExp
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(TimeSpan)), tryparseVarDblExp }, 
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodTimeSpanTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        timeSpanExp
+                                    )
+                                )
+                            );
+
+                    case "System.DateOnly":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTime)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyFromDateTime, Expression.Convert(valueExp, typeof(DateTime))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
+                    case "System.DateTime":
+                        if (TypeHandlers.ContainsKey(type))
+                        {
+                            foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
+                            {
+                                var switchFuncRet = switchFunc(returnTarget, valueExp, type);
+                                if (switchFuncRet != null) return switchFuncRet;
+                            }
+                        }
+                        Expression dateTimeExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTimeOffset)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        if (TypeDateOnly != null) dateTimeExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, TypeDateOnly),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeDateOnly), MethodDateOnlyToDateTime, Expression.Constant(TypeTimeOnly.CreateInstanceGetDefaultValue(), TypeTimeOnly)), typeof(object))),
+                                dateTimeExp
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodDateTimeTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        dateTimeExp
+                                    )
+                                )
+                            );
+                    case "System.DateTimeOffset":
+                        Expression dateTimeOffsetExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTime)),
+                                Expression.Return(returnTarget, Expression.Convert(
+                                    Expression.New(CtorDateTimeOffsetArgsTicks, Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTime)), PropertyDateTimeTicks), Expression.Constant(TimeSpan.Zero)), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(DateTimeOffset)) },
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodDateTimeOffsetTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        dateTimeOffsetExp
+                                    )
+                                )
+                            );
                     case "System.Char":
                         return Expression.IfThenElse(
                                 Expression.TypeEqual(valueExp, type),
@@ -2463,38 +2640,6 @@ namespace FreeSql.Internal
                                }
                            );
                         break;
-                    case "System.DateTime":
-                        if (TypeHandlers.ContainsKey(type))
-                        {
-                            foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
-                            {
-                                var switchFuncRet = switchFunc(returnTarget, valueExp, type);
-                                if (switchFuncRet != null) return switchFuncRet;
-                            }
-                        }
-                        tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
-                               new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodDateTimeTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
-                    case "System.DateTimeOffset":
-                        tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(DateTimeOffset)) },
-                               new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodDateTimeOffsetTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
                     case "System.Boolean":
                         tryparseBooleanExp = Expression.Return(returnTarget,
                             Expression.Convert(
@@ -2509,14 +2654,22 @@ namespace FreeSql.Internal
                             typeof(object))
                         );
                         break;
+                    case "System.Collections.BitArray":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Convert(valueExp, typeof(string))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Call(MethodToString, valueExp)), typeof(object)))
+                            )
+                        );
                     default:
                         if (type.IsEnum && TypeHandlers.ContainsKey(type) == false)
-                            return Expression.Block(
-                                Expression.IfThenElse(
-                                    Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
-                                )
+                            return Expression.IfThenElse(
+                                Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
                             );
                         foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
                         {
@@ -2531,6 +2684,7 @@ namespace FreeSql.Internal
                 Expression switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
                 Expression defaultRetExp = switchExp;
                 if (tryparseExp != null)
+                {
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
                         Expression.SwitchCase(tryparseExp,
@@ -2541,6 +2695,13 @@ namespace FreeSql.Internal
                             Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
                         )
                     );
+                    //BigInteger/bool/Enum -> int
+                    defaultRetExp = Expression.IfThenElse(
+                        Expression.Call(MethodValueIsEnumAndTargetIsNumber, valueExp, Expression.Constant(type)),
+                        defaultRetExp,
+                        Expression.Return(returnTarget, Expression.Call(MethodGetDataReaderValue, Expression.Constant(type), Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))))
+                    );
+                }
                 else if (tryparseBooleanExp != null)
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
@@ -2556,26 +2717,13 @@ namespace FreeSql.Internal
                         Expression.TypeEqual(valueExp, typeof(string)),
                         switchExp,
                         Expression.IfThenElse(
-                            Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTime))), Expression.TypeEqual(valueExp, typeof(DateTimeOffset))),
-                            Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
+                            Expression.TypeEqual(valueExp, typeof(byte[])),
                             Expression.IfThenElse(
-                                Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTimeOffset))), Expression.TypeEqual(valueExp, typeof(DateTime))),
-                                Expression.Return(returnTarget, Expression.Convert(
-                                    Expression.New(CtorDateTimeOffsetArgsTicks, Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTime)), PropertyDateTimeTicks), Expression.Constant(TimeSpan.Zero)), typeof(object))),
-                                Expression.IfThenElse(
-                                    Expression.TypeEqual(valueExp, typeof(byte[])),
-                                    Expression.IfThenElse(
-                                        Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
-                                        Expression.IfThenElse(
-                                            Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
-                                            Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetString, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
-                                            defaultRetExp
-                                        )
-                                    ),
-                                    defaultRetExp
-                                )
-                            )
+                                Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetString, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                defaultRetExp
+                            ),
+                            defaultRetExp
                         )
                     )
                 );

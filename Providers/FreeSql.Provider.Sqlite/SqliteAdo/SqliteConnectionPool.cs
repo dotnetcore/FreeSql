@@ -36,15 +36,6 @@ namespace FreeSql.Sqlite
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-#if MicrosoftData
-            if (exception != null && exception is SqliteException)
-#else
-            if (exception != null && exception is SQLiteException)
-#endif
-            {
-                if (obj.Value.Ping() == false)
-                    base.SetUnavailable(exception, obj.LastGetTimeCopy);
-            }
             base.Return(obj, isRecreate);
         }
 
@@ -164,25 +155,10 @@ namespace FreeSql.Sqlite
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                {
-                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError_CheckProject), obj.LastGetTimeCopy);
                     throw new Exception(CoreStrings.S_ConnectionStringError_CheckProjectConnection(this.Name));
-                }
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
-                {
-
-                    try
-                    {
-                        obj.Value.OpenAndAttach(Attaches);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
-                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw;
-                    }
-                }
+                if (obj.Value.State != ConnectionState.Open)
+                    obj.Value.OpenAndAttach(Attaches);
             }
         }
 
@@ -194,25 +170,10 @@ namespace FreeSql.Sqlite
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                {
-                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
                     throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
-                }
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
-                {
-
-                    try
-                    {
-                        await obj.Value.OpenAndAttachAsync(Attaches);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
-                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
-                        throw;
-                    }
-                }
+                if (obj.Value.State != ConnectionState.Open)
+                    await obj.Value.OpenAndAttachAsync(Attaches);
             }
         }
 #endif

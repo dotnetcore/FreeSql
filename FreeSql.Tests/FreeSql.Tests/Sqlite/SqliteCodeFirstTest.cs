@@ -238,8 +238,8 @@ namespace FreeSql.Tests.Sqlite
         {
 
             //秀一波 FreeSql.Repository 扩展包，dotnet add package FreeSql.Repository
-            var topicRepository = g.sqlite.GetGuidRepository<Topic>();
-            var commentRepository = g.sqlite.GetGuidRepository<Comment>();
+            var topicRepository = g.sqlite.GetRepository<Topic, Guid>();
+            var commentRepository = g.sqlite.GetRepository<Comment, Guid>();
 
             //添加测试文章
             var topic = topicRepository.Insert(new Topic

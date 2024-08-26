@@ -1,11 +1,15 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.OleDb;
 using System.Data.Common;
+using System.Data.OleDb;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace FreeSql.Oracle
 {
@@ -147,6 +151,12 @@ namespace FreeSql.Oracle
             if (type == typeof(string))
             {
                 var valueString = value as string;
+                if (col?.Table != null && col.Table.Properties.TryGetValue(col.CsName, out var prop))
+                {
+                    var us7attr = prop.GetCustomAttributes(typeof(OracleUS7AsciiAttribute), false)?.FirstOrDefault() as OracleUS7AsciiAttribute;
+                    if (us7attr != null) return StringToAscii(valueString, us7attr.Encoding);
+                }
+
                 if (valueString != null)
                 {
                     if (valueString.Length < 4000) return string.Concat("'", valueString.Replace("'", "''"), "'");
@@ -165,6 +175,26 @@ namespace FreeSql.Oracle
                 }
             }
             return FormatSql("{0}", value, 1);
+        }
+
+        public static string StringToAscii(string value, string encoding) //US7ASCII
+        {
+            if (string.IsNullOrEmpty(value)) return "NULL";
+            var bytes = Encoding.GetEncoding(encoding).GetBytes(value);
+            var sb = new StringBuilder();
+            try
+            {
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    if (i > 0) sb.Append("||");
+                    sb.Append("chr(").Append(bytes[i].ToString()).Append(")");
+                }
+                return sb.ToString();
+            }
+            finally
+            {
+                sb.Clear();
+            }
         }
     }
 }

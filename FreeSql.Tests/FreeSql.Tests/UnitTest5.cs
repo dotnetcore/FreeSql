@@ -165,7 +165,7 @@ WHERE (a.""dw_id"" = @exp_0 AND ((a.""wyqy_id"") in (SELECT b.""wyqy_id""
                 .Set(a => a.NotTaxCostPrice, report.NotTaxCostPrice)
                 .Where(x => x.ProductId == report.ProductId && x.MerchantId == report.MerchantId)
                 .ToSql();
-            Assert.Equal(@"UPDATE `ProductStockBak` SET `NotTaxTotalCostPrice` = 47.844297 * `CurrentQty`, `NotTaxCostPrice` = 47.844297 
+            Assert.Equal(@"UPDATE `ProductStockBak` SET `NotTaxTotalCostPrice` = (47.844297 * `CurrentQty`), `NotTaxCostPrice` = 47.844297 
 WHERE (`ProductId` = '00000000-0000-0000-0000-000000000000' AND `MerchantId` = '00000000-0000-0000-0000-000000000000')", sql);
 
 

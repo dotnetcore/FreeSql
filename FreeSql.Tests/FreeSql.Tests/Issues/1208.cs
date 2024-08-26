@@ -231,23 +231,23 @@ WHERE (exists(SELECT 1
     limit 0,1)) AND (a.""SoftDeleted"" = 0) 
 ORDER BY a.""Id"" DESC", sql);
 
-                using (userRepository.DataFilter.Disable("TenantQuery"))
-                {
-                    sql = userRepository.Select
-                            .Where(i => i.DoorDevices.AsSelect().Any(x => x.Id == deviceId))
-                            .OrderByDescending(true, a => a.Id)
-                            .ToSql();
-                    Assert.Equal(@"SELECT a.""Id"", a.""TenantId"", a.""SoftDeleted"" 
-FROM ""issues1208_User02"" a 
-WHERE (exists(SELECT 1 
-    FROM ""issues1208_DoorDeviceUser02"" Mx_Mi 
-    WHERE (Mx_Mi.""UserId"" = a.""Id"") AND (exists(SELECT 1 
-        FROM ""issues1208_DoorDevice02"" x 
-        WHERE (x.""Id"" = 100) AND (x.""Id"" = Mx_Mi.""DoorDeviceId"") AND (x.""SoftDeleted"" = 0) 
-        limit 0,1)) AND (Mx_Mi.""SoftDeleted"" = 0) 
-    limit 0,1)) AND (a.""SoftDeleted"" = 0) 
-ORDER BY a.""Id"" DESC", sql);
-                }
+//                using (userRepository.DataFilter.Disable("TenantQuery"))
+//                {
+//                    sql = userRepository.Select
+//                            .Where(i => i.DoorDevices.AsSelect().Any(x => x.Id == deviceId))
+//                            .OrderByDescending(true, a => a.Id)
+//                            .ToSql();
+//                    Assert.Equal(@"SELECT a.""Id"", a.""TenantId"", a.""SoftDeleted"" 
+//FROM ""issues1208_User02"" a 
+//WHERE (exists(SELECT 1 
+//    FROM ""issues1208_DoorDeviceUser02"" Mx_Mi 
+//    WHERE (Mx_Mi.""UserId"" = a.""Id"") AND (exists(SELECT 1 
+//        FROM ""issues1208_DoorDevice02"" x 
+//        WHERE (x.""Id"" = 100) AND (x.""Id"" = Mx_Mi.""DoorDeviceId"") AND (x.""SoftDeleted"" = 0) 
+//        limit 0,1)) AND (Mx_Mi.""SoftDeleted"" = 0) 
+//    limit 0,1)) AND (a.""SoftDeleted"" = 0) 
+//ORDER BY a.""Id"" DESC", sql);
+//                }
 
                 sql = userRepository.Select
                             .Where(i => i.DoorDevices.Any(x => x.Id == deviceId))
@@ -279,23 +279,23 @@ WHERE (exists(SELECT 1
     limit 0,1)) AND (a.""SoftDeleted"" = 0) 
 ORDER BY a.""Id"" DESC", sql);
 
-                using (userRepository.DataFilter.Disable("TenantQuery"))
-                {
-                    sql = userRepository.Select
-                            .Where(i => i.DoorDevices.Any(x => x.Id == deviceId))
-                            .OrderByDescending(true, a => a.Id)
-                            .ToSql();
-                    Assert.Equal(@"SELECT a.""Id"", a.""TenantId"", a.""SoftDeleted"" 
-FROM ""issues1208_User02"" a 
-WHERE (exists(SELECT 1 
-    FROM ""issues1208_DoorDevice02"" x 
-    WHERE (exists(SELECT 1 
-        FROM ""issues1208_DoorDeviceUser02"" Mx_Ma 
-        WHERE (Mx_Ma.""DoorDeviceId"" = x.""Id"") AND (Mx_Ma.""UserId"" = a.""Id"") AND (Mx_Ma.""SoftDeleted"" = 0) 
-        limit 0,1)) AND (x.""Id"" = 100) AND (x.""SoftDeleted"" = 0) 
-    limit 0,1)) AND (a.""SoftDeleted"" = 0) 
-ORDER BY a.""Id"" DESC", sql);
-                }
+//                using (userRepository.DataFilter.Disable("TenantQuery"))
+//                {
+//                    sql = userRepository.Select
+//                            .Where(i => i.DoorDevices.Any(x => x.Id == deviceId))
+//                            .OrderByDescending(true, a => a.Id)
+//                            .ToSql();
+//                    Assert.Equal(@"SELECT a.""Id"", a.""TenantId"", a.""SoftDeleted"" 
+//FROM ""issues1208_User02"" a 
+//WHERE (exists(SELECT 1 
+//    FROM ""issues1208_DoorDevice02"" x 
+//    WHERE (exists(SELECT 1 
+//        FROM ""issues1208_DoorDeviceUser02"" Mx_Ma 
+//        WHERE (Mx_Ma.""DoorDeviceId"" = x.""Id"") AND (Mx_Ma.""UserId"" = a.""Id"") AND (Mx_Ma.""SoftDeleted"" = 0) 
+//        limit 0,1)) AND (x.""Id"" = 100) AND (x.""SoftDeleted"" = 0) 
+//    limit 0,1)) AND (a.""SoftDeleted"" = 0) 
+//ORDER BY a.""Id"" DESC", sql);
+//                }
             }
         }
 

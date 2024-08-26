@@ -15,6 +15,15 @@ namespace FreeSql
 {
     partial class AggregateRootRepository<TEntity>
     {
+        public virtual void SaveMany(TEntity entity, string propertyName)
+        {
+            var tracking = new AggregateRootTrackingChangeInfo();
+            var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
+            if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
+            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
+            SaveTrackingChange(tracking);
+            Attach(entity); //应该只存储 propertyName 内容
+        }
 
         #region BeginEdit/EndEdit
         List<TEntity> _dataEditing;
@@ -262,6 +271,7 @@ namespace FreeSql
             var affrows = 0;
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
 			{
+                if (tracking.DeleteLog[a].Item2.Any() == false) continue;
 				var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
 				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
 				affrows += delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();
@@ -277,17 +287,6 @@ namespace FreeSql
             return affrows;
         }
 
-        public virtual void SaveMany(TEntity entity, string propertyName)
-        {
-            var tracking = new AggregateRootTrackingChangeInfo();
-            var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
-            if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
-            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
-            SaveTrackingChange(tracking);
-            Attach(entity); //应该只存储 propertyName 内容
-        }
-
-
         int SaveTrackingChange(AggregateRootTrackingChangeInfo tracking)
         {
             var affrows = 0;
@@ -301,7 +300,8 @@ namespace FreeSql
             }
 
             for (var a = tracking.DeleteLog.Count - 1; a >= 0; a--)
-			{
+            {
+                if (tracking.DeleteLog[a].Item2.Any() == false) continue;
                 var delete = Orm.Delete<object>().AsType(tracking.DeleteLog[a].Item1);
 				if (_asTableRule != null) delete.AsTable(old => _asTableRule(tracking.DeleteLog[a].Item1, old));
 				affrows += delete.WhereDynamic(tracking.DeleteLog[a].Item2).ExecuteAffrows();

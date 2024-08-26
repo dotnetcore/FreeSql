@@ -68,12 +68,6 @@ namespace FreeSql
             await _db.SaveChangesAsync(cancellationToken);
             return entity;
         }
-
-        public virtual async Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default)
-        {
-            await _dbset.SaveManyAsync(entity, propertyName, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
-        }
     }
 
     partial class BaseRepository<TEntity, TKey>

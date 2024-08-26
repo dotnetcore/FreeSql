@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using Kdbndp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -19,6 +20,13 @@ public static partial class FreeSqlKingbaseESGlobalExtensions
     /// <returns></returns>
     public static string FormatKingbaseES(this string that, params object[] args) => _kingbaseesAdo.Addslashes(that, args);
     static FreeSql.KingbaseES.KingbaseESAdo _kingbaseesAdo = new FreeSql.KingbaseES.KingbaseESAdo();
+
+    internal static string To1010(this BitArray ba)
+    {
+        char[] ret = new char[ba.Length];
+        for (int a = 0; a < ba.Length; a++) ret[a] = ba[a] ? '1' : '0';
+        return new string(ret);
+    }
 
     #region ExecuteKdbCopy
     /// <summary>

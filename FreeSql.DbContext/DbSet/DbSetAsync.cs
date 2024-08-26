@@ -46,8 +46,8 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
@@ -56,7 +56,7 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
-                            Attach(data);
+                            AttachPriv(new[] { data }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
@@ -67,7 +67,7 @@ namespace FreeSql
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
-                            Attach(newval);
+                            AttachPriv(new[] { newval }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
@@ -80,7 +80,7 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = data, Type = DbContext.EntityChangeType.Insert });
-                            Attach(data);
+                            AttachPriv(new[] { data }, false);
                             if (_db.Options.EnableCascadeSave)
                                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                             return;
@@ -89,7 +89,7 @@ namespace FreeSql
                 }
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
-            Attach(data);
+            AttachPriv(new[] { data }, false);
             if (_db.Options.EnableCascadeSave)
                 await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
         }
@@ -115,8 +115,8 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                     case DataType.CustomPostgreSQL:
                     case DataType.KingbaseES:
-                    case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.DuckDB:
                         await DbContextFlushCommandAsync(cancellationToken);
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken);
                         if (rets.Count != data.Count()) throw new Exception(DbContextStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
@@ -125,7 +125,7 @@ namespace FreeSql
                         foreach (var s in data)
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
-                        AttachRange(rets);
+                        AttachPriv(rets, false);
                         if (_db.Options.EnableCascadeSave)
                             foreach (var item in data)
                                 await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
@@ -143,70 +143,12 @@ namespace FreeSql
             //进入队列，等待 SaveChanges 时执行
             foreach (var item in data)
                 EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
-            AttachRange(data);
+            AttachPriv(data, false);
             if (_db.Options.EnableCascadeSave)
                 foreach (var item in data)
                     await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
         }
 
-        async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)
-        {
-            if (item == null) return;
-            if (string.IsNullOrEmpty(propertyName)) return;
-            if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextStrings.NotFound_Property(_table.Type.FullName, propertyName));
-            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
-
-            var tref = _table.GetTableRef(propertyName, true, false);
-            if (tref == null) return;
-            switch (tref.RefType)
-            {
-                case TableRefType.OneToOne:
-                case TableRefType.ManyToOne:
-                case TableRefType.PgArrayToMany:
-                    throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
-            }
-
-            await DbContextFlushCommandAsync(cancellationToken);
-            var oldEnable = _db.Options.EnableCascadeSave;
-            _db.Options.EnableCascadeSave = false;
-            try
-            {
-                await AddOrUpdateNavigateAsync(item, false, propertyName, cancellationToken);
-                if (tref.RefType == TableRefType.OneToMany)
-                {
-                    await DbContextFlushCommandAsync(cancellationToken);
-                    //删除没有保存的数据，求出主体的条件
-                    var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
-                    Expression whereParentExp = null;
-                    for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
-                    {
-                        var whereExp = Expression.Equal(
-                            Expression.MakeMemberAccess(Expression.Convert(deleteWhereParentParam, tref.RefEntityType), tref.RefColumns[colidx].Table.Properties[tref.RefColumns[colidx].CsName]),
-                            Expression.Constant(
-                                FreeSql.Internal.Utils.GetDataReaderValue(
-                                    tref.Columns[colidx].CsType,
-                                    _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName)), tref.RefColumns[colidx].CsType)
-                            );
-                        if (whereParentExp == null) whereParentExp = whereExp;
-                        else whereParentExp = Expression.AndAlso(whereParentExp, whereExp);
-                    }
-                    var propValEach = GetItemValue(item, prop) as IEnumerable;
-                    var subDelete = _db.OrmOriginal.Delete<object>().AsType(tref.RefEntityType)
-                        .WithTransaction(_uow?.GetOrBeginTransaction())
-                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam));
-                    foreach (var propValItem in propValEach)
-                    {
-                        subDelete.WhereDynamic(propValEach, true);
-                        break;
-                    }
-                    await subDelete.ExecuteAffrowsAsync(cancellationToken);
-                }
-            }
-            finally
-            {
-                _db.Options.EnableCascadeSave = oldEnable;
-            }
-        }
         async Task AddOrUpdateNavigateAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
         {
             Func<PropertyInfo, Task> action = async prop =>

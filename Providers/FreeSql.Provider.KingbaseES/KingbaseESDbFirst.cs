@@ -2,12 +2,16 @@
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using KdbndpTypes;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -25,75 +29,175 @@ namespace FreeSql.KingbaseES
             _commonExpression = commonExpression;
         }
 
-        public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
-        KdbndpDbType GetSqlDbType(DbColumnInfo column)
+        public int GetDbType(DbColumnInfo column) => (int)GetKdbndpDbType(column);
+        KdbndpDbType GetKdbndpDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
-            var ret = KdbndpDbType.Unknown;
+            KdbndpDbType ret = KdbndpDbType.Unknown;
             switch (dbtype?.ToLower().TrimStart('_'))
             {
-                case "tinyint": ret = KdbndpDbType.Smallint; break;
+                case "smallint":
                 case "int2": ret = KdbndpDbType.Smallint; break;
+                case "integer":
                 case "int4": ret = KdbndpDbType.Integer; break;
+                case "bigint":
                 case "int8": ret = KdbndpDbType.Bigint; break;
                 case "numeric": ret = KdbndpDbType.Numeric; break;
+                case "real":
                 case "float4": ret = KdbndpDbType.Real; break;
+                case "double precision":
                 case "float8": ret = KdbndpDbType.Double; break;
                 case "money": ret = KdbndpDbType.Money; break;
 
-                case "char": ret = column.MaxLength == 36 ? KdbndpDbType.Uuid : KdbndpDbType.Char; break;
                 case "bpchar": ret = KdbndpDbType.Char; break;
+                case "character varying":
                 case "varchar": ret = KdbndpDbType.Varchar; break;
                 case "text": ret = KdbndpDbType.Text; break;
 
-                case "datetime": ret = KdbndpDbType.Timestamp; break;
                 case "timestamp": ret = KdbndpDbType.Timestamp; break;
-                case "timestamptz": ret = KdbndpDbType.Timestamp; break;
+                case "timestamptz": ret = KdbndpDbType.TimestampTz; break;
                 case "date": ret = KdbndpDbType.Date; break;
                 case "time": ret = KdbndpDbType.Time; break;
-                case "timetz": ret = KdbndpDbType.Time; break;
-                case "interval": ret = KdbndpDbType.Time; break;
+                case "timetz": ret = KdbndpDbType.TimeTz; break;
+                case "interval": ret = KdbndpDbType.Interval; break;
 
                 case "bool": ret = KdbndpDbType.Boolean; break;
-                case "blob": ret = KdbndpDbType.Bytea; break;
                 case "bytea": ret = KdbndpDbType.Bytea; break;
                 case "bit": ret = KdbndpDbType.Bit; break;
                 case "varbit": ret = KdbndpDbType.Varbit; break;
 
+                case "point": ret = KdbndpDbType.Point; break;
+                case "line": ret = KdbndpDbType.Line; break;
+                case "lseg": ret = KdbndpDbType.LSeg; break;
+                case "box": ret = KdbndpDbType.Box; break;
+                case "path": ret = KdbndpDbType.Path; break;
+                case "polygon": ret = KdbndpDbType.Polygon; break;
+                case "circle": ret = KdbndpDbType.Circle; break;
+
+                case "cidr": ret = KdbndpDbType.Cidr; break;
+                case "inet": ret = KdbndpDbType.Inet; break;
+                case "macaddr": ret = KdbndpDbType.MacAddr; break;
+
+                case "json": ret = KdbndpDbType.Json; break;
+                case "jsonb": ret = KdbndpDbType.Jsonb; break;
                 case "uuid": ret = KdbndpDbType.Uuid; break;
+
+                case "int4range": ret = KdbndpDbType.Range | KdbndpDbType.Integer; break;
+                case "int8range": ret = KdbndpDbType.Range | KdbndpDbType.Bigint; break;
+                case "numrange": ret = KdbndpDbType.Range | KdbndpDbType.Numeric; break;
+                case "tsrange": ret = KdbndpDbType.Range | KdbndpDbType.Timestamp; break;
+                case "tstzrange": ret = KdbndpDbType.Range | KdbndpDbType.TimestampTz; break;
+                case "daterange": ret = KdbndpDbType.Range | KdbndpDbType.Date; break;
+
+                case "hstore": ret = KdbndpDbType.Hstore; break;
+                case "geometry": ret = KdbndpDbType.Geometry; break;
             }
-            return ret;
+            return isarray ? (ret | KdbndpDbType.Array) : ret;
         }
 
-        static ConcurrentDictionary<int, DbToCs> _dicDbToCs = new ConcurrentDictionary<int, DbToCs>();
-        static KingbaseESDbFirst()
-        {
-            var defaultDbToCs = new Dictionary<int, DbToCs>() {
-                { (int)KdbndpDbType.Smallint, new DbToCs("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(int), typeof(int?), "{0}.Value", "GetInt16") },
-                { (int)KdbndpDbType.Integer, new DbToCs("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(long), typeof(long?), "{0}.Value", "GetInt32") },
-                { (int)KdbndpDbType.Bigint, new DbToCs("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
-                { (int)KdbndpDbType.Real, new DbToCs("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
-                { (int)KdbndpDbType.Double, new DbToCs("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
-                { (int)KdbndpDbType.Numeric, new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
+        static readonly Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() {
+                { (int)KdbndpDbType.Smallint, ("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
+                { (int)KdbndpDbType.Integer, ("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
+                { (int)KdbndpDbType.Bigint, ("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
+                { (int)KdbndpDbType.Numeric, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
+                { (int)KdbndpDbType.Real, ("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
+                { (int)KdbndpDbType.Double, ("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
+                { (int)KdbndpDbType.Money, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 
-                { (int)KdbndpDbType.Char, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)KdbndpDbType.Varchar, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)KdbndpDbType.Text, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)KdbndpDbType.Char, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)KdbndpDbType.Varchar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)KdbndpDbType.Text, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 
-                { (int)KdbndpDbType.Timestamp, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
-                { (int)KdbndpDbType.Date, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
-                { (int)KdbndpDbType.Time, new DbToCs("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+                { (int)KdbndpDbType.Timestamp,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)KdbndpDbType.TimestampTz,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)KdbndpDbType.Date,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)KdbndpDbType.Time, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+                { (int)KdbndpDbType.TimeTz, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+                { (int)KdbndpDbType.Interval, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
 
-                { (int)KdbndpDbType.Boolean, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
-                { (int)KdbndpDbType.Bytea, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Boolean, ("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
+                { (int)KdbndpDbType.Bytea, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Bit, ("(BitArray)", "{0}.ToBitArray()", "{0}.To1010()", "BitArray", typeof(BitArray), typeof(BitArray), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Varbit, ("(BitArray)", "{0}.ToBitArray()", "{0}.To1010()", "BitArray", typeof(BitArray), typeof(BitArray), "{0}", "GetValue") },
 
-                { (int)KdbndpDbType.Uuid, new DbToCs("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid", typeof(Guid), typeof(Guid?), "{0}", "GetString") },
+                { (int)KdbndpDbType.Point, ("(KdbndpPoint?)", "KdbndpPoint.Parse({0})", "{0}.ToString()", "KdbndpPoint", typeof(KdbndpPoint), typeof(KdbndpPoint?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Line, ("(KdbndpLine?)", "KdbndpLine.Parse({0})", "{0}.ToString()", "KdbndpLine", typeof(KdbndpLine), typeof(KdbndpLine?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.LSeg, ("(KdbndpLSeg?)", "KdbndpLSeg.Parse({0})", "{0}.ToString()", "KdbndpLSeg", typeof(KdbndpLSeg), typeof(KdbndpLSeg?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Box, ("(KdbndpBox?)", "KdbndpBox.Parse({0})", "{0}.ToString()", "KdbndpBox", typeof(KdbndpBox), typeof(KdbndpBox?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Path, ("(KdbndpPath?)", "KdbndpPath.Parse({0})", "{0}.ToString()", "KdbndpPath", typeof(KdbndpPath), typeof(KdbndpPath?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Polygon, ("(KdbndpPolygon?)", "KdbndpPolygon.Parse({0})", "{0}.ToString()", "KdbndpPolygon", typeof(KdbndpPolygon), typeof(KdbndpPolygon?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Circle, ("(KdbndpCircle?)", "KdbndpCircle.Parse({0})", "{0}.ToString()", "KdbndpCircle", typeof(KdbndpCircle), typeof(KdbndpCircle?), "{0}", "GetValue") },
+
+                { (int)KdbndpDbType.Cidr, ("((IPAddress, int)?)", "(IPAddress, int)({0})", "{0}.ToString()", "(IPAddress, int)", typeof((IPAddress, int)), typeof((IPAddress, int)?), "{0}", "GetValue") },
+                { (int)KdbndpDbType.Inet, ("(IPAddress)", "IPAddress.Parse({0})", "{0}.ToString()", "IPAddress", typeof(IPAddress), typeof(IPAddress), "{0}", "GetValue") },
+                { (int)KdbndpDbType.MacAddr, ("(PhysicalAddress?)", "PhysicalAddress.Parse({0})", "{0}.ToString()", "PhysicalAddress", typeof(PhysicalAddress), typeof(PhysicalAddress), "{0}", "GetValue") },
+
+                { (int)KdbndpDbType.Json, ("(JToken)", "JToken.Parse({0})", "{0}.ToString()", "JToken", typeof(JToken), typeof(JToken), "{0}", "GetString") },
+                { (int)KdbndpDbType.Jsonb, ("(JToken)", "JToken.Parse({0})", "{0}.ToString()", "JToken", typeof(JToken), typeof(JToken), "{0}", "GetString") },
+                { (int)KdbndpDbType.Uuid, ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid", typeof(Guid), typeof(Guid?), "{0}", "GetString") },
+
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Integer), ("(KdbndpRange<int>?)", "{0}.ToKdbndpRange<int>()", "{0}.ToString()", "KdbndpRange<int>", typeof(KdbndpRange<int>), typeof(KdbndpRange<int>?), "{0}", "GetString") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Bigint), ("(KdbndpRange<long>?)", "{0}.ToKdbndpRange<long>()", "{0}.ToString()", "KdbndpRange<long>", typeof(KdbndpRange<long>), typeof(KdbndpRange<long>?), "{0}", "GetString") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Numeric), ("(KdbndpRange<decimal>?)", "{0}.ToKdbndpRange<decimal>()", "{0}.ToString()", "KdbndpRange<decimal>", typeof(KdbndpRange<decimal>), typeof(KdbndpRange<decimal>?), "{0}", "GetString") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Timestamp), ("(KdbndpRange<DateTime>?)", "{0}.ToKdbndpRange<DateTime>()", "{0}.ToString()", "KdbndpRange<DateTime>", typeof(KdbndpRange<DateTime>), typeof(KdbndpRange<DateTime>?), "{0}", "GetString") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.TimestampTz), ("(KdbndpRange<DateTime>?)", "{0}.ToKdbndpRange<DateTime>()", "{0}.ToString()", "KdbndpRange<DateTime>", typeof(KdbndpRange<DateTime>), typeof(KdbndpRange<DateTime>?), "{0}", "GetString") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Date), ("(KdbndpRange<DateTime>?)", "{0}.ToKdbndpRange<DateTime>()", "{0}.ToString()", "KdbndpRange<DateTime>", typeof(KdbndpRange<DateTime>), typeof(KdbndpRange<DateTime>?), "{0}", "GetString") },
+
+                { (int)KdbndpDbType.Hstore, ("(Dictionary<string, string>)", "JsonConvert.DeserializeObject<Dictionary<string, string>>({0})", "JsonConvert.SerializeObject({0})", "Dictionary<string, string>", typeof(Dictionary<string, string>), typeof(Dictionary<string, string>), "{0}", "GetValue") },
+
+				/*** array ***/
+
+				{ (int)(KdbndpDbType.Smallint | KdbndpDbType.Array), ("(short[])", "JsonConvert.DeserializeObject<short[]>({0})", "JsonConvert.SerializeObject({0})", "short[]", typeof(short[]), typeof(short[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Integer | KdbndpDbType.Array), ("(int[])", "JsonConvert.DeserializeObject<int[]>({0})", "JsonConvert.SerializeObject({0})", "int[]", typeof(int[]), typeof(int[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Bigint | KdbndpDbType.Array), ("(long[])", "JsonConvert.DeserializeObject<long[]>({0})", "JsonConvert.SerializeObject({0})", "long[]", typeof(long[]), typeof(long[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Numeric | KdbndpDbType.Array), ("(decimal[])", "JsonConvert.DeserializeObject<decimal[]>({0})", "JsonConvert.SerializeObject({0})", "decimal[]", typeof(decimal[]), typeof(decimal[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Real | KdbndpDbType.Array), ("(float[])", "JsonConvert.DeserializeObject<float[]>({0})", "JsonConvert.SerializeObject({0})", "float[]", typeof(float[]), typeof(float[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Double | KdbndpDbType.Array), ("(double[])", "JsonConvert.DeserializeObject<double[]>({0})", "JsonConvert.SerializeObject({0})", "double[]", typeof(double[]), typeof(double[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Money | KdbndpDbType.Array), ("(decimal[])", "JsonConvert.DeserializeObject<decimal[]>({0})", "JsonConvert.SerializeObject({0})", "decimal[]", typeof(decimal[]), typeof(decimal[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Char | KdbndpDbType.Array), ("(string[])", "JsonConvert.DeserializeObject<string[]>({0})", "JsonConvert.SerializeObject({0})", "string[]", typeof(string[]), typeof(string[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Varchar | KdbndpDbType.Array), ("(string[])", "JsonConvert.DeserializeObject<string[]>({0})", "JsonConvert.SerializeObject({0})", "string[]", typeof(string[]), typeof(string[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Text | KdbndpDbType.Array), ("(string[])", "JsonConvert.DeserializeObject<string[]>({0})", "JsonConvert.SerializeObject({0})", "string[]", typeof(string[]), typeof(string[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Timestamp | KdbndpDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.TimestampTz | KdbndpDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Date | KdbndpDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Time | KdbndpDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.TimeTz | KdbndpDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Interval | KdbndpDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Boolean | KdbndpDbType.Array), ("(bool[])", "JsonConvert.DeserializeObject<bool[]>({0})", "JsonConvert.SerializeObject({0})", "bool[]", typeof(bool[]), typeof(bool[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Bytea | KdbndpDbType.Array), ("(byte[][])", "JsonConvert.DeserializeObject<byte[][]>({0})", "JsonConvert.SerializeObject({0})", "byte[][]", typeof(byte[][]), typeof(byte[][]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Bit | KdbndpDbType.Array), ("(BitArray[])", "JsonConvert.DeserializeObject<BitArray[]>({0})", "JsonConvert.SerializeObject({0})", "BitArray[]", typeof(BitArray[]), typeof(BitArray[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Varbit | KdbndpDbType.Array), ("(BitArray[])", "JsonConvert.DeserializeObject<BitArray[]>({0})", "JsonConvert.SerializeObject({0})", "BitArray[]", typeof(BitArray[]), typeof(BitArray[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Point | KdbndpDbType.Array), ("(KdbndpPoint[])", "JsonConvert.DeserializeObject<KdbndpPoint[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpPoint[]", typeof(KdbndpPoint[]), typeof(KdbndpPoint[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Line | KdbndpDbType.Array), ("(KdbndpLine[])", "JsonConvert.DeserializeObject<BKdbndpLineitArray[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpLine[]", typeof(KdbndpLine[]), typeof(KdbndpLine[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.LSeg | KdbndpDbType.Array), ("(KdbndpLSeg[])", "JsonConvert.DeserializeObject<KdbndpLSeg[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpLSeg[]", typeof(KdbndpLSeg[]), typeof(KdbndpLSeg[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Box | KdbndpDbType.Array), ("(KdbndpBox[])", "JsonConvert.DeserializeObject<KdbndpBox[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpBox[]", typeof(KdbndpBox[]), typeof(KdbndpBox[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Path | KdbndpDbType.Array), ("(KdbndpPath[])", "JsonConvert.DeserializeObject<KdbndpPath[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpPath[]", typeof(KdbndpPath[]), typeof(KdbndpPath[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Polygon | KdbndpDbType.Array), ("(KdbndpPolygon[])", "JsonConvert.DeserializeObject<KdbndpPolygon[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpPolygon[]", typeof(KdbndpPolygon[]), typeof(KdbndpPolygon[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Circle | KdbndpDbType.Array), ("(KdbndpCircle[])", "JsonConvert.DeserializeObject<KdbndpCircle[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpCircle[]", typeof(KdbndpCircle[]), typeof(KdbndpCircle[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Cidr | KdbndpDbType.Array), ("((IPAddress, int)[])", "JsonConvert.DeserializeObject<(IPAddress, int)[]>({0})", "JsonConvert.SerializeObject({0})", "(IPAddress, int)[]", typeof((IPAddress, int)[]), typeof((IPAddress, int)[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Inet | KdbndpDbType.Array), ("(IPAddress[])", "JsonConvert.DeserializeObject<IPAddress[]>({0})", "JsonConvert.SerializeObject({0})", "IPAddress[]", typeof(IPAddress[]), typeof(IPAddress[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.MacAddr | KdbndpDbType.Array), ("(PhysicalAddress[])", "JsonConvert.DeserializeObject<PhysicalAddress[]>({0})", "JsonConvert.SerializeObject({0})", "PhysicalAddress[]", typeof(PhysicalAddress[]), typeof(PhysicalAddress[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Json | KdbndpDbType.Array), ("(JToken[])", "JsonConvert.DeserializeObject<JToken[]>({0})", "JsonConvert.SerializeObject({0})", "JToken[]", typeof(JToken[]), typeof(JToken[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Jsonb | KdbndpDbType.Array), ("(JToken[])", "JsonConvert.DeserializeObject<JToken[]>({0})", "JsonConvert.SerializeObject({0})", "JToken[]", typeof(JToken[]), typeof(JToken[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Uuid | KdbndpDbType.Array), ("(Guid[])", "JsonConvert.DeserializeObject<Guid[]>({0})", "JsonConvert.SerializeObject({0})", "Guid[]", typeof(Guid[]), typeof(Guid[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Integer | KdbndpDbType.Array), ("(KdbndpRange<int>[])", "JsonConvert.DeserializeObject<KdbndpRange<int>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<int>[]", typeof(KdbndpRange<int>[]), typeof(KdbndpRange<int>[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Bigint | KdbndpDbType.Array), ("(KdbndpRange<long>[])", "JsonConvert.DeserializeObject<KdbndpRange<long>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<long>[]", typeof(KdbndpRange<long>[]), typeof(KdbndpRange<long>[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Numeric | KdbndpDbType.Array), ("(KdbndpRange<decimal>[])", "JsonConvert.DeserializeObject<KdbndpRange<decimal>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<decimal>[]", typeof(KdbndpRange<decimal>[]), typeof(KdbndpRange<decimal>[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Timestamp | KdbndpDbType.Array), ("(KdbndpRange<DateTime>[])", "JsonConvert.DeserializeObject<KdbndpRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<DateTime>[]", typeof(KdbndpRange<DateTime>[]), typeof(KdbndpRange<DateTime>[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.TimestampTz | KdbndpDbType.Array), ("(KdbndpRange<DateTime>[])", "JsonConvert.DeserializeObject<KdbndpRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<DateTime>[]", typeof(KdbndpRange<DateTime>[]), typeof(KdbndpRange<DateTime>[]), "{0}", "GetValue") },
+                { (int)(KdbndpDbType.Range | KdbndpDbType.Date | KdbndpDbType.Array), ("(KdbndpRange<DateTime>[])", "JsonConvert.DeserializeObject<KdbndpRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "KdbndpRange<DateTime>[]", typeof(KdbndpRange<DateTime>[]), typeof(KdbndpRange<DateTime>[]), "{0}", "GetValue") },
+
+                { (int)(KdbndpDbType.Hstore | KdbndpDbType.Array), ("(Dictionary<string, string>[])", "JsonConvert.DeserializeObject<Dictionary<string, string>[]>({0})", "JsonConvert.SerializeObject({0})", "Dictionary<string, string>[]", typeof(Dictionary<string, string>[]), typeof(Dictionary<string, string>[]), "{0}", "GetValue") },
             };
-            foreach (var kv in defaultDbToCs)
-                _dicDbToCs.TryAdd(kv.Key, kv.Value);
-        }
 
         public string GetCsConvert(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", "")) : null;
         public string GetCsParse(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csParse : null;
@@ -251,7 +355,8 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then 0 else 1 end as is_nullable,
 --e.adsrc as is_identity, pg12以下
-(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity,
+--(select {pg_}get_expr(adbin, adrelid) from {pg_}attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity, pg10以下
+case when a.attidentity = 'd' then '1' else '0' end is_identity,
 d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
@@ -277,7 +382,8 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && (string.Concat(row[6]).EndsWith(@"'::REGCLASS)") || string.Concat(row[6]).EndsWith(@"')"));
+                    var is_identity = string.Concat(row[6]) == "1"; //pg10+
+                    //var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && (string.Concat(row[6]).EndsWith(@"'::REGCLASS)") || string.Concat(row[6]).EndsWith(@"')"));
                     var comment = string.Concat(row[7]);
                     var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
@@ -530,6 +636,25 @@ where a.typtype = 'e' and ns.nspname in (SELECT schema_name FROM information_sch
                 if (labels.ContainsKey(key) == false) labels.Add(key, dr.label);
             }
             return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
+        }
+
+        public static NativeTuple<bool, int, int> ParsePgVersion(string versionString, int v1, int v2)
+        {
+            int[] version = new int[] { 0, 0 };
+            var vmatch = Regex.Match(versionString, @"(\d+)\.(\d+)");
+            if (vmatch.Success)
+            {
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+                version[1] = int.Parse(vmatch.Groups[2].Value);
+            }
+            else
+            {
+                vmatch = Regex.Match(versionString, @"(\d+)");
+                version[0] = int.Parse(vmatch.Groups[1].Value);
+            }
+            if (version[0] > v1) return NativeTuple.Create(true, version[0], version[1]);
+            if (version[0] == v1 && version[1] >= v2) return NativeTuple.Create(true, version[0], version[1]);
+            return NativeTuple.Create(false, version[0], version[1]);
         }
     }
 }

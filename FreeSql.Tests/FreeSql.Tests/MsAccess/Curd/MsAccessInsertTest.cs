@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,10 +50,10 @@ namespace FreeSql.Tests.MsAccess
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Parse("2019-09-19 20:09:37") });
 
             var sql = insert.IgnoreColumns(a => a.TypeGuid).AppendData(items.First()).ToSql();
-            Assert.Equal("INSERT INTO [tb_topic]([Clicks], [Title], [CreateTime]) VALUES(0, 'newtitle0', '2019-09-19 20:09:37')", sql);
+            Assert.Equal("INSERT INTO [tb_topic]([Clicks], [Title], [CreateTime]) VALUES(0, 'newtitle0', cdate('2019-09-19 20:09:37'))", sql);
 
             sql = insert.IgnoreColumns(a => a.TypeGuid).AppendData(items).ToSql();
-            Assert.Equal("INSERT INTO [tb_topic]([Clicks], [Title], [CreateTime]) VALUES(0, 'newtitle0', '2019-09-19 20:09:37'), (100, 'newtitle1', '2019-09-19 20:09:37'), (200, 'newtitle2', '2019-09-19 20:09:37'), (300, 'newtitle3', '2019-09-19 20:09:37'), (400, 'newtitle4', '2019-09-19 20:09:37'), (500, 'newtitle5', '2019-09-19 20:09:37'), (600, 'newtitle6', '2019-09-19 20:09:37'), (700, 'newtitle7', '2019-09-19 20:09:37'), (800, 'newtitle8', '2019-09-19 20:09:37'), (900, 'newtitle9', '2019-09-19 20:09:37')", sql);
+            Assert.Equal("INSERT INTO [tb_topic]([Clicks], [Title], [CreateTime]) VALUES(0, 'newtitle0', cdate('2019-09-19 20:09:37')), (100, 'newtitle1', cdate('2019-09-19 20:09:37')), (200, 'newtitle2', cdate('2019-09-19 20:09:37')), (300, 'newtitle3', '2019-09-19 20:09:37'), (400, 'newtitle4', '2019-09-19 20:09:37'), (500, 'newtitle5', '2019-09-19 20:09:37'), (600, 'newtitle6', '2019-09-19 20:09:37'), (700, 'newtitle7', '2019-09-19 20:09:37'), (800, 'newtitle8', '2019-09-19 20:09:37'), (900, 'newtitle9', '2019-09-19 20:09:37')", sql);
 
             sql = insert.AppendData(items).InsertColumns(a => a.Title).ToSql();
             Assert.Equal("INSERT INTO [tb_topic]([Title]) VALUES('newtitle0'), ('newtitle1'), ('newtitle2'), ('newtitle3'), ('newtitle4'), ('newtitle5'), ('newtitle6'), ('newtitle7'), ('newtitle8'), ('newtitle9')", sql);

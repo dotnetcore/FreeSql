@@ -40,8 +40,8 @@ namespace FreeSql.MySql
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                        new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new MySqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                        new MySqlConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new MySqlConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new MySqlConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }
@@ -67,8 +67,21 @@ namespace FreeSql.MySql
             else if (param is DateTime?)
                 return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
 
+#if net60
+            else if (param is DateOnly || param is DateOnly?)
+                return AddslashesTypeHandler(typeof(DateOnly), param) ?? string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
+            else if (param is TimeOnly || param is TimeOnly?)
+            {
+                var ts = (TimeOnly)param;
+                return $"'{ts.Hour}:{ts.Minute}:{ts.Second}'";
+            }
+#endif
+
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).Ticks / 10;
+            {
+                var ts = (TimeSpan)param;
+                return $"'{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}'";
+            }
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is MygisGeometry)

@@ -28,8 +28,8 @@ namespace FreeSql.Internal.CommonProvider
         public List<GlobalFilter.Item> _whereGlobalFilter;
         public StringBuilder _set = new StringBuilder();
         public StringBuilder _setIncr = new StringBuilder();
-        public List<DbParameter> _params = new List<DbParameter>();
-        public List<DbParameter> _paramsSource = new List<DbParameter>();
+        public List<DbParameter> _params = new List<DbParameter>(); //已经固定的
+        public List<DbParameter> _paramsSource = new List<DbParameter>(); //每次ToSql重新生成的
         public bool _noneParameter;
         public int _batchRowsLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
@@ -84,7 +84,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcOracle:
                         case DataType.CustomOracle:
                         case DataType.Dameng:
-                        case DataType.OdbcDameng:
                             return fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
                     }
                     var affrows = fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQuery();
@@ -146,7 +145,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcOracle:
                         case DataType.CustomOracle:
                         case DataType.Dameng:
-                        case DataType.OdbcDameng:
                             return await fsql.Ado.CommandFluent(state.Item2).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
                     }
                     var affrows = await fsql.Ado.CommandFluent(state.Item2 + ";\r\n" + state.Item3).WithConnection(connection).WithTransaction(transaction).ExecuteNonQueryAsync();
@@ -182,7 +180,7 @@ namespace FreeSql.Internal.CommonProvider
             _versionColumn = _table?.VersionColumn;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere));
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
@@ -798,10 +796,10 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
-        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items));
+        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items, _params));
         public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
-            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params)) :
+            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere, _params)})");
 		public IUpdate<T1> WhereDynamicFilter(DynamicFilterInfo filter)
 		{
 			var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);
@@ -897,7 +895,8 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
-            if (_tableRule == null && _table.AsTableImpl == null) return _table.DbName;
+            if (_tableRule == null && _table.AsTableImpl == null) return _commonUtils.GetEntityTableAopName(_table, true);
+            var tbname = _table?.DbName ?? "";
             string newname = null;
             if (_table.AsTableImpl != null)
             {
@@ -906,12 +905,12 @@ namespace FreeSql.Internal.CommonProvider
                 else if (_tableRule == null)
                     newname = _table.AsTableImpl.GetTableNameByColumnValue(DateTime.Now);
                 else
-                    newname = _tableRule(_table.DbName);
+                    newname = _tableRule(tbname);
             }
             else
-                newname = _tableRule(_table.DbName);
-            if (newname == _table.DbName) return _table.DbName;
-            if (string.IsNullOrEmpty(newname)) return _table.DbName;
+                newname = _tableRule(tbname);
+            if (newname == tbname) return tbname;
+            if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
             if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
@@ -1197,7 +1196,6 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.OdbcPostgreSQL:
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                             vcvalue = $"{_tableAlias}.{vcname}";  //set name = b.name
                             break;
@@ -1231,7 +1229,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_source.Any())
             {
                 if (_tempPrimarys.Any() == false) throw new ArgumentException(CoreStrings.NoPrimaryKey_UseSetDto(_table.Type.DisplayCsharp()));
-                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
+                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source, _paramsSource)).Append(')');
                 andTimes++;
             }
 

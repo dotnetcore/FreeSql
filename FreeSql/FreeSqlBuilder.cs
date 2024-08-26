@@ -306,32 +306,25 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Default.OdbcProvider<>");
                         break;
 
-                    case DataType.OdbcDameng:
-                        type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Dameng.OdbcDamengProvider<>");
-                        break;
-
                     case DataType.MsAccess:
                         type = Type.GetType("FreeSql.MsAccess.MsAccessProvider`1,FreeSql.Provider.MsAccess")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.MsAccess.dll", "FreeSql.MsAccess.MsAccessProvider<>");
                         break;
 
                     case DataType.Dameng:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Dameng.dll", "FreeSql.Dameng.DamengProvider<>");
                         break;
 
-                    case DataType.OdbcKingbaseES:
-                        type = Type.GetType("FreeSql.Odbc.KingbaseES.OdbcKingbaseESProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.KingbaseES.OdbcKingbaseESProvider<>");
-                        break;
-
                     case DataType.ShenTong:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.ShenTong.ShenTongProvider`1,FreeSql.Provider.ShenTong")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.ShenTong.dll", "FreeSql.ShenTong.ShenTongProvider<>");
                         break;
 
                     case DataType.KingbaseES:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
                         type = Type.GetType("FreeSql.KingbaseES.KingbaseESProvider`1,FreeSql.Provider.KingbaseES")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.KingbaseES.dll", "FreeSql.KingbaseES.KingbaseESProvider<>");
                         break;
@@ -385,6 +378,11 @@ namespace FreeSql
                     case DataType.CustomPostgreSQL:
                         type = Type.GetType("FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider`1,FreeSql.Provider.Custom")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.PostgreSQL.CustomPostgreSQLProvider<>");
+                        break;
+
+                    case DataType.DuckDB:
+                        type = Type.GetType("FreeSql.Duckdb.DuckdbProvider`1,FreeSql.Provider.Duckdb")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Duckdb.dll", "FreeSql.Duckdb.DuckdbProvider<>");
                         break;
 
                     default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
@@ -615,6 +613,7 @@ namespace FreeSql
                 {
                     if (e.Property.PropertyType == typeHandler.Type)
                     {
+                        typeHandler.FluentApi(new ColumnFluent(e.ModifyResult, e.Property, e.EntityType));
                         if (_dicTypeHandlerTypes.ContainsKey(e.Property.PropertyType)) return;
                         if (e.Property.PropertyType.NullableTypeOrThis() != typeof(DateTime) &&
                             FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))

@@ -2,11 +2,15 @@
 using FreeSql.Internal.Model;
 using Kdbndp;
 using KdbndpTypes;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Numerics;
 using System.Text;
 
 namespace FreeSql.KingbaseES
@@ -31,33 +35,66 @@ namespace FreeSql.KingbaseES
             return ret;
         }
         static Dictionary<string, Func<object, object>> dicGetParamterValue = new Dictionary<string, Func<object, object>> {
+            { typeof(JToken).FullName, a => string.Concat(a) }, { typeof(JToken[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
+            { typeof(JObject).FullName, a => string.Concat(a) }, { typeof(JObject[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
+            { typeof(JArray).FullName, a => string.Concat(a) }, { typeof(JArray[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
             { typeof(uint).FullName, a => long.Parse(string.Concat(a)) }, { typeof(uint[]).FullName, a => getParamterArrayValue(typeof(long), a, 0) }, { typeof(uint?[]).FullName, a => getParamterArrayValue(typeof(long?), a, null) },
             { typeof(ulong).FullName, a => decimal.Parse(string.Concat(a)) }, { typeof(ulong[]).FullName, a => getParamterArrayValue(typeof(decimal), a, 0) }, { typeof(ulong?[]).FullName, a => getParamterArrayValue(typeof(decimal?), a, null) },
             { typeof(ushort).FullName, a => int.Parse(string.Concat(a)) }, { typeof(ushort[]).FullName, a => getParamterArrayValue(typeof(int), a, 0) }, { typeof(ushort?[]).FullName, a => getParamterArrayValue(typeof(int?), a, null) },
             { typeof(byte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(byte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(byte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
             { typeof(sbyte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(sbyte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(sbyte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
             { typeof(char).FullName, a => string.Concat(a).Replace('\0', ' ').ToCharArray().FirstOrDefault() },
+            { typeof(BigInteger).FullName, a => BigInteger.Parse(string.Concat(a), System.Globalization.NumberStyles.Any) }, { typeof(BigInteger[]).FullName, a => getParamterArrayValue(typeof(BigInteger), a, 0) }, { typeof(BigInteger?[]).FullName, a => getParamterArrayValue(typeof(BigInteger?), a, null) },
+
+            { typeof(KdbndpPath).FullName, a => {
+                var path = (KdbndpPath)a;
+                try { int count = path.Count; return path; } catch { return new KdbndpPath(new KdbndpPoint(0, 0)); }
+            } },
+            { typeof(KdbndpPath[]).FullName, a => getParamterArrayValue(typeof(KdbndpPath), a, new KdbndpPath(new KdbndpPoint(0, 0))) },
+            { typeof(KdbndpPath?[]).FullName, a => getParamterArrayValue(typeof(KdbndpPath?), a, null) },
+
+            { typeof(KdbndpPolygon).FullName, a =>  {
+                var polygon = (KdbndpPolygon)a;
+                try { int count = polygon.Count; return polygon; } catch { return new KdbndpPolygon(new KdbndpPoint(0, 0), new KdbndpPoint(0, 0)); }
+            } },
+            { typeof(KdbndpPolygon[]).FullName, a => getParamterArrayValue(typeof(KdbndpPolygon), a, new KdbndpPolygon(new KdbndpPoint(0, 0), new KdbndpPoint(0, 0))) },
+            { typeof(KdbndpPolygon?[]).FullName, a => getParamterArrayValue(typeof(KdbndpPolygon?), a, null) },
+
+            { typeof((IPAddress Address, int Subnet)).FullName, a => {
+                var inet = ((IPAddress Address, int Subnet))a;
+                if (inet.Address == null) return (IPAddress.Any, inet.Subnet);
+                return inet;
+            } },
+            { typeof((IPAddress Address, int Subnet)[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)), a, (IPAddress.Any, 0)) },
+            { typeof((IPAddress Address, int Subnet)?[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)?), a, null) },
+#if net60
+            { typeof(DateOnly[]).FullName, a => getParamterArrayValue(typeof(DateTime), a, null) },
+            { typeof(DateOnly?[]).FullName, a => getParamterArrayValue(typeof(DateTime?), a, null) },
+            { typeof(TimeOnly[]).FullName, a => getParamterArrayValue(typeof(TimeSpan), a, null) },
+            { typeof(TimeOnly?[]).FullName, a => getParamterArrayValue(typeof(TimeSpan?), a, null) },
+#endif
         };
         static object getParamterValue(Type type, object value, int level = 0)
         {
             if (type.FullName == "System.Byte[]") return value;
+            if (type.FullName == "System.Char[]") return value;
             if (type.IsArray && level == 0)
             {
                 var elementType = type.GetElementType();
                 Type enumType = null;
                 if (elementType.IsEnum) enumType = elementType;
-                else if (elementType.IsNullableType())
-                {
-                    var genericTypesFirst = elementType.GetGenericArguments().First();
-                    if (genericTypesFirst.IsEnum) enumType = genericTypesFirst;
-                }
+                else if (elementType.IsNullableType() && elementType.GenericTypeArguments.First().IsEnum) enumType = elementType.GenericTypeArguments.First();
                 if (enumType != null) return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
                     getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue()) :
                     getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue());
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
-            if (type.IsNullableType()) type = type.GetGenericArguments().First();
+            if (type.IsNullableType()) type = type.GenericTypeArguments.First();
             if (type.IsEnum) return (int)value;
+#if net60
+            if (type == typeof(DateOnly)) return ((DateOnly)value).ToDateTime(TimeOnly.MinValue);
+            if (type == typeof(TimeOnly)) return ((TimeOnly)value).ToTimeSpan();
+#endif
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
             return value;
         }
@@ -72,6 +109,17 @@ namespace FreeSql.KingbaseES
             //} else {
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null) ret.KdbndpDbType = (KdbndpDbType)tp.Value;
+            if (col != null)
+            {
+                var dbtype = (KdbndpDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
+                if (dbtype != KdbndpDbType.Unknown)
+                {
+                    ret.KdbndpDbType = dbtype;
+                    //if (col.DbSize != 0) ret.Size = col.DbSize;
+                    if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                    if (col.DbScale != 0) ret.Scale = col.DbScale;
+                }
+            }
             //}
             _params?.Add(ret);
             return ret;
@@ -131,12 +179,7 @@ namespace FreeSql.KingbaseES
             value = getParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
-            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
-            }
-            else if (value is Array)
+            if (value is Array)
             {
                 var valueArr = value as Array;
                 var eleType = type2.GetElementType();
@@ -152,6 +195,20 @@ namespace FreeSql.KingbaseES
                 var dbinfo = _orm.CodeFirst.GetDbInfo(type);
                 if (dbinfo != null) sb.Append("::").Append(dbinfo.dbtype);
                 return sb.ToString();
+            }
+            else if (type2 == typeof(BitArray))
+            {
+                return $"'{(value as BitArray).To1010()}'";
+            }
+            else if (type2 == typeof(KdbndpLine) || type2 == typeof(KdbndpLine?))
+            {
+                var line = value.ToString();
+                return line == "{0,0,0}" ? "'{0,-1,-1}'" : $"'{line}'";
+            }
+            else if (type2 == typeof((IPAddress Address, int Subnet)) || type2 == typeof((IPAddress Address, int Subnet)?))
+            {
+                var cidr = ((IPAddress Address, int Subnet))value;
+                return $"'{cidr.Address}/{cidr.Subnet}'";
             }
             else if (dicGetParamterValue.ContainsKey(type2.FullName))
             {
