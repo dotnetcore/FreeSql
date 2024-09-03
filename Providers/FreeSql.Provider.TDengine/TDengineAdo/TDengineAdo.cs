@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
+using System;
+using System.Collections;
+using System.Data.Common;
+using System.Linq;
+using System.Threading;
 using TDengine.Data.Client;
 
-namespace FreeSql.Provider.TDengine.TDengineAdo
+namespace FreeSql.TDengine
 {
     internal class TDengineAdo : AdoProvider
     {
@@ -32,15 +29,19 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
             var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
             if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => new TDengineConnection(masterConnectionString)) as IObjectPool<DbConnection> :
-                    new TDengineConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+                MasterPool = isAdoPool
+                    ? new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase,
+                        () => new TDengineConnection(masterConnectionString)) as IObjectPool<DbConnection>
+                    : new TDengineConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
 
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                var slavePool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new TDengineConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                    new TDengineConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                var slavePool = isAdoPool
+                    ? new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
+                        () => new TDengineConnection(slaveConnectionString)) as IObjectPool<DbConnection>
+                    : new TDengineConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
+                        slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables),
+                        () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }
@@ -96,7 +97,8 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
             return new TDengineCommand();
         }
 
-        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
+        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
+            _util.GetDbParamtersByObject(sql, obj);
 
         public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {

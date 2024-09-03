@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FreeSql.Internal.CommonProvider;
+﻿using FreeSql.Internal.CommonProvider;
+using System;
+using System.Data.Common;
 
-namespace FreeSql.Provider.TDengine
+namespace FreeSql.TDengine
 {
     internal class TDengineProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        public TDengineProvider(string masterConnectionString, string[] slaveConnectionString,
+            Func<DbConnection> connectionFactory = null)
+        {
+            this.Ado = new TDengineAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString,
+                connectionFactory);
+            this.Aop = new AopProvider();
+        }
+
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere)
         {
             throw new NotImplementedException();

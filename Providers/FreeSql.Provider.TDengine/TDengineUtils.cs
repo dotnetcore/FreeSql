@@ -1,13 +1,10 @@
-﻿using System;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FreeSql.Internal;
-using FreeSql.Internal.Model;
 
-namespace FreeSql.Provider.TDengine
+namespace FreeSql.TDengine
 {
     internal class TDengineUtils : CommonUtils
     {

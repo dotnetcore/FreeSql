@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using FreeSql.DatabaseModel;
 
-namespace FreeSql.Provider.TDengine
+namespace  FreeSql.TDengine
 {
     public class TDengineDbFirst : IDbFirst
     {

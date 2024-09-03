@@ -1,23 +1,19 @@
-﻿using System;
+﻿using FreeSql.Internal.ObjectPool;
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using FreeSql.Internal.ObjectPool;
 using TDengine.Data.Client;
 
-namespace FreeSql.Provider.TDengine.TDengineAdo
+namespace FreeSql.TDengine
 {
     internal class TDengineConnectionPool : ObjectPool<DbConnection>
     {
         internal Action AvailableHandler;
 
         internal Action UnavailableHandler;
-
 
         public TDengineConnectionPool(string name, string connectionString, Action availableHandler,
             Action unavailableHandler) : base(null)
@@ -111,7 +107,6 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
 
         public void OnGetTimeout()
         {
-
         }
 
         public void OnGet(Object<DbConnection> obj)
@@ -120,13 +115,14 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
             {
                 if (obj.Value == null)
                 {
-                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError),
+                        obj.LastGetTimeCopy);
                     throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
+                if (obj.Value.State != ConnectionState.Open ||
+                    DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
                 {
-
                     try
                     {
                         obj.Value.Open();
@@ -149,13 +145,15 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
             {
                 if (obj.Value == null)
                 {
-                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError),
+                        obj.LastGetTimeCopy);
                     throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
+                if (obj.Value.State != ConnectionState.Open ||
+                    DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 &&
+                    (await obj.Value.PingAsync()) == false)
                 {
-
                     try
                     {
                         await obj.Value.OpenAsync();
