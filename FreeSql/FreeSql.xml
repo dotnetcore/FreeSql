@@ -4291,103 +4291,103 @@
             </summary>
             <typeparam name="T"></typeparam>
             <param name="entity"></param>
+      member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            反序列化
+            </summary>
+            <param name="column"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.ConfigEntity(System.Type,System.Action{FreeSql.DataAnnotations.TableFluent})">
+        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
             <summary>
-            FreeSql FluentApi 配置实体，方法名与特性相同
-            </summary>
-            <param name="type"></param>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetConfigEntity(System.Type)">
-            <summary>
-            获取 FreeSql FluentApi 配置实体的元数据
-            </summary>
-            <param name="type"></param>
-            <returns>未使用ConfigEntity配置时，返回null</returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetTableByEntity(System.Type)">
-            <summary>
-            获取实体类核心配置
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetDatabases">
-            <summary>
-            获取所有数据库
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetTablesByDatabase(System.String[])">
-            <summary>
-            获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
+            获取数据库枚举类型，适用 PostgreSQL
             </summary>
             <param name="database"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
+        <member name="F:FreeSql.Internal.BaseDiyMemberExpression._lambdaParameter">
             <summary>
-            获取指定单表信息，包括列详情、主键、唯一键、索引、备注
+            临时 LambdaExpression.Parameter
             </summary>
-            <param name="name">表名，如：dbo.table1</param>
-            <param name="ignoreCase">是否忽略大小写</param>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">
+            <summary>
+            如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
+            </summary>
+            <param name="source"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.ExistsTable(System.String,System.Boolean)">
+        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
             <summary>
-            判断表是否存在
+            AsType, Ctor, ClearData 三处地方需要重新加载
             </summary>
-            <param name="name">表名，如：dbo.table1</param>
-            <param name="ignoreCase">是否忽略大小写</param>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetPropertyCommentByDescriptionAttribute(System.Type)">
+            <summary>
+            动态读取 DescriptionAttribute 注释文本
+            </summary>
+            <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetDbType(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
             <summary>
-            获取数据库枚举类型int值
+            通过属性的注释文本，通过 xml 读取
             </summary>
-            <param name="column"></param>
-            <returns></returns>
+            <param name="type"></param>
+            <returns>Dict：key=属性名，value=注释</returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsConvert(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Table">
             <summary>
-            获取c#转换，(int)、(long)
+            更新实体的元数据
             </summary>
-            <param name="column"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeValue(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Sql">
             <summary>
-            获取c#值
+            执行更新的 SQL
             </summary>
-            <param name="column"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsType(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.DbParams">
             <summary>
-            获取c#类型，int、long
+            执行更新命令的参数
             </summary>
-            <param name="column"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Affrows">
             <summary>
-            获取c#类型对象
+            执行更新命令影响的行
             </summary>
-            <param name="column"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySourceCount">
             <summary>
-            获取ado.net读取方法, GetBoolean、GetInt64
+            更新的实体数量
             </summary>
-            <param name="column"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySource">
             <summary>
+            更新的实体
+            </summary>
+        </member>
+        <member name="T:FreeSql.Internal.MappingPriorityType">
+            <summary>
+            映射优先级，默认： Attribute > FluentApi > Aop
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.MappingPriorityType.Attribute">
+            <summary>
+            实体特性<para></para>
+            [Table(Name = "tabname")]<para></para>
+            [Column(Name = "table_id")]
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.MappingPriorityType.FluentApi">
+            <summary>
+            流式接口<para></para>
+            fsql.CodeFirst.ConfigEntity(a => a.Name("tabname"))<para></para>
+            fsql.CodeFirst.ConfigEntity(a => a.Property(b => b.Id).Name("table_id"))
             序列化
             </summary>
             <param name="column"></param>
@@ -4659,118 +4659,7 @@
             总批次数量
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetDbValue(System.Object)">
-            <summary>
-            获取 obj.CsName 属性值 MapType 之后的数据库值
-            </summary>
-            <param name="obj"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetValue(System.Object)">
-            <summary>
-            获取 obj.CsName 属性原始值（不经过 MapType）
-            </summary>
-            <param name="obj"></param>
-        </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.SetValue(System.Object,System.Object)">
-            <summary>
-            设置 obj.CsName 属性值
-            </summary>
-            <param name="obj"></param>
-            <param name="val"></param>
-        </member>
-        <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
-            <summary>
-            动态过滤条件
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Field">
-            <summary>
-            属性名：Name<para></para>
-            导航属性：Parent.Name<para></para>
-            多表：b.Name<para></para>
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Operator">
-            <summary>
-            操作符
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Value">
-            <summary>
-            值
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Logic">
-            <summary>
-            Filters 下的逻辑运算符
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Filters">
-            <summary>
-            子过滤条件，它与当前的逻辑关系是 And<para></para>
-            注意：当前 Field 可以留空
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Contains">
-            <summary>
-            like
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Equal">
-            <summary>
-            =<para></para>
-            Equal/Equals/Eq 效果相同
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Equals">
-            <summary>
-            =<para></para>
-            Equal/Equals/Eq 效果相同
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Eq">
-            <summary>
-            =<para></para>
-            Equal/Equals/Eq 效果相同
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.NotEqual">
-            <summary>
-            &lt;&gt;
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.GreaterThan">
-            <summary>
-            &gt;
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.GreaterThanOrEqual">
-            <summary>
-            &gt;=
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.LessThan">
-            <summary>
-            &lt;
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.LessThanOrEqual">
-            <summary>
-            &lt;=
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Range">
-            <summary>
-            &gt;= and &lt;<para></para>
-            此时 Value 的值格式为逗号分割：value1,value2 或者数组
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.DateRange">
-            <summary>
-            &gt;= and &lt;<para></para>
-            此时 Value 的值格式为逗号分割：date1,date2 或者数组<para></para>
-            这是专门为日期范围查询定制的操作符，它会处理 date2 + 1，比如：<para></para>
+        <member name="M:FreeSql.Internal.Model.ColumnInfo.理 date2 + 1，比如：<para></para>
             当 date2 选择的是 2020-05-30，那查询的时候是 &lt; 2020-05-31<para></para>
             当 date2 选择的是 2020-05，那查询的时候是 &lt; 2020-06<para></para>
             当 date2 选择的是 2020，那查询的时候是 &lt; 2021<para></para>
@@ -4853,105 +4742,87 @@
             <summary>
             不可用时间
             </summary>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.SetUnavailable(System.Exception,System.DateTime)">
-            <summary>
-            将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
-            </summary>
-            <param name="exception"></param>
-            <param name="lastGetTime"></param>
-            <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.Statistics">
-            <summary>
-            统计对象池中的对象
+lue 的值格式为逗号分割：date1,date2 或者数组<para></para>
+            这是专门为日期范围查询定制的操作符，它会处理 date2 + 1，比如：<para></para>
+            当 date2 选择的是 2020-05-30，那查询的时候是 &lt; 2020-05-31<para></para>
+            当 date2 选择的是 2020-05，那查询的时候是 &lt; 2020-06<para></para>
+            当 date2 选择的是 2020，那查询的时候是 &lt; 2021<para></para>
+            当 date2 选择的是 2020-05-30 12，那查询的时候是 &lt; 2020-05-30 13<para></para>
+            当 date2 选择的是 2020-05-30 12:30，那查询的时候是 &lt; 2020-05-30 12:31<para></para>
+            并且 date2 只支持以上 5 种格式 (date1 没有限制)
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.StatisticsFullily">
+        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Any">
             <summary>
-            统计对象池中的对象（完整)
+            in (1,2,3)<para></para>
+            此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Get(System.Nullable{System.TimeSpan})">
+        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.NotAny">
             <summary>
-            获取资源
-            </summary>
-            <param name="timeout">超时</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
-            <summary>
-            获取资源
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
-            <summary>
-            使用完毕后，归还资源
-            </summary>
-            <param name="obj">对象</param>
-            <param name="isReset">是否重新创建</param>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.Name">
-            <summary>
-            名称
+            not in (1,2,3)<para></para>
+            此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.PoolSize">
+        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.Custom">
             <summary>
-            池容量
+            自定义解析，此时 Field 为反射信息，Value 为静态方法的参数(string/Expression)<para></para>
+            示范：{ Operator: "Custom", Field: "RawSql webapp1.DynamicFilterCustom,webapp1", Value: "(id,name) in ((1,'k'),(2,'m'))" }<para></para>
+            注意：使用者自己承担【注入风险】<para></para>
+            静态方法定义示范：<para></para>
+            namespace webapp1<para></para>
+            {<para></para>
+            public class DynamicFilterCustom<para></para>
+            {<para></para>
+            [DynamicFilterCustom]<para></para>
+            public static string RawSql(object sender, string value) => value;<para></para>
+            }<para></para>
+            }<para></para>
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.SyncGetTimeout">
+        <member name="T:FreeSql.Internal.Model.DynamicFilterCustomAttribute">
             <summary>
-            默认获取超时设置
+            授权 DynamicFilter 支持 Custom 自定义解析
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IdleTimeout">
+        <member name="P:FreeSql.Internal.Model.FetchCallbackArgs`1.IsBreak">
             <summary>
-            空闲时间，获取时若超出，则重新创建
+            是否放弃继续读取
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.AsyncGetCapacity">
+        <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
             <summary>
-            异步获取排队队列大小，小于等于0不生效
+            中间表，多对多
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsThrowGetTimeoutException">
+        <member name="F:FreeSql.Internal.Model.TableRefType.PgArrayToMany">
             <summary>
-            获取超时后，是否抛出异常
+            PostgreSQL 数组类型专属功能<para></para>
+            方式一：select * from Role where Id in (RoleIds)<para></para>
+            class User {<para></para>
+            ____public int[] RoleIds { get; set; }<para></para>
+            ____[Navigate(nameof(RoleIds))]<para></para>
+            ____public List&lt;Role&gt; Roles { get; set; }<para></para>
+            }<para></para>
+            方式二：select * from User where RoleIds @&gt; Id<para></para>
+            class Role {<para></para>
+            ____public int Id { get; set; }<para></para>
+            ____[Navigate(nameof(User.RoleIds))]<para></para>
+            ____public List&lt;User&gt; Users { get; set; }<para></para>
+            }<para></para>
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsAutoDisposeWithSystem">
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.IsAvailable">
             <summary>
-            监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放
+            是否可用
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.CheckAvailableInterval">
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableException">
             <summary>
-            后台定时检查可用性间隔秒数
+            不可用错误
             </summary>
         </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.Weight">
-            <summary>
-            权重
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnCreate">
-            <summary>
-            对象池的对象被创建时
-            </summary>
-            <returns>返回被创建的对象</returns>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnDestroy(`0)">
-            <summary>
-            销毁对象
-            </summary>
-            <param name="obj">资源对象</param>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetTimeout">
-            <summary>
-            从对象池获取对象超时的时候触发，通过该方法统计
+        <memb�获取对象超时的时候触发，通过该方法统计
             </summary>
         </member>
         <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGet(FreeSql.Internal.ObjectPool.Object{`0})">
@@ -5896,28 +5767,6 @@
             请使用 fsql.InsertDict(dict) 方法插入字典数据
             </summary>
         </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,System.Attribute[])">
-            <summary>
-            动态构建Class Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateInstance(FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Object})">
-            <summary>
-            根据字典，创建 table 对应的实体对象
-            </summary>
-            <param name="table"></param>
-            <param name="dict"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
-            <summary>
-            根据实体对象，创建 table 对应的字典
-            </summary>
-            <param name="table"></param>
-            <param name="instance"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>
             C#： that >= between &amp;&amp; that &lt;= and<para></para>
@@ -6332,6 +6181,129 @@
             <typeparam name="T1"></typeparam>
             <param name="source"></param>
             <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.InsertOrUpdate``1">
+            <summary>
+            插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+            MySql 5.6+: on duplicate key update<para></para>
+            PostgreSQL 9.4+: on conflict do update<para></para>
+            SqlServer 2008+: merge into<para></para>
+            Oracle 11+: merge into<para></para>
+            Sqlite: replace into<para></para>
+            DuckDB: on conflict do update<para></para>
+            达梦: merge into<para></para>
+            人大金仓：on conflict do update<para></para>
+            神通：merge into<para></para>
+            MsAccess：不支持<para></para>
+            注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1">
+            <summary>
+            修改数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:IFreeSql.Ado">
+            <summary>
+            数据库访问对象
+            </summary>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+<returns></returns>
         </member>
         <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
             <summary>

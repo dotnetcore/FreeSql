@@ -1,7 +1,4 @@
-﻿using System;
-using Xunit;
-
-namespace FreeSql.Tests.Provider.TDengine.TDengine.TDengineAdo
+﻿namespace FreeSql.Tests.Provider.TDengine.TDengineAdo
 {
     public class TDengineAdoTest
     {

@@ -10,11 +10,11 @@ namespace FreeSql.Tests.Provider.TDengine
 {
     internal class g
     {
-        static readonly Lazy<IFreeSql> tdengineLazy = new Lazy<IFreeSql>(() =>
+        private static readonly Lazy<IFreeSql> tdengineLazy = new Lazy<IFreeSql>(() =>
         {
-            return new FreeSql.FreeSqlBuilder()
+             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.TDengine,
-                    "Host=127.0.0.1;Port=6030;Username=root;Password=taosdata;Protocol=Native;db=test;Min Pool Size=1;Max Poll Size=10")
+                    "host=localhost;port=6030;username=root;password=taosdata;protocol=Native;db=test;")
                 .UseAutoSyncStructure(true)
                 .UseNameConvert(Internal.NameConvertType.ToLower)
                 .UseMonitorCommand(
@@ -23,6 +23,7 @@ namespace FreeSql.Tests.Provider.TDengine
                     //, (cmd, traceLog) => Console.WriteLine(traceLog)
                 )
                 .Build();
+             return fsql;
         });
 
         public static IFreeSql tdengine => tdengineLazy.Value;

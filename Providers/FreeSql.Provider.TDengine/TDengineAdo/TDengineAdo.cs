@@ -22,6 +22,7 @@ namespace FreeSql.TDengine
             {
                 var pool = new DbConnectionPool(DataType.TDengine, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
+                _CreateCommandConnection = pool.TestConnection;
                 MasterPool = pool;
                 return;
             }
@@ -92,8 +93,16 @@ namespace FreeSql.TDengine
             return string.Concat("'", param.ToString()?.Replace("\\", "\\\\").Replace("'", "\\'"), "'");
         }
 
+        DbConnection _CreateCommandConnection;
         public override DbCommand CreateCommand()
         {
+            if (_CreateCommandConnection != null)
+            {
+                _CreateCommandConnection.Open();
+                var cmd = _CreateCommandConnection.CreateCommand();
+                cmd.Connection = null;
+                return cmd;
+            }
             return new TDengineCommand();
         }
 

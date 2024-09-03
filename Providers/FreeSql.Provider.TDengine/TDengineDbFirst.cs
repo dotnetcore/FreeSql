@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using FreeSql.DatabaseModel;
+using FreeSql.Internal;
 
 namespace  FreeSql.TDengine
 {
     public class TDengineDbFirst : IDbFirst
     {
+        IFreeSql _orm;
+        protected CommonUtils _commonUtils;
+        protected CommonExpression _commonExpression;
+        public TDengineDbFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
+        {
+            _orm = orm;
+            _commonUtils = commonUtils;
+            _commonExpression = commonExpression;
+        }
         public List<string> GetDatabases()
         {
             throw new NotImplementedException();

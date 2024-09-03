@@ -6,6 +6,8 @@ using System.Data.Common;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TDengine.Data.Client;
+using TDengine.Driver;
+using TDengine.Driver.Client;
 
 namespace FreeSql.TDengine
 {
@@ -29,9 +31,9 @@ namespace FreeSql.TDengine
             policy.ConnectionString = connectionString;
         }
 
-        internal void Return(Object<DbConnection> conn, Exception ex)
+        public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-            throw new NotImplementedException();
+            base.Return(obj, isRecreate);
         }
     }
 
