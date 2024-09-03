@@ -32,6 +32,11 @@ namespace FreeSql.Provider.TDengine.TDengineAdo
             this.Policy = policy;
             policy.ConnectionString = connectionString;
         }
+
+        internal void Return(Object<DbConnection> conn, Exception ex)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal class TDengineConnectionPoolPolicy : IPolicy<DbConnection>
