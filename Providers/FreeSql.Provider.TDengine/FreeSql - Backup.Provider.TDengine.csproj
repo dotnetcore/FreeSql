@@ -34,7 +34,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+    <Folder Include="Attributes\" />
   </ItemGroup>
 
 </Project>
