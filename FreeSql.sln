@@ -133,6 +133,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Duck
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.TDengine", "Providers\FreeSql.Provider.TDengine\FreeSql.Provider.TDengine.csproj", "{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.Provider.TDengine", "FreeSql.Tests\FreeSql.Tests.Provider.TDengine\FreeSql.Tests.Provider.TDengine.csproj", "{1F313BE0-5069-4B5E-BEE7-138954D293F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -803,6 +805,18 @@ Global
 		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x64.Build.0 = Release|Any CPU
 		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x86.ActiveCfg = Release|Any CPU
 		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317}.Release|x86.Build.0 = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|x64.Build.0 = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Debug|x86.Build.0 = Debug|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|x64.ActiveCfg = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|x64.Build.0 = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F313BE0-5069-4B5E-BEE7-138954D293F9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -848,8 +862,8 @@ Global
 		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal

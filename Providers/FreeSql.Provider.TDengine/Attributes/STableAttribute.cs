@@ -10,7 +10,7 @@ namespace FreeSql.DataAnnotations
     /// TDengine 超级表
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class TDengineSTableAttribute : Attribute
+    public class STableAttribute : Attribute
     {
     }
 }
