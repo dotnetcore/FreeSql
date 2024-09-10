@@ -1,11 +1,16 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
+using FreeSql.DataAnnotations;
+using FreeSql.TDengine.Describes;
 using TDengine.Data.Client;
 using TDengine.Driver;
 
@@ -36,15 +41,33 @@ namespace FreeSql.TDengine
         {
             throw new NotImplementedException();
         }
-           static Dictionary<string, Func<object, object>> dicGetParamterValue = new Dictionary<string, Func<object, object>> {
-            { typeof(uint).FullName, a => long.Parse(string.Concat(a)) }, { typeof(uint[]).FullName, a => getParamterArrayValue(typeof(long), a, 0) }, { typeof(uint?[]).FullName, a => getParamterArrayValue(typeof(long?), a, null) },
-            { typeof(ulong).FullName, a => decimal.Parse(string.Concat(a)) }, { typeof(ulong[]).FullName, a => getParamterArrayValue(typeof(decimal), a, 0) }, { typeof(ulong?[]).FullName, a => getParamterArrayValue(typeof(decimal?), a, null) },
-            { typeof(ushort).FullName, a => int.Parse(string.Concat(a)) }, { typeof(ushort[]).FullName, a => getParamterArrayValue(typeof(int), a, 0) }, { typeof(ushort?[]).FullName, a => getParamterArrayValue(typeof(int?), a, null) },
-            { typeof(byte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(byte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(byte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
-            { typeof(sbyte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(sbyte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(sbyte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
-            { typeof(char).FullName, a => string.Concat(a).Replace('\0', ' ').ToCharArray().FirstOrDefault() },
-            { typeof(BigInteger).FullName, a => BigInteger.Parse(string.Concat(a), System.Globalization.NumberStyles.Any) }, { typeof(BigInteger[]).FullName, a => getParamterArrayValue(typeof(BigInteger), a, 0) }, { typeof(BigInteger?[]).FullName, a => getParamterArrayValue(typeof(BigInteger?), a, null) },
-        };
+
+        static Dictionary<string, Func<object, object>> dicGetParamterValue =
+            new Dictionary<string, Func<object, object>>
+            {
+                { typeof(uint).FullName, a => long.Parse(string.Concat(a)) },
+                { typeof(uint[]).FullName, a => getParamterArrayValue(typeof(long), a, 0) },
+                { typeof(uint?[]).FullName, a => getParamterArrayValue(typeof(long?), a, null) },
+                { typeof(ulong).FullName, a => decimal.Parse(string.Concat(a)) },
+                { typeof(ulong[]).FullName, a => getParamterArrayValue(typeof(decimal), a, 0) },
+                { typeof(ulong?[]).FullName, a => getParamterArrayValue(typeof(decimal?), a, null) },
+                { typeof(ushort).FullName, a => int.Parse(string.Concat(a)) },
+                { typeof(ushort[]).FullName, a => getParamterArrayValue(typeof(int), a, 0) },
+                { typeof(ushort?[]).FullName, a => getParamterArrayValue(typeof(int?), a, null) },
+                { typeof(byte).FullName, a => short.Parse(string.Concat(a)) },
+                { typeof(byte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) },
+                { typeof(byte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
+                { typeof(sbyte).FullName, a => short.Parse(string.Concat(a)) },
+                { typeof(sbyte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) },
+                { typeof(sbyte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
+                { typeof(char).FullName, a => string.Concat(a).Replace('\0', ' ').ToCharArray().FirstOrDefault() },
+                {
+                    typeof(BigInteger).FullName,
+                    a => BigInteger.Parse(string.Concat(a), System.Globalization.NumberStyles.Any)
+                },
+                { typeof(BigInteger[]).FullName, a => getParamterArrayValue(typeof(BigInteger), a, 0) },
+                { typeof(BigInteger?[]).FullName, a => getParamterArrayValue(typeof(BigInteger?), a, null) },
+            };
 
         static Array getParamterArrayValue(Type arrayType, object value, object defaultValue)
         {
@@ -56,6 +79,7 @@ namespace FreeSql.TDengine
                 var item = valueArr.GetValue(a);
                 ret.SetValue(item == null ? defaultValue : getParamterValue(item.GetType(), item, 1), a);
             }
+
             return ret;
         }
 
@@ -68,12 +92,17 @@ namespace FreeSql.TDengine
                 var elementType = type.GetElementType();
                 Type enumType = null;
                 if (elementType.IsEnum) enumType = elementType;
-                else if (elementType.IsNullableType() && elementType.GenericTypeArguments.First().IsEnum) enumType = elementType.GenericTypeArguments.First();
-                if (enumType != null) return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue()) :
-                    getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue());
+                else if (elementType.IsNullableType() && elementType.GenericTypeArguments.First().IsEnum)
+                    enumType = elementType.GenericTypeArguments.First();
+                if (enumType != null)
+                    return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any()
+                        ? getParamterArrayValue(typeof(long), value,
+                            elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue())
+                        : getParamterArrayValue(typeof(int), value,
+                            elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue());
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
+
             if (type.IsNullableType()) type = type.GenericTypeArguments.First();
             if (type.IsEnum) return (int)value;
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
@@ -115,7 +144,17 @@ namespace FreeSql.TDengine
 
         public override string QuoteSqlNameAdapter(params string[] name)
         {
-            throw new NotImplementedException();
+            if (name.Length == 1)
+            {
+                var nameAdapter = name[0].Trim();
+                if (nameAdapter.StartsWith("(") && nameAdapter.EndsWith(")"))
+                    return nameAdapter; //原生SQL
+                if (nameAdapter.StartsWith("`") && nameAdapter.EndsWith("`"))
+                    return nameAdapter;
+                return $"`{nameAdapter.Replace(".", "`.`")}`";
+            }
+
+            return $"`{string.Join("`.`", name)}`";
         }
 
         public override string QuoteWriteParamterAdapter(Type type, string paramterName)
@@ -140,7 +179,37 @@ namespace FreeSql.TDengine
 
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName)
         {
-            throw new NotImplementedException();
+            return columnName;
+        }
+
+        //超表描述
+        private static readonly ConcurrentDictionary<string, Lazy<STableDescribe>> STableDescribes =
+            new ConcurrentDictionary<string, Lazy<STableDescribe>>();
+
+        /// <summary>
+        /// 生成超级表名
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        internal string GenerateSTableName(string tableName, Type tableType)
+        {
+            var stableDescribe
+                = STableDescribes.GetOrAdd(tableName, key => new Lazy<STableDescribe>(() =>
+                {
+                    var describe = new STableDescribe
+                    {
+                        IsSTable = false
+                    };
+                    var sTableAttribute = tableType.GetCustomAttribute<SuperTableAttribute>();
+                    if (sTableAttribute == null) return describe;
+                    describe.IsSTable = true;
+                    describe.STableName = sTableAttribute.STableName;
+                    return describe;
+                }));
+
+            var stableDescribeValue = stableDescribe.Value;
+
+            return !stableDescribeValue.IsSTable ? tableName : $"{stableDescribeValue.STableName}.{tableName}";
         }
     }
 }

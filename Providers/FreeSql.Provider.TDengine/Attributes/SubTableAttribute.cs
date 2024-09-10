@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 namespace FreeSql.DataAnnotations
 {
     /// <summary>
-    /// TDengine 超级表
+    /// TDengine 超级表 - 子表
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class STableAttribute : Attribute
+    public class SubTableAttribute : TableAttribute
     {
+        /// <summary>
+        /// 超表名称
+        /// </summary>
+        public string SuperTableName { get; set; }
     }
 }
