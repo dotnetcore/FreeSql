@@ -13,6 +13,8 @@ namespace FreeSql.TDengine
 {
     internal class TDengineAdo : AdoProvider
     {
+        public TDengineAdo() : base(DataType.TDengine, null, null) { }
+
         public TDengineAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings,
             Func<DbConnection> connectionFactory) : base(DataType.TDengine, masterConnectionString,
             slaveConnectionStrings)

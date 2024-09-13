@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -29,7 +30,11 @@ namespace FreeSql.TDengine
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col,
             Type type, object value)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (value != null) value = getParamterValue(type, value);
+            var ret = new TDengineParameter() { ParameterName = QuoteParamterName(parameterName), Value = value };
+            _params?.Add(ret);
+            return ret;
         }
 
         public override string Div(string left, string right, Type leftType, Type rightType)
@@ -37,10 +42,7 @@ namespace FreeSql.TDengine
             throw new NotImplementedException();
         }
 
-        public override string FormatSql(string sql, params object[] args)
-        {
-            throw new NotImplementedException();
-        }
+        public override string FormatSql(string sql, params object[] args) => sql.FormatTDengine(args);
 
         static Dictionary<string, Func<object, object>> dicGetParamterValue =
             new Dictionary<string, Func<object, object>>
@@ -127,7 +129,15 @@ namespace FreeSql.TDengine
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag,
             ColumnInfo col, Type type, object value)
         {
-            throw new NotImplementedException();
+            if (value == null) return "NULL";
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
+            if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
+            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
+            {
+                var ts = (TimeSpan)value;
+                value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
+            }
+            return FormatSql("{0}", value, 1);
         }
 
         public override string IsNull(string sql, object value)
@@ -157,10 +167,7 @@ namespace FreeSql.TDengine
             return $"`{string.Join("`.`", name)}`";
         }
 
-        public override string QuoteWriteParamterAdapter(Type type, string paramterName)
-        {
-            throw new NotImplementedException();
-        }
+        public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
 
         public override string[] SplitTableName(string name)
         {
@@ -174,7 +181,10 @@ namespace FreeSql.TDengine
 
         public override string TrimQuoteSqlName(string name)
         {
-            throw new NotImplementedException();
+            var nametrim = name.Trim();
+            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                return nametrim; //原生SQL
+            return $"{nametrim.Trim('`').Replace("`.`", ".").Replace(".`", ".")}";
         }
 
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName)

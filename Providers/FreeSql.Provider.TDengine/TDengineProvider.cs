@@ -22,10 +22,8 @@ namespace FreeSql.TDengine
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new TDengineSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
-        public override IInsert<T1> CreateInsertProvider<T1>()
-        {
-            throw new NotImplementedException();
-        }
+        public override IInsert<T1> CreateInsertProvider<T1>() => new TDengineInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
+       
 
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere)
         {

@@ -97,7 +97,7 @@ namespace FreeSql.TDengine
 
                     if (!TryTableExists(tbName))
                     {
-                        SuperTableHandle(ref tb, ref database, tb.Type, ref sb);
+                        TableHandle(ref tb, ref database, tb.Type, ref sb, tbName);
                     }
                 }
             }
@@ -117,7 +117,6 @@ namespace FreeSql.TDengine
 
 
             var ddl = sb.Length == 0 ? null : sb.ToString();
-            Console.WriteLine(ddl);
             return ddl;
         }
 
@@ -136,7 +135,7 @@ namespace FreeSql.TDengine
             sb.Remove(sb.Length - 1, 1).Append($"{Environment.NewLine})");
         }
 
-        private void SuperTableHandle(ref TableInfo tb, ref string database, Type type, ref StringBuilder sb)
+        private void TableHandle(ref TableInfo tb, ref string database, Type type, ref StringBuilder sb, string tbName)
         {
             //判断是否超级表
             var subTableAttribute = type.GetCustomAttribute<TDengineSubTableAttribute>();
@@ -156,10 +155,9 @@ namespace FreeSql.TDengine
                     if (!TryTableExists(superTableName))
                     {
                         //先创建超级表
-
                         CreateSuperTable(ref tb, ref sb, superTableName);
-                        sb.Append(Environment.NewLine);
-                        sb.Append(Environment.NewLine);
+                        _orm.Ado.ExecuteNonQuery(sb.ToString());
+                        sb = sb.Clear();
                     }
 
                     var subTableName = _commonUtils.QuoteSqlName(database, subTableAttribute.Name);
@@ -173,12 +171,13 @@ namespace FreeSql.TDengine
             {
                 var superTableAttribute = type.GetCustomAttribute<TDengineSuperTableAttribute>();
                 if (superTableAttribute == null) return;
-                var tbName = _commonUtils.QuoteSqlName(database, superTableAttribute.Name);
+                tbName = _commonUtils.QuoteSqlName(database, superTableAttribute.Name);
                 CreateSuperTable(ref tb, ref sb, tbName);
             }
             //创建普通表
             else
             {
+                CreateNormalTable(ref tb, ref sb, tbName);
             }
         }
 
@@ -206,7 +205,8 @@ namespace FreeSql.TDengine
             {
                 var tagValue = columnInfo.Table.Properties[columnInfo.CsName].GetValue(tableInstance);
                 tagValues.Add(tagValue);
-                sb.Append($" {Environment.NewLine}  ").Append(_commonUtils.QuoteSqlName(columnInfo.Attribute.Name)).Append(",");
+                sb.Append($" {Environment.NewLine}  ").Append(_commonUtils.QuoteSqlName(columnInfo.Attribute.Name))
+                    .Append(",");
             }
 
             sb.Remove(sb.Length - 1, 1).Append($"{Environment.NewLine}) TAGS (");
@@ -243,6 +243,28 @@ namespace FreeSql.TDengine
             sb.Remove(sb.Length - 1, 1).Append($"{Environment.NewLine});");
         }
 
+        /// <summary>
+        /// 创建普通表
+        /// </summary>
+        /// <param name="tb"></param>
+        /// <param name="sb"></param>
+        /// <param name="normalTableName"></param>
+        private void CreateNormalTable(ref TableInfo tb, ref StringBuilder sb, string normalTableName)
+        {
+            sb.Append($"CREATE TABLE {normalTableName} (");
+            CreateColumns(ref tb, ref sb);
+            foreach (var columnInfo in tb.ColumnsByPosition.Where(c =>
+                         c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute))))
+            {
+                sb.Append($" {Environment.NewLine}  ").Append(_commonUtils.QuoteSqlName(columnInfo.Attribute.Name))
+                    .Append(" ")
+                    .Append(columnInfo.Attribute.DbType);
+                sb.Append(",");
+            }
+
+            sb.Remove(sb.Length - 1, 1).Append(");");
+        }
+
         private bool TryTableExists(string tbName)
         {
             var flag = true;
@@ -271,7 +293,7 @@ namespace FreeSql.TDengine
         {
             if (tagValue is DateTime || tagValue is string)
             {
-                return  $"\"{tagValue}\"";
+                return $"\"{tagValue}\"";
             }
             else
             {
