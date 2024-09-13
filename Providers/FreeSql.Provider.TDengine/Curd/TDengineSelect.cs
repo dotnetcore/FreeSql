@@ -156,18 +156,6 @@ namespace FreeSql.TDengine.Curd
             return sb.Append(_tosqlAppendContent).ToString();
         }
 
-        internal static string TDengineTableNameAdapter(ref TableInfo tableInfo, ref string tableName,
-            ref CommonUtils utils)
-        {
-            if (utils is TDengineUtils tDengineUtils)
-            {
-                return tDengineUtils.GenerateSTableName(tableName, tableInfo.Type);
-            }
-
-            return tableName;
-        }
-
-
         public override ISelect<T1, T2> From<T2>(
             Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp)
         {

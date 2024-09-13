@@ -10,11 +10,8 @@ namespace FreeSql.DataAnnotations
     /// TDengine 超级表
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class SuperTableAttribute : TableAttribute
+    public class TDengineSuperTableAttribute : TableAttribute
     {
-        /// <summary>
-        /// 超表名称
-        /// </summary>
-        public string STableName { get; set; }
+       
     }
 }

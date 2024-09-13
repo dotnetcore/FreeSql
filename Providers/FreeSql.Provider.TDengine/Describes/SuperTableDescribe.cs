@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace FreeSql.TDengine.Describes
 {
-    internal struct STableDescribe
+    internal class SuperTableDescribe
     {
         /// <summary>
-        /// 是否是超表
+        /// 超级表Type
         /// </summary>
-        public bool IsSTable { get; set; } 
+        public Type SuperTableType { get; set; } 
 
         /// <summary>
-        /// 超表名称
+        /// 超级表名称
         /// </summary>
-        public string STableName { get; set; }
+        public string SuperTableName { get; set; }
 
     }
 }

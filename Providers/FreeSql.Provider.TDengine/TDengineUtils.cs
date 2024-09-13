@@ -164,7 +164,7 @@ namespace FreeSql.TDengine
 
         public override string[] SplitTableName(string name)
         {
-            throw new NotImplementedException();
+            return new[] { name };
         }
 
         public override string StringConcat(string[] objs, Type[] types)
@@ -183,33 +183,31 @@ namespace FreeSql.TDengine
         }
 
         //超表描述
-        private static readonly ConcurrentDictionary<string, Lazy<STableDescribe>> STableDescribes =
-            new ConcurrentDictionary<string, Lazy<STableDescribe>>();
+        private static readonly ConcurrentDictionary<Type, Lazy<SuperTableDescribe>> STableDescribes =
+            new ConcurrentDictionary<Type, Lazy<SuperTableDescribe>>();
 
         /// <summary>
-        /// 生成超级表名
+        /// 通过子表获取超级表描述
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="subTableType"></param>
         /// <returns></returns>
-        internal string GenerateSTableName(string tableName, Type tableType)
+        internal SuperTableDescribe GetSuperTableDescribe(Type subTableType)
         {
-            var stableDescribe
-                = STableDescribes.GetOrAdd(tableName, key => new Lazy<STableDescribe>(() =>
+            var stableDescribe = STableDescribes.GetOrAdd(subTableType, key => new Lazy<SuperTableDescribe>(() =>
+            {
+                var sTableAttribute = subTableType.GetCustomAttribute<TDengineSubTableAttribute>();
+                if (sTableAttribute == null) return null;
+                var describe = new SuperTableDescribe
                 {
-                    var describe = new STableDescribe
-                    {
-                        IsSTable = false
-                    };
-                    var sTableAttribute = tableType.GetCustomAttribute<SuperTableAttribute>();
-                    if (sTableAttribute == null) return describe;
-                    describe.IsSTable = true;
-                    describe.STableName = sTableAttribute.STableName;
-                    return describe;
-                }));
+                    SuperTableName = sTableAttribute.SuperTableName,
+                    SuperTableType = subTableType.BaseType
+                };
+                return describe;
+            }));
 
             var stableDescribeValue = stableDescribe.Value;
 
-            return !stableDescribeValue.IsSTable ? tableName : $"{stableDescribeValue.STableName}.{tableName}";
+            return stableDescribeValue;
         }
     }
 }
