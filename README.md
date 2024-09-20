@@ -44,6 +44,7 @@ QQ Groups：**561616019(available)**、4336577(full)、8578575(full)、52508226(
 - [Zhontai.net Management System](https://github.com/zhontai/Admin.Core)
 - [A simple CMS implemented by .NET8](https://github.com/luoyunchong/lin-cms-dotnetcore)
 - [AIBPM workflow](https://github.com/leooneone/aibpm.plus)
+- [NetAdmin A rapid development framework based on C#12/.NET9 and FreeSql](https://github.com/leooneone/aibpm.plus)
 
 <p align="center">
   <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions13.png"/>
