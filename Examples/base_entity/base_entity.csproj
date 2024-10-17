@@ -16,7 +16,7 @@
 		<PackageReference Include="Confluent.Kafka" Version="2.2.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="Npgsql.NetTopologySuite" Version="6.0.4" />
-		<PackageReference Include="MessagePack" Version="2.4.35" />
+		<PackageReference Include="MessagePack" Version="2.5.187" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.5" />
 	</ItemGroup>
 
