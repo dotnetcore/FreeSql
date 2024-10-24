@@ -213,6 +213,8 @@ namespace FreeSql.Internal.CommonProvider
         
         public ISelect<T1> UnionAll(params ISelect<T1>[] querys)
         {
+            querys = querys?.Where(q => q != null).ToArray();
+            if (querys?.Any() != true) return this;
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
             var sb = new StringBuilder().Append(LocalGetQuerySql(this));
             foreach (var select2 in querys)
