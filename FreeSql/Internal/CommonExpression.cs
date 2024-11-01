@@ -1755,7 +1755,30 @@ namespace FreeSql.Internal
                         {
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
-                            case "System.TimeSpan": throw new Exception(CoreStrings.Unable_Parse_Expression(exp4));
+                            case "System.TimeSpan":
+                                if (exp4.Expression != null && exp4.Expression.NodeType == ExpressionType.Call && 
+                                    exp4.Expression is MethodCallExpression exp4CallExp && 
+                                    exp4CallExp.Method.Name == "Subtract" &&
+                                    exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
+                                    exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
+                                {
+                                    var left = ExpressionLambdaToSql(exp4.Expression, tsc);
+                                    switch (exp4.Member.Name)
+                                    {
+                                        case "Days": return $"floor(({left})/{60 * 60 * 24})";
+                                        case "Hours": return $"floor(({left})/{60 * 60}%24)";
+                                        case "Milliseconds": return $"(({left})*1000)";
+                                        case "Minutes": return $"floor(({left})/60%60)";
+                                        case "Seconds": return $"(({left})%60)";
+                                        case "Ticks": return $"(({left})*10000000)";
+                                        case "TotalDays": return $"(({left})/{60 * 60 * 24}.0)";
+                                        case "TotalHours": return $"(({left})/{60 * 60}.0)";
+                                        case "TotalMilliseconds": return $"(({left})*1000)";
+                                        case "TotalMinutes": return $"(({left})/60.0)";
+                                        case "TotalSeconds": return $"({left})";
+                                    }
+                                }
+                                throw new Exception(CoreStrings.Unable_Parse_Expression(exp4));
                         }
                         if (string.IsNullOrEmpty(extRet) == false) return extRet;
                         var other4Exp = ExpressionLambdaToSqlOther(exp4, tsc);
