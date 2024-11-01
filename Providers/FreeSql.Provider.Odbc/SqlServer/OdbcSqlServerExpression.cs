@@ -420,7 +420,6 @@ namespace FreeSql.Odbc.SqlServer
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff(second, {args1}, {left})";
-                            case "System.TimeSpan": return $"dateadd(second, ({args1})*-1, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";

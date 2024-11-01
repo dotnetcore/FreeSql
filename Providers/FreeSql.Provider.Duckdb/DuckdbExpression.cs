@@ -488,8 +488,7 @@ namespace FreeSql.Duckdb
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"cast((epoch({left})-epoch({args1}))||' seconds' as interval)";
-                            case "System.TimeSpan": return $"date_add({left},{args1})";
+                            case "System.DateTime": return $"(epoch({left})-epoch({args1}))";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";

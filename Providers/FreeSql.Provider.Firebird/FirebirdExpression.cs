@@ -408,7 +408,6 @@ namespace FreeSql.Firebird
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff(second from {left} to {args1})";
-                            case "System.TimeSpan": return $"dateadd(({args1})*-1 second to {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";

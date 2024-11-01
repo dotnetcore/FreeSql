@@ -461,7 +461,6 @@ namespace FreeSql.ClickHouse
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"dateDiff(second, {args1}, toDateTime({left}))";
-                            case "System.TimeSpan": return $"addSeconds(toDateTime({left}),(({args1})*-1))";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";

@@ -456,7 +456,6 @@ namespace FreeSql.QuestDb
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff('s',{args1},{left})";
-                            case "System.TimeSpan": return $"dateadd('s',({args1})*-1,{left})";
                         }
                         break;
                     case "Equals": return $"({left} = cast({args1} as timestamp))";

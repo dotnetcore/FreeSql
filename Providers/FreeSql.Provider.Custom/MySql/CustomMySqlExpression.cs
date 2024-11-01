@@ -217,7 +217,7 @@ namespace FreeSql.Custom.MySql
             switch (exp.Member.Name)
             {
                 case "Date": return $"cast(date_format({left},'%Y-%m-%d') as datetime)";
-                case "TimeOfDay": return $"timestampdiff(microsecond, date_format({left},'%Y-%m-%d'), {left})";
+                case "TimeOfDay": return $"timestampdiff(second, date_format({left},'%Y-%m-%d'), {left})";
                 case "DayOfWeek": return $"(dayofweek({left})-1)";
                 case "Day": return $"dayofmonth({left})";
                 case "DayOfYear": return $"dayofyear({left})";
@@ -417,12 +417,11 @@ namespace FreeSql.Custom.MySql
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"timestampdiff(microsecond, {args1}, {left})";
-                            case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";
+                            case "System.DateTime": return $"timestampdiff(second, {args1}, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
+                    case "CompareTo": return $"timestampdiff(second,{args1},{left})";
                     case "ToString":
                         if (exp.Arguments.Count == 0) return $"date_format({left},'%Y-%m-%d %H:%i:%s.%f')";
                         switch (args1)

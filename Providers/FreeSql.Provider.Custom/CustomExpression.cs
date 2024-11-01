@@ -365,7 +365,6 @@ namespace FreeSql.Custom
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return _utils.Adapter.LambdaDateTime_Subtract(left, args1);
-                            case "System.TimeSpan": return _utils.Adapter.LambdaDateTime_SubtractTimeSpan(left, args1);
                         }
                         break;
                     case "Equals": return _utils.Adapter.LambdaDateTime_Equals(left, args1);
