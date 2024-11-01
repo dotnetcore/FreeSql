@@ -1,4 +1,4 @@
-﻿using FreeSql.Internal;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
@@ -228,7 +228,17 @@ ELSE
                                     if (tbcol.IsDesc) sb.Append(" DESC");
                                     sb.Append(", ");
                                 }
-                                sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                                // sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                                // ↑ 解决唯一索引不可插入多个NULL的问题 ↓
+                                sb.Remove(sb.Length - 2, 2).Append(") WHERE ");
+                                foreach (var tbcol in uk.Columns)
+                                {
+                                    sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                                    sb.Append(" IS NOT NULL");
+                                    sb.Append(" AND ");
+                                }
+                                sb.Remove(sb.Length - 5, 5).Append(";\r\n");
+                                // nsnail@2023年2月4日14:54:52 ↑
                             }
                             //备注
                             foreach (var tbcol in tb.ColumnsByPosition)
@@ -449,7 +459,17 @@ use [" + database + "];", tboldname ?? tbname);
                             if (tbcol.IsDesc) sb.Append(" DESC");
                             sb.Append(", ");
                         }
-                        sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                        // sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                        // ↑ 解决唯一索引不可插入多个NULL的问题 ↓
+                        sb.Remove(sb.Length - 2, 2).Append(") WHERE ");
+                        foreach (var tbcol in uk.Columns)
+                        {
+                            sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                            sb.Append(" IS NOT NULL");
+                            sb.Append(" AND ");
+                        }
+                        sb.Remove(sb.Length - 5, 5).Append(";\r\n");
+                        // nsnail@2023年2月4日14:54:52 ↑
                     }
                     sb.Append("COMMIT;\r\n");
                 }
