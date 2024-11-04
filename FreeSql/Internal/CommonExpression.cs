@@ -136,7 +136,7 @@ namespace FreeSql.Internal
                     return false;
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
-                    if (condExp.Test.IsParameter() == false) return ReadAnonymousField(_tables, _tableRule, field, parent, ref index,
+                    if (condExp.Test.CanDynamicInvoke()) return ReadAnonymousField(_tables, _tableRule, field, parent, ref index,
                         (bool)Expression.Lambda(condExp.Test).Compile().DynamicInvoke() ? condExp.IfTrue : condExp.IfFalse, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, isAllDtoMap);
                     break;
                 case ExpressionType.Call:
@@ -871,7 +871,7 @@ namespace FreeSql.Internal
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
 
             var right = (leftMapColumn != null &&
-                (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.IsParameter() == false)) ? //自动分表
+                (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.CanDynamicInvoke())) ? //自动分表
                 formatSql(Expression.Lambda(rightExp).Compile().DynamicInvoke(), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams) :
                 ExpressionLambdaToSql(rightExp, tsc);
             if (right != "NULL" && isLeftMapType &&
@@ -897,7 +897,7 @@ namespace FreeSql.Internal
                 {
                     oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
                     left = (rightMapColumn != null &&
-                        (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.IsParameter() == false)) ? //自动分表
+                        (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.CanDynamicInvoke())) ? //自动分表
                         formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) :
                         ExpressionLambdaToSql(leftExp, tsc);
                     if (left != "NULL" && isRightMapType &&
@@ -963,7 +963,6 @@ namespace FreeSql.Internal
             tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
             return $"{left} {oper} {right}";
         }
-        static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
         static ThreadLocal<List<BaseDiyMemberExpression>> _subSelectParentDiyMemExps = new ThreadLocal<List<BaseDiyMemberExpression>>(); //子查询的所有父自定义查询，比如分组之后的子查询
@@ -1019,7 +1018,7 @@ namespace FreeSql.Internal
                     //var othercExp = ExpressionLambdaToSqlOther(exp, tsc);
                     //if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
                     var expOperand = (exp as UnaryExpression)?.Operand;
-                    if (expOperand.Type.NullableTypeOrThis().IsEnum && exp.IsParameter() == false)
+                    if (expOperand.Type.NullableTypeOrThis().IsEnum && exp.CanDynamicInvoke())
                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)enum)
                     return ExpressionLambdaToSql(expOperand, tsc);
                 case ExpressionType.Negate:
@@ -1028,7 +1027,7 @@ namespace FreeSql.Internal
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);
-                    if (condExp.Test.IsParameter())
+                    if (condExp.Test.CanDynamicInvoke() == false)
                     {
                         var condExp2 = condExp.Test;
                         if (condExp2.NodeType == ExpressionType.MemberAccess) condExp2 = Expression.Equal(condExp2, Expression.Constant(true));
@@ -1055,10 +1054,7 @@ namespace FreeSql.Internal
                 case ExpressionType.Call:
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
-                    if (exp3.Object == null && (
-                        _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()) ||
-                        exp3.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
-                        ))
+                    if (exp3.IsExpressionCall())
                     {
                         var ecc = new ExpressionCallContext
                         {
@@ -1097,10 +1093,7 @@ namespace FreeSql.Internal
                                     if (exp3.Arguments[a].NodeType == ExpressionType.Call) //判断如果参数也是标记 ExpressionCall
                                     {
                                         var exp3ArgsACallExp = exp3.Arguments[a] as MethodCallExpression;
-                                        if (exp3ArgsACallExp.Object == null && (
-                                            _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3ArgsACallExp.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()) ||
-                                            exp3ArgsACallExp.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
-                                            ))
+                                        if (exp3ArgsACallExp.IsExpressionCall())
                                             isdyInvoke = false;
                                     }
                                     if (isdyInvoke)
@@ -1824,7 +1817,7 @@ namespace FreeSql.Internal
                     }
                     other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
-                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    if (exp3.CanDynamicInvoke()) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     if (exp3.Method.DeclaringType == typeof(Enumerable)) throw new Exception(CoreStrings.Not_Implemented_Expression_UseAsSelect(exp3, exp3.Method.Name, (exp3.Arguments.Count > 1 ? "..." : "")));
                     throw new Exception(CoreStrings.Not_Implemented_Expression(exp3));
                 case ExpressionType.Parameter:
@@ -2230,7 +2223,7 @@ namespace FreeSql.Internal
             }
             if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false)
             {
-                if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                if (exp.CanDynamicInvoke()) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                 return "";
             }
             switch (expBinary.NodeType)
@@ -2392,11 +2385,11 @@ namespace FreeSql.Internal
                             var expStackFirstMem = expStack.First() as MemberExpression;
                             if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant)
                                 firstValue = (expStackFirstMem.Expression as ConstantExpression)?.Value;
-                            else if (exp.IsParameter() == false)
+                            else if (exp.CanDynamicInvoke())
                                 return Expression.Lambda(exp).Compile().DynamicInvoke();
                             break;
                         case ExpressionType.Call:
-                            if (exp.IsParameter() == false)
+                            if (exp.CanDynamicInvoke())
                                 return Expression.Lambda(exp).Compile().DynamicInvoke();
                             break;
                     }
@@ -2417,7 +2410,7 @@ namespace FreeSql.Internal
                 }
                 return Expression.Lambda(exp).Compile().DynamicInvoke();
             }
-            if (exp.IsParameter() == false)
+            if (exp.CanDynamicInvoke())
                 return Expression.Lambda(exp).Compile().DynamicInvoke();
             success = false;
             return null;

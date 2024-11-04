@@ -1,11 +1,24 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
 using static FreeSql.SqlExtExtensions;
+
+internal static class FreeSqlInternalExpressionCallExtensions
+{
+    static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
+    public static bool IsExpressionCall(this MethodCallExpression node)
+	{
+		return node.Object == null && (
+			_dicTypeExistsExpressionCallAttribute.GetOrAdd(node.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()) ||
+			node.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any());
+    }
+}
 
 [ExpressionCall]
 public static class FreeSqlGlobalExpressionCallExtensions
@@ -24,10 +37,10 @@ public static class FreeSqlGlobalExpressionCallExtensions
 	{
 		if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
 			return that >= between && that <= and;
-		var time1 = expContext.Value.RawExpression["between"].IsParameter() == false ?
+		var time1 = expContext.Value.RawExpression["between"].CanDynamicInvoke() ?
 			expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["between"]).Compile().DynamicInvoke()) :
 			expContext.Value.ParsedContent["between"];
-		var time2 = expContext.Value.RawExpression["and"].IsParameter() == false ?
+		var time2 = expContext.Value.RawExpression["and"].CanDynamicInvoke() ?
 			expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["and"]).Compile().DynamicInvoke()) :
 			expContext.Value.ParsedContent["and"];
 		expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {time1} and {time2}";
@@ -47,10 +60,10 @@ public static class FreeSqlGlobalExpressionCallExtensions
 	{
 		if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
 			return that >= start && that < end;
-		var time1 = expContext.Value.RawExpression["start"].IsParameter() == false ?
+		var time1 = expContext.Value.RawExpression["start"].CanDynamicInvoke() ?
 			expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["start"]).Compile().DynamicInvoke()) :
 			expContext.Value.ParsedContent["start"];
-		var time2 = expContext.Value.RawExpression["end"].IsParameter() == false ?
+		var time2 = expContext.Value.RawExpression["end"].CanDynamicInvoke() ?
 			expContext.Value.FormatSql(Expression.Lambda(expContext.Value.RawExpression["end"]).Compile().DynamicInvoke()) :
 			expContext.Value.ParsedContent["end"];
 		expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} >= {time1} and {expContext.Value.ParsedContent["that"]} < {time2}";

@@ -1,4 +1,6 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -227,6 +229,12 @@ namespace System.Linq.Expressions
         public static Expression<Func<T1, T2, T3, T4, T5, bool>> Not<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp, bool condition = true) => (Expression<Func<T1, T2, T3, T4, T5, bool>>)InternalNotExpression(condition, exp);
         #endregion
 
+        public static bool CanDynamicInvoke(this Expression exp)
+        {
+            var test = new TestCanDynamicInvokeExpressionVisitor();
+            test.Visit(exp);
+            return test.Result;
+        }
         public static bool IsParameter(this Expression exp)
         {
             var test = new TestParameterExpressionVisitor();
@@ -361,6 +369,23 @@ namespace System.Linq.Expressions
         {
             if (!Result) Result = true;
             return node;
+        }
+    }
+
+    internal class TestCanDynamicInvokeExpressionVisitor : ExpressionVisitor
+    {
+        public bool Result { get; private set; } = true;
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (Result) Result = false;
+            return node;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (Result && node.IsExpressionCall()) Result = false;
+            return base.VisitMethodCall(node);
         }
     }
 
