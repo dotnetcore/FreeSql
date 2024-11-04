@@ -1233,6 +1233,8 @@ namespace FreeSql.Internal
                             var exp3tmp = exp3.Object;
                             if (exp3.Method.Name == "Any" && exp3tmp != null && anyArgs.Any())
                                 exp3Stack.Push(Expression.Call(exp3tmp, callType.GetMethod("Where", anyArgs.Select(a => a.Type).ToArray()), anyArgs.ToArray()));
+                            if (tsc.style == ExpressionStyle.ReturnISelect && typeof(ISelect0).IsAssignableFrom(exp3.Method.ReturnType))
+                                exp3Stack.Push(exp3); //WithTempQuery 或第后一个方法附加到解析或运行，Any/Count/Sum/Min/Max/Avg/ToList/ToOne/First 等方法不需要
                             while (exp3tmp != null)
                             {
                                 exp3Stack.Push(exp3tmp);
@@ -1404,16 +1406,17 @@ namespace FreeSql.Internal
                                         else if (arg3Exp is NewArrayExpression arg3ExpNewArray && arg3ExpNewArray?.Expressions.Any() == true &&
                                             typeof(ISelect0).IsAssignableFrom(arg3ExpNewArray.Expressions[0].Type))
                                         {
-                                            var arg3ExpNewArrayTables = fsqltables.Select(tbcopy => new SelectTableInfo
+                                            Array arg3Values = Array.CreateInstance(arg3ExpNewArray.Expressions[0].Type, arg3ExpNewArray.Expressions.Count);
+                                            for (var arg3Idx = 0;arg3Idx < arg3ExpNewArray.Expressions.Count; arg3Idx++)
                                             {
-                                                Alias = tbcopy.Alias,
-                                                On = "1=1",
-                                                Table = tbcopy.Table,
-                                                Type = SelectTableInfoType.Parent,
-                                                Parameter = tbcopy.Parameter
-                                            }).ToList();
-                                            args[a] = arg3ExpNewArray.Expressions.Select((b, bi) =>
-                                            {
+                                                var arg3ExpNewArrayTables = fsqltables.Select(tbcopy => new SelectTableInfo
+                                                {
+                                                    Alias = tbcopy.Alias,
+                                                    On = "1=1",
+                                                    Table = tbcopy.Table,
+                                                    Type = SelectTableInfoType.Parent,
+                                                    Parameter = tbcopy.Parameter
+                                                }).ToList();
                                                 var thenTsc = new ExpTSC
                                                 {
                                                     _tables = arg3ExpNewArrayTables,
@@ -1426,9 +1429,10 @@ namespace FreeSql.Internal
                                                     whereGlobalFilter = tsc.whereGlobalFilter,
                                                     dbParams = tsc.dbParams
                                                 };
-                                                ExpressionLambdaToSql(b, thenTsc);
-                                                return thenTsc._returnISelect;
-                                            }).ToArray();
+                                                ExpressionLambdaToSql(arg3ExpNewArray.Expressions[arg3Idx], thenTsc);
+                                                arg3Values.SetValue(thenTsc._returnISelect, arg3Idx);
+                                            }
+                                            args[a] = arg3Values;
                                         }
                                         else if (typeof(ISelect0).IsAssignableFrom(arg3Exp.Type))
                                         {
