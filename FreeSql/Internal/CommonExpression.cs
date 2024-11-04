@@ -1510,6 +1510,7 @@ namespace FreeSql.Internal
                                             case nameof(ISelect<object>.From):
                                             case nameof(ISelect<object>.FromQuery):
                                             case nameof(ISelect<object>.WithTempQuery):
+                                            case nameof(ISelect<object>.UnionAll):
                                                 fsql = method.Invoke(fsql, args);
                                                 fsqlType = fsql.GetType();
                                                 fsqlSelect0 = fsql as Select0Provider;
