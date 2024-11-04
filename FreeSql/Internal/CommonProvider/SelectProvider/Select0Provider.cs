@@ -412,7 +412,7 @@ namespace FreeSql.Internal.CommonProvider
             callExp = callExp.Object as MethodCallExpression; //忽略第一个方法
             while (callExp != null)
             {
-                if (callExp?.Type.FullName.StartsWith("FreeSql.ISelect`") == true)
+                if (callExp != null && typeof(ISelect0).IsAssignableFrom(callExp.Type))
                 {
                     callExpStack.Push(callExp);
                     callExp = callExp.Object as MethodCallExpression;
