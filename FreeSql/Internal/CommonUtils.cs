@@ -540,7 +540,6 @@ namespace FreeSql.Internal
             }
             if (dywhere is IEnumerable)
             {
-
                 var sb = new StringBuilder();
                 var ie = dywhere as IEnumerable;
                 var ieSingle = LocalGetSingleElement(ie);

@@ -450,7 +450,16 @@ namespace FreeSql
         int DbContextBatchRemove(EntityState[] dels)
         {
             if (dels.Any() == false) return 0;
-            var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
+            var affrows = 0;
+            if (_table.Primarys.Length == 1)
+                affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
+            else
+            {
+                var takeMax = 300;
+                var execCount = (int)Math.Ceiling(1.0 * dels.Length / takeMax);
+                for (var a = 0; a < execCount; a++)
+                    affrows += this.OrmDelete(dels.Skip(a * takeMax).Take(Math.Min(takeMax, dels.Length - a * takeMax)).Select(d => d.Value)).ExecuteAffrows();
+            }
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return affrows; //https://github.com/dotnetcore/FreeSql/issues/373
         }

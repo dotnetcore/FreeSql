@@ -1347,10 +1347,6 @@ namespace FreeSql.Internal
                                                     break;
                                             }
                                             break;
-                                        case "ToOne":
-                                        case "First":
-                                            fsqlSelect0._limit = 1; //#462
-                                            break;
                                     }
                                     if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
                                     fsqltables = fsqlSelect0._tables;
@@ -1774,6 +1770,13 @@ namespace FreeSql.Internal
                                     case "ToList":
                                     case "ToOne":
                                     case "First":
+                                        switch (exp3.Method.Name)
+                                        {
+                                            case "ToOne":
+                                            case "First":
+                                                fsqlSelect0._limit = 1; //#462
+                                                break;
+                                        }
                                         var tscClone2 = tsc.CloneDisableDiyParse();
                                         var fsqlSelect0p = fsql as Select0Provider;
                                         tscClone2.subSelect001 = fsqlSelect0p; //#405 Oracle within group(order by ..)
