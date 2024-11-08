@@ -69,14 +69,14 @@ namespace FreeSql.Custom.SqlServer
             if ((_commonUtils as CustomSqlServerUtils).ServerVersion > 10)
             {
                 var validx = sql.IndexOf(") VALUES");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("VALUES"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("VALUES"));
                 sb.Insert(0, sql.Substring(0, validx + 1));
                 sb.Append(sql.Substring(validx + 1));
             }
             else
             {
                 var validx = sql.IndexOf(") SELECT ");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("SELECT"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("SELECT"));
                 sb.Insert(0, sql.Substring(0, validx + 1));
                 sb.Append(sql.Substring(validx + 1));
             }
@@ -153,14 +153,14 @@ namespace FreeSql.Custom.SqlServer
             if ((_commonUtils as CustomSqlServerUtils).ServerVersion > 10)
             {
                 var validx = sql.IndexOf(") VALUES");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("VALUES"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("VALUES"));
                 sb.Insert(0, sql.Substring(0, validx + 1));
                 sb.Append(sql.Substring(validx + 1));
             }
             else
             {
                 var validx = sql.IndexOf(") SELECT ");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("SELECT"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("SELECT"));
                 sb.Insert(0, sql.Substring(0, validx + 1));
                 sb.Append(sql.Substring(validx + 1));
             }

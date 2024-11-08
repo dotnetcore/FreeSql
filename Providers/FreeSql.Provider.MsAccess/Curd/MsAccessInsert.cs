@@ -26,7 +26,7 @@ namespace FreeSql.MsAccess.Curd
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1, 1000);
 
         public override IInsert<T1> BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true) => 
-            throw new NotImplementedException(CoreStrings.S_Access_InsertOnlyOneAtTime);
+            throw new NotImplementedException(CoreErrorStrings.S_Access_InsertOnlyOneAtTime);
 
         protected override int RawExecuteAffrows()
         {

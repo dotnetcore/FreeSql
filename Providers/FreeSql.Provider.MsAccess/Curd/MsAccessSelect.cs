@@ -39,7 +39,7 @@ namespace FreeSql.MsAccess.Curd
                 if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
                 sb.Append(field);
                 if (_skip > 0)
-                    throw new NotImplementedException(CoreStrings.S_NotImplementSkipOffset("MsAccess"));
+                    throw new NotImplementedException(CoreErrorStrings.S_NotImplementSkipOffset("MsAccess"));
                 sb.Append(" \r\nFROM ");
                 var fromIndex = sb.Length;
                 var ioinCounter = 0;

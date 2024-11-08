@@ -142,7 +142,7 @@ public static partial class FreeSqlKingbaseESGlobalExtensions
     public static void ExecuteKdbCopy<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.KingbaseES.KingbaseESInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteKdbCopy", "KingbaseES"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteKdbCopy", "KingbaseES"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -200,7 +200,7 @@ public static partial class FreeSqlKingbaseESGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteKdbCopy {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteKdbCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

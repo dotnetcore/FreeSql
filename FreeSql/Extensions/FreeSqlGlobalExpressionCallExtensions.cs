@@ -573,7 +573,7 @@ namespace FreeSql
 			if (expContext.ParsedContent["delimiter"] == "','")
 				expContext.Result = $"wm_concat_text({expContext.ParsedContent["column"]})";
 			else
-				throw new NotImplementedException(CoreStrings.GBase_NotSupport_OtherThanCommas);
+				throw new NotImplementedException(CoreErrorStrings.GBase_NotSupport_OtherThanCommas);
 			//expContext.Result = $"replace(wm_concat_text({expContext.ParsedContent["column"]}), ',', {expContext.ParsedContent["delimiter"]})";
 			return null;
 		}

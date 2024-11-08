@@ -31,7 +31,7 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 1; a < lambdaExp.Parameters.Count; a++)
             {
                 var tb = _commonUtils.GetTableByEntity(lambdaExp.Parameters[a].Type);
-                if (tb == null) throw new ArgumentException(CoreStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
+                if (tb == null) throw new ArgumentException(CoreErrorStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
                 _tables.Add(new SelectTableInfo { Table = tb, Alias = lambdaExp.Parameters[a].Name, On = null, Type = SelectTableInfoType.From });
             }
             var exp = lambdaExp.Body;
@@ -79,7 +79,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "LeftJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.LeftJoin); break;
                         case "InnerJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.InnerJoin); break;
                         case "RightJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.RightJoin); break;
-                        default: throw new NotImplementedException(CoreStrings.Not_Implemented_Name(expCall.Method.Name));
+                        default: throw new NotImplementedException(CoreErrorStrings.Not_Implemented_Name(expCall.Method.Name));
                     }
                 }
             }
@@ -528,7 +528,7 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1> WithMemory(IEnumerable<T1> source)
         {
             var list = source?.Select(a => (object)a).ToList();
-            if (list.Any() != true) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(source)));
+            if (list.Any() != true) throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(source)));
 			var sb = new StringBuilder();
             (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
                 .WriteSourceSelectUnionAll(list, sb, _params, true);
@@ -563,13 +563,13 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1> IncludeByPropertyName(string property, Expression<Action<ISelect<object>>> then)
         {
             var exp = ConvertStringPropertyToExpression(property, true);
-            if (exp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
+            if (exp == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
             var memExp = exp as MemberExpression;
-            if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
+            if (memExp == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
             var parTb = _commonUtils.GetTableByEntity(memExp.Expression.Type);
-            if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
+            if (parTb == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
             var parTbref = parTb.GetTableRef(memExp.Member.Name, true, true);
-            if (parTbref == null) throw new ArgumentException(CoreStrings.Not_Valid_Navigation_Property(nameof(property)));
+            if (parTbref == null) throw new ArgumentException(CoreErrorStrings.Not_Valid_Navigation_Property(nameof(property)));
             switch (parTbref.RefType)
             {
                 case TableRefType.ManyToMany:
@@ -584,7 +584,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
-                    if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
+                    if (incMethod == null) throw new Exception(CoreErrorStrings.RunTimeError_Reflection_IncludeMany);
                     Delegate newthen = null;
                     if (then != null)
                     {
@@ -648,10 +648,10 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
-            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_MemberAccess);
-            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_IncludeMany);
+            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception(CoreErrorStrings.Include_ParameterType_Error_Use_MemberAccess);
+            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception(CoreErrorStrings.Include_ParameterType_Error_Use_IncludeMany);
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
-            if (tb == null) throw new Exception(CoreStrings.Include_ParameterType_Error);
+            if (tb == null) throw new Exception(CoreErrorStrings.Include_ParameterType_Error);
 
             _isIncluded = true;
             _tables[0].Parameter = navigateSelector.Parameters[0];
@@ -686,19 +686,19 @@ namespace FreeSql.Internal.CommonProvider
                             isbreak = true;
                             break;
                         }
-                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
+                        throw new Exception(CoreErrorStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                     default:
-                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
+                        throw new Exception(CoreErrorStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                 }
             }
-            if (param == null) throw new Exception(CoreStrings.Expression_Error_Use_ParameterExpression(exp));
+            if (param == null) throw new Exception(CoreErrorStrings.Expression_Error_Use_ParameterExpression(exp));
             return NativeTuple.Create(param, members.ToList());
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class
         {
-            var throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterType_Error_Use_MemberAccess);
+            var throwNavigateSelector = new Exception(CoreErrorStrings.IncludeMany_ParameterType_Error_Use_MemberAccess);
             
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
@@ -708,7 +708,7 @@ namespace FreeSql.Internal.CommonProvider
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
             while (expBody.NodeType == ExpressionType.Call)
             {
-                throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterTypeError(nameof(navigateSelector)));
+                throwNavigateSelector = new Exception(CoreErrorStrings.IncludeMany_ParameterTypeError(nameof(navigateSelector)));
                 var callExp = (expBody as MethodCallExpression);
                 switch (callExp.Method.Name)
                 {
@@ -720,7 +720,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                     case "Select":
                         selectExp = (callExp.Arguments[1] as Expression<Func<TNavigate, TNavigate>>);
-                        if (selectExp?.Parameters.Count != 1) throw new Exception(CoreStrings.IncludeMany_ParameterError_OnlyUseOneParameter(nameof(navigateSelector)));
+                        if (selectExp?.Parameters.Count != 1) throw new Exception(CoreErrorStrings.IncludeMany_ParameterError_OnlyUseOneParameter(nameof(navigateSelector)));
                         break;
                     default: throw throwNavigateSelector;
                 }
@@ -736,9 +736,9 @@ namespace FreeSql.Internal.CommonProvider
             if (tb == null) throw throwNavigateSelector;
             var collMemElementType = (collMem.Type.IsGenericType ? collMem.Type.GetGenericArguments().FirstOrDefault() : collMem.Type.GetElementType());
             if (typeof(TNavigate) != collMemElementType)
-                throw new Exception(CoreStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(nameof(navigateSelector), collMemElementType));
+                throw new Exception(CoreErrorStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(nameof(navigateSelector), collMemElementType));
             var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
-            if (tbNav == null) throw new Exception(CoreStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
+            if (tbNav == null) throw new Exception(CoreErrorStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
                 _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), _diymemexpWithTempQuery, null, null);
@@ -748,7 +748,7 @@ namespace FreeSql.Internal.CommonProvider
             if (whereExp == null)
             {
                 tbref = tb.GetTableRef(collMem.Member.Name, true, true);
-                if (tbref == null) throw new Exception(CoreStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
+                if (tbref == null) throw new Exception(CoreErrorStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
             }
             else
             {

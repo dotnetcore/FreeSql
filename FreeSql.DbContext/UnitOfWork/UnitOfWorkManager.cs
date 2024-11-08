@@ -22,7 +22,7 @@ namespace FreeSql
 
         public UnitOfWorkManager(IFreeSql fsql)
         {
-            if (fsql == null) throw new ArgumentNullException(DbContextStrings.UnitOfWorkManager_Construction_CannotBeNull(nameof(UnitOfWorkManager), nameof(fsql)));
+            if (fsql == null) throw new ArgumentNullException(DbContextErrorStrings.UnitOfWorkManager_Construction_CannotBeNull(nameof(UnitOfWorkManager), nameof(fsql)));
             _ormScoped = DbContextScopedFreeSql.Create(fsql, null, () => this.Current);
         }
 
@@ -93,7 +93,7 @@ namespace FreeSql
             {
                 case Propagation.Required: return FindedUowCreateVirtual() ?? CreateUow(isolationLevel);
                 case Propagation.Supports: return FindedUowCreateVirtual() ?? CreateUowNothing(_allUows.LastOrDefault()?.IsNotSupported ?? false);
-                case Propagation.Mandatory: return FindedUowCreateVirtual() ?? throw new Exception(DbContextStrings.Propagation_Mandatory);
+                case Propagation.Mandatory: return FindedUowCreateVirtual() ?? throw new Exception(DbContextErrorStrings.Propagation_Mandatory);
                 case Propagation.NotSupported: return CreateUowNothing(true);
                 case Propagation.Never:
                     var isNotSupported = _allUows.LastOrDefault()?.IsNotSupported ?? false;
@@ -101,7 +101,7 @@ namespace FreeSql
                     {
                         for (var a = _rawUows.Count - 1; a >= 0; a--)
                             if (_rawUows[a].Uow.GetOrBeginTransaction(false) != null)
-                                throw new Exception(DbContextStrings.Propagation_Never);
+                                throw new Exception(DbContextErrorStrings.Propagation_Never);
                     }
                     return CreateUowNothing(isNotSupported);
                 case Propagation.Nested: return CreateUow(isolationLevel);

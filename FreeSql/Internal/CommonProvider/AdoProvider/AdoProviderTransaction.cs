@@ -78,7 +78,7 @@ namespace FreeSql.Internal.CommonProvider
             _trans.TryRemove(tran.Connection.LastGetThreadId, out var oldtran);
 
             Exception ex = null;
-            if (string.IsNullOrEmpty(remark)) remark = isCommit ? CoreStrings.Commit : CoreStrings.RollBack;
+            if (string.IsNullOrEmpty(remark)) remark = isCommit ? CoreErrorStrings.Commit : CoreErrorStrings.RollBack;
             try
             {
                 if (tran.Transaction.Connection != null) //用户自行 Commit、Rollback

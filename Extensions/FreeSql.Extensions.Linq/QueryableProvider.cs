@@ -121,7 +121,7 @@ namespace FreeSql.Extensions.Linq
                     case "Average": return tplMaxMinAvgSum("Avg");
 
                     case "Concat":
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
                     case "Contains":
                         if (callExp.Arguments.Count == 2)
                         {
@@ -141,7 +141,7 @@ namespace FreeSql.Extensions.Linq
                             _select.Distinct();
                             break;
                         }
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     case "ElementAt":
                     case "ElementAtOrDefault":
@@ -178,7 +178,7 @@ namespace FreeSql.Extensions.Linq
                             _select.InternalWhere(whereParam);
                             break;
                         }
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     case "Skip":
                         _select.Offset((int)callExp.Arguments[1].GetConstExprValue());
@@ -190,7 +190,7 @@ namespace FreeSql.Extensions.Linq
                     case "ToList":
                         if (callExp.Arguments.Count == 1)
                             return _select.ToList();
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     case "Select":
                         var selectParam = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
@@ -199,7 +199,7 @@ namespace FreeSql.Extensions.Linq
                             _select._selectExpression = selectParam;
                             break;
                         }
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     case "Join":
                         if (callExp.Arguments.Count == 5)
@@ -241,13 +241,13 @@ namespace FreeSql.Extensions.Linq
 
                     case "Last":
                     case "LastOrDefault":
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     case "GroupBy":
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
 
                     default:
-                        return throwCallExp(CoreStrings.Not_Support);
+                        return throwCallExp(CoreErrorStrings.Not_Support);
                 }
             }
             if (tresult == null) return null;

@@ -499,7 +499,7 @@ namespace FreeSql
                 void LocalInclude(TableRef tbref, Expression exp)
                 {
                     var incMethod = queryExp.Type.GetMethod("Include");
-                    if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany.Replace("IncludeMany", "Include"));
+                    if (incMethod == null) throw new Exception(CoreErrorStrings.RunTimeError_Reflection_IncludeMany.Replace("IncludeMany", "Include"));
                     queryExp = Expression.Call(queryExp, incMethod.MakeGenericMethod(tbref.RefEntityType),
                         Expression.Lambda(typeof(Func<,>).MakeGenericType(entityType, tbref.RefEntityType), exp, navigateParameterExp));
                 }
@@ -508,7 +508,7 @@ namespace FreeSql
                     var funcType = typeof(Func<,>).MakeGenericType(entityType, typeof(IEnumerable<>).MakeGenericType(tbref.RefEntityType));
                     var navigateSelector = Expression.Lambda(funcType, exp, navigateParameterExp);
                     var incMethod = queryExp.Type.GetMethod("IncludeMany");
-                    if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
+                    if (incMethod == null) throw new Exception(CoreErrorStrings.RunTimeError_Reflection_IncludeMany);
                     LambdaExpression navigateThen = null;
                     var navigateThenType = typeof(Action<>).MakeGenericType(typeof(ISelect<>).MakeGenericType(tbref.RefEntityType));
                     var thenParameter = Expression.Parameter(typeof(ISelect<>).MakeGenericType(tbref.RefEntityType), "then");

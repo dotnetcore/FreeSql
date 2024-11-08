@@ -24,7 +24,7 @@ namespace FreeSql.Duckdb.Curd
         public OnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _duckdbInsert = insert as DuckdbInsert<T1>;
-            if (_duckdbInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "Duckdb"));
+            if (_duckdbInsert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnConflictDoUpdate", "Duckdb"));
             if (_duckdbInsert._noneParameterFlag == "c") _duckdbInsert._noneParameterFlag = "cu";
 
             if (columns != null)
@@ -38,7 +38,7 @@ namespace FreeSql.Duckdb.Curd
             }
             if (_tempPrimarys == null || _tempPrimarys.Any() == false)
                 _tempPrimarys = _duckdbInsert.InternalTable.Primarys;
-            if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
+            if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()

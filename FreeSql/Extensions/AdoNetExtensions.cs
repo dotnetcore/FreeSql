@@ -13,8 +13,8 @@ namespace FreeSql
         static object _dicCurdLock = new object();
         static IFreeSql GetCrud(IDbConnection dbconn)
         {
-            if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} {CoreStrings.Cannot_Be_NULL}");
-            if (dbconn.ConnectionString == null) throw new ArgumentNullException($"{nameof(dbconn)}.ConnectionString {CoreStrings.Cannot_Be_NULL}");
+            if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} {CoreErrorStrings.Cannot_Be_NULL}");
+            if (dbconn.ConnectionString == null) throw new ArgumentNullException($"{nameof(dbconn)}.ConnectionString {CoreErrorStrings.Cannot_Be_NULL}");
             Type dbconType = dbconn.GetType();
             var connType = dbconType.UnderlyingSystemType;
             if (_dicCurd.TryGetValue(dbconn.ConnectionString, out var fsql)) return fsql;
@@ -25,49 +25,49 @@ namespace FreeSql
                 case "MySqlConnection":
                     providerType = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(connType);
                     if (providerType == null) providerType = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("MySql"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("MySql"));
                     break;
                 case "SqlConnection":
                     providerType = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(connType);
                     if (providerType == null) providerType = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServerForSystem")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("SqlServer/SqlServerForSystem"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("SqlServer/SqlServerForSystem"));
                     break;
                 case "NpgsqlConnection":
                     providerType = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("PostgreSQL"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("PostgreSQL"));
                     break;
                 case "OracleConnection":
                     providerType = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Oracle"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("Oracle"));
                     break;
                 case "SQLiteConnection":
                 case "SqliteConnection":
                     providerType = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(connType);
                     if (providerType == null) providerType = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.SqliteCore")?.MakeGenericType(connType); //Microsoft.Data.Sqlite.Core.dll
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Sqlite/SqliteCore"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("Sqlite/SqliteCore"));
                     break;
                 case "DmConnection":
                     providerType = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Dameng"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("Dameng"));
                     break;
                 case "OscarConnection":
                     providerType = Type.GetType("FreeSql.ShenTong.ShenTongProvider`1,FreeSql.Provider.ShenTong")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("ShenTong"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("ShenTong"));
                     break;
                 case "KdbndpConnection":
                     providerType = Type.GetType("FreeSql.KingbaseES.KingbaseESProvider`1,FreeSql.Provider.KingbaseES")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("KingbaseES"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("KingbaseES"));
                     break;
                 case "FbConnection":
                     providerType = Type.GetType("FreeSql.Firebird.FirebirdProvider`1,FreeSql.Provider.Firebird")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("Firebird"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("Firebird"));
                     break;
                 case "ClickHouseConnection":
                     providerType = Type.GetType("FreeSql.ClickHouse.ClickHouseProvider`1,FreeSql.Provider.ClickHouse")?.MakeGenericType(connType);
-                    if (providerType == null) throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package("ClickHouse"));
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("ClickHouse"));
                     break;
                 default:
-                    throw new Exception(CoreStrings.Not_Implemented);
+                    throw new Exception(CoreErrorStrings.Not_Implemented);
             }
             lock (_dicCurdLock)
             {
@@ -79,7 +79,7 @@ namespace FreeSql
         }
         static IFreeSql GetCrud(IDbTransaction dbtran)
         {
-            if (dbtran == null) throw new ArgumentNullException($"{nameof(dbtran)} {CoreStrings.Cannot_Be_NULL}");
+            if (dbtran == null) throw new ArgumentNullException($"{nameof(dbtran)} {CoreErrorStrings.Cannot_Be_NULL}");
             return GetCrud(dbtran.Connection);
         }
 

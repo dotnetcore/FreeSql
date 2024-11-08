@@ -295,12 +295,12 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                     _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
                     handler?.Invoke();
                     _transaction.Commit();
-                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
+                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                 }
                 catch (Exception ex)
                 {
                     _transaction.Rollback();
-                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
+                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                     throw;
                 }
                 finally

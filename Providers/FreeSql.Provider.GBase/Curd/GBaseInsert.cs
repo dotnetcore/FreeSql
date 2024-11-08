@@ -28,7 +28,7 @@ namespace FreeSql.GBase.Curd
             if (_source?.Count <= 1) return base.ToSqlValuesOrSelectUnionAll();
             var sql = base.ToSqlValuesOrSelectUnionAllExtension102(false, null, (rowd, idx, sb) => sb.Append(" FROM dual"));
             var validx = sql.IndexOf(") SELECT ");
-            if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("SELECT"));
+            if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("SELECT"));
             return new StringBuilder()
                 .Insert(0, sql.Substring(0, validx + 1))
                 .Append("\r\nSELECT * FROM (\r\n")

@@ -267,7 +267,7 @@ namespace FreeSql.QuestDb
                     case "Format":
                         if (exp.Arguments[0].NodeType != ExpressionType.Constant)
                             throw new Exception(
-                                CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
+                                CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgsHack =
                             exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit
                                 ? (exp.Arguments[1] as NewArrayExpression).Expressions

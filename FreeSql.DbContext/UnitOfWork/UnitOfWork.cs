@@ -55,7 +55,7 @@ namespace FreeSql
         public void Close()
         {
             if (_tran != null)
-                throw new Exception(DbContextStrings.TransactionHasBeenStarted);
+                throw new Exception(DbContextErrorStrings.TransactionHasBeenStarted);
 
             Enable = false;
         }

@@ -32,7 +32,7 @@ public static partial class FreeSqlMySqlGlobalExtensions
     public static IInsert<T1> MySqlIgnoreInto<T1>(this IInsert<T1> that) where T1 : class
     {
         var _mysqlInsert = that as MySqlInsert<T1>;
-        if (_mysqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("MySqlIgnoreInto", "MySql/FreeSql.Provider.MySqlConnector"));
+        if (_mysqlInsert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("MySqlIgnoreInto", "MySql/FreeSql.Provider.MySqlConnector"));
         _mysqlInsert.InternalIsIgnoreInto = true;
         return that;
     }

@@ -162,10 +162,10 @@ namespace FreeSql
         /// <returns></returns>
         public DbSet<TEntity> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("DbSet"));
+            if (entityType == typeof(object)) throw new Exception(CoreErrorStrings.TypeAsType_NotSupport_Object("DbSet"));
             if (entityType == _entityType) return this;
             var newtb = _db.OrmOriginal.CodeFirst.GetTableByEntity(entityType);
-            _tablePriv = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("DbSet"));
+            _tablePriv = newtb ?? throw new Exception(CoreErrorStrings.Type_AsType_Parameter_Error("DbSet"));
             _tableIdentitysPriv = null;
             _tableReturnColumnsPriv = null;
             _entityType = entityType;
@@ -220,7 +220,7 @@ namespace FreeSql
         void AttachPriv(IEnumerable<TEntity> data, bool isAuditValue)
         {
             if (data == null || data.Any() == false) return;
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAttach_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotAttach_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
             foreach (var item in data)
             {
                 if (isAuditValue)
@@ -229,7 +229,7 @@ namespace FreeSql
                     _db.Options.AuditValue?.Invoke(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
                 }
                 var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
-                if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.CannotAttach_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, item)));
+                if (string.IsNullOrEmpty(key)) throw new Exception(DbContextErrorStrings.CannotAttach_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, item)));
 
                 _states.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
                 {
@@ -264,9 +264,9 @@ namespace FreeSql
         public Dictionary<string, object[]> CompareState(TEntity newdata)
         {
             if (newdata == null) return null;
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.Incomparable_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.Incomparable_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, newdata, false);
-            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.Incomparable_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
+            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextErrorStrings.Incomparable_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
             if (_states.TryGetValue(key, out var oldState) == false || oldState == null)
                 return _table.ColumnsByCs.ToDictionary(a => a.Key, a => new object[]
                 {
@@ -326,7 +326,7 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             FreeSql.Internal.CommonProvider.InsertProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
@@ -350,7 +350,7 @@ namespace FreeSql
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
                             return true;
-                        if (isThrow) throw new Exception(DbContextStrings.CannotAdd_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                        if (isThrow) throw new Exception(DbContextErrorStrings.CannotAdd_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                         return false;
                 }
             }
@@ -359,14 +359,14 @@ namespace FreeSql
 				//不可添加，已存在于状态管理
 				//if (_states.ContainsKey(key))
 				//{
-				//    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_AlreadyExistsInStateManagement(_db.OrmOriginal.GetEntityString(_entityType, data)));
+				//    if (isThrow) throw new Exception(DbContextErrorStrings.CannotAdd_AlreadyExistsInStateManagement(_db.OrmOriginal.GetEntityString(_entityType, data)));
 				//    return false;
 				//}
 				if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
                 var idval = _db.OrmOriginal.GetEntityIdentityValueWithPrimary(_entityType, data);
                 if (idval > 0)
                 {
-                    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_SelfIncreasingHasValue(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                    if (isThrow) throw new Exception(DbContextErrorStrings.CannotAdd_SelfIncreasingHasValue(_db.OrmOriginal.GetEntityString(_entityType, data)));
                     return false;
                 }
             }
@@ -393,7 +393,7 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotUpdate_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
@@ -401,12 +401,12 @@ namespace FreeSql
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             if (_states.TryGetValue(key, out var tryval) == false)
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_DataShouldQueryOrAttach(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotUpdate_DataShouldQueryOrAttach(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             return true;
@@ -432,13 +432,13 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotDelete_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotDelete_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {
-                if (isThrow) throw new Exception(DbContextStrings.CannotDelete_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (isThrow) throw new Exception(DbContextErrorStrings.CannotDelete_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             //if (_states.TryGetValue(key, out var tryval) == false) {

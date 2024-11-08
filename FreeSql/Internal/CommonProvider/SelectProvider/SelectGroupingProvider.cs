@@ -197,7 +197,7 @@ namespace FreeSql.Internal.CommonProvider
         public string InternalToSql(string field)
         {
             if (string.IsNullOrEmpty(field))
-                throw new ArgumentException(CoreStrings.Parameter_Field_NotSpecified);
+                throw new ArgumentException(CoreErrorStrings.Parameter_Field_NotSpecified);
 
             var isNestedPageSql = false;
             switch (_orm.Ado.DataType)

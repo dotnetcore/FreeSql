@@ -182,7 +182,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     public static void ExecutePgCopy<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecutePgCopy", "PostgreSQL"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecutePgCopy", "PostgreSQL"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -254,7 +254,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecutePgCopy {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecutePgCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
@@ -282,7 +282,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecutePgCopyAsync", "PostgreSQL"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecutePgCopyAsync", "PostgreSQL"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -353,7 +353,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecutePgCopyAsync {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecutePgCopyAsync {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

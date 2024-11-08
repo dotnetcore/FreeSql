@@ -45,7 +45,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString, Type providerType = null)
         {
-            if (_connectionFactory != null) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseConnectionString"));
+            if (_connectionFactory != null) throw new Exception(CoreErrorStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseConnectionString"));
             _dataType = dataType;
             _masterConnectionString = connectionString;
             _providerType = providerType;
@@ -86,13 +86,13 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseSlave(params string[] slaveConnectionString)
         {
-            if (_connectionFactory != null) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseSlave"));
+            if (_connectionFactory != null) throw new Exception(CoreErrorStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseSlave"));
             _slaveConnectionString = slaveConnectionString;
             return this;
         }
         public FreeSqlBuilder UseSlaveWeight(params int[] slaveWeights)
         {
-            if (_slaveConnectionString?.Length != slaveWeights.Length) throw new Exception(CoreStrings.Different_Number_SlaveConnectionString_SlaveWeights);
+            if (_slaveConnectionString?.Length != slaveWeights.Length) throw new Exception(CoreErrorStrings.Different_Number_SlaveConnectionString_SlaveWeights);
             _slaveWeights = slaveWeights;
             return this;
         }
@@ -105,8 +105,8 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionFactory(DataType dataType, Func<DbConnection> connectionFactory, Type providerType = null)
         {
-            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionString", "UseConnectionFactory"));
-            if (_slaveConnectionString?.Any() == true) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseSlave", "UseConnectionFactory"));
+            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception(CoreErrorStrings.Has_Specified_Cannot_Specified_Second("UseConnectionString", "UseConnectionFactory"));
+            if (_slaveConnectionString?.Any() == true) throw new Exception(CoreErrorStrings.Has_Specified_Cannot_Specified_Second("UseSlave", "UseConnectionFactory"));
             _dataType = dataType;
             _connectionFactory = connectionFactory;
             _providerType = providerType;
@@ -244,7 +244,7 @@ namespace FreeSql
         public IFreeSql Build() => Build<IFreeSql>();
         public IFreeSql<TMark> Build<TMark>()
         {
-            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception(CoreStrings.Check_UseConnectionString);
+            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception(CoreErrorStrings.Check_UseConnectionString);
             IFreeSql<TMark> ret = null;
             var type = _providerType;
             if (type != null)
@@ -254,7 +254,7 @@ namespace FreeSql
             }
             else
             {
-                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package_Reason(dll, providerType));
+                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package_Reason(dll, providerType));
                 switch (_dataType)
                 {
                     case DataType.MySql:
@@ -385,7 +385,7 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Duckdb.dll", "FreeSql.Duckdb.DuckdbProvider<>");
                         break;
 
-                    default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
+                    default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
             ret = Activator.CreateInstance(type, new object[]

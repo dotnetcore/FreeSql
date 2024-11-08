@@ -90,6 +90,6 @@ namespace FreeSql.Odbc.Default
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects) => throw new NotImplementedException($"FreeSql.Odbc.Default {CoreStrings.S_Not_Implemented_Feature}");
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects) => throw new NotImplementedException($"FreeSql.Odbc.Default {CoreErrorStrings.S_Not_Implemented_Feature}");
     }
 }

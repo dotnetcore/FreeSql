@@ -63,26 +63,4 @@
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Compile Update="Properties\DbContextStrings.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>DbContextStrings.Designer.tt</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="Properties\DbContextStrings.Designer.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>DbContextStrings.Designer.cs</LastGenOutput>
-		</None>
-		<EmbeddedResource Update="Properties\DbContextStrings.resx">
-		  <SubType>Designer</SubType>
-		  <CustomToolNamespace>FreeSql</CustomToolNamespace>
-		</EmbeddedResource>
-		<EmbeddedResource Update="Properties\DbContextStrings.zh-Hans.resx">
-			<CustomToolNamespace>FreeSql</CustomToolNamespace>
-		</EmbeddedResource>
-	</ItemGroup>
-
 </Project>

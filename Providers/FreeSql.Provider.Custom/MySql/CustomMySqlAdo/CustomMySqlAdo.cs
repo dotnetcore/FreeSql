@@ -24,7 +24,7 @@ namespace FreeSql.Custom.MySql
                 MasterPool = pool;
                 return;
             }
-            throw new Exception(CoreStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
+            throw new Exception(CoreErrorStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
         }
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {

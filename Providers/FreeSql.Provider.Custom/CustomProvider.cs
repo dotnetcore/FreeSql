@@ -18,9 +18,9 @@ namespace FreeSql.Custom
         public override IInsert<T1> CreateInsertProvider<T1>() => new CustomInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new CustomUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new CustomDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
-        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
+        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 
-        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreStrings.S_Not_Implemented_Feature}");
+        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 
         public CustomProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
