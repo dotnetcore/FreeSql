@@ -580,15 +580,33 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }
-        public ISelect<T1> WithMemory(IEnumerable<T1> source)
+        public ISelect<TDto> WithMemory<TDto>(IEnumerable<TDto> source)
         {
             var list = source?.Select(a => (object)a).ToList();
             if (list.Any() != true) throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(source)));
-			var sb = new StringBuilder();
+            var sb = new StringBuilder();
             (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
                 .WriteSourceSelectUnionAll(list, sb, _params, true);
+            try
+            {
+                if (typeof(T1) != typeof(TDto))
+                {
+                    if (_orm.CodeFirst.IsAutoSyncStructure)
+                        (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                    var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+                    ret._commandTimeout = _commandTimeout;
+                    ret._connection = _connection;
+                    ret._transaction = _transaction;
+                    ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+                    ret._cancel = _cancel;
+                    ret._params.AddRange(_params);
+                    if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
 
-            try { return WithSql(sb.ToString()); }
+                    ret.WithSql(sb.ToString());
+                    return ret;
+                }
+                return WithSql(sb.ToString()) as ISelect<TDto>;
+            }
             finally { sb.Clear(); }
         }
 

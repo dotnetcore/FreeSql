@@ -1087,6 +1087,93 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
+            <summary>
+            动态创建实体类型
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.#ctor(IFreeSql,System.String,System.Attribute[])">
+            <summary>
+            配置Class
+            </summary>
+            <param name="className">类名</param>
+            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.TypeBuilder">
+            <summary>
+            获取类型构建器，可作为要构建的Type来引用
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Object,System.Attribute[])">
+            <summary>
+            配置属性
+            </summary>
+            <param name="propertyName">属性名称</param>
+            <param name="propertyType">属性类型</param>
+            <param name="isOverride">该属性是否重写父类属性</param>
+            <param name="defaultValue">属性默认值</param>
+            <param name="attributes">属性标记的特性-支持多个</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
+            <summary>
+            配置父类
+            </summary>
+            <param name="superClass">父类类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.OverrideProperty(System.Reflection.Emit.TypeBuilder@,System.Reflection.Emit.MethodBuilder,FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.PropertyMethodEnum,System.String)">
+            <summary>
+            Override属性
+            </summary>
+            <param name="typeBuilder"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
+            <summary>
+            Emit动态创建出Class - Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.BuildJustType">
+            <summary>
+            Emit动态创建出Class - Type，不附带获取TableInfo
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
@@ -2754,7 +2841,7 @@
             <param name="parms">参数</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect`1.WithMemory(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:FreeSql.ISelect`1.WithMemory``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             实现 select .. from ( select .. UNION ALL select .. ) a 这样的功能（基于内存数据）
             </summary>
@@ -3289,6 +3376,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.ExecuteUpdatedAsync(System.Threading.CancellationToken)">
+            <summary>
+            执行SQL语句，返回更新后的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer 有效果
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdateJoin`2.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
             指定事务对象
@@ -3631,6 +3725,177 @@
             <typeparam name="T2"></typeparam>
             <param name="cmdText"></param>
             <param name="parms"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteConnectTestAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            测试数据库是否连接正确，本方法执行如下命令：<para></para>
+            MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+            Oracle: SELECT 1 FROM dual<para></para>
+            </summary>
+            <param name="commandTimeout">命令超时设置(秒)</param>
+            <param name="cancellationToken"></param>
+            <returns>true: 成功, false: 失败</returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+            </summary>
+            <param name="readerHander"></param>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="readerHander"></param>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            查询
+            </summary>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            查询
+            </summary>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            查询
+            </summary>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            在【主库】执行
+            </summary>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            在【主库】执行
+            </summary>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+            <summary>
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="cmdType"></param>
+            <param name="cmdText"></param>
+            <param name="cmdParms"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            执行SQL返回对象集合，Query&lt;User, Address&gt;("select * from user where age > @age; select * from address", new { age = 25 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <param name="cancellationToken"></param>
             <returns></returns>
         </member>
         <member name="E:FreeSql.IAop.ParseExpression">
@@ -4632,6 +4897,12 @@
             <param name="timeout">超时</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
+            <summary>
+            获取资源
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
             <summary>
             使用完毕后，归还资源
@@ -4702,6 +4973,12 @@
             </summary>
         </member>
         <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGet(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0})">
             <summary>
             从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
             </summary>
@@ -5620,6 +5897,28 @@
             对象池
             </summary>
         </member>
+        <member name="M:FreeSqlGlobalDynamicEntityExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,System.Attribute[])">
+            <summary>
+            动态构建Class Type
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateInstance(FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            根据字典，创建 table 对应的实体对象
+            </summary>
+            <param name="table"></param>
+            <param name="dict"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
+            <summary>
+            根据实体对象，创建 table 对应的字典
+            </summary>
+            <param name="table"></param>
+            <param name="instance"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>
             C#： that >= between &amp;&amp; that &lt;= and<para></para>
@@ -5935,228 +6234,6 @@
             使用 and 拼接两个 lambda 表达式
             </summary>
             <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
-            </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
-            </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeUtil.NewMongodbId">
-            <summary>
-            生成类似Mongodb的ObjectId有序、不重复Guid
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1">
-            <summary>
-            插入数据
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1(``0)">
-            <summary>
-            插入数据，传入实体
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1(``0[])">
-            <summary>
-            插入数据，传入实体数组
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
-            <summary>
-            插入数据，传入实体集合
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            插入数据，传入实体集合
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.InsertOrUpdate``1">
-            <summary>
-            插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
-            MySql 5.6+: on duplicate key update<para></para>
-            PostgreSQL 9.4+: on conflict do update<para></para>
-            SqlServer 2008+: merge into<para></para>
-            Oracle 11+: merge into<para></para>
-            Sqlite: replace into<para></para>
-            DuckDB: on conflict do update<para></para>
-            达梦: merge into<para></para>
-            人大金仓：on conflict do update<para></para>
-            神通：merge into<para></para>
-            MsAccess：不支持<para></para>
-            注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Update``1">
-            <summary>
-            修改数据
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Update``1(System.Object)">
-            <summary>
-            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Select``1">
-            <summary>
-            查询数据
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Select``1(System.Object)">
-            <summary>
-            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Delete``1">
-            <summary>
-            删除数据
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Delete``1(System.Object)">
-            <summary>
-            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Transaction(System.Action)">
-            <summary>
-            开启事务（不支持异步）<para></para>
-            v1.5.0 关闭了线程事务超时自动提交的机制
-            </summary>
-            <param name="handler">事务体 () => {}</param>
-        </member>
-        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
-            <summary>
-            开启事务（不支持异步）<para></para>
-            v1.5.0 关闭了线程事务超时自动提交的机制
-            </summary>
-            <param name="isolationLevel"></param>
-            <param name="handler">事务体 () => {}</param>
-        </member>
-        <member name="P:IFreeSql.Ado">
-            <summary>
-            数据库访问对象
-            </summary>
-        </member>
-        <member name="P:IFreeSql.Aop">
-            <summary>
-            所有拦截方法都在这里
-            </summary>
-        </member>
-        <member name="P:IFreeSql.CodeFirst">
-            <summary>
-            CodeFirst 模式开发相关方法
-            </summary>
-        </member>
-        <member name="P:IFreeSql.DbFirst">
-            <summary>
-            DbFirst 模式开发相关方法
-            </summary>
-        </member>
-        <member name="P:IFreeSql.GlobalFilter">
-            <summary>
-            全局过滤设置，可默认附加为 Select/Update/Delete 条件
-            </summary>
-        </member>
-    </members>
-</doc>
-<returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
             <summary>

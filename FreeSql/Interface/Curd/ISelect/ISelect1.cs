@@ -392,7 +392,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="source">内存数据</param>
         /// <returns></returns>
-        ISelect<T1> WithMemory(IEnumerable<T1> source);
+        ISelect<TDto> WithMemory<TDto>(IEnumerable<TDto> source);
 
         /// <summary>
         /// 嵌套查询 select * from ( select ... from table ... ) a
