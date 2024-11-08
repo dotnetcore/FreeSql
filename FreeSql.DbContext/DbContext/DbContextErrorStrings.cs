@@ -110,7 +110,7 @@ namespace FreeSql
         /// </summary>
         public static string DbSetAsType_NotSupport_Object => Language == "cn" ?
             @"DbSet.AsType 参数错误，请传入正确的实体类型" :
-            @"FreeSql: DbSet. AsType parameter error, please pass in the correct entity type";
+            @"FreeSql: DbSet.AsType parameter error, please pass in the correct entity type";
         /// <summary>
         /// 实体类型 {EntityTypeName} 无法转换为 {name}，无法使用该方法
         /// </summary>
@@ -134,7 +134,7 @@ namespace FreeSql
         /// </summary>
         public static string FailedSetFilter_NotBelongIRpository => Language == "cn" ?
             @"FreeSql.Repository 设置过滤器失败，原因是对象不属于 IRepository" :
-            @"FreeSql: FreeSql. Repository failed to set filter because object does not belong to IRepository";
+            @"FreeSql: FreeSql.Repository failed to set filter because object does not belong to IRepository";
         /// <summary>
         /// 不可比较，实体没有主键：{entityString}
         /// </summary>
@@ -158,7 +158,7 @@ namespace FreeSql
         /// </summary>
         public static string ISelectAsType_ParameterError => Language == "cn" ?
             @"ISelect.AsType 参数不支持指定为 object" :
-            @"FreeSql: ISelect. AsType parameter does not support specifying as object";
+            @"FreeSql: ISelect.AsType parameter does not support specifying as object";
         /// <summary>
         /// {tableTypeFullName} 不存在属性 {propertyName}
         /// </summary>
@@ -170,7 +170,7 @@ namespace FreeSql
         /// </summary>
         public static string NotFoundMethod_StatesRemoveByObjects => Language == "cn" ?
             @"找不到方法 DbSet<>.StatesRemoveByObjects" :
-            @"FreeSql: Method DbSet<> not found. StatesRemoveByObjects";
+            @"FreeSql: Method not found DbSet<>.StatesRemoveByObjects";
         /// <summary>
         /// 参数 data 类型错误 {entityTypeFullName} 
         /// </summary>

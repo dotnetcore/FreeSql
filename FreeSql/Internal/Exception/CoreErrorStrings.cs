@@ -127,7 +127,7 @@ namespace FreeSql
         /// </summary>
         public static string DataType_AsType_Inconsistent(object dataDisplayCsharp, object tableTypeDisplayCsharp) => string.Format(Language == "cn" ?
             @"操作的数据类型({0}) 与 AsType({1}) 不一致，请检查。" :
-            @"FreeSql: The data type of the operation ({0}) is inconsistent with AsType ({1}). Please check.", dataDisplayCsharp, tableTypeDisplayCsharp);
+            @"FreeSql: The data type of the operation ({0}) is inconsistent with AsType({1}), Please check.", dataDisplayCsharp, tableTypeDisplayCsharp);
         /// <summary>
         /// DateRange 要求 Value 应该逗号分割，并且长度为 2
         /// </summary>
@@ -157,7 +157,7 @@ namespace FreeSql
         /// </summary>
         public static string Duplicate_ColumnAttribute(object colattrName) => string.Format(Language == "cn" ?
             @"ColumnAttribute.Name {0} 重复存在，请检查（注意：不区分大小写）" :
-            @"FreeSql: ColumnAttribute. Name {0} exists repeatedly, please check (note: case insensitive)", colattrName);
+            @"FreeSql: ColumnAttribute.Name {0} exists repeatedly, please check (note: case insensitive)", colattrName);
         /// <summary>
         /// 属性名 {pName} 重复存在，请检查（注意：不区分大小写）
         /// </summary>
@@ -247,7 +247,7 @@ namespace FreeSql
         /// </summary>
         public static string Ignored_Check_Confirm_PublicGetSet(object tb2DbName, object mp2MemberName) => string.Format(Language == "cn" ?
             @"{0}.{1} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public" :
-            @"FreeSql: {0}. {1} is ignored. Check the IsIgnore setting to make sure get/set is public", tb2DbName, mp2MemberName);
+            @"FreeSql: {0}.{1} is ignored, Check the IsIgnore setting to make sure get/set is public", tb2DbName, mp2MemberName);
         /// <summary>
         /// Include 参数类型错误
         /// </summary>
@@ -301,13 +301,13 @@ namespace FreeSql
         /// </summary>
         public static string InsertInto_No_Property_Selected(object displayCsharp) => string.Format(Language == "cn" ?
             @"ISelect.InsertInto() 未选择属性: {0}" :
-            @"FreeSql: ISelect. InsertInto() did not select an attribute: {0}", displayCsharp);
+            @"FreeSql: ISelect.InsertInto() did not select an attribute: {0}", displayCsharp);
         /// <summary>
         /// ISelect.InsertInto() 类型错误: {displayCsharp}
         /// </summary>
         public static string InsertInto_TypeError(object displayCsharp) => string.Format(Language == "cn" ?
             @"ISelect.InsertInto() 类型错误: {0}" :
-            @"FreeSql: ISelect. InsertInto() type error: {0}", displayCsharp);
+            @"FreeSql: ISelect.InsertInto() type error: {0}", displayCsharp);
         /// <summary>
         /// InsertOrUpdate 功能执行 merge into 要求实体类 {CsName} 必须有主键
         /// </summary>
@@ -319,13 +319,13 @@ namespace FreeSql
         /// </summary>
         public static string InsertOrUpdate_NotSuport_Generic_UseEntity(object typeofT1) => string.Format(Language == "cn" ?
             @"InsertOrUpdate<>的泛型参数 不支持 {0},请传递您的实体类" :
-            @"FreeSql: The generic parameter for InsertOrUpdate<>does not support {0}. Pass in your entity class", typeofT1);
+            @"FreeSql: The generic parameter for InsertOrUpdate<>does not support {0}, Pass in your entity class", typeofT1);
         /// <summary>
         /// 【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载
         /// </summary>
         public static string Install_FreeSql_Extensions_LazyLoading => Language == "cn" ?
             @"【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载" :
-            @"FreeSql: FreeSql needs to be installed for Delayed Loading. Extensions. LazyLoading. Dll, downloadable to nuget";
+            @"FreeSql: FreeSql needs to be installed for Delayed Loading.Extensions.LazyLoading.Dll, downloadable to nuget";
         /// <summary>
         /// 【延时加载】{trytbTypeName} 编译错误：{exMessage}
         /// </summary>
@@ -347,43 +347,43 @@ namespace FreeSql
         /// </summary>
         public static string ManyToMany_AsSelect_NotSupport_Sum_Avg_etc => Language == "cn" ?
             @"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法" :
-            @"FreeSql: ManyToMany navigation properties. AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method";
+            @"FreeSql: ManyToMany navigation properties.AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbmidCsName} 中没有找到对应的字段，如：{midTypePropsTrytbName}{findtrytbPkCsName}、{midTypePropsTrytbName}_{findtrytbPkCsName}
         /// </summary>
         public static string ManyToMany_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object findtrytbPkCsName) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 在 {2} 中没有找到对应的字段，如：{3}{4}、{3}_{4}" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} did not find a corresponding field in {2}, such as: {3}{4}, {3}_ {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, findtrytbPkCsName);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} did not find a corresponding field in {2}, such as: {3}{4}, {3}_ {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, findtrytbPkCsName);
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]
         /// </summary>
         public static string ManyToMany_ParsingError_EntityMissing_PrimaryKey(object trytbTypeName, object pnvName, object tbrefTypeName) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 解析错误，实体类型 {2} 缺少主键标识，[Column(IsPrimary = true)]" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, tbrefTypeName);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, tbrefTypeName);
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性
         /// </summary>
         public static string ManyToMany_ParsingError_EntityMustHas_NavigateCollection(object trytbTypeName, object pnvName, object tbrefTypeName) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 解析错误，实体类型 {2} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} parsing error, entity type {2} must have a corresponding [Navigate (ManyToMany = x)] collection property", trytbTypeName, pnvName, tbrefTypeName);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, entity type {2} must have a corresponding [Navigate (ManyToMany = x)] collection property", trytbTypeName, pnvName, tbrefTypeName);
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{tbmidCsName}.{trycolCsName} 和 {trytbCsName}.{trytbPrimarysCsName} 类型不一致
         /// </summary>
         public static string ManyToMany_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object tbmidCsName, object trycolCsName, object trytbCsName, object trytbPrimarysCsName) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 解析错误，{2}.{3} 和 {4}.{5} 类型不一致" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} parsing error, {2}. {3} and {4}. {5} type inconsistent", trytbTypeName, pnvName, tbmidCsName, trycolCsName, trytbCsName, trytbPrimarysCsName);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, {2}.{3} and {4}.{5} type inconsistent", trytbTypeName, pnvName, tbmidCsName, trycolCsName, trytbCsName, trytbPrimarysCsName);
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 错误：{exMessage}
         /// </summary>
         public static string ManyToMany_ParsingError_IntermediateClass_ErrorMessage(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object exMessage) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 解析错误，中间类 {2}.{3} 错误：{4}" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} parsing error, intermediate class {2}.{3} Error: {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, exMessage);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, intermediate class {2}.{3} Error: {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, exMessage);
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】
         /// </summary>
         public static string ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName) => string.Format(Language == "cn" ?
             @"【ManyToMany】导航属性 {0}.{1} 解析错误，中间类 {2}.{3} 导航属性不是【ManyToOne】或【OneToOne】" :
-            @"FreeSql: [ManyToMany] Navigation property {0}. {1} parsing error, intermediate class {2}. The {3} navigation property is not ManyToOne or OneToOne", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName);
+            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, intermediate class {2}.The {3} navigation property is not ManyToOne or OneToOne", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName);
         /// <summary>
         /// 映射异常：{name} 没有一个属性名相同
         /// </summary>
@@ -395,7 +395,7 @@ namespace FreeSql
         /// </summary>
         public static string MasterPool_IsNull_UseTransaction => Language == "cn" ?
             @"Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决" :
-            @"FreeSql: Ado. MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution";
+            @"FreeSql: Ado.MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution";
         /// <summary>
         /// 缺少 FreeSql 数据库实现包：FreeSql.Provider.{Provider}.dll，可前往 nuget 下载
         /// </summary>
@@ -413,49 +413,49 @@ namespace FreeSql
         /// </summary>
         public static string Navigation_Bind_Number_Different(object trytbTypeName, object pnvName, object bindColumnsCount, object tbrefPrimarysLength) => string.Format(Language == "cn" ?
             @"导航属性 {0}.{1} 特性 [Navigate] Bind 数目({2}) 与 外部主键数目({3}) 不相同" :
-            @"FreeSql: Navigation property {0}. The number of {1} attributes [Navigate] Binds ({2}) is different from the number of external primary keys ({3})", trytbTypeName, pnvName, bindColumnsCount, tbrefPrimarysLength);
+            @"FreeSql: Navigation property {0}.{1}, The number of attributes [Navigate] Binds ({2}) is different from the number of external primary keys ({3})", trytbTypeName, pnvName, bindColumnsCount, tbrefPrimarysLength);
         /// <summary>
         /// {tb2DbName}.{mp2MemberName} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a =&amp;gt; a.{mp2MemberName}) 中使用，请移步参考 IncludeMany 文档。
         /// </summary>
         public static string Navigation_Missing_AsSelect(object tb2DbName, object mp2MemberName) => string.Format(Language == "cn" ?
             @"{0}.{1} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a => a.{1}) 中使用，请移步参考 IncludeMany 文档。" :
-            @"FreeSql: {0}. {1} Navigation Property Collection forgotten. AsSelect()? If used in ToList (a => a. {1}), step by step to refer to the IncludeMany document.", tb2DbName, mp2MemberName);
+            @"FreeSql: {0}.{1} Navigation Property Collection forgotten.AsSelect()? If used in ToList(a => a.{1}), step by step to refer to the IncludeMany document.", tb2DbName, mp2MemberName);
         /// <summary>
         /// 【导航属性】{trytbTypeDisplayCsharp}.{pName} 缺少 set 属性
         /// </summary>
         public static string Navigation_Missing_SetProperty(object trytbTypeDisplayCsharp, object pName) => string.Format(Language == "cn" ?
             @"【导航属性】{0}.{1} 缺少 set 属性" :
-            @"FreeSql: Navigation Properties {0}. Missing set attribute for {1}", trytbTypeDisplayCsharp, pName);
+            @"FreeSql: Navigation Properties {0}.Missing set attribute for {1}", trytbTypeDisplayCsharp, pName);
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 没有找到对应的字段，如：{pnvName}{findtbrefPkCsName}、{pnvName}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。
         /// </summary>
         public static string Navigation_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object findtbrefPkCsName) => string.Format(Language == "cn" ?
             @"导航属性 {0}.{1} 没有找到对应的字段，如：{1}{3}、{1}_{3}。或者使用 [Navigate] 特性指定关系映射。" :
-            @"FreeSql: Navigation property {0}. {1} No corresponding fields were found, such as: {1}{3}, {1}_ {3}. Or use the [Navigate] attribute to specify the relationship mapping.", trytbTypeName, pnvName, findtbrefPkCsName);
+            @"FreeSql: Navigation property {0}.{1} No corresponding fields were found, such as: {1}{3}, {1}_ {3}, Or use the [Navigate] attribute to specify the relationship mapping.", trytbTypeName, pnvName, findtbrefPkCsName);
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {trytcTypeName} 缺少主键标识，[Column(IsPrimary = true)]
         /// </summary>
         public static string Navigation_ParsingError_EntityMissingPrimaryKey(object trytbTypeName, object pnvName, object trytcTypeName) => string.Format(Language == "cn" ?
             @"导航属性 {0}.{1} 解析错误，实体类型 {2} 缺少主键标识，[Column(IsPrimary = true)]" :
-            @"FreeSql: Navigation property {0}. {1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, trytcTypeName);
+            @"FreeSql: Navigation property {0}.{1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, trytcTypeName);
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trycolCsName} 和 {tbrefCsName}.{tbrefPrimarysCsName} 类型不一致
         /// </summary>
         public static string Navigation_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object trytbCsName, object trycolCsName, object tbrefCsName, object tbrefPrimarysCsName) => string.Format(Language == "cn" ?
             @"导航属性 {0}.{1} 解析错误，{2}.{3} 和 {4}.{5} 类型不一致" :
-            @"FreeSql: Navigation property {0}. {1} parsing error, {2}. {3} and {4}. {5} type inconsistent", trytbTypeName, pnvName, trytbCsName, trycolCsName, tbrefCsName, tbrefPrimarysCsName);
+            @"FreeSql: Navigation property {0}.{1} parsing error, {2}.{3} and {4}.{5} type inconsistent", trytbTypeName, pnvName, trytbCsName, trycolCsName, tbrefCsName, tbrefPrimarysCsName);
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}
         /// </summary>
         public static string Navigation_ParsingError_NotFound_Property(object trytbTypeName, object pnvName, object tbrefTypeName, object bi) => string.Format(Language == "cn" ?
             @"导航属性 {0}.{1} 特性 [Navigate] 解析错误，在 {2} 未找到属性：{3}" :
-            @"FreeSql: Navigation property {0}. {1} attribute [Navigate] parsing error, property not found at {2}: {3}", trytbTypeName, pnvName, tbrefTypeName, bi);
+            @"FreeSql: Navigation property {0}.{1} attribute [Navigate] parsing error, property not found at {2}: {3}", trytbTypeName, pnvName, tbrefTypeName, bi);
         /// <summary>
         /// {tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键
         /// </summary>
         public static string NoPrimaryKey_UseSetDto(object tableTypeDisplayCsharp) => string.Format(Language == "cn" ?
             @"{0} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键" :
-            @"FreeSql: {0} has no primary key defined and cannot use SetSource. Try SetDto", tableTypeDisplayCsharp);
+            @"FreeSql: {0} has no primary key defined and cannot use SetSource, Try SetDto", tableTypeDisplayCsharp);
         /// <summary>
         ///  没有定义属性 
         /// </summary>
@@ -485,7 +485,7 @@ namespace FreeSql
         /// </summary>
         public static string Not_Implemented_Expression_UseAsSelect(object exp, object exp3MethodName, object exp3ArgumentsCount) => string.Format(Language == "cn" ?
             @"未实现函数表达式 {0} 解析，如果正在操作导航属性集合，请使用 .AsSelect().{1}({2})" :
-            @"FreeSql: Function expression {0} parsing is not implemented. Use if you are working on a navigation property collection. AsSelect (). {1} ({2})", exp, exp3MethodName, exp3ArgumentsCount);
+            @"FreeSql: Function expression {0} parsing is not implemented, Use if you are working on a navigation property collection, AsSelect().{1}({2})", exp, exp3MethodName, exp3ArgumentsCount);
         /// <summary>
         /// 未实现 MemberAccess 下的 Constant
         /// </summary>
@@ -569,13 +569,13 @@ namespace FreeSql
         /// </summary>
         public static string ObjectPool_Get_Timeout(object policyName, object GetName, object totalSeconds) => string.Format(Language == "cn" ?
             @"【{0}】ObjectPool.{1}() timeout {2} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081" :
-            @"FreeSql: [{0}] ObjectPool. {1}() timeout {2} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081", policyName, GetName, totalSeconds);
+            @"FreeSql: [{0}] ObjectPool.{1}() timeout {2} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081", policyName, GetName, totalSeconds);
         /// <summary>
-        /// 【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}
+        /// 【{policyName}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {asyncGetCapacity}
         /// </summary>
         public static string ObjectPool_GetAsync_Queue_Long(object policyName, object asyncGetCapacity) => string.Format(Language == "cn" ?
-            @"【{0}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {1}" :
-            @"FreeSql: [{0}] ObjectPool. GetAsync() The queue is too long. Policy. AsyncGetCapacity = {1}", policyName, asyncGetCapacity);
+            @"【{0}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {1}" :
+            @"FreeSql: [{0}] ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {1}", policyName, asyncGetCapacity);
         /// <summary>
         /// 【OneToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbrefCsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}
         /// </summary>
@@ -593,7 +593,7 @@ namespace FreeSql
         /// </summary>
         public static string OneToMany_UseNavigate(object refpropName, object findtrytbPkCsName) => string.Format(Language == "cn" ?
             @"、{0}{1}、{0}_{1}。或者使用 [Navigate] 特性指定关系映射。" :
-            @", {0}{1}, {0}_{1}. Or use the [Navigate] attribute to specify the relationship mapping.", refpropName, findtrytbPkCsName);
+            @", {0}{1}, {0}_{1}, Or use the [Navigate] attribute to specify the relationship mapping.", refpropName, findtrytbPkCsName);
         /// <summary>
         /// 参数 field 未指定
         /// </summary>
@@ -641,7 +641,7 @@ namespace FreeSql
         /// </summary>
         public static string Policy_Status_NotAvailable(object policyName, object UnavailableExceptionMessage) => string.Format(Language == "cn" ?
             @"【{0}】状态不可用，等待后台检查程序恢复方可使用。{1}" :
-            @"FreeSql: The {0} status is unavailable and cannot be used until the background checker is restored. {1}", policyName, UnavailableExceptionMessage);
+            @"FreeSql: The {0} status is unavailable and cannot be used until the background checker is restored, {1}", policyName, UnavailableExceptionMessage);
         /// <summary>
         /// 属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable
         /// </summary>
@@ -725,7 +725,7 @@ namespace FreeSql
         /// </summary>
         public static string Type_AsType_Parameter_Error(object Type) => string.Format(Language == "cn" ?
             @"{0}.AsType 参数错误，请传入正确的实体类型" :
-            @"FreeSql: {0}. AsType parameter error, please pass in the correct entity type", Type);
+            @"FreeSql: {0}.AsType parameter error, please pass in the correct entity type", Type);
         /// <summary>
         /// {thatFullName} 类型无法访问构造函数
         /// </summary>
@@ -743,7 +743,7 @@ namespace FreeSql
         /// </summary>
         public static string TypeAsType_NotSupport_Object(object Type) => string.Format(Language == "cn" ?
             @"{0}.AsType 参数不支持指定为 object" :
-            @"FreeSql: {0}. AsType parameter does not support specifying as object", Type);
+            @"FreeSql: {0}.AsType parameter does not support specifying as object", Type);
         /// <summary>
         /// 类型 {typeofFullName} 错误，不能使用 IncludeMany
         /// </summary>
@@ -767,7 +767,7 @@ namespace FreeSql
         /// </summary>
         public static string Use_InsertDict_Method => Language == "cn" ?
             @"请使用 fsql.InsertDict(dict) 方法插入字典数据" :
-            @"FreeSql: Please use fsql. InsertDict (dict) method inserts dictionary data";
+            @"FreeSql: Please use fsql.InsertDict(dict) method inserts dictionary data";
         /// <summary>
         /// 找不到 {name}
         /// </summary>
@@ -791,13 +791,13 @@ namespace FreeSql
         /// </summary>
         public static string S_Access_InsertOnlyOneAtTime => Language == "cn" ?
             @"蛋疼的 Access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select .." :
-            @"FreeSql: Egg pain Accs insertion can only be performed one at a time, values (..) are not supported. (..) Select is also not supported.. UNION ALL select..";
+            @"FreeSql: values (..),(..) are not supported";
         /// <summary>
         /// BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null
         /// </summary>
         public static string S_BaseEntity_Initialization_Error => Language == "cn" ?
             @"BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null" :
-            @"FreeSql: BaseEntity. Initialization initialization error, get IFreeSql is null";
+            @"FreeSql: BaseEntity.Initialization initialization error, get IFreeSql is null";
         /// <summary>
         /// 【{thisName}】Block access and wait for recovery: {exMessage}
         /// </summary>
@@ -833,7 +833,7 @@ namespace FreeSql
         /// </summary>
         public static string S_ConnectionStringError_CheckProjectConnection(object thisName) => string.Format(Language == "cn" ?
             @"【{0}】连接字符串错误，请检查。或者检查项目属性 > 生成 > 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台" :
-            @"FreeSql: [{0}] Connection string error, please check. Or check Project Properties > Build > Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform", thisName);
+            @"FreeSql: [{0}] Connection string error, please check, Or check Project Properties > Build > Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform", thisName);
         /// <summary>
         /// FreeSql.Provider.CustomAdapter 无法使用 CreateCommand
         /// </summary>
@@ -887,7 +887,7 @@ namespace FreeSql
         /// </summary>
         public static string S_MygisGeometry_NotImplement(object wkt) => string.Format(Language == "cn" ?
             @"MygisGeometry.Parse 未实现 ""{0}""" :
-            @"FreeSql: MygisGeometry. Parse does not implement ""{0}""", wkt);
+            @"FreeSql: MygisGeometry.Parse does not implement ""{0}""", wkt);
         /// <summary>
         /// -NameOptions 参数错误，格式为：0,0,0,0
         /// </summary>
@@ -935,7 +935,7 @@ namespace FreeSql
         /// </summary>
         public static string S_ParsingFailed_UseRestoreToSelect(object callExpMethodName, object message) => string.Format(Language == "cn" ?
             @"解析失败 {0} {1}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询" :
-            @"FreeSql: Parsing failed {0} {1}, hint: Extension method IQueryable can be used. RestoreToSelect() reverted to ISelect re-query", callExpMethodName, message);
+            @"FreeSql: Parsing failed {0} {1}, hint: Extension method IQueryable.RestoreToSelect() can be used", callExpMethodName, message);
         /// <summary>
         /// fsql.InsertOrUpdate + IfExistsDoNothing + {providerName}要求实体类 {tableCsName} 必须有主键
         /// </summary>
@@ -1338,7 +1338,7 @@ var xml1 = `<xml id="xml1">
     <value>FreeSql: TableName format error, example: "log_{yyyyMMdd}"</value>
   </data>
   <data name="Type_AsType_Parameter_Error" xml:space="preserve">
-    <value>FreeSql: {Type}. AsType parameter error, please pass in the correct entity type</value>
+    <value>FreeSql: {Type}.AsType parameter error, please pass in the correct entity type</value>
   </data>
   <data name="Type_Cannot_Access_Constructor" xml:space="preserve">
     <value>FreeSql: The {thatFullName} type cannot access the constructor</value>
@@ -1347,7 +1347,7 @@ var xml1 = `<xml id="xml1">
     <value>FreeSql: {name} type error</value>
   </data>
   <data name="TypeAsType_NotSupport_Object" xml:space="preserve">
-    <value>FreeSql: {Type}. AsType parameter does not support specifying as object</value>
+    <value>FreeSql: {Type}.AsType parameter does not support specifying as object</value>
   </data>
   <data name="TypeError_CannotUse_IncludeMany" xml:space="preserve">
     <value>FreeSql: Type {typeofFullName} error, IncludeMany cannot be used</value>

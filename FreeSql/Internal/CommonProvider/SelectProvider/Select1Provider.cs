@@ -584,30 +584,72 @@ namespace FreeSql.Internal.CommonProvider
         {
             var list = source?.Select(a => (object)a).ToList();
             if (list.Any() != true) throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(source)));
-            var sb = new StringBuilder();
-            (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
-                .WriteSourceSelectUnionAll(list, sb, _params, true);
-            try
+            if (_tables[0].Table.Type != typeof(TDto))
             {
-                if (typeof(T1) != typeof(TDto))
+                if (_orm.CodeFirst.IsAutoSyncStructure)
+                    (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+                ret._commandTimeout = _commandTimeout;
+                ret._connection = _connection;
+                ret._transaction = _transaction;
+                ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+                ret._cancel = _cancel;
+                ret._params.AddRange(_params);
+                if (ret._tables[0].Table == null)
                 {
-                    if (_orm.CodeFirst.IsAutoSyncStructure)
-                        (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
-                    var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
-                    ret._commandTimeout = _commandTimeout;
-                    ret._connection = _connection;
-                    ret._transaction = _transaction;
-                    ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
-                    ret._cancel = _cancel;
-                    ret._params.AddRange(_params);
-                    if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+                    var table = TableInfo.GetDefaultTable(typeof(TDto));
+                    var colpos = new List<ColumnInfo>();
+                    foreach (var kv in table.Properties)
+                    {
+                        var colName = kv.Key;
+                        if (string.IsNullOrWhiteSpace(colName)) continue;
+                        var colType = kv.Value.PropertyType;
+                        if (_orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
+                        if (_orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                        var col = new ColumnInfo
+                        {
+                            CsName = kv.Key,
+                            Table = table,
+                            Attribute = new DataAnnotations.ColumnAttribute
+                            {
+                                Name = colName,
+                                MapType = colType
+                            },
+                            CsType = colType
+                        };
+                        table.Columns.Add(colName, col);
+                        table.ColumnsByCs.Add(kv.Key, col);
+                        colpos.Add(col);
+                    }
+                    table.ColumnsByPosition = colpos.ToArray();
+                    colpos.Clear();
+                    ret._tables[0].Table = table;
+                }
+                var sb = new StringBuilder();
 
+                try
+                {
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = ret._tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
                     ret.WithSql(sb.ToString());
                     return ret;
                 }
-                return WithSql(sb.ToString()) as ISelect<TDto>;
+                finally { sb.Clear(); }
             }
-            finally { sb.Clear(); }
+            if (_tables[0].Table.Type != typeof(object))
+            {
+                var sb = new StringBuilder();
+                try
+                {
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = _tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
+                    return WithSql(sb.ToString()) as ISelect<TDto>;
+                }
+                finally { sb.Clear(); }
+            }
+            throw new Exception(CoreErrorStrings.TypeAsType_NotSupport_Object("Select"));
         }
 
         public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, TDto>> selector) => InternalWithTempQuery<TDto>(selector);

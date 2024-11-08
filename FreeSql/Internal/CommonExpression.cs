@@ -2136,6 +2136,8 @@ namespace FreeSql.Internal
                                 //判断 [JsonMap] 并非导航对象，所以在上面提前判断 ColumnsByCs
 
                                 var tb2tmp = _common.GetTableByEntity(exp2Type);
+                                if (tb2tmp == null && exp2.NodeType == ExpressionType.Parameter && exp2Type.IsAnonymousType())
+                                    tb2tmp = tsc._tables.Find(a => a.Parameter == exp2)?.Table;
                                 var exp2IsParameter = false;
                                 if (tb2tmp != null)
                                 {
