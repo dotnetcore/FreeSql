@@ -210,7 +210,62 @@ namespace FreeSql.Internal.CommonProvider
             var ret = From<T2, T3, T4, T5>();
             return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider });
         }
-        
+        public ISelect<T1, T2, T3, T4, T5, T6> FromQuery<T2, T3, T4, T5, T6>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7> FromQuery<T2, T3, T4, T5, T6, T7>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8> FromQuery<T2, T3, T4, T5, T6, T7, T8>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider, select15 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15, ISelect<T16> select16) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15), typeof(T16) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider, select15 as Select0Provider, select16 as Select0Provider });
+        }
+
         public ISelect<T1> UnionAll(params ISelect<T1>[] querys)
         {
             querys = querys?.Where(q => q != null).ToArray();
