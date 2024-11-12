@@ -49,8 +49,8 @@ namespace FreeSql.GBase.Curd
             {
                 if (identityType == typeof(int) || identityType == typeof(uint)) identitySql = "SELECT dbinfo('sqlca.sqlerrd1') FROM dual";
                 else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql = 
-                    identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ? 
-                    "SELECT dbinfo('bigserial') FROM dual" : "SELECT dbinfo('serial8') FROM dual";
+                    identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ?
+                    "SELECT dbinfo('bigserial')::INT8 FROM dual" : "SELECT dbinfo('serial8') FROM dual";
             }
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {identitySql};"), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
