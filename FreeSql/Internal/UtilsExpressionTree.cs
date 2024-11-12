@@ -313,7 +313,8 @@ namespace FreeSql.Internal
 					if (colType == typeof(int) || colType == typeof(uint))
 						colattr.DbType = "SERIAL";
 					else if (colType == typeof(long) || colType == typeof(ulong))
-						colattr.DbType = "SERIAL8";
+						colattr.DbType = colattr.DbType.IndexOf("BIGSERIAL", StringComparison.OrdinalIgnoreCase) != -1 ? 
+                            "BIGSERIAL" : "SERIAL8"; //#1919
 				}
 				if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
 				{
