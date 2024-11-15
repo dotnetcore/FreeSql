@@ -329,15 +329,18 @@ namespace FreeSql.Internal
                         //处理构造参数
                         for (var a = 0; a < initExp.NewExpression.Arguments.Count; a++)
                         {
+                            var initExpArg = initExp.NewExpression.Arguments[a];
+                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
+                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
-                                CsName = initExp.NewExpression.Members != null ? initExp.NewExpression.Members[a].Name : (initExp.NewExpression.Arguments[a] as MemberExpression)?.Member.Name,
-                                CsType = initExp.NewExpression.Arguments[a].Type,
-                                MapType = initExp.NewExpression.Arguments[a].Type
+                                CsName = initExp.NewExpression.Members != null ? initExp.NewExpression.Members[a].Name : (initExpArg as MemberExpression)?.Member.Name,
+                                CsType = initExpArg.Type,
+                                MapType = initExpArg.Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExp.NewExpression.Arguments[a], select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
+                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
                     else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
@@ -424,16 +427,19 @@ namespace FreeSql.Internal
                         {
                             var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
                             if (initAssignExp == null) continue;
+                            var initExpArg = initAssignExp.Expression;
+                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
+                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance), //#427 不能使用 BindingFlags.IgnoreCase
                                 CsName = initExp.Bindings[a].Member.Name,
-                                CsType = initAssignExp.Expression.Type,
-                                MapType = initAssignExp.Expression.Type
+                                CsType = initExpArg.Type,
+                                MapType = initExpArg.Type
                             };
                             if (child.Property == null) child.ReflectionField = initExp.Type.GetField(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance);
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, initAssignExp.Expression, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
+                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
                     if (parent.Childs.Any() == false) throw new Exception(CoreErrorStrings.Mapping_Exception_HasNo_SamePropertyName(initExp.NewExpression.Type.Name));
@@ -458,16 +464,19 @@ namespace FreeSql.Internal
                         //处理构造参数
                         for (var a = 0; a < newExp.Arguments.Count; a++)
                         {
-                            var csname = newExp.Members != null ? newExp.Members[a].Name : (newExp.Arguments[a] as MemberExpression)?.Member.Name;
+                            var initExpArg = newExp.Arguments[a];
+                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
+                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            var csname = newExp.Members != null ? newExp.Members[a].Name : (initExpArg as MemberExpression)?.Member.Name;
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
                                 CsName = csname,
-                                CsType = newExp.Arguments[a].Type,
-                                MapType = newExp.Arguments[a].Type
+                                CsType = initExpArg.Type,
+                                MapType = initExpArg.Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, newExp.Arguments[a], select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
+                            ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                             if (child.CsName == null)
                                 child.CsName = csname;
                         }
