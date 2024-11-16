@@ -454,5 +454,74 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
 
         public enum TableAllTypeEnumType1 { e1, e2, e3, e5 }
         [Flags] public enum TableAllTypeEnumType2 { f1, f2, f3 }
+
+
+
+        [Fact]
+        public void UpgradeTableStructure()
+        {
+            g.dameng.CodeFirst.SyncStructure<TableUpgradeTest>();
+
+            g.dameng.Delete<TableUpgradeTest>()
+                .Where(item => 1 == 1)
+                .ExecuteAffrows();
+
+            var text = new StringBuilder();
+            var temp = "1234567890哈";
+            for (int i = 0; i < 3000 - temp.Length; i+= temp.Length)
+            {
+                text.Append(temp);
+            }
+
+            var mode = new TableUpgradeTest 
+            {
+                Name = "1234560123456012哈哈哈哈哈呵呵_123123",
+                Text = text.ToString(),
+                Text2 = "呵呵呵Test123123123"
+            };
+
+            mode.Id = g.dameng.Insert(mode)
+                .ExecuteIdentity();
+
+            // 第二次进行数据库结果同步
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<TableUpgradeTest>();
+            g.dameng.Ado.ExecuteNonQuery(sql);
+            //g.dameng.CodeFirst.SyncStructure<TableSubString>();
+
+            var resultMode = g.dameng.Select<TableUpgradeTest>()
+                .Where(item => item.Id == mode.Id)
+                .First();
+
+            Assert.Equal(mode.Name, resultMode?.Name);
+            Assert.Equal(mode.Text, resultMode?.Text);
+            Assert.Equal(mode.Text2, resultMode?.Text2);
+            Assert.Equal(mode.Text3, resultMode?.Text3);
+
+        }
+
+        [Table(Name = "tb_upgrade_test")]
+        public class TableUpgradeTest
+        {
+            [Column(Name = "id", IsPrimary = true, IsIdentity = true)]
+            public long Id { get; set; }
+
+
+            [Column(Name = "name", StringLength = 31, IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(Name = "text", StringLength = 32767, IsNullable = false)]
+            public string Text { get; set; }
+
+            [Column(Name = "number_test", IsNullable = false)]
+            public int TestNumber { get; set; }
+
+            [Column(Name = "text2", StringLength = 63)]
+            public string Text2 { get; set; }
+
+
+            [Column(Name = "text3")]
+            public string Text3 { get; set; }
+        }
+
     }
 }
