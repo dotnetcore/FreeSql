@@ -60,7 +60,8 @@ namespace FreeSql.Internal.CommonProvider
             _paramsInit = _params;
         }
 
-        int _disposeCounter;
+        private int _disposeCounter;
+
         ~Select0Provider()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
@@ -83,6 +84,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public abstract string ToSqlBase(string field = null);
+
         public abstract void AsTableBase(Func<Type, string, string> tableRule);
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
@@ -163,6 +165,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             public List<InsideInfo> _insideSelectList = new List<InsideInfo>();
             public List<SelectTableInfo> _outsideTable = new List<SelectTableInfo>();
+
             public WithTempQueryParser(Select0Provider insideSelect, SelectGroupingProvider insideSelectGroup, Expression selector, SelectTableInfo outsideTable)
             {
                 if (selector != null)
@@ -171,6 +174,7 @@ namespace FreeSql.Internal.CommonProvider
                     _outsideTable.Add(outsideTable);
                 }
             }
+
             public class InsideInfo
             {
                 public Select0Provider InsideSelect { get; }
@@ -238,6 +242,7 @@ namespace FreeSql.Internal.CommonProvider
             }
 
             public SelectTableInfo ParseExpMatchedTable { get; private set; }
+
             public override string ParseExp(Expression[] members)
             {
                 ParseExpMapResult = null;
@@ -270,6 +275,7 @@ namespace FreeSql.Internal.CommonProvider
                 ParseExpMapResult = read;
                 return $"{ParseExpMatchedTable.Alias}.{read.DbNestedField}";
             }
+
             public SelectTableInfo GetOutsideSelectTable(ParameterExpression parameterExp)
             {
                 if (parameterExp == null) return null;
@@ -285,6 +291,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public static MethodInfo _methodSqlExtInternalRawField = typeof(SqlExt).GetMethod("InternalRawField", BindingFlags.NonPublic | BindingFlags.Static);
         public static MethodInfo _methodSqlExtInternalRawSql = typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static);
+
         public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
         {
             if (string.IsNullOrEmpty(property)) return null;
@@ -343,6 +350,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public static MethodInfo _MethodDataReaderIsDBNull = typeof(DbDataReader).GetMethod("IsDBNull", new Type[] { typeof(int) });
+
         public static Dictionary<Type, MethodInfo> _dicMethodDataReaderGetValue = new Dictionary<Type, MethodInfo>
         {
             [typeof(bool)] = typeof(DbDataReader).GetMethod("GetBoolean", new Type[] { typeof(int) }),
@@ -355,12 +363,14 @@ namespace FreeSql.Internal.CommonProvider
             [typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) }),
             //[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) }) 有些驱动不兼容
         };
+
         public static Dictionary<DataType, Dictionary<Type, MethodInfo>> _dicMethodDataReaderGetValueOverride = new Dictionary<DataType, Dictionary<Type, MethodInfo>>();
 
         public static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
         public static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
         public static MethodInfo MethodStringEndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
-        static ConcurrentDictionary<string, MethodInfo> MethodEnumerableDic = new ConcurrentDictionary<string, MethodInfo>();
+        private static ConcurrentDictionary<string, MethodInfo> MethodEnumerableDic = new ConcurrentDictionary<string, MethodInfo>();
+
         public static MethodInfo GetMethodEnumerable(string methodName) => MethodEnumerableDic.GetOrAdd(methodName, et =>
         {
             var methods = typeof(Enumerable).GetMethods().Where(a => a.Name == et);
@@ -370,6 +380,7 @@ namespace FreeSql.Internal.CommonProvider
         });
 
         public List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> _SameSelectPendingShareData;
+
         internal Select0Provider SetSameSelectPendingShareData(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
             _SameSelectPendingShareData = data;
@@ -383,6 +394,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this;
         }
+
         internal bool SameSelectPending(ref string sql, ReadAnonymousTypeOtherInfo csspsod)
         {
             if (_SameSelectPendingShareData != null)
@@ -404,6 +416,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return false;
         }
+
         internal static Expression SetSameSelectPendingShareDataWithExpression(Expression exp, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
             var callExp = exp as MethodCallExpression;
@@ -449,6 +462,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, newexp, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
+
         public string GetNestSelectSql(Expression select, string affield, Func<string, string> ToSql)
         {
             var allMemExps = new FindAllMemberExpressionVisitor(this);
@@ -481,10 +495,12 @@ namespace FreeSql.Internal.CommonProvider
             field.Clear();
             return sql;
         }
+
         public class FindAllMemberExpressionVisitor : ExpressionVisitor
         {
             public List<NativeTuple<MemberExpression, ColumnInfo>> Result { get; set; } = new List<NativeTuple<MemberExpression, ColumnInfo>>();
-            Select0Provider _select;
+            private Select0Provider _select;
+
             public FindAllMemberExpressionVisitor(Select0Provider select) => _select = select;
 
             protected override Expression VisitMember(MemberExpression node)
@@ -535,10 +551,12 @@ namespace FreeSql.Internal.CommonProvider
                 return base.VisitMember(node);
             }
         }
+
         public class ReplaceMemberExpressionVisitor : ExpressionVisitor
         {
-            Expression _findExp;
-            Expression _replaceExp;
+            private Expression _findExp;
+            private Expression _replaceExp;
+
             public Expression Replace(Expression exp, Expression find, Expression replace) // object repval)
             {
                 _findExp = find;
@@ -546,6 +564,7 @@ namespace FreeSql.Internal.CommonProvider
                 //_replaceExp = Expression.Constant(repval, find.Type);
                 return this.Visit(exp);
             }
+
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (_findExp == node) return _replaceExp;
@@ -586,17 +605,20 @@ namespace FreeSql.Internal.CommonProvider
             if (transaction != null) _connection = transaction.Connection;
             return this as TSelect;
         }
+
         public TSelect WithConnection(DbConnection connection)
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
             return this as TSelect;
         }
+
         public TSelect WithParameters(List<DbParameter> parameters)
         {
             if (parameters != null) _params = parameters;
             return this as TSelect;
         }
+
         public TSelect CommandTimeout(int timeout)
         {
             _commandTimeout = timeout;
@@ -611,6 +633,7 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(_groupby, parms));
             return this as TSelect;
         }
+
         public TSelect Having(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(_groupby) || string.IsNullOrEmpty(sql)) return this as TSelect;
@@ -625,18 +648,21 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
+
         public TSelect InnerJoin(Expression<Func<T1, bool>> exp)
         {
             if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
         }
+
         public TSelect RightJoin(Expression<Func<T1, bool>> exp)
         {
             if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
         }
+
         public TSelect LeftJoin<T2>(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this as TSelect;
@@ -644,6 +670,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables.Count > 1 && _tables[1].Table.Type == typeof(T2)) _tables[1].Parameter = exp.Parameters[1];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
+
         public TSelect InnerJoin<T2>(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this as TSelect;
@@ -651,6 +678,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables.Count > 1 && _tables[1].Table.Type == typeof(T2)) _tables[1].Parameter = exp.Parameters[1];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
         }
+
         public TSelect RightJoin<T2>(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this as TSelect;
@@ -666,6 +694,7 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+
         public TSelect LeftJoin(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this as TSelect;
@@ -673,6 +702,7 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+
         public TSelect RightJoin(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this as TSelect;
@@ -680,6 +710,7 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+
         public TSelect RawJoin(string sql)
         {
             if (string.IsNullOrEmpty(sql)) return this as TSelect;
@@ -700,14 +731,17 @@ namespace FreeSql.Internal.CommonProvider
             _limit = limit;
             return this as TSelect;
         }
+
         public TSelect Master()
         {
             _select = $" {_select.Trim()} ";
             return this as TSelect;
         }
+
         public TSelect Offset(int offset) => this.Skip(offset) as TSelect;
 
         public TSelect OrderBy(string sql, object parms = null) => this.OrderBy(true, sql, parms);
+
         public TSelect OrderBy(bool condition, string sql, object parms = null)
         {
             if (condition == false) return this as TSelect;
@@ -721,6 +755,7 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+
         public TSelect Page(int pageNumber, int pageSize)
         {
             this.Skip(Math.Max(0, pageNumber - 1) * pageSize);
@@ -739,6 +774,7 @@ namespace FreeSql.Internal.CommonProvider
             _skip = offset;
             return this as TSelect;
         }
+
         public TSelect Take(int limit) => this.Limit(limit) as TSelect;
 
         public TSelect Distinct()
@@ -747,7 +783,7 @@ namespace FreeSql.Internal.CommonProvider
             return this as TSelect;
         }
 
-        string GetToDeleteWhere(string alias)
+        private string GetToDeleteWhere(string alias)
         {
             var pks = _tables[0].Table.Primarys;
             var old_selectVal = _select;
@@ -760,6 +796,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
+
                 default:
                     _select = "SELECT ";
                     break;
@@ -794,6 +831,7 @@ namespace FreeSql.Internal.CommonProvider
                 _select = old_selectVal;
             }
         }
+
         public IDelete<T1> ToDelete()
         {
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("ToDelete", _tables[0].Table.CsName));
@@ -816,6 +854,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
+
                 default:
                     var beforeSql = this._select;
                     if (beforeSql.EndsWith("SELECT ", StringComparison.OrdinalIgnoreCase))
@@ -828,6 +867,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return del.Where(GetToDeleteWhere("ftb_del"));
         }
+
         public IUpdate<T1> ToUpdate()
         {
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("ToUpdate", _tables[0].Table.CsName));
@@ -850,6 +890,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Firebird:
                 case DataType.GBase:
                     break;
+
                 default:
                     var beforeSql = this._select;
                     if (beforeSql.EndsWith("SELECT ", StringComparison.OrdinalIgnoreCase))
@@ -993,7 +1034,9 @@ namespace FreeSql.Internal.CommonProvider
             }
             return unions;
         }
+
         public override void AsTableBase(Func<Type, string, string> tableRule) => AsTable(tableRule);
+
         public TSelect AsTable(Func<Type, string, string> tableRule)
         {
             if (_tableRules.Count == 1 && _diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser tempQueryParser)
@@ -1011,11 +1054,13 @@ namespace FreeSql.Internal.CommonProvider
             if (tableRule != null) _tableRules.Add(tableRule);
             return this as TSelect;
         }
+
         public TSelect AsAlias(Func<Type, string, string> aliasRule)
         {
             if (aliasRule != null) _aliasRule = aliasRule;
             return this as TSelect;
         }
+
         public TSelect AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception(CoreErrorStrings.TypeAsType_NotSupport_Object("ISelect"));
@@ -1025,10 +1070,13 @@ namespace FreeSql.Internal.CommonProvider
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             return this as TSelect;
         }
+
         public override string ToSqlBase(string field = null) => ToSql(field);
+
         public abstract string ToSql(string field = null);
 
         public TSelect Where(string sql, object parms = null) => this.WhereIf(true, sql, parms);
+
         public TSelect WhereIf(bool condition, string sql, object parms = null)
         {
             if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
@@ -1038,6 +1086,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public TSelect OrderByPropertyName(string property, bool isAscending = true) => OrderByPropertyNameIf(true, property, isAscending);
+
         public TSelect OrderByPropertyNameIf(bool condition, string property, bool isAscending = true)
         {
             if (condition == false) return this as TSelect;
@@ -1053,13 +1102,30 @@ namespace FreeSql.Internal.CommonProvider
             if (filter == null) return this as TSelect;
             var sb = new StringBuilder();
             if (IsIgnoreFilter(filter)) filter.Field = "";
+
+            //使用新模式的判断条件，只在第一个过滤器设置即可
+            bool useAllLogic = filter.UseAllLogic;
             ParseFilter(DynamicFilterLogic.And, filter, true);
+
+            //新模式下替换可能与括号连在一起的逻辑运算符
+            if (useAllLogic)
+            {
+                sb = sb.Replace("( AND", "(")
+                    .Replace("( OR", "(");
+            }
+
             this.Where(sb.ToString());
             sb.Clear();
             return this as TSelect;
 
             void ParseFilter(DynamicFilterLogic logic, DynamicFilterInfo fi, bool isend)
             {
+                //新模式下使用过滤器自身的逻辑运算符
+                if (useAllLogic)
+                {
+                    logic = fi.Logic;
+                }
+
                 if (string.IsNullOrEmpty(fi.Field) == false)
                 {
                     Expression exp = null;
@@ -1092,6 +1158,7 @@ namespace FreeSql.Internal.CommonProvider
                             exp = ConvertStringPropertyToExpression(fi.Field);
                             if (exp.Type != typeof(string)) exp = Expression.TypeAs(exp, typeof(string));
                             break;
+
                         default:
                             exp = ConvertStringPropertyToExpression(fi.Field);
                             if (exp.Type == typeof(object) && fi.Value != null)
@@ -1127,10 +1194,13 @@ namespace FreeSql.Internal.CommonProvider
                         case DynamicFilterOperator.Range:
                             var fiValueRangeArray = getFiListValue();
                             if (fiValueRangeArray.Length != 2) throw new ArgumentException(CoreErrorStrings.Range_Comma_Separateda_By2Char);
+
                             exp = Expression.AndAlso(
-                                Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
-                                Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type)));
+                            Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
+                            Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type)));
+
                             break;
+
                         case DynamicFilterOperator.DateRange:
                             var fiValueDateRangeArray = getFiListValue();
                             if (fiValueDateRangeArray?.Length != 2) throw new ArgumentException(CoreErrorStrings.DateRange_Comma_Separateda_By2Char);
@@ -1149,7 +1219,9 @@ namespace FreeSql.Internal.CommonProvider
                             exp = Expression.AndAlso(
                                 Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueDateRangeArray[0]), exp.Type)),
                                 Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueDateRangeArray[1]), exp.Type)));
+
                             break;
+
                         case DynamicFilterOperator.Any:
                         case DynamicFilterOperator.NotAny:
                             var fiValueAnyArray = getFiListValue();
@@ -1198,6 +1270,10 @@ namespace FreeSql.Internal.CommonProvider
                     }
 
                     var sql = _commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp, _diymemexpWithTempQuery, null, _params);
+                    if (useAllLogic)
+                    {
+                        sql = " " + fi.Logic.ToString().ToUpper() + " " + sql;
+                    }
 
                     sb.Append(sql);
                 }
@@ -1207,16 +1283,33 @@ namespace FreeSql.Internal.CommonProvider
 
                     if (fi.Filters.Any())
                     {
-                        if (string.IsNullOrEmpty(fi.Field) == false)
-                            sb.Append(" AND ");
-                        if (fi.Logic == DynamicFilterLogic.Or) sb.Append("(");
-                        for (var x = 0; x < fi.Filters.Count; x++)
-                            ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
-                        if (fi.Logic == DynamicFilterLogic.Or) sb.Append(")");
+                        //新模式下，直接添加分组的逻辑运算符和括号
+                        if (useAllLogic)
+                        {
+                            //第一个条件不用添加逻辑运算符
+                            if (fi != filter)
+                            {
+                                sb.Append(" " + fi.Logic.ToString().ToUpper() + " ");
+                            }
+                            sb.Append("(");
+                            for (var x = 0; x < fi.Filters.Count; x++)
+                                ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
+                            sb.Append(")");
+                        }
+                        else
+                        {
+                            if (string.IsNullOrEmpty(fi.Field) == false)
+                                sb.Append(" AND ");
+                            if (fi.Logic == DynamicFilterLogic.Or) sb.Append("(");
+                            for (var x = 0; x < fi.Filters.Count; x++)
+                                ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
+                            if (fi.Logic == DynamicFilterLogic.Or) sb.Append(")");
+                        }
                     }
                 }
 
-                if (isend == false)
+                //新模式下不用添加结尾的逻辑运算符
+                if (isend == false && useAllLogic == false)
                 {
                     if (string.IsNullOrEmpty(fi.Field) == false || fi.Filters?.Any() == true)
                     {
@@ -1236,8 +1329,10 @@ namespace FreeSql.Internal.CommonProvider
                     string.IsNullOrEmpty(testFilter.Value?.ToString());
             }
         }
-        static ConcurrentDictionary<MethodInfo, bool> _dicMethodIsDynamicFilterCustomAttribute = new ConcurrentDictionary<MethodInfo, bool>();
-        static bool MethodIsDynamicFilterCustomAttribute(MethodInfo method) => _dicMethodIsDynamicFilterCustomAttribute.GetOrAdd(method, m =>
+
+        private static ConcurrentDictionary<MethodInfo, bool> _dicMethodIsDynamicFilterCustomAttribute = new ConcurrentDictionary<MethodInfo, bool>();
+
+        private static bool MethodIsDynamicFilterCustomAttribute(MethodInfo method) => _dicMethodIsDynamicFilterCustomAttribute.GetOrAdd(method, m =>
         {
             object[] attrs = null;
             try
@@ -1270,6 +1365,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this as TSelect;
         }
+
         public TSelect ForUpdate(bool noawait = false)
         {
             if (_transaction == null && _orm.Ado.TransactionCurrentThread != null) this.WithTransaction(_orm.Ado.TransactionCurrentThread);
@@ -1282,29 +1378,35 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.CustomMySql:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
+
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.CustomSqlServer:
                     _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")})";
                     break;
+
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
+
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
+
                 case DataType.Sqlite:
                     break;
+
                 case DataType.GBase:
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
+
                 case DataType.Firebird:
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock";
                     break;
@@ -1346,6 +1448,7 @@ namespace FreeSql.Internal.CommonProvider
             this.Limit(1);
             return this.ToList<int>($"{1}{_commonUtils.FieldAsAlias("as1")}").Sum() > 0; //这里的 Sum 为了分表查询
         }
+
         public long Count()
         {
             var tmpOrderBy = _orderby;
@@ -1370,12 +1473,15 @@ namespace FreeSql.Internal.CommonProvider
                 _distinct = tmpDistinct;
             }
         }
+
         public TSelect Count(out long count)
         {
             count = this.Count();
             return this as TSelect;
         }
+
         public List<T1> ToList() => ToList(false);
+
         public virtual List<T1> ToList(bool includeNestedMembers)
         {
             if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
@@ -1395,21 +1501,25 @@ namespace FreeSql.Internal.CommonProvider
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
             return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
+
         public T1 ToOne()
         {
             this.Limit(1);
             return this.ToList().FirstOrDefault();
         }
+
         public T1 First() => this.ToOne();
 
 #if net40
 #else
-        async public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+
+        public async Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
             this.Limit(1);
             return (await this.ToListAsync<int>($"1{_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum() > 0; //这里的 Sum 为了分表查询
         }
-        async public Task<long> CountAsync(CancellationToken cancellationToken = default)
+
+        public async Task<long> CountAsync(CancellationToken cancellationToken = default)
         {
             var tmpOrderBy = _orderby;
             var tmpSkip = _skip;
@@ -1433,7 +1543,9 @@ namespace FreeSql.Internal.CommonProvider
                 _distinct = tmpDistinct;
             }
         }
+
         public Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default) => ToListAsync(false, cancellationToken);
+
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
             if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
@@ -1453,12 +1565,15 @@ namespace FreeSql.Internal.CommonProvider
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);
             return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
         }
-        async public Task<T1> ToOneAsync(CancellationToken cancellationToken = default)
+
+        public async Task<T1> ToOneAsync(CancellationToken cancellationToken = default)
         {
             this.Limit(1);
             return (await this.ToListAsync(false, cancellationToken)).FirstOrDefault();
         }
+
         public Task<T1> FirstAsync(CancellationToken cancellationToken = default) => this.ToOneAsync(cancellationToken);
+
 #endif
     }
 }
