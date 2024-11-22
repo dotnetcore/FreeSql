@@ -126,6 +126,7 @@ namespace FreeSql
         Task<int> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> UpdateAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
         Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default);
 
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
