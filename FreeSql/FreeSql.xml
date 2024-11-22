@@ -5472,7 +5472,7 @@
         </member>
         <member name="M:FreeSql.CoreErrorStrings.ObjectPool_GetAsync_Queue_Long(System.Object,System.Object)">
             <summary>
-            【{policyName}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {asyncGetCapacity}
+            【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}
             </summary>
         </member>
         <member name="M:FreeSql.CoreErrorStrings.OneToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
@@ -6254,6 +6254,129 @@
             <typeparam name="T1"></typeparam>
             <param name="source"></param>
             <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.InsertOrUpdate``1">
+            <summary>
+            插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+            MySql 5.6+: on duplicate key update<para></para>
+            PostgreSQL 9.4+: on conflict do update<para></para>
+            SqlServer 2008+: merge into<para></para>
+            Oracle 11+: merge into<para></para>
+            Sqlite: replace into<para></para>
+            DuckDB: on conflict do update<para></para>
+            达梦: merge into<para></para>
+            人大金仓：on conflict do update<para></para>
+            神通：merge into<para></para>
+            MsAccess：不支持<para></para>
+            注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1">
+            <summary>
+            修改数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:IFreeSql.Ado">
+            <summary>
+            数据库访问对象
+            </summary>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+<returns></returns>
         </member>
         <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
             <summary>
