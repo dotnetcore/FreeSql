@@ -1665,6 +1665,104 @@
             指定事务对象
             </summary>
             <param name="connection"></param>
+            <returns></return>
+            <summary>
+            原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
+            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="condition">true 时生效</param>
+            <param name="sql">sql语法条件</param>
+            <param name="parms">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.Where(`0)">
+            <summary>
+            传入实体，将主键作为条件
+            </summary>
+            <param name="item">实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.Where(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            传入实体集合，将主键作为条件
+            </summary>
+            <param name="items">实体集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.WhereDynamic(System.Object,System.Boolean)">
+            <summary>
+            传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <param name="not">是否标识为NOT</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.WhereDynamicFilter(FreeSql.Internal.Model.DynamicFilterInfo)">
+            <summary>
+            动态过滤条件
+            </summary>
+            <param name="filter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.DisableGlobalFilter(System.String[])">
+            <summary>
+            禁用全局过滤功能，不传参数时将禁用所有
+            </summary>
+            <param name="name">零个或多个过滤器名字</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.AsTable(System.Func{System.String,System.String})">
+            <summary>
+            设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
+            </summary>
+            <param name="tableRule"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.AsTable(System.String)">
+            <summary>
+            设置表名
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.AsType(System.Type)">
+            <summary>
+            动态Type，在使用 Delete&lt;object&gt; 后使用本方法，指定实体类型
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.ToSql">
+            <summary>
+            返回即将执行的SQL语句
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.ExecuteAffrows">
+            <summary>
+            执行SQL语句，返回影响的行数
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDelete`1.ExecuteDeleted">
+            <summary>
+            执行SQL语句，返回被删除的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.WithTransaction(System.Data.Common.DbTransaction)">
+            <summary>
+            指定事务对象
+            </summary>
+            <param name="transaction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.WithConnection(System.Data.Common.DbConnection)">
+            <summary>
+            指定事务对象
+            </summary>
+            <param name="connection"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.CommandTimeout(System.Int32)">
@@ -4205,105 +4303,7 @@
             同步实体类型到数据库（指定表名）<para></para>
             注意：生产环境中谨慎使用
             </summary>
-            <param name="entityType">实体类型</param>
-            <param name="tableName">指定表名对比</param>
-            <param name="isForceSync">强制同步结构，无视缓存每次都同步</param>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
-            <summary>
-            根据 System.Type 获取数据库信息
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.ConfigEntity``1(System.Action{FreeSql.DataAnnotations.TableFluent{``0}})">
-            <summary>
-            FreeSql FluentApi 配置实体，方法名与特性相同
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.ConfigEntity(System.Type,System.Action{FreeSql.DataAnnotations.TableFluent})">
-            <summary>
-            FreeSql FluentApi 配置实体，方法名与特性相同
-            </summary>
-            <param name="type"></param>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetConfigEntity(System.Type)">
-            <summary>
-            获取 FreeSql FluentApi 配置实体的元数据
-            </summary>
-            <param name="type"></param>
-            <returns>未使用ConfigEntity配置时，返回null</returns>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetTableByEntity(System.Type)">
-            <summary>
-            获取实体类核心配置
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetDatabases">
-            <summary>
-            获取所有数据库
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetTablesByDatabase(System.String[])">
-            <summary>
-            获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
-            </summary>
-            <param name="database"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
-            <summary>
-            获取指定单表信息，包括列详情、主键、唯一键、索引、备注
-            </summary>
-            <param name="name">表名，如：dbo.table1</param>
-            <param name="ignoreCase">是否忽略大小写</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.ExistsTable(System.String,System.Boolean)">
-            <summary>
-            判断表是否存在
-            </summary>
-            <param name="name">表名，如：dbo.table1</param>
-            <param name="ignoreCase">是否忽略大小写</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetDbType(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取数据库枚举类型int值
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsConvert(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取c#转换，(int)、(long)
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeValue(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取c#值
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsType(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取c#类型，int、long
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
+            <param name="entityTytCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
             获取c#类型对象
             </summary>

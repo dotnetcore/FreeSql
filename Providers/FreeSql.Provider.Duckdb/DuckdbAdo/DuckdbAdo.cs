@@ -10,6 +10,7 @@ using System.Linq;
 using FreeSql.Internal.CommonProvider;
 using DuckDB.NET.Data;
 using static DuckDB.NET.Native.NativeMethods;
+using ColumnInfo = FreeSql.Internal.Model.ColumnInfo;
 
 namespace FreeSql.Duckdb
 {

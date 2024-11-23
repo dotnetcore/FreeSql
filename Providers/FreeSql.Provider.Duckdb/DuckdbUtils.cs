@@ -13,6 +13,7 @@ using System.Numerics;
 using static DuckDB.NET.Native.NativeMethods;
 using System.Text;
 using System.Security.AccessControl;
+using ColumnInfo = FreeSql.Internal.Model.ColumnInfo;
 
 namespace FreeSql.Duckdb
 {
