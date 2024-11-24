@@ -225,7 +225,12 @@ namespace FreeSql
             {
                 if (isAuditValue)
                 {
-                    FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, item, _db.OrmOriginal, _table, null); //与 CanUpdate 同步
+                    foreach (var col in _table.Columns.Values) //#1746
+                    {
+                        object val = col.GetValue(item);
+                        if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                            col.SetValue(item, val = "");
+                    }
                     _db.Options.AuditValue?.Invoke(new DbContextAuditValueEventArgs(Aop.AuditValueType.Update, _table.Type, item));
                 }
                 var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);

@@ -253,9 +253,9 @@ namespace FreeSql.Extensions.EntityUtil
                         )
                     });
                     exps.AddRange(new Expression[] {
-                    Expression.Return(returnTarget, var2Ret),
-                    Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                });
+                        Expression.Return(returnTarget, var2Ret),
+                        Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                    });
                     return Expression.Lambda<Func<object, object>>(Expression.Block(new[] { var1Parm, var2Ret }, exps), new[] { parm1 }).Compile();
                 });
             return func(entity);

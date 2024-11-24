@@ -574,7 +574,7 @@ namespace base_entity
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
-                .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
@@ -618,6 +618,18 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.AuditValue += (_, e) =>
+            {
+
+            };
+
+            var tt1 = new ProjectItem { ID = 1, MaxQuantity = 0, Code = null, Name = null };
+            var tt2 = new ProjectItem { ID = 1, MaxQuantity = 100, Code = null, Name = null };
+            var repot2 = fsql.GetRepository<ProjectItem>();
+
+            repot2.Attach(tt1);
+            var nt1 = repot2.Update(tt2);
 
             fsql.Delete<User1>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new List<User1>
@@ -721,17 +733,7 @@ namespace base_entity
 
             fsql.Select<User1>().Where(a => a.Id == new Guid("xxx")).ToList(a => new Guid("zzz"));
 
-            fsql.Aop.AuditValue += (_, e) =>
-            {
-
-            };
-
-            var tt1 = new ProjectItem { ID = 1, MaxQuantity = 0, Code = null, Name = null };
-            var tt2 = new ProjectItem { ID = 1, MaxQuantity = 100, Code = null, Name = null };
-            var repot2 = fsql.GetRepository<ProjectItem>();
-
-            repot2.Attach(tt1);
-            var nt1 = repot2.Update(tt2);
+            
 
             var fsql2 = fsql;
             // 动态构建实体类型，树形结构，引用自身类型
