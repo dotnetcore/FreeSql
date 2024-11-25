@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -33,6 +32,9 @@ namespace FreeSql.TDengine
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value != null) value = getParamterValue(type, value);
             var ret = new TDengineParameter() { ParameterName = QuoteParamterName(parameterName), Value = value };
+            var dbType = _orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo
+                { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
+            ret.DbType = (DbType)dbType;
             _params?.Add(ret);
             return ret;
         }
@@ -137,7 +139,16 @@ namespace FreeSql.TDengine
                 var ts = (TimeSpan)value;
                 value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
             }
+
             return FormatSql("{0}", value, 1);
+        }
+
+        public override string RewriteColumn(ColumnInfo col, string sql)
+        {
+            if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
+                return string.Format(col.Attribute.RewriteSql, sql);
+
+            return sql;
         }
 
         public override string IsNull(string sql, object value)
