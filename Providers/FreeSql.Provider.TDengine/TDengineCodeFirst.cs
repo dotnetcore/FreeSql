@@ -192,16 +192,15 @@ namespace FreeSql.TDengine
         {
             sb.Append($"CREATE TABLE {subTableName}{Environment.NewLine}");
             sb.Append($"USING {superTableName} (");
+
             var columnInfos = tb.ColumnsByPosition.Where(c =>
-                c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute)));
+                c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute))).ToArray();
 
-            var enumerable = columnInfos as ColumnInfo[] ?? columnInfos.ToArray();
-
-            var tagValues = new List<object>(enumerable.Count());
+            var tagValues = new List<object>(columnInfos.Count());
 
             var tableInstance = Activator.CreateInstance(tb.Type);
 
-            foreach (var columnInfo in enumerable)
+            foreach (var columnInfo in columnInfos)
             {
                 var tagValue = columnInfo.Table.Properties[columnInfo.CsName].GetValue(tableInstance);
                 tagValues.Add(tagValue);
