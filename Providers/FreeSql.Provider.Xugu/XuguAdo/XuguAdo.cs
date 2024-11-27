@@ -16,13 +16,13 @@ namespace FreeSql.Xugu
 {
     class XuguAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public XuguAdo() : base(DataType.PostgreSQL, null, null) { }
-        public XuguAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL, masterConnectionString, slaveConnectionStrings)
+        public XuguAdo() : base(DataType.Xugu, null, null) { }
+        public XuguAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Xugu, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util; 
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Xugu, connectionFactory);
                 return;
             }
 
