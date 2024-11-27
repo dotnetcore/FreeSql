@@ -1748,7 +1748,197 @@
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.WithConnection(System.Data.Common.DbConnection)">
-          若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+            <summary>
+            指定事务对象
+            </summary>
+            <param name="connection"></param>
+            <returns></return>
+            <summary>
+        <member name="M:FreeSql.IInsert`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(`0)">
+            <summary>
+            追加准备插入的实体
+            </summary>
+            <param name="source">实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(`0[])">
+            <summary>
+            追加准备插入的实体
+            </summary>
+            <param name="source">实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            追加准备插入的实体集合
+            </summary>
+            <param name="source">实体集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            只插入的列，InsertColumns(a => a.Name) | InsertColumns(a => new{a.Name,a.Time}) | InsertColumns(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">lambda选择列</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertColumns(System.String[])">
+            <summary>
+            只插入的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">lambda选择列</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.String[])">
+            <summary>
+            忽略的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreInsertValueSql(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            忽略 InsertValueSql 设置，将使用实体对象的值插入<para></para>
+            IgnoreInsertValueSql(a => a.Name) | IgnoreInsertValueSql(a => new{a.Name,a.Time}) | IgnoreInsertValueSql(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertIdentity">
+            <summary>
+            指定可插入自增字段
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.NoneParameter(System.Boolean)">
+            <summary>
+            不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
+            </summary>
+            <param name="isNotCommandParameter">是否不使用参数化</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            批量执行选项设置，一般不需要使用该方法<para></para>
+            各数据库 values, parameters 限制不一样，默认设置：<para></para>
+            MySql 5000 3000<para></para>
+            PostgreSQL 5000 3000<para></para>
+            SqlServer 1000 2100<para></para>
+            Oracle 500 999<para></para>
+            Sqlite 5000 999<para></para>
+            若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+            </summary>
+            <param name="transaction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.WithConnection(System.Data.Common.DbConnection)">
+            <summary>
+            指定事务对象
+            </summary>
+            <param name="connection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(`0)">
+            <summary>
+            追加准备插入的实体
+            </summary>
+            <param name="source">实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(`0[])">
+            <summary>
+            追加准备插入的实体
+            </summary>
+            <param name="source">实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.AppendData(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            追加准备插入的实体集合
+            </summary>
+            <param name="source">实体集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            只插入的列，InsertColumns(a => a.Name) | InsertColumns(a => new{a.Name,a.Time}) | InsertColumns(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">lambda选择列</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertColumns(System.String[])">
+            <summary>
+            只插入的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">lambda选择列</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.String[])">
+            <summary>
+            忽略的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreInsertValueSql(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            忽略 InsertValueSql 设置，将使用实体对象的值插入<para></para>
+            IgnoreInsertValueSql(a => a.Name) | IgnoreInsertValueSql(a => new{a.Name,a.Time}) | IgnoreInsertValueSql(a => new[]{"name","time"})
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.InsertIdentity">
+            <summary>
+            指定可插入自增字段
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.NoneParameter(System.Boolean)">
+            <summary>
+            不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
+            </summary>
+            <param name="isNotCommandParameter">是否不使用参数化</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            批量执行选项设置，一般不需要使用该方法<para></para>
+            各数据库 values, parameters 限制不一样，默认设置：<para></para>
+            MySql 5000 3000<para></para>
+            PostgreSQL 5000 3000<para></para>
+            SqlServer 1000 2100<para></para>
+            Oracle 500 999<para></para>
+            Sqlite 5000 999<para></para>
+            若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
             </summary>
             <param name="valuesLimit">指定根据 values 上限数量拆分执行</param>
             <param name="parameterLimit">指定根据 parameters 上限数量拆分执行</param>
@@ -5807,6 +5997,14 @@
             </summary>
         </member>
         <member name="P:FreeSql.CoreErrorStrings.S_InsertOrUpdate_Unable_UpdateColumns">
+        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
+            <summary>
+            根据实体对象，创建 table 对应的字典
+            </summary>
+            <param name="table"></param>
+            <param name="instance"></param>
+            <returns></returns>
+        </member>
             <summary>
             fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作
             </summary>
@@ -5903,14 +6101,6 @@
             </summary>
             <param name="table"></param>
             <param name="dict"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
-            <summary>
-            根据实体对象，创建 table 对应的字典
-            </summary>
-            <param name="table"></param>
-            <param name="instance"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
@@ -6260,103 +6450,210 @@
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
             <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
-            </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 and 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
-            <summary>
-            使用 or 拼接两个 lambda 表达式
-            </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
-            </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeUtil.NewMongodbId">
-            <summary>
-            生成类似Mongodb的ObjectId有序、不重复Guid
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1">
-            <summary>
-            插入数据
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:IFreeSql.Insert``1(``0)">
-            <summary>
-            插入数据，传入实体
+            插入数据，传入实体集合
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="source"></param>
             <returns></returns>
         </member>
-        <member name="M:IFreeSql.Insert``1(``0[])">
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
-            插入数据，传入实体数组
+            插入数据，传入实体集合
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="source"></param>
             <returns></returns>
+        </member>
+        <member name="M:IFreeSql.InsertOrUpdate``1">
+            <summary>
+            插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+            MySql 5.6+: on duplicate key update<para></para>
+            PostgreSQL 9.4+: on conflict do update<para></para>
+            SqlServer 2008+: merge into<para></para>
+            Oracle 11+: merge into<para></para>
+            Sqlite: replace into<para></para>
+            DuckDB: on conflict do update<para></para>
+            达梦: merge into<para></para>
+            人大金仓：on conflict do update<para></para>
+            神通：merge into<para></para>
+            MsAccess：不支持<para></para>
+            注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1">
+            <summary>
+            修改数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:IFreeSql.Ado">
+            <summary>
+            数据库访问对象
+            </summary>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）<para></para>
+            v1.5.0 关闭了线程事务超时自动提交的机制
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:IFreeSql.Ado">
+            <summary>
+            数据库访问对象
+            </summary>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+<returns></returns>
         </member>
         <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
             <summary>
