@@ -48,6 +48,7 @@ namespace FreeSql
                     case DataType.ShenTong:
                     case DataType.DuckDB:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
+                    case DataType.Xugu:
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
                             DbContextFlushCommand();

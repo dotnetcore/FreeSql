@@ -82,6 +82,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.KingbaseES:
                 case DataType.ShenTong:
                 case DataType.DuckDB:
+                case DataType.Xugu:
                     InterceptPostgreSQL?.Invoke(); break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
@@ -216,6 +217,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.ShenTong:
+                case DataType.Xugu:
                     break;
                 default:
                     var tbalias = _query2Provider._tables.Where(tb => tb.Table == col.Table).FirstOrDefault()?.Alias ?? _query2Provider._tables[0].Alias;

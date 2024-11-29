@@ -397,6 +397,7 @@ namespace FreeSql.Internal
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong:
+                    case DataType.Xugu:
                         if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
@@ -470,7 +471,8 @@ namespace FreeSql.Internal
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-						colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
+                    case DataType.Xugu:
+                        colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
 						break;
 					case DataType.Oracle:
 					case DataType.OdbcOracle:

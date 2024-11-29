@@ -705,6 +705,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.ShenTong:
                         case DataType.DuckDB:
                         case DataType.Firebird: //firebird 只支持单条插入 returning
+                        case DataType.Xugu:
                             if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                             {
                                 var idtval = OrmInsert(table).AppendData(data).ExecuteIdentity();

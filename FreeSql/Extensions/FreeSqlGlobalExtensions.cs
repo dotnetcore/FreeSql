@@ -751,6 +751,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.Firebird:
                 case DataType.ClickHouse:
                 case DataType.DuckDB:
+                case DataType.Xugu:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
                         Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
@@ -847,6 +848,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.CustomMySql:
             case DataType.Firebird:
             case DataType.DuckDB:
+            case DataType.Xugu:
                 nsselsb.Append("RECURSIVE ");
                 break;
         }
@@ -900,6 +902,7 @@ SELECT ");
             case DataType.KingbaseES:
             case DataType.ShenTong:
             case DataType.DuckDB:
+            case DataType.Xugu:
                 return that.OrderBy("random()");
             case DataType.Oracle:
             case DataType.OdbcOracle:

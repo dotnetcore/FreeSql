@@ -1197,6 +1197,7 @@ namespace FreeSql.Internal.CommonProvider
                         case DataType.CustomPostgreSQL:
                         case DataType.KingbaseES:
                         case DataType.ShenTong:
+                        case DataType.Xugu:
                             vcvalue = $"{_tableAlias}.{vcname}";  //set name = b.name
                             break;
                         default:
