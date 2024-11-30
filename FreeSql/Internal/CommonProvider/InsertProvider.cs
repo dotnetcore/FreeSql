@@ -609,10 +609,10 @@ namespace FreeSql.Internal.CommonProvider
 
         public virtual string ToSql() => ToSqlValuesOrSelectUnionAllExtension103(true, null, null, false);
 
-        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, null, false);
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true, List<string> ignoreColumn = null) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, null, false, ignoreColumn);
         public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, onrow, false);
         public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, onrowPre, onrow, false);
-        string ToSqlValuesOrSelectUnionAllExtension103(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow, bool isAsTableSplited)
+        string ToSqlValuesOrSelectUnionAllExtension103(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow, bool isAsTableSplited, List<string> ignoreColumn = null)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
@@ -643,6 +643,8 @@ namespace FreeSql.Internal.CommonProvider
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
+                //增加忽略插入的列
+                if (ignoreColumn != null && ignoreColumn.Contains(col.CsName)) continue;
                 if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
@@ -663,6 +665,8 @@ namespace FreeSql.Internal.CommonProvider
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
+                    //增加忽略插入的列
+                    if (ignoreColumn != null && ignoreColumn.Contains(col.CsName)) continue;
                     if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
