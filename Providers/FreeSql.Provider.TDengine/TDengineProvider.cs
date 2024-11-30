@@ -75,7 +75,7 @@ namespace FreeSql.TDengine
 
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere)
@@ -85,7 +85,7 @@ namespace FreeSql.TDengine
 
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>()
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         ~TDengineProvider() => this.Dispose();

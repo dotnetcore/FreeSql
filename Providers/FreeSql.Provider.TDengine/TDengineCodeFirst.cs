@@ -86,10 +86,10 @@ namespace FreeSql.TDengine
                     if (sb.Length > 0) sb.Append(Environment.NewLine);
                     var tb = obj.tableSchema;
                     if (tb == null)
-                        throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                        throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
                     if (tb.Columns.Any() == false)
                         throw new Exception(
-                            CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
+                            CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
 
                     var tbName = _commonUtils.SplitTableName(tb.DbName).First();
 

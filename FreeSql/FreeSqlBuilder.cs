@@ -385,6 +385,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Duckdb.dll", "FreeSql.Duckdb.DuckdbProvider<>");
                         break;
 
+                    case DataType.TDengine:
+                        type = Type.GetType("FreeSql.TDengine.TDengineProvider`1,FreeSql.Provider.TDengine")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.TDengine.dll", "FreeSql.TDengine.TDengineProvider<>");
+                        break;
+
                     default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }

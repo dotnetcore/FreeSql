@@ -32,12 +32,12 @@ namespace FreeSql.TDengine
 
         public List<DbTableInfo> GetTablesByDatabase(params string[] database)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         public DbTableInfo GetTableByName(string name, bool ignoreCase = true)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         public bool ExistsTable(string name, bool ignoreCase = true)
@@ -80,7 +80,7 @@ namespace FreeSql.TDengine
 
         public string GetCsConvert(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc)
             //     ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", ""))
             //     : null;
@@ -88,20 +88,20 @@ namespace FreeSql.TDengine
 
         public string GetCsParse(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csParse : null;
         }
 
         public string GetCsStringify(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csStringify : null;
         }
 
 
         public string GetCsType(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc)
             //    ? (column.IsNullable ? trydc.csType : trydc.csType.Replace("?", ""))
             //    : null;
@@ -109,26 +109,26 @@ namespace FreeSql.TDengine
 
         public Type GetCsTypeInfo(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csTypeInfo : null;
         }
 
         public string GetCsTypeValue(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csTypeValue : null;
         }
 
         public string GetDataReaderMethod(DbColumnInfo column)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
             //return _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.dataReaderMethod : null;
         }
 
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
 
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
     }
 }

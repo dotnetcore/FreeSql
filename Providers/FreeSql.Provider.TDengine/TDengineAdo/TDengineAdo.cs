@@ -32,16 +32,16 @@ namespace FreeSql.TDengine
             if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = isAdoPool
-                    ? new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase,
+                    ? new DbConnectionStringPool(base.DataType, CoreErrorStrings.S_MasterDatabase,
                         () => new TDengineConnection(masterConnectionString)) as IObjectPool<DbConnection>
-                    : new TDengineConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+                    : new TDengineConnectionPool(CoreErrorStrings.S_MasterDatabase, masterConnectionString, null, null);
 
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool
-                    ? new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
+                    ? new DbConnectionStringPool(base.DataType, $"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
                         () => new TDengineConnection(slaveConnectionString)) as IObjectPool<DbConnection>
-                    : new TDengineConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
+                    : new TDengineConnectionPool($"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}",
                         slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables),
                         () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);

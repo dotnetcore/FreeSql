@@ -40,7 +40,7 @@ namespace FreeSql.TDengine
     internal class TDengineConnectionPoolPolicy : IPolicy<DbConnection>
     {
         internal TDengineConnectionPool InternalPool;
-        public string Name { get; set; } = $"TDengine Connection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"TDengine Connection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 50;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
@@ -117,9 +117,9 @@ namespace FreeSql.TDengine
             {
                 if (obj.Value == null)
                 {
-                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError),
+                    InternalPool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError),
                         obj.LastGetTimeCopy);
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open ||
@@ -147,9 +147,9 @@ namespace FreeSql.TDengine
             {
                 if (obj.Value == null)
                 {
-                    InternalPool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError),
+                    InternalPool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError),
                         obj.LastGetTimeCopy);
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open ||
