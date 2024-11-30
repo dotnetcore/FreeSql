@@ -1,9 +1,14 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
+using FreeSql.Provider.TDengine.Attributes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,10 +46,23 @@ namespace FreeSql.TDengine.Curd
 
         public override string ToSql()
         {
-            if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll();
-            var sql = base.ToSqlValuesOrSelectUnionAll();
+            //处理Insert忽略Tag
+            var ignoreColumnList = _ignoreInsertColumns.GetOrAdd(typeof(T1), s =>
+            {
+                //如果是超表不处理
+                if (!s.IsDefined(typeof(TDengineSubTableAttribute))) return new List<string>(0);
+                var tableByEntity = _commonUtils.GetTableByEntity(s);
+                var keyValuePairs = tableByEntity.Properties.Where(pair =>
+                    pair.Value.GetCustomAttribute<TDengineTagAttribute>() != null);
+                return keyValuePairs.Select(keyValuePair => keyValuePair.Value.Name).ToList();
+            });
+            if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
+            var sql = base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
             return $"INSERT IGNORE INTO {sql.Substring(12)}";
         }
+
+        private static ConcurrentDictionary<Type, List<string>> _ignoreInsertColumns =
+            new ConcurrentDictionary<Type, List<string>>();
 
         protected override long RawExecuteIdentity()
         {
