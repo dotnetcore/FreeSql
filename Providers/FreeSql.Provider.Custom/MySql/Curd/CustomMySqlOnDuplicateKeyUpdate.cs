@@ -17,7 +17,7 @@ namespace FreeSql.Custom.MySql
         public CustomMySqlOnDuplicateKeyUpdate(IInsert<T1> insert)
         {
             _mysqlInsert = insert as CustomMySqlInsert<T1>;
-            if (_mysqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnDuplicateKeyUpdate", "Odbc/MySql"));
+            if (_mysqlInsert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnDuplicateKeyUpdate", "Odbc/MySql"));
             if (_mysqlInsert._noneParameterFlag == "c") _mysqlInsert._noneParameterFlag = "cu";
         }
 

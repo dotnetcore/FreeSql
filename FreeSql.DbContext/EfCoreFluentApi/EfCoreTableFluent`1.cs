@@ -42,7 +42,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         {
             var exp = key?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("key"));
+            if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("key"));
 
             switch (exp.NodeType)
             {
@@ -63,7 +63,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         {
             var exp = index?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("index"));
+            if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("index"));
 
             var indexName = $"idx_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
             var columns = new List<string>();
@@ -114,7 +114,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         {
             var exp = one?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
+            if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
 
             var oneProperty = "";
             switch (exp.NodeType)
@@ -123,7 +123,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     oneProperty = (exp as MemberExpression).Member.Name;
                     break;
             }
-            if (string.IsNullOrEmpty(oneProperty)) throw new ArgumentException(DbContextStrings.ParameterError("one"));
+            if (string.IsNullOrEmpty(oneProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("one"));
             return new HasOneFluent<T2>(_fsql, _tf, oneProperty);
         }
         public class HasOneFluent<T2>
@@ -146,7 +146,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = many?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
 
                 switch (exp.NodeType)
                 {
@@ -154,7 +154,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _withManyProperty = (exp as MemberExpression).Member.Name;
                         break;
                 }
-                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException(DbContextStrings.ParameterError("many"));
+                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("many"));
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
                 return this;
@@ -163,7 +163,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = one?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
 
                 switch (exp.NodeType)
                 {
@@ -171,11 +171,11 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _withOneProperty = (exp as MemberExpression).Member.Name;
                         break;
                 }
-                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException(DbContextStrings.ParameterError("one"));
+                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("one"));
 
                 exp = foreignKey?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
 
                 switch (exp.NodeType)
                 {
@@ -190,7 +190,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _withOneBind = _withOneBind.TrimStart(',', ' ');
                         break;
                 }
-                if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
                 return this;
@@ -199,7 +199,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = foreignKey?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
 
                 switch (exp.NodeType)
                 {
@@ -214,7 +214,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _selfBind = _selfBind.TrimStart(',', ' ');
                         break;
                 }
-                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withManyProperty) == false)
                     _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
@@ -230,7 +230,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         {
             var exp = many?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
+            if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
 
             var manyProperty = "";
             switch (exp.NodeType)
@@ -239,7 +239,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     manyProperty = (exp as MemberExpression).Member.Name;
                     break;
             }
-            if (string.IsNullOrEmpty(manyProperty)) throw new ArgumentException(DbContextStrings.ParameterError("many"));
+            if (string.IsNullOrEmpty(manyProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("many"));
             return new HasManyFluent<T2>(_fsql, _tf, manyProperty);
         }
         public class HasManyFluent<T2>
@@ -262,7 +262,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = many?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
 
                 switch (exp.NodeType)
                 {
@@ -270,7 +270,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _withManyProperty = (exp as MemberExpression).Member.Name;
                         break;
                 }
-                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException(DbContextStrings.ParameterError("many"));
+                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("many"));
 
                 _tf.Navigate(_selfProperty, null, middleType);
                 _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, null, middleType));
@@ -279,7 +279,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = one?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
 
                 switch (exp.NodeType)
                 {
@@ -287,7 +287,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _withOneProperty = (exp as MemberExpression).Member.Name;
                         break;
                 }
-                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException(DbContextStrings.ParameterError("one"));
+                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException(DbContextErrorStrings.ParameterError("one"));
                 
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
@@ -297,7 +297,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             {
                 var exp = foreignKey?.Body;
                 if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (exp == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
 
                 switch (exp.NodeType)
                 {
@@ -312,7 +312,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                         _selfBind = _selfBind.TrimStart(',', ' ');
                         break;
                 }
-                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withOneProperty) == false)
                     _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));

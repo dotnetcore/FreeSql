@@ -217,7 +217,7 @@ namespace FreeSql.Custom.MySql
             switch (exp.Member.Name)
             {
                 case "Date": return $"cast(date_format({left},'%Y-%m-%d') as datetime)";
-                case "TimeOfDay": return $"timestampdiff(microsecond, date_format({left},'%Y-%m-%d'), {left})";
+                case "TimeOfDay": return $"timestampdiff(second, date_format({left},'%Y-%m-%d'), {left})";
                 case "DayOfWeek": return $"(dayofweek({left})-1)";
                 case "Day": return $"dayofmonth({left})";
                 case "DayOfYear": return $"dayofyear({left})";
@@ -250,7 +250,7 @@ namespace FreeSql.Custom.MySql
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         if (exp.Arguments.Count == 1) return ExpressionLambdaToSql(exp.Arguments[0], tsc);
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
@@ -417,12 +417,11 @@ namespace FreeSql.Custom.MySql
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"timestampdiff(microsecond, {args1}, {left})";
-                            case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";
+                            case "System.DateTime": return $"timestampdiff(second, {args1}, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
+                    case "CompareTo": return $"timestampdiff(second,{args1},{left})";
                     case "ToString":
                         if (exp.Arguments.Count == 0) return $"date_format({left},'%Y-%m-%d %H:%i:%s.%f')";
                         switch (args1)

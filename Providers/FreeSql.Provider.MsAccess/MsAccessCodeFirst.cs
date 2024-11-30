@@ -80,8 +80,8 @@ namespace FreeSql.MsAccess
             {
                 if (sb.Length > 0) sb.Append("\r\n");
                 var tb = obj.tableSchema;
-                if (tb == null) throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
-                if (tb.Columns.Any() == false) throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = tb.DbName;
                 var tboldname = tb.DbOldName; //旧表名
                 if (string.Compare(tbname, tboldname, true) == 0) tboldname = null;
@@ -177,7 +177,7 @@ namespace FreeSql.MsAccess
                     istmpatler = true;
                 }
                 if (tboldname != null && isexistsTb == true)
-                    throw new Exception(CoreStrings.S_OldTableExists(tboldname, tbname));
+                    throw new Exception(CoreErrorStrings.S_OldTableExists(tboldname, tbname));
 
                 DataTable schemaColumns = null;
                 DataTable schemaDataTypes = null;

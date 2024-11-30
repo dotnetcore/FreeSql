@@ -27,7 +27,7 @@ namespace FreeSql.Custom.Oracle
                     UserId = CustomOracleAdo.GetUserId(conn.Value.ConnectionString);
                 return;
             }
-            throw new Exception(CoreStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
+            throw new Exception(CoreErrorStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
         }
 
         internal string UserId { get; set; }

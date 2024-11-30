@@ -40,7 +40,7 @@ namespace FreeSql.SqlServer.Curd
                 }
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" WHERE ");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("WHERE"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("WHERE"));
                 sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
                     .Append(sql.Substring(validx)).ToString();
@@ -97,7 +97,7 @@ namespace FreeSql.SqlServer.Curd
                 }
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" WHERE ");
-                if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("WHERE"));
+                if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("WHERE"));
                 sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
                     .Append(sql.Substring(validx)).ToString();

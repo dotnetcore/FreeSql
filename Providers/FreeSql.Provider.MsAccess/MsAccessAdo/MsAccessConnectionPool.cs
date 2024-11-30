@@ -40,7 +40,7 @@ namespace FreeSql.MsAccess
     {
 
         internal MsAccessConnectionPool _pool;
-        public string Name { get; set; } = $"Microsoft Access OleDbConnection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"Microsoft Access OleDbConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
@@ -114,7 +114,7 @@ namespace FreeSql.MsAccess
             {
 
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     obj.Value.Open();
@@ -130,7 +130,7 @@ namespace FreeSql.MsAccess
             {
 
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     await obj.Value.OpenAsync();

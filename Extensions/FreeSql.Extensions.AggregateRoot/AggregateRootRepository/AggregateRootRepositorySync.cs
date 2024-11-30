@@ -32,7 +32,7 @@ namespace FreeSql
         {
             if (data == null) return;
             var table = Orm.CodeFirst.GetTableByEntity(EntityType);
-            if (table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotEdit_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, data.First())));
+            if (table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotEdit_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, data.First())));
             _statesEditing.Clear();
             _dataEditing = data;
             foreach (var item in data)
@@ -216,7 +216,7 @@ namespace FreeSql
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             var table = Orm.CodeFirst.GetTableByEntity(EntityType);
-            if (table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
+            if (table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
 
             var flagExists = ExistsInStates(entity);
             if (flagExists == false)

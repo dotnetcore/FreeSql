@@ -336,7 +336,7 @@ namespace FreeSql.PostgreSQL
             switch (exp.Member.Name)
             {
                 case "Date": return $"({left})::date";
-                case "TimeOfDay": return $"(extract(epoch from ({left})::time)*1000000)";
+                case "TimeOfDay": return $"extract(epoch from ({left})::time)";
                 case "DayOfWeek": return $"extract(dow from ({left})::timestamp)";
                 case "Day": return $"extract(day from ({left})::timestamp)";
                 case "DayOfYear": return $"extract(doy from ({left})::timestamp)";
@@ -369,7 +369,7 @@ namespace FreeSql.PostgreSQL
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
@@ -542,8 +542,7 @@ namespace FreeSql.PostgreSQL
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"(extract(epoch from ({left})::timestamp-({args1})::timestamp)*1000000)";
-                            case "System.TimeSpan": return $"(({left})::timestamp-((({args1})/1000)||' milliseconds')::interval)";
+                            case "System.DateTime": return $"extract(epoch from ({left})::timestamp-({args1})::timestamp)";
                         }
                         break;
                     case "Equals": return $"({left} = ({args1})::timestamp)";

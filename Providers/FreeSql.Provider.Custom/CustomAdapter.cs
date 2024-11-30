@@ -150,7 +150,6 @@ namespace FreeSql.Custom
         public virtual string LambdaDateTime_AddTicks(string operand, string value) => $"dateadd(second, ({value})/10000000, {operand})";
         public virtual string LambdaDateTime_AddYears(string operand, string value) => $"dateadd(year, {value}, {operand})";
         public virtual string LambdaDateTime_Subtract(string operand, string value) => $"datediff(second, {value}, {operand})";
-        public virtual string LambdaDateTime_SubtractTimeSpan(string operand, string value) => $"dateadd(second, ({value})*-1, {operand})";
         public virtual string LambdaDateTime_Equals(string operand, string value) => $"({operand} = {value})";
         public virtual string LambdaDateTime_CompareTo(string operand, string value) => $"datediff(second,{value},{operand})";
         public virtual string LambdaDateTime_ToString(string operand) => $"convert(varchar, {operand}, 121)";

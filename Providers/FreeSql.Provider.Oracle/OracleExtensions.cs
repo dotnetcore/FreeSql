@@ -139,7 +139,7 @@ public static partial class FreeSqlOracleGlobalExtensions
     public static void ExecuteOracleBulkCopy<T>(this IInsert<T> that, OracleBulkCopyOptions copyOptions = OracleBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.Oracle.Curd.OracleInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteOracleBulkCopy", "Oracle"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteOracleBulkCopy", "Oracle"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -207,7 +207,7 @@ public static partial class FreeSqlOracleGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteOracleBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteOracleBulkCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

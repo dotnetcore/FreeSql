@@ -49,6 +49,7 @@ namespace FreeSql
                     case DataType.ShenTong:
                     case DataType.DuckDB:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
+                    case DataType.Xugu:
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
                             await DbContextFlushCommandAsync(cancellationToken);
@@ -119,7 +120,7 @@ namespace FreeSql
                     case DataType.DuckDB:
                         await DbContextFlushCommandAsync(cancellationToken);
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken);
-                        if (rets.Count != data.Count()) throw new Exception(DbContextStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
+                        if (rets.Count != data.Count()) throw new Exception(DbContextErrorStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
                         _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a, Type = DbContext.EntityChangeType.Insert }));
                         var idx = 0;
                         foreach (var s in data)
@@ -147,6 +148,65 @@ namespace FreeSql
             if (_db.Options.EnableCascadeSave)
                 foreach (var item in data)
                     await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
+        }
+
+        async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)
+        {
+            if (item == null) return;
+            if (string.IsNullOrEmpty(propertyName)) return;
+            if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextErrorStrings.NotFound_Property(_table.Type.FullName, propertyName));
+            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextErrorStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
+
+            var tref = _table.GetTableRef(propertyName, true, false);
+            if (tref == null) return;
+            switch (tref.RefType)
+            {
+                case TableRefType.OneToOne:
+                case TableRefType.ManyToOne:
+                case TableRefType.PgArrayToMany:
+                    throw new ArgumentException(DbContextErrorStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
+            }
+
+            await DbContextFlushCommandAsync(cancellationToken);
+            var oldEnable = _db.Options.EnableCascadeSave;
+            _db.Options.EnableCascadeSave = false;
+            try
+            {
+                await AddOrUpdateNavigateAsync(item, false, propertyName, cancellationToken);
+                if (tref.RefType == TableRefType.OneToMany)
+                {
+                    await DbContextFlushCommandAsync(cancellationToken);
+                    //删除没有保存的数据，求出主体的条件
+                    var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
+                    Expression whereParentExp = null;
+                    for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                    {
+                        var whereExp = Expression.Equal(
+                            Expression.MakeMemberAccess(Expression.Convert(deleteWhereParentParam, tref.RefEntityType), tref.RefColumns[colidx].Table.Properties[tref.RefColumns[colidx].CsName]),
+                            Expression.Constant(
+                                FreeSql.Internal.Utils.GetDataReaderValue(
+                                    tref.Columns[colidx].CsType,
+                                    _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName)), tref.RefColumns[colidx].CsType)
+                            );
+                        if (whereParentExp == null) whereParentExp = whereExp;
+                        else whereParentExp = Expression.AndAlso(whereParentExp, whereExp);
+                    }
+                    var propValEach = GetItemValue(item, prop) as IEnumerable;
+                    var subDelete = _db.OrmOriginal.Delete<object>().AsType(tref.RefEntityType)
+                        .WithTransaction(_uow?.GetOrBeginTransaction())
+                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam));
+                    foreach (var propValItem in propValEach)
+                    {
+                        subDelete.WhereDynamic(propValEach, true);
+                        break;
+                    }
+                    await subDelete.ExecuteAffrowsAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                _db.Options.EnableCascadeSave = oldEnable;
+            }
         }
 
         async Task AddOrUpdateNavigateAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
@@ -321,7 +381,7 @@ namespace FreeSql
 
             if (_states.TryGetValue(uplst1.Key, out var lstval1) == false) return -999;
             var lstval2 = default(EntityState);
-            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception(DbContextStrings.SpecialError_UpdateFailedDataNotTracked(_db.OrmOriginal.GetEntityString(_entityType, uplst2.Value)));
+            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception(DbContextErrorStrings.SpecialError_UpdateFailedDataNotTracked(_db.OrmOriginal.GetEntityString(_entityType, uplst2.Value)));
 
             var cuig1 = _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, uplst1.Value, lstval1.Value, true);
             var cuig2 = uplst2 != null ? _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, uplst2.Value, lstval2.Value, true) : null;
@@ -373,11 +433,11 @@ namespace FreeSql
         async public Task UpdateAsync(TEntity data, CancellationToken cancellationToken = default)
         {
             var exists = ExistsInStates(data);
-            if (exists == null) throw new Exception(DbContextStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
+            if (exists == null) throw new Exception(DbContextErrorStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
             if (exists == false)
             {
                 var olddata = await OrmSelect(data).FirstAsync(cancellationToken);
-                if (olddata == null) throw new Exception(DbContextStrings.CannotUpdate_RecordDoesNotExist(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (olddata == null) throw new Exception(DbContextErrorStrings.CannotUpdate_RecordDoesNotExist(_db.OrmOriginal.GetEntityString(_entityType, data)));
             }
 
             await UpdateRangePrivAsync(new[] { data }, true, cancellationToken);
@@ -418,7 +478,16 @@ namespace FreeSql
         async Task<int> DbContextBatchRemoveAsync(EntityState[] dels, CancellationToken cancellationToken)
         {
             if (dels.Any() == false) return 0;
-            var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
+            var affrows = 0;
+            if (_table.Primarys.Length == 1)
+                affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
+            else
+            {
+                var takeMax = 300;
+                var execCount = (int)Math.Ceiling(1.0 * dels.Length / takeMax);
+                for (var a = 0; a < execCount; a++)
+                    affrows += await this.OrmDelete(dels.Skip(a * takeMax).Take(Math.Min(takeMax, dels.Length - a * takeMax)).Select(d => d.Value)).ExecuteAffrowsAsync(cancellationToken);
+            }
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return affrows;
         }
@@ -433,7 +502,7 @@ namespace FreeSql
         async public Task AddOrUpdateAsync(TEntity data, CancellationToken cancellationToken = default)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
 
             var flagExists = ExistsInStates(data);
             if (flagExists == false)

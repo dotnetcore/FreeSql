@@ -31,7 +31,7 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 1; a < lambdaExp.Parameters.Count; a++)
             {
                 var tb = _commonUtils.GetTableByEntity(lambdaExp.Parameters[a].Type);
-                if (tb == null) throw new ArgumentException(CoreStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
+                if (tb == null) throw new ArgumentException(CoreErrorStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
                 _tables.Add(new SelectTableInfo { Table = tb, Alias = lambdaExp.Parameters[a].Name, On = null, Type = SelectTableInfoType.From });
             }
             var exp = lambdaExp.Body;
@@ -79,7 +79,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "LeftJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.LeftJoin); break;
                         case "InnerJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.InnerJoin); break;
                         case "RightJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.RightJoin); break;
-                        default: throw new NotImplementedException(CoreStrings.Not_Implemented_Name(expCall.Method.Name));
+                        default: throw new NotImplementedException(CoreErrorStrings.Not_Implemented_Name(expCall.Method.Name));
                     }
                 }
             }
@@ -210,9 +210,66 @@ namespace FreeSql.Internal.CommonProvider
             var ret = From<T2, T3, T4, T5>();
             return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider });
         }
-        
+        public ISelect<T1, T2, T3, T4, T5, T6> FromQuery<T2, T3, T4, T5, T6>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7> FromQuery<T2, T3, T4, T5, T6, T7>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8> FromQuery<T2, T3, T4, T5, T6, T7, T8>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider, select15 as Select0Provider });
+        }
+        public ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15, ISelect<T16> select16) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class
+        {
+            var ret = From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>();
+            return FromQueryMulti(ret, new[] { typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15), typeof(T16) }, new[] { select2 as Select0Provider, select3 as Select0Provider, select4 as Select0Provider, select5 as Select0Provider, select6 as Select0Provider, select7 as Select0Provider, select8 as Select0Provider, select9 as Select0Provider, select10 as Select0Provider, select11 as Select0Provider, select12 as Select0Provider, select13 as Select0Provider, select14 as Select0Provider, select15 as Select0Provider, select16 as Select0Provider });
+        }
+
         public ISelect<T1> UnionAll(params ISelect<T1>[] querys)
         {
+            querys = querys?.Where(q => q != null).ToArray();
+            if (querys?.Any() != true) return this;
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
             var sb = new StringBuilder().Append(LocalGetQuerySql(this));
             foreach (var select2 in querys)
@@ -523,16 +580,76 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }
-        public ISelect<T1> WithMemory(IEnumerable<T1> source)
+        public ISelect<TDto> WithMemory<TDto>(IEnumerable<TDto> source)
         {
             var list = source?.Select(a => (object)a).ToList();
-            if (list.Any() != true) throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(source)));
-			var sb = new StringBuilder();
-            (_orm.InsertOrUpdate<object>().AsType(_tables[0].Table.Type) as InsertOrUpdateProvider<object>)
-                .WriteSourceSelectUnionAll(list, sb, _params, true);
+            if (list.Any() != true) throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(source)));
+            if (_tables[0].Table.Type != typeof(TDto))
+            {
+                if (_orm.CodeFirst.IsAutoSyncStructure)
+                    (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+                ret._commandTimeout = _commandTimeout;
+                ret._connection = _connection;
+                ret._transaction = _transaction;
+                ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+                ret._cancel = _cancel;
+                ret._params.AddRange(_params);
+                if (ret._tables[0].Table == null)
+                {
+                    var table = TableInfo.GetDefaultTable(typeof(TDto));
+                    var colpos = new List<ColumnInfo>();
+                    foreach (var kv in table.Properties)
+                    {
+                        var colName = kv.Key;
+                        if (string.IsNullOrWhiteSpace(colName)) continue;
+                        var colType = kv.Value.PropertyType;
+                        if (_orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
+                        if (_orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                        var col = new ColumnInfo
+                        {
+                            CsName = kv.Key,
+                            Table = table,
+                            Attribute = new DataAnnotations.ColumnAttribute
+                            {
+                                Name = colName,
+                                MapType = colType
+                            },
+                            CsType = colType
+                        };
+                        table.Columns.Add(colName, col);
+                        table.ColumnsByCs.Add(kv.Key, col);
+                        colpos.Add(col);
+                    }
+                    table.ColumnsByPosition = colpos.ToArray();
+                    colpos.Clear();
+                    ret._tables[0].Table = table;
+                }
+                var sb = new StringBuilder();
 
-            try { return WithSql(sb.ToString()); }
-            finally { sb.Clear(); }
+                try
+                {
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = ret._tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
+                    ret.WithSql(sb.ToString());
+                    return ret;
+                }
+                finally { sb.Clear(); }
+            }
+            if (_tables[0].Table.Type != typeof(object))
+            {
+                var sb = new StringBuilder();
+                try
+                {
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = _tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
+                    return WithSql(sb.ToString()) as ISelect<TDto>;
+                }
+                finally { sb.Clear(); }
+            }
+            throw new Exception(CoreErrorStrings.TypeAsType_NotSupport_Object("Select"));
         }
 
         public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, TDto>> selector) => InternalWithTempQuery<TDto>(selector);
@@ -561,13 +678,13 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1> IncludeByPropertyName(string property, Expression<Action<ISelect<object>>> then)
         {
             var exp = ConvertStringPropertyToExpression(property, true);
-            if (exp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
+            if (exp == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
             var memExp = exp as MemberExpression;
-            if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
+            if (memExp == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
             var parTb = _commonUtils.GetTableByEntity(memExp.Expression.Type);
-            if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
+            if (parTb == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
             var parTbref = parTb.GetTableRef(memExp.Member.Name, true, true);
-            if (parTbref == null) throw new ArgumentException(CoreStrings.Not_Valid_Navigation_Property(nameof(property)));
+            if (parTbref == null) throw new ArgumentException(CoreErrorStrings.Not_Valid_Navigation_Property(nameof(property)));
             switch (parTbref.RefType)
             {
                 case TableRefType.ManyToMany:
@@ -582,7 +699,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
-                    if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
+                    if (incMethod == null) throw new Exception(CoreErrorStrings.RunTimeError_Reflection_IncludeMany);
                     Delegate newthen = null;
                     if (then != null)
                     {
@@ -646,10 +763,10 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
-            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_MemberAccess);
-            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_IncludeMany);
+            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception(CoreErrorStrings.Include_ParameterType_Error_Use_MemberAccess);
+            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception(CoreErrorStrings.Include_ParameterType_Error_Use_IncludeMany);
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
-            if (tb == null) throw new Exception(CoreStrings.Include_ParameterType_Error);
+            if (tb == null) throw new Exception(CoreErrorStrings.Include_ParameterType_Error);
 
             _isIncluded = true;
             _tables[0].Parameter = navigateSelector.Parameters[0];
@@ -684,19 +801,19 @@ namespace FreeSql.Internal.CommonProvider
                             isbreak = true;
                             break;
                         }
-                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
+                        throw new Exception(CoreErrorStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                     default:
-                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
+                        throw new Exception(CoreErrorStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                 }
             }
-            if (param == null) throw new Exception(CoreStrings.Expression_Error_Use_ParameterExpression(exp));
+            if (param == null) throw new Exception(CoreErrorStrings.Expression_Error_Use_ParameterExpression(exp));
             return NativeTuple.Create(param, members.ToList());
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class
         {
-            var throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterType_Error_Use_MemberAccess);
+            var throwNavigateSelector = new Exception(CoreErrorStrings.IncludeMany_ParameterType_Error_Use_MemberAccess);
             
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
@@ -706,7 +823,7 @@ namespace FreeSql.Internal.CommonProvider
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
             while (expBody.NodeType == ExpressionType.Call)
             {
-                throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterTypeError(nameof(navigateSelector)));
+                throwNavigateSelector = new Exception(CoreErrorStrings.IncludeMany_ParameterTypeError(nameof(navigateSelector)));
                 var callExp = (expBody as MethodCallExpression);
                 switch (callExp.Method.Name)
                 {
@@ -718,7 +835,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                     case "Select":
                         selectExp = (callExp.Arguments[1] as Expression<Func<TNavigate, TNavigate>>);
-                        if (selectExp?.Parameters.Count != 1) throw new Exception(CoreStrings.IncludeMany_ParameterError_OnlyUseOneParameter(nameof(navigateSelector)));
+                        if (selectExp?.Parameters.Count != 1) throw new Exception(CoreErrorStrings.IncludeMany_ParameterError_OnlyUseOneParameter(nameof(navigateSelector)));
                         break;
                     default: throw throwNavigateSelector;
                 }
@@ -734,9 +851,9 @@ namespace FreeSql.Internal.CommonProvider
             if (tb == null) throw throwNavigateSelector;
             var collMemElementType = (collMem.Type.IsGenericType ? collMem.Type.GetGenericArguments().FirstOrDefault() : collMem.Type.GetElementType());
             if (typeof(TNavigate) != collMemElementType)
-                throw new Exception(CoreStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(nameof(navigateSelector), collMemElementType));
+                throw new Exception(CoreErrorStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(nameof(navigateSelector), collMemElementType));
             var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
-            if (tbNav == null) throw new Exception(CoreStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
+            if (tbNav == null) throw new Exception(CoreErrorStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
                 _commonExpression.ExpressionWhereLambda(_tables, _tableRule, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), _diymemexpWithTempQuery, null, null);
@@ -746,7 +863,7 @@ namespace FreeSql.Internal.CommonProvider
             if (whereExp == null)
             {
                 tbref = tb.GetTableRef(collMem.Member.Name, true, true);
-                if (tbref == null) throw new Exception(CoreStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
+                if (tbref == null) throw new Exception(CoreErrorStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
             }
             else
             {

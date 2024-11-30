@@ -246,7 +246,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     public static void ExecuteSqlBulkCopy<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteSqlBulkCopy", "SqlServer"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteSqlBulkCopy", "SqlServer"));
 
         if (insert._insertIdentity) copyOptions = copyOptions | SqlBulkCopyOptions.KeepIdentity;
         var dt = that.ToDataTable();
@@ -313,7 +313,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteSqlBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteSqlBulkCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
@@ -340,7 +340,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteSqlBulkCopyAsync", "SqlServer"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteSqlBulkCopyAsync", "SqlServer"));
 
         if (insert._insertIdentity) copyOptions = copyOptions | SqlBulkCopyOptions.KeepIdentity;
         var dt = that.ToDataTable();
@@ -407,7 +407,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteSqlBulkCopyAsync {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteSqlBulkCopyAsync {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

@@ -88,9 +88,9 @@ namespace FreeSql.QuestDb
             {
                 if (sb.Length > 0) sb.Append("\r\n");
                 var tb = obj.tableSchema;
-                if (tb == null) throw new Exception(CoreStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
                 if (tb.Columns.Any() == false)
-                    throw new Exception(CoreStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
+                    throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = tb.DbName;
                 var tboldname = tb.DbOldName;
                 if (string.IsNullOrEmpty(obj.tableName) == false)

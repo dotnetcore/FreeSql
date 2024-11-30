@@ -40,7 +40,7 @@ namespace FreeSql.Firebird
     {
 
         internal FirebirdConnectionPool _pool;
-        public string Name { get; set; } = $"Firebird FbConnection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"Firebird FbConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
@@ -115,7 +115,7 @@ namespace FreeSql.Firebird
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     obj.Value.Open();
@@ -130,7 +130,7 @@ namespace FreeSql.Firebird
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     await obj.Value.OpenAsync();

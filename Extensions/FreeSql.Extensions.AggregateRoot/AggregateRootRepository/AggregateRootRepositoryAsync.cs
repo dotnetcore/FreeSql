@@ -154,7 +154,7 @@ namespace FreeSql
             var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             var table = Orm.CodeFirst.GetTableByEntity(EntityType);
-            if (table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
+            if (table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, entity)));
 
             var flagExists = ExistsInStates(entity);
             if (flagExists == false)
@@ -224,6 +224,16 @@ namespace FreeSql
                     }));
             }
             return affrows;
+        }
+
+        async public virtual Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default)
+        {
+            var tracking = new AggregateRootTrackingChangeInfo();
+            var stateKey = Orm.GetEntityKeyString(EntityType, entity, false);
+            if (_states.TryGetValue(stateKey, out var state) == false) throw new Exception($"AggregateRootRepository 使用仓储对象查询后，才可以保存数据 {Orm.GetEntityString(EntityType, entity)}");
+            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, state.Value, entity, propertyName, tracking);
+            await SaveTrackingChangeAsync(tracking, cancellationToken);
+            Attach(entity); //应该只存储 propertyName 内容
         }
 
         async Task<int> SaveTrackingChangeAsync(AggregateRootTrackingChangeInfo tracking, CancellationToken cancellationToken)

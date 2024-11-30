@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
                 catch(Exception ex)
                 {
-                    throw new Exception(DbContextStrings.AddFreeDbContextError_CheckConstruction(dbContextType.Name), ex);
+                    throw new Exception(DbContextErrorStrings.AddFreeDbContextError_CheckConstruction(dbContextType.Name), ex);
                 }
                 if (ctx != null && ctx._ormScoped == null)
                 {
@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     ctx._optionsPriv = builder._options;
 
                     if (ctx._ormScoped == null)
-                        throw new Exception(DbContextStrings.ConfigureUseFreeSql);
+                        throw new Exception(DbContextErrorStrings.ConfigureUseFreeSql);
 
                     ctx.InitPropSets();
                 }

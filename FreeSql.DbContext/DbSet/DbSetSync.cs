@@ -48,6 +48,7 @@ namespace FreeSql
                     case DataType.ShenTong:
                     case DataType.DuckDB:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
+                    case DataType.Xugu:
                         if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
                             DbContextFlushCommand();
@@ -122,7 +123,7 @@ namespace FreeSql
                     case DataType.DuckDB:
                         DbContextFlushCommand();
                         var rets = this.OrmInsert(data).ExecuteInserted();
-                        if (rets.Count != data.Count()) throw new Exception(DbContextStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
+                        if (rets.Count != data.Count()) throw new Exception(DbContextErrorStrings.SpecialError_BatchAdditionFailed(_db.OrmOriginal.Ado.DataType));
                         _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a, Type = DbContext.EntityChangeType.Insert }));
                         var idx = 0;
                         foreach (var s in data)
@@ -347,7 +348,7 @@ namespace FreeSql
 
             if (_states.TryGetValue(uplst1.Key, out var lstval1) == false) return -999;
             var lstval2 = default(EntityState);
-            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception(DbContextStrings.SpecialError_UpdateFailedDataNotTracked(_db.OrmOriginal.GetEntityString(_entityType, uplst2.Value)));
+            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception(DbContextErrorStrings.SpecialError_UpdateFailedDataNotTracked(_db.OrmOriginal.GetEntityString(_entityType, uplst2.Value)));
 
             var cuig1 = _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, uplst1.Value, lstval1.Value, true);
             var cuig2 = uplst2 != null ? _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, uplst2.Value, lstval2.Value, true) : null;
@@ -405,11 +406,11 @@ namespace FreeSql
         public void Update(TEntity data)
         {
             var exists = ExistsInStates(data);
-            if (exists == null) throw new Exception(DbContextStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
+            if (exists == null) throw new Exception(DbContextErrorStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
             if (exists == false)
             {
                 var olddata = OrmSelect(data).First();
-                if (olddata == null) throw new Exception(DbContextStrings.CannotUpdate_RecordDoesNotExist(_db.OrmOriginal.GetEntityString(_entityType, data)));
+                if (olddata == null) throw new Exception(DbContextErrorStrings.CannotUpdate_RecordDoesNotExist(_db.OrmOriginal.GetEntityString(_entityType, data)));
             }
 
             UpdateRangePriv(new[] { data }, true);
@@ -450,7 +451,16 @@ namespace FreeSql
         int DbContextBatchRemove(EntityState[] dels)
         {
             if (dels.Any() == false) return 0;
-            var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
+            var affrows = 0;
+            if (_table.Primarys.Length == 1)
+                affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
+            else
+            {
+                var takeMax = 300;
+                var execCount = (int)Math.Ceiling(1.0 * dels.Length / takeMax);
+                for (var a = 0; a < execCount; a++)
+                    affrows += this.OrmDelete(dels.Skip(a * takeMax).Take(Math.Min(takeMax, dels.Length - a * takeMax)).Select(d => d.Value)).ExecuteAffrows();
+            }
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { EntityType = _entityType, Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return affrows; //https://github.com/dotnetcore/FreeSql/issues/373
         }
@@ -497,7 +507,7 @@ namespace FreeSql
         public void AddOrUpdate(TEntity data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
 
             var flagExists = ExistsInStates(data);
             if (flagExists == false)
@@ -537,7 +547,7 @@ namespace FreeSql
         public void BeginEdit(List<TEntity> data)
         {
             if (data == null) return;
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotEdit_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.CannotEdit_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
             _statesEditing.Clear();
             _dataEditing = data;
             foreach (var item in data)
@@ -836,7 +846,7 @@ namespace FreeSql
 
                     var rawset = _db.Set(dbset.EntityType);
                     var statesRemove = typeof(DbSet<>).MakeGenericType(dbset.EntityType).GetMethod("StatesRemoveByObjects", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(IEnumerable<object>) }, null);
-                    if (statesRemove == null) throw new Exception(DbContextStrings.NotFoundMethod_StatesRemoveByObjects);
+                    if (statesRemove == null) throw new Exception(DbContextErrorStrings.NotFoundMethod_StatesRemoveByObjects);
                     statesRemove.Invoke(rawset, new object[] { items });
                 }
                 returnDeleted?.AddRange(items);
@@ -857,8 +867,8 @@ namespace FreeSql
         {
             if (item == null) return;
             if (string.IsNullOrEmpty(propertyName)) return;
-            if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextStrings.NotFound_Property(_table.Type.FullName, propertyName));
-            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
+            if (_table.Properties.TryGetValue(propertyName, out var prop) == false) throw new KeyNotFoundException(DbContextErrorStrings.NotFound_Property(_table.Type.FullName, propertyName));
+            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException(DbContextErrorStrings.TypeHasSetProperty_IgnoreAttribute(_table.Type.FullName, propertyName));
 
             var tref = _table.GetTableRef(propertyName, true, false);
             if (tref == null) return;
@@ -867,7 +877,7 @@ namespace FreeSql
                 case TableRefType.OneToOne:
                 case TableRefType.ManyToOne:
                 case TableRefType.PgArrayToMany:
-                    throw new ArgumentException(DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
+                    throw new ArgumentException(DbContextErrorStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(_table.Type.FullName, propertyName));
             }
 
             DbContextFlushCommand();

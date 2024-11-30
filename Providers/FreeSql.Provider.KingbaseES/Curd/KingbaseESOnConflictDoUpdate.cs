@@ -24,7 +24,7 @@ namespace FreeSql.KingbaseES
         public KingbaseESOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _insert = insert as KingbaseESInsert<T1>;
-            if (_insert == null) throw new Exception(CoreStrings.S_Features_Unique("OnConflictDoUpdate", "KingbaseES"));
+            if (_insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnConflictDoUpdate", "KingbaseES"));
             if (_insert._noneParameterFlag == "c") _insert._noneParameterFlag = "cu";
 
             if (columns != null)
@@ -38,7 +38,7 @@ namespace FreeSql.KingbaseES
             }
             if (_tempPrimarys == null || _tempPrimarys.Any() == false)
                 _tempPrimarys = _insert.InternalTable.Primarys;
-            if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.S_OnConflictDoUpdate_MustIsPrimary);
+            if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()

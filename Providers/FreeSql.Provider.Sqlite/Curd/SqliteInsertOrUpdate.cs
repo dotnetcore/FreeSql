@@ -56,14 +56,14 @@ namespace FreeSql.Sqlite.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        if (_updateIgnore.Any()) throw new Exception(CoreStrings.S_InsertOrUpdate_Unable_UpdateColumns);
+                        if (_updateIgnore.Any()) throw new Exception(CoreErrorStrings.S_InsertOrUpdate_Unable_UpdateColumns);
                         sql = insert.ToSql();
                         if (sql?.StartsWith("INSERT INTO ") == true)
                             sql = $"INSERT OR REPLACE INTO {sql.Substring(12)}";
                     }
                     else
                     {
-                        if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
+                        if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
                         sql = insert.ToSql();
                         if (sql?.StartsWith("INSERT INTO ") == true)
                             sql = $"INSERT OR IGNORE INTO {sql.Substring(12)}";

@@ -60,7 +60,7 @@ namespace FreeSql.DataAnnotations
 
 		public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, _entityType);
         }
@@ -76,7 +76,7 @@ namespace FreeSql.DataAnnotations
         public TableFluent Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
         TableFluent NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_Property(proto));
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_Property(proto));
             var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
@@ -156,12 +156,12 @@ namespace FreeSql.DataAnnotations
             var exp = column?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var proto = (exp as MemberExpression)?.Member;
-            if (proto == null) throw new FormatException(CoreStrings.Bad_Expression_Format(column));
+            if (proto == null) throw new FormatException(CoreErrorStrings.Bad_Expression_Format(column));
             return Property(proto.Name);
         }
         public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, typeof(T));
         }
@@ -181,14 +181,14 @@ namespace FreeSql.DataAnnotations
             var exp = proto?.Body;
             if (exp.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var member = (exp as MemberExpression)?.Member;
-            if (member == null) throw new FormatException(CoreStrings.Bad_Expression_Format(proto));
+            if (member == null) throw new FormatException(CoreErrorStrings.Bad_Expression_Format(proto));
             return NavigateInternal(member.Name, bind, tempPrimary, manyToMany);
         }
         public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
         public TableFluent<T> Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
         TableFluent<T> NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
             var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;

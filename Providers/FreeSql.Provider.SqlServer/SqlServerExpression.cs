@@ -259,7 +259,7 @@ namespace FreeSql.SqlServer
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), concatNewArrExp.Expressions.Select(a => a.Type).ToArray());
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         var expArgs0 = ExpressionLambdaToSql(exp.Arguments[0], tsc);
                         if (exp.Arguments.Count == 1) return expArgs0;
                         var nchar = expArgs0.StartsWith("N'") ? "N" : "";
@@ -419,7 +419,6 @@ namespace FreeSql.SqlServer
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff(second, {args1}, {left})";
-                            case "System.TimeSpan": return $"dateadd(second, ({args1})*-1, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";

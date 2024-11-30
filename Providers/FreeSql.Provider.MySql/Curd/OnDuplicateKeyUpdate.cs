@@ -17,7 +17,7 @@ namespace FreeSql.MySql.Curd
         public OnDuplicateKeyUpdate(IInsert<T1> insert)
         {
             _mysqlInsert = insert as MySqlInsert<T1>;
-            if (_mysqlInsert == null) throw new Exception(CoreStrings.S_Features_Unique("OnDuplicateKeyUpdate", "MySql/FreeSql.Provider.MySqlConnector"));
+            if (_mysqlInsert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnDuplicateKeyUpdate", "MySql/FreeSql.Provider.MySqlConnector"));
             if (_mysqlInsert._noneParameterFlag == "c") _mysqlInsert._noneParameterFlag = "cu";
         }
 

@@ -118,7 +118,7 @@ namespace FreeSql.Oracle
                     if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OleDbType.VarChar;
             }
-            throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
+            throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 #else
         OracleDbType GetSqlDbType(DbColumnInfo column)
@@ -209,7 +209,7 @@ namespace FreeSql.Oracle
                     if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.NVarchar2;
             }
-            throw new NotImplementedException(CoreStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
+            throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 #endif
 

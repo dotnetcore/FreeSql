@@ -65,6 +65,7 @@ namespace FreeSql.GBase
                     case "SMALLFLOAT":
                         return;
                     case "BIGINT":
+                    case "BIGSERIAL":
                         //Unkonw SQL type -- 114.
                         try
                         {

@@ -133,7 +133,7 @@ public static partial class FreeSqlDamengGlobalExtensions
     public static void ExecuteDmBulkCopy<T>(this IInsert<T> that, DmBulkCopyOptions copyOptions = DmBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
     {
         var insert = that as FreeSql.Dameng.Curd.DamengInsert<T>;
-        if (insert == null) throw new Exception(CoreStrings.S_Features_Unique("ExecuteDmBulkCopy", "Dameng"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteDmBulkCopy", "Dameng"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -199,7 +199,7 @@ public static partial class FreeSqlDamengGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteDmBulkCopy {CoreStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteDmBulkCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally

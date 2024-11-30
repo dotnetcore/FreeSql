@@ -21,13 +21,13 @@ namespace FreeSql.Internal.CommonProvider
     {
         public DataTable ToDataTableByPropertyName(string[] properties)
         {
-            if (properties?.Any() != true) throw new ArgumentException($"{CoreStrings.Properties_Cannot_Null}");
+            if (properties?.Any() != true) throw new ArgumentException($"{CoreErrorStrings.Properties_Cannot_Null}");
             var sbfield = new StringBuilder();
             for (var propIdx = 0; propIdx < properties.Length; propIdx++)
             {
                 var property = properties[propIdx];
                 var exp = ConvertStringPropertyToExpression(property);
-                if (exp == null) throw new Exception(CoreStrings.Property_Cannot_Find(property));
+                if (exp == null) throw new Exception(CoreErrorStrings.Property_Cannot_Find(property));
                 var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery);
                 if (propIdx > 0) sbfield.Append(", ");
                 sbfield.Append(field);
@@ -236,7 +236,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false)
         {
-            if (_selectExpression != null) throw new ArgumentException(CoreStrings.Before_Chunk_Cannot_Use_Select);
+            if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
             this.ToListChunkPrivate(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
 
@@ -859,7 +859,7 @@ namespace FreeSql.Internal.CommonProvider
         protected TSelect InternalJoin<T2>(Expression exp, SelectTableInfoType joinType)
         {
             var tb = _commonUtils.GetTableByEntity(typeof(T2));
-            if (tb == null) throw new ArgumentException(CoreStrings.T2_Type_Error);
+            if (tb == null) throw new ArgumentException(CoreErrorStrings.T2_Type_Error);
             _tables.Add(new SelectTableInfo { Table = tb, Alias = $"IJ{_tables.Count}", On = null, Type = joinType });
             _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);
             return this as TSelect;
@@ -990,7 +990,7 @@ namespace FreeSql.Internal.CommonProvider
         protected string InternalGetInsertIntoToSql<TTargetEntity>(string tableName, Expression select)
         {
             var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
-            if (tb == null) throw new ArgumentException(CoreStrings.InsertInto_TypeError(typeof(TTargetEntity).DisplayCsharp()));
+            if (tb == null) throw new ArgumentException(CoreErrorStrings.InsertInto_TypeError(typeof(TTargetEntity).DisplayCsharp()));
             if (string.IsNullOrEmpty(tableName)) tableName = tb.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) tableName = tableName.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) tableName = tableName.ToUpper();
@@ -1003,7 +1003,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, null, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             
             var childs = map.Childs;
-            if (childs.Any() == false) throw new ArgumentException(CoreStrings.InsertInto_No_Property_Selected(typeof(TTargetEntity).DisplayCsharp()));
+            if (childs.Any() == false) throw new ArgumentException(CoreErrorStrings.InsertInto_No_Property_Selected(typeof(TTargetEntity).DisplayCsharp()));
             foreach (var col in tb.Columns.Values)
             {
                 if (col.Attribute.IsIdentity && string.IsNullOrEmpty(col.DbInsertValue)) continue;
@@ -1101,13 +1101,13 @@ namespace FreeSql.Internal.CommonProvider
 #else
         public Task<DataTable> ToDataTableByPropertyNameAsync(string[] properties, CancellationToken cancellationToken)
         {
-            if (properties?.Any() != true) throw new ArgumentException($"{CoreStrings.Properties_Cannot_Null}");
+            if (properties?.Any() != true) throw new ArgumentException($"{CoreErrorStrings.Properties_Cannot_Null}");
             var sbfield = new StringBuilder();
             for (var propIdx = 0; propIdx < properties.Length; propIdx++)
             {
                 var property = properties[propIdx];
                 var exp = ConvertStringPropertyToExpression(property);
-                if (exp == null) throw new Exception(CoreStrings.Property_Cannot_Find(property));
+                if (exp == null) throw new Exception(CoreErrorStrings.Property_Cannot_Find(property));
                 var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, exp, true, _diymemexpWithTempQuery);
                 if (propIdx > 0) sbfield.Append(", ");
                 sbfield.Append(field);

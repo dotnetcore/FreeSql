@@ -193,7 +193,7 @@ public static partial class FreeSqlGlobalExtensions
                     .OrderBy(a => a.IsPublic ? 0 : 1)
                     .FirstOrDefault();
             }));
-        if (ret.Value == null && isThrow) throw new ArgumentException(CoreStrings.Type_Cannot_Access_Constructor(that.FullName));
+        if (ret.Value == null && isThrow) throw new ArgumentException(CoreErrorStrings.Type_Cannot_Access_Constructor(that.FullName));
         return ret.Value;
     }
 
@@ -416,7 +416,7 @@ public static partial class FreeSqlGlobalExtensions
         var t1sel = orm.Select<object>().AsType(entityType) as Select1Provider<object>;
         var t1expFul = t1sel.ConvertStringPropertyToExpression(property, true);
         var t1exp = props.Length == 1 ? t1expFul : t1sel.ConvertStringPropertyToExpression(props[0], true);
-        if (t1expFul == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
+        if (t1expFul == null) throw new ArgumentException(CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
         var propElementType = t1expFul.Type.GetGenericArguments().FirstOrDefault() ?? t1expFul.Type.GetElementType();
         if (propElementType != null) //IncludeMany
         {
@@ -432,7 +432,7 @@ public static partial class FreeSqlGlobalExtensions
             return list;
         }
         var tbtr = t1tb.GetTableRef(props[0], true, true);
-        if (tbtr == null) throw new ArgumentException(CoreStrings.ParameterError_NotValid_Navigation(nameof(property)));
+        if (tbtr == null) throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_Navigation(nameof(property)));
         var reftb = orm.CodeFirst.GetTableByEntity(t1exp.Type);
         var refsel = orm.Select<object>().AsType(t1exp.Type) as Select1Provider<object>;
         if (props.Length > 1)
@@ -479,14 +479,14 @@ public static partial class FreeSqlGlobalExtensions
         }
         var sel = orm.Select<object>().AsType(entityType) as Select1Provider<object>;
         var exp = sel.ConvertStringPropertyToExpression(property, true);
-        if (exp == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
+        if (exp == null) throw new ArgumentException(CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
         var memExp = exp as MemberExpression;
-        if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
+        if (memExp == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
         var parTb = orm.CodeFirst.GetTableByEntity(memExp.Expression.Type);
-        if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
+        if (parTb == null) throw new ArgumentException($"{CoreErrorStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
         var propElementType = exp.Type.GetGenericArguments().FirstOrDefault() ?? exp.Type.GetElementType();
         var reftb = orm.CodeFirst.GetTableByEntity(propElementType);
-        if (reftb == null) throw new ArgumentException(CoreStrings.ParameterError_NotValid_Collection(nameof(property)));
+        if (reftb == null) throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_Collection(nameof(property)));
 
         if (string.IsNullOrWhiteSpace(where) == false)
         {
@@ -499,12 +499,12 @@ public static partial class FreeSqlGlobalExtensions
             for (var a = 0; a < whereSplit.Length; a++)
             {
                 var keyval = whereSplit[a].Split('=').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).ToArray();
-                if (keyval.Length != 2) throw new ArgumentException(CoreStrings.ParameterError_NotValid_UseCommas(nameof(where)));
+                if (keyval.Length != 2) throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_UseCommas(nameof(where)));
 
                 if (reftb.ColumnsByCs.TryGetValue(keyval[0], out var keycol) == false)
-                    throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(where), keyval[0], reftb.Type.DisplayCsharp()));
+                    throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_PropertyName(nameof(where), keyval[0], reftb.Type.DisplayCsharp()));
                 if (parTb.ColumnsByCs.TryGetValue(keyval[1], out var valcol) == false)
-                    throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(where), keyval[1], parTb.Type.DisplayCsharp()));
+                    throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_PropertyName(nameof(where), keyval[1], parTb.Type.DisplayCsharp()));
 
                 var tmpExp = Expression.Equal(
                     Expression.Convert(Expression.MakeMemberAccess(refparamExp, reftb.Properties[keyval[0]]), valcol.CsType),
@@ -530,7 +530,7 @@ public static partial class FreeSqlGlobalExtensions
                 select.Split(',').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).Select(a =>
                 {
                     if (reftb.ColumnsByCs.TryGetValue(a, out var col) == false)
-                        throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(select), a, reftb.Type.DisplayCsharp()));
+                        throw new ArgumentException(CoreErrorStrings.ParameterError_NotValid_PropertyName(nameof(select), a, reftb.Type.DisplayCsharp()));
                     return Expression.Bind(reftb.Properties[col.CsName], Expression.MakeMemberAccess(refparamExp, reftb.Properties[col.CsName]));
                 }).ToArray());
 
@@ -555,7 +555,7 @@ public static partial class FreeSqlGlobalExtensions
         }
         var navigateSelector = Expression.Lambda(funcType, exp, sel._tables[0].Parameter);
         var incMethod = sel.GetType().GetMethod("IncludeMany");
-        if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
+        if (incMethod == null) throw new Exception(CoreErrorStrings.RunTimeError_Reflection_IncludeMany);
         incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, newthen });
         return sel;
     }
@@ -639,7 +639,7 @@ public static partial class FreeSqlGlobalExtensions
         var navs = tb.GetAllTableRef().Where(a => a.Value.Exception == null).Select(a => a.Value)
             .Where(a => a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany && a.RefEntityType == tb.Type).ToArray();
 
-        if (navs.Length != 1) throw new ArgumentException(CoreStrings.Entity_NotParentChild_Relationship(tb.Type.FullName));
+        if (navs.Length != 1) throw new ArgumentException(CoreErrorStrings.Entity_NotParentChild_Relationship(tb.Type.FullName));
         var tbref = navs[0];
 
         var cteName = "as_tree_cte";
@@ -693,7 +693,7 @@ public static partial class FreeSqlGlobalExtensions
                 }
                 if (int.TryParse((mysqlVersion ?? "").Split('.')[0], out var mysqlVersionFirst) && mysqlVersionFirst < 8)
                 {
-                    if (tbref.Columns.Count > 1) throw new ArgumentException(CoreStrings.Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(tb.Type.FullName));
+                    if (tbref.Columns.Count > 1) throw new ArgumentException(CoreErrorStrings.Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(tb.Type.FullName));
                     var mysql56Sql = "";
                     if (up == false)
                     {
@@ -751,6 +751,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 case DataType.Firebird:
                 case DataType.ClickHouse:
                 case DataType.DuckDB:
+                case DataType.Xugu:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, select._tableRule, 
                         Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), select._diymemexpWithTempQuery, null, null);
                     break;
@@ -847,6 +848,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             case DataType.CustomMySql:
             case DataType.Firebird:
             case DataType.DuckDB:
+            case DataType.Xugu:
                 nsselsb.Append("RECURSIVE ");
                 break;
         }
@@ -900,6 +902,7 @@ SELECT ");
             case DataType.KingbaseES:
             case DataType.ShenTong:
             case DataType.DuckDB:
+            case DataType.Xugu:
                 return that.OrderBy("random()");
             case DataType.Oracle:
             case DataType.OdbcOracle:
@@ -913,7 +916,7 @@ SELECT ");
             case DataType.Firebird:
                 return that.OrderBy("rand()");
         }
-        throw new NotSupportedException($"{CoreStrings.Not_Support_OrderByRandom(s0p._orm.Ado.DataType)}");
+        throw new NotSupportedException($"{CoreErrorStrings.Not_Support_OrderByRandom(s0p._orm.Ado.DataType)}");
     }
     #endregion
 
@@ -1083,9 +1086,9 @@ SELECT ");
         public long ExecuteIdentity(string identityColumn)
         {
             if (string.IsNullOrEmpty(identityColumn))
-                throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
+                throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
             if (_insertProvider._table.ColumnsByCs.TryGetValue(identityColumn, out var col) == false)
-                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
+                throw new Exception(CoreErrorStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
             col.Attribute.IsIdentity = true;
             return _insertProvider.ExecuteIdentity();
         }
@@ -1098,9 +1101,9 @@ SELECT ");
         public Task<long> ExecuteIdentityAsync(string identityColumn, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(identityColumn))
-                throw new Exception(CoreStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
+                throw new Exception(CoreErrorStrings.Cannot_Be_NULL_Name(nameof(identityColumn)));
             if (_insertProvider._table.ColumnsByCs.TryGetValue(identityColumn, out var col) == false)
-                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
+                throw new Exception(CoreErrorStrings.GetPrimarys_ParameterError_IsNotDictKey(identityColumn).Replace(nameof(ExecuteIdentity), ""));
             col.Attribute.IsIdentity = true;
             return _insertProvider.ExecuteIdentityAsync(cancellationToken);
         }
@@ -1163,7 +1166,7 @@ SELECT ");
             foreach (var primary in primarys)
             {
                 if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) pks.Add(col);
-                else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
+                else throw new Exception(CoreErrorStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
             return pks.ToArray();
         }
@@ -1182,17 +1185,17 @@ SELECT ");
                         col.Attribute.IsIdentity = true;
                     }
                 }
-                else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
+                else throw new Exception(CoreErrorStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
             table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
         }
         public UpdateDictImpl IsVersion(string version)
         {
             if (_updateProvider._table.ColumnsByCs.TryGetValue(version, out var col) == false)
-                throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(version).Replace(nameof(GetPrimarys), ""));
+                throw new Exception(CoreErrorStrings.GetPrimarys_ParameterError_IsNotDictKey(version).Replace(nameof(GetPrimarys), ""));
             //if (col.Attribute.MapType.IsNullableType() ||
             //    col.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(col.Attribute.MapType))
-            //    throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(col.CsName));
+            //    throw new Exception(CoreErrorStrings.Properties_AsRowLock_Must_Numeric_Byte(col.CsName));
             col.Attribute.IsVersion = true;
             _updateProvider._table.VersionColumn = col;
             _updateProvider._versionColumn = col;

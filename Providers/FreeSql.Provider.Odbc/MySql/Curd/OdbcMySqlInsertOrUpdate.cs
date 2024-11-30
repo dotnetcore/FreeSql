@@ -86,7 +86,7 @@ namespace FreeSql.Odbc.MySql
                     }
                     else
                     {
-                        if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
+                        if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + MySql ", _table.CsName));
                         sql = insert.ToSqlValuesOrSelectUnionAll();
                         if (sql?.StartsWith("INSERT INTO ") == true)
                             sql = $"INSERT IGNORE INTO {sql.Substring(12)}";

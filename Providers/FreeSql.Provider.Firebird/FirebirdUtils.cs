@@ -89,6 +89,7 @@ namespace FreeSql.Firebird
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
+            if (type == typeof(string) && col != null && (specialParamFlag == "c" || specialParamFlag == "cu")) return $"cast('{value.ToString().Replace("'", "''")}' as {col.Attribute.DbType})"; //#1923
             return FormatSql("{0}", value, 1);
         }
     }

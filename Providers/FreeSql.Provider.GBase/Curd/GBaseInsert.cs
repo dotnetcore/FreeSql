@@ -28,7 +28,7 @@ namespace FreeSql.GBase.Curd
             if (_source?.Count <= 1) return base.ToSqlValuesOrSelectUnionAll();
             var sql = base.ToSqlValuesOrSelectUnionAllExtension102(false, null, (rowd, idx, sb) => sb.Append(" FROM dual"));
             var validx = sql.IndexOf(") SELECT ");
-            if (validx == -1) throw new ArgumentException(CoreStrings.S_NotFound_Name("SELECT"));
+            if (validx == -1) throw new ArgumentException(CoreErrorStrings.S_NotFound_Name("SELECT"));
             return new StringBuilder()
                 .Insert(0, sql.Substring(0, validx + 1))
                 .Append("\r\nSELECT * FROM (\r\n")
@@ -42,12 +42,15 @@ namespace FreeSql.GBase.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
 
-            var identityType = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault()?.CsType.NullableTypeOrThis();
+            var identityCol = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
+            var identityType = identityCol?.Attribute.MapType.NullableTypeOrThis();
             var identitySql = "";
             if (identityType != null)
             {
                 if (identityType == typeof(int) || identityType == typeof(uint)) identitySql = "SELECT dbinfo('sqlca.sqlerrd1') FROM dual";
-                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql = "SELECT dbinfo('serial8') FROM dual";
+                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql = 
+                    identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ?
+                    "SELECT dbinfo('bigserial')::INT8 FROM dual" : "SELECT dbinfo('serial8') FROM dual";
             }
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {identitySql};"), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -102,12 +105,15 @@ namespace FreeSql.GBase.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
 
-            var identityType = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault()?.CsType.NullableTypeOrThis();
+            var identityCol = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
+            var identityType = identityCol?.Attribute.MapType.NullableTypeOrThis();
             var identitySql = "";
             if (identityType != null)
             {
                 if (identityType == typeof(int) || identityType == typeof(uint)) identitySql = "SELECT dbinfo('sqlca.sqlerrd1') FROM dual";
-                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql = "SELECT dbinfo('serial8') FROM dual";
+                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql =
+                        identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ?
+                        "SELECT dbinfo('bigserial') FROM dual" : "SELECT dbinfo('serial8') FROM dual";
             }
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {identitySql};"), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);

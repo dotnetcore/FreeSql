@@ -10,6 +10,7 @@ using System.Linq;
 using FreeSql.Internal.CommonProvider;
 using DuckDB.NET.Data;
 using static DuckDB.NET.Native.NativeMethods;
+using ColumnInfo = FreeSql.Internal.Model.ColumnInfo;
 
 namespace FreeSql.Duckdb
 {
@@ -32,14 +33,14 @@ namespace FreeSql.Duckdb
             if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => DuckdbConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
-                    new DuckdbConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+                    new DbConnectionStringPool(base.DataType, CoreErrorStrings.S_MasterDatabase, () => DuckdbConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new DuckdbConnectionPool(CoreErrorStrings.S_MasterDatabase, masterConnectionString, null, null);
 
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => DuckdbConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                    new DuckdbConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => DuckdbConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new DuckdbConnectionPool($"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }

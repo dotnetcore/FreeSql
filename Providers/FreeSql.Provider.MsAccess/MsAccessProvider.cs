@@ -15,7 +15,7 @@ namespace FreeSql.MsAccess
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new MsAccessDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException();
 
-        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Provider.MsAccess {CoreStrings.S_Not_Implemented_Feature}");
+        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Provider.MsAccess {CoreErrorStrings.S_Not_Implemented_Feature}");
         public MsAccessProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new MsAccessUtils(this);

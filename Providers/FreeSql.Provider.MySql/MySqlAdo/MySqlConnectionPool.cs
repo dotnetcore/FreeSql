@@ -49,7 +49,7 @@ namespace FreeSql.MySql
     {
 
         internal MySqlConnectionPool _pool;
-        public string Name { get; set; } = $"MySql MySqlConnection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"MySql MySqlConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
@@ -125,8 +125,8 @@ namespace FreeSql.MySql
             {
                 if (obj.Value == null)
                 {
-                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    _pool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
@@ -155,8 +155,8 @@ namespace FreeSql.MySql
             {
                 if (obj.Value == null)
                 {
-                    _pool.SetUnavailable(new Exception(CoreStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    _pool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)

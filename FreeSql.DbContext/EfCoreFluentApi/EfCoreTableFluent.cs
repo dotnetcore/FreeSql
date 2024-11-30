@@ -42,7 +42,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasKey
         public EfCoreTableFluent HasKey(string key)
         {
-            if (key == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("key"));
+            if (key == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("key"));
             foreach (string name in key.Split(','))
             {
                 if (string.IsNullOrEmpty(name.Trim())) continue;
@@ -55,7 +55,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasIndex
         public HasIndexFluent HasIndex(string index)
         {
-            if (index == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("index"));
+            if (index == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("index"));
             var indexName = $"idx_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
             var columns = new List<string>();
             foreach (string name in index.Split(','))
@@ -98,8 +98,8 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasOne
         public HasOneFluent HasOne(string one)
         {
-            if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
-            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(one));
+            if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
+            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(one));
             return new HasOneFluent(_fsql, _tf, _entityType, oneProperty.PropertyType, one);
         }
         public class HasOneFluent
@@ -124,8 +124,8 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             }
             public HasOneFluent WithMany(string many)
             {
-                if (many == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
-                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(many));
+                if (many == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(many));
                 _withManyProperty = manyProperty.Name;
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(many, _selfBind));
@@ -133,18 +133,18 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             }
             public HasOneFluent WithOne(string one, string foreignKey)
             {
-                if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
-                if (_entityType1.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(one));
-                if (oneProperty != _entityType1) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(one));
+                if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
+                if (_entityType1.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(one));
+                if (oneProperty != _entityType1) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(one));
                 _withOneProperty = oneProperty.Name;
 
-                if (foreignKey == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (foreignKey == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
                 foreach (string name in foreignKey.Split(','))
                 {
                     if (string.IsNullOrEmpty(name.Trim())) continue;
                     _withOneBind += ", " + name.Trim();
                 }
-                if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 _withOneBind = _withOneBind.TrimStart(',', ' ');
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
@@ -152,13 +152,13 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             }
             public HasOneFluent HasForeignKey(string foreignKey)
             {
-                if (foreignKey == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (foreignKey == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
                 foreach (string name in foreignKey.Split(','))
                 {
                     if (string.IsNullOrEmpty(name.Trim())) continue;
                     _selfBind += ", " + name.Trim();
                 }
-                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 _selfBind = _selfBind.TrimStart(',', ' ');
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withManyProperty) == false)
@@ -173,9 +173,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasMany
         public HasManyFluent HasMany(string many)
         {
-            if (string.IsNullOrEmpty(many)) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
-            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_CollectionProperties(many));
-            if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException(DbContextStrings.ParameterError_IsNot_CollectionProperties(many));
+            if (string.IsNullOrEmpty(many)) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
+            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_CollectionProperties(many));
+            if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_IsNot_CollectionProperties(many));
             return new HasManyFluent(_fsql, _tf, _entityType, manyProperty.PropertyType.GetGenericArguments()[0], manyProperty.Name);
         }
         public class HasManyFluent
@@ -200,18 +200,18 @@ namespace FreeSql.Extensions.EfCoreFluentApi
 
             public void WithMany(string many, Type middleType)
             {
-                if (string.IsNullOrEmpty(many)) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("many"));
-                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_CollectionProperties(many));
-                if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException(DbContextStrings.ParameterError_IsNot_CollectionProperties(many));
+                if (string.IsNullOrEmpty(many)) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("many"));
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_CollectionProperties(many));
+                if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_IsNot_CollectionProperties(many));
                 _withManyProperty = manyProperty.Name;
                 _tf.Navigate(_selfProperty, null, middleType);
                 _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withManyProperty, null, middleType));
             }
             public HasManyFluent WithOne(string one)
             {
-                if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("one"));
-                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(one));
-                if (oneProperty.PropertyType != _entityType1) throw new ArgumentException(DbContextStrings.ParameterError_NotFound_Property(one));
+                if (string.IsNullOrEmpty(one)) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("one"));
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(one));
+                if (oneProperty.PropertyType != _entityType1) throw new ArgumentException(DbContextErrorStrings.ParameterError_NotFound_Property(one));
                 _withOneProperty = oneProperty.Name;
                 if (string.IsNullOrEmpty(_selfBind) == false)
                     _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(oneProperty.Name, _selfBind));
@@ -219,13 +219,13 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             }
             public HasManyFluent HasForeignKey(string foreignKey)
             {
-                if (foreignKey == null) throw new ArgumentException(DbContextStrings.ParameterError_CannotBeNull("foreignKey"));
+                if (foreignKey == null) throw new ArgumentException(DbContextErrorStrings.ParameterError_CannotBeNull("foreignKey"));
                 foreach (string name in foreignKey.Split(','))
                 {
                     if (string.IsNullOrEmpty(name.Trim())) continue;
                     _selfBind += ", " + name.Trim();
                 }
-                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextStrings.ParameterError("foreignKey"));
+                if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException(DbContextErrorStrings.ParameterError("foreignKey"));
                 _selfBind = _selfBind.TrimStart(',', ' ');
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withOneProperty) == false)

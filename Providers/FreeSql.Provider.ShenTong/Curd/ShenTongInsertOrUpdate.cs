@@ -32,7 +32,7 @@ namespace FreeSql.ShenTong.Curd
 
             string getMergeSql(List<T1> data)
             {
-                if (_tempPrimarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
+                if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
 
                 var tempPrimaryIsIdentity = _tempPrimarys.Any(b => b.Attribute.IsIdentity);
                 var sb = new StringBuilder().Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");

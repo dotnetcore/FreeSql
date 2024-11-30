@@ -24,7 +24,7 @@ namespace FreeSql
         static Func<IFreeSql> _resoleOrm;
         internal static Func<IUnitOfWork> _resolveUow;
 
-        public static IFreeSql Orm => _resoleOrm?.Invoke() ?? throw new Exception(CoreStrings.S_BaseEntity_Initialization_Error);
+        public static IFreeSql Orm => _resoleOrm?.Invoke() ?? throw new Exception(CoreErrorStrings.S_BaseEntity_Initialization_Error);
 
         public static void Initialization(IFreeSql fsql, Func<IUnitOfWork> resolveUow) => Initialization(() => fsql, resolveUow);
         public static void Initialization(Func<IFreeSql> resoleOrm, Func<IUnitOfWork> resolveUow)

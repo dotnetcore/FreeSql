@@ -267,7 +267,7 @@ namespace FreeSql.QuestDb
                     case "Format":
                         if (exp.Arguments[0].NodeType != ExpressionType.Constant)
                             throw new Exception(
-                                CoreStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
+                                CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgsHack =
                             exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit
                                 ? (exp.Arguments[1] as NewArrayExpression).Expressions
@@ -456,7 +456,6 @@ namespace FreeSql.QuestDb
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff('s',{args1},{left})";
-                            case "System.TimeSpan": return $"dateadd('s',({args1})*-1,{left})";
                         }
                         break;
                     case "Equals": return $"({left} = cast({args1} as timestamp))";

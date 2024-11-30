@@ -48,7 +48,7 @@ namespace FreeSql.Duckdb
     {
 
         internal DuckdbConnectionPool _pool;
-        public string Name { get; set; } = $"Duckdb DuckDBConnection {CoreStrings.S_ObjectPool}";
+        public string Name { get; set; } = $"Duckdb DuckDBConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 1;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
@@ -117,7 +117,7 @@ namespace FreeSql.Duckdb
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_CheckProjectConnection(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_CheckProjectConnection(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     obj.Value.OpenAndAttach(Attaches);
@@ -132,7 +132,7 @@ namespace FreeSql.Duckdb
             if (_pool.IsAvailable)
             {
                 if (obj.Value == null)
-                    throw new Exception(CoreStrings.S_ConnectionStringError_Check(this.Name));
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
                     await obj.Value.OpenAndAttachAsync(Attaches);

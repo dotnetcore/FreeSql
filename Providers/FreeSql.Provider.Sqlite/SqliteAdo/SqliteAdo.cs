@@ -35,14 +35,14 @@ namespace FreeSql.Sqlite
             if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, CoreStrings.S_MasterDatabase, () => SqliteConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
-                    new SqliteConnectionPool(CoreStrings.S_MasterDatabase, masterConnectionString, null, null);
+                    new DbConnectionStringPool(base.DataType, CoreErrorStrings.S_MasterDatabase, () => SqliteConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new SqliteConnectionPool(CoreErrorStrings.S_MasterDatabase, masterConnectionString, null, null);
 
             slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
                 var slavePool = isAdoPool ?
-                    new DbConnectionStringPool(base.DataType, $"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => SqliteConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
-                    new SqliteConnectionPool($"{CoreStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                    new DbConnectionStringPool(base.DataType, $"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => SqliteConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new SqliteConnectionPool($"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
                 SlavePools.Add(slavePool);
             });
         }

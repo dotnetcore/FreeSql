@@ -94,9 +94,9 @@ namespace FreeSql
         {
             if (newdata == null) return null;
             var _table = Orm.CodeFirst.GetTableByEntity(EntityType);
-            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.Incomparable_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, newdata)));
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextErrorStrings.Incomparable_EntityHasNo_PrimaryKey(Orm.GetEntityString(EntityType, newdata)));
             var key = Orm.GetEntityKeyString(EntityType, newdata, false);
-            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.Incomparable_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, newdata)));
+            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextErrorStrings.Incomparable_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, newdata)));
             if (_states.TryGetValue(key, out var oldState) == false || oldState == null) throw new Exception($"不可对比，数据未被跟踪：{Orm.GetEntityString(EntityType, newdata)}");
             AggregateRootTrackingChangeInfo tracking = new AggregateRootTrackingChangeInfo();
             AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, oldState, newdata, null, tracking);

@@ -295,12 +295,12 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                     _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
                     handler?.Invoke();
                     _transaction.Commit();
-                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
+                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                 }
                 catch (Exception ex)
                 {
                     _transaction.Rollback();
-                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
+                    _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                     throw;
                 }
                 finally
@@ -705,6 +705,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                         case DataType.ShenTong:
                         case DataType.DuckDB:
                         case DataType.Firebird: //firebird 只支持单条插入 returning
+                        case DataType.Xugu:
                             if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                             {
                                 var idtval = OrmInsert(table).AppendData(data).ExecuteIdentity();

@@ -571,7 +571,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				var ta = _tableAlias.Where(a => string.Join(".", a.NavPath) == navPath).FirstOrDefault();
 				if (ta?.Table.ColumnsByCs.TryGetValue(field.Last(), out var col) == true)
 					return NativeTuple.Create($"{ta.Alias}.{_common.QuoteSqlName(col.Attribute.Name)}", col);
-				throw new Exception(CoreStrings.Cannot_Match_Property(property));
+				throw new Exception(CoreErrorStrings.Cannot_Match_Property(property));
 			}
 
 			/// <summary>

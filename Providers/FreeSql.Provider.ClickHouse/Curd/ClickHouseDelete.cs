@@ -17,7 +17,7 @@ namespace FreeSql.ClickHouse.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreErrorStrings.S_Not_Implemented_Feature}");
 
         public override string ToSql()
         {
@@ -59,7 +59,7 @@ namespace FreeSql.ClickHouse.Curd
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreStrings.S_Not_Implemented_Feature}");
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.ClickHouse {CoreErrorStrings.S_Not_Implemented_Feature}");
 
         async public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {

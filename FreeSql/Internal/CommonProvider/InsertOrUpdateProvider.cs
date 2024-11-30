@@ -51,7 +51,7 @@ namespace FreeSql.Internal.CommonProvider
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
             _tempPrimarys = _table?.Primarys ?? new ColumnInfo[0];
             if (_table == null && typeof(T1) != typeof(Dictionary<string, object>))
-                throw new Exception(CoreStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(typeof(T1)));
+                throw new Exception(CoreErrorStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(typeof(T1)));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IdentityColumn = _table?.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
         }
@@ -157,7 +157,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
-                throw new Exception(CoreStrings.DataType_AsType_Inconsistent(data.GetType().DisplayCsharp(), table.Type.DisplayCsharp()));
+                throw new Exception(CoreErrorStrings.DataType_AsType_Inconsistent(data.GetType().DisplayCsharp(), table.Type.DisplayCsharp()));
             if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
             {
@@ -256,10 +256,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IInsertOrUpdate<T1> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("IInsertOrUpdate"));
+            if (entityType == typeof(object)) throw new Exception(CoreErrorStrings.TypeAsType_NotSupport_Object("IInsertOrUpdate"));
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
-            _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IInsertOrUpdate"));
+            _table = newtb ?? throw new Exception(CoreErrorStrings.Type_AsType_Parameter_Error("IInsertOrUpdate"));
             if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             _tempPrimarys = _table.Primarys;
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
@@ -414,12 +414,12 @@ namespace FreeSql.Internal.CommonProvider
                             _SplitSourceByIdentityValueIsNullFlag = 2;
                             ExecuteBatchOptions(ss.Item2);
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -540,12 +540,12 @@ namespace FreeSql.Internal.CommonProvider
                             _SplitSourceByIdentityValueIsNullFlag = 2;
                             await ExecuteBatchOptions(ss.Item2);
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;

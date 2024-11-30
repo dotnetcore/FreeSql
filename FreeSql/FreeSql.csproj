@@ -17,19 +17,13 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.5.100-preview20240825</Version>
+		<Version>3.5.100-preview20241128</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../logo.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	<ItemGroup>
-		<Compile Remove="Properties\Resources.cs" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Remove="Properties\Resources.tt" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -42,11 +36,6 @@
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
-		<Compile Update="Properties\CoreStrings.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>CoreStrings.Designer.tt</DependentUpon>
-		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -58,13 +47,6 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>Select1Provider2`16.cs</LastGenOutput>
 		</None>
-		<None Update="Properties\CoreStrings.Designer.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
-		</None>
-		<EmbeddedResource Update="Properties\CoreStrings.resx">
-			<CustomToolNamespace>FreeSql</CustomToolNamespace>
-		</EmbeddedResource>
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -20,7 +20,7 @@ namespace FreeSql.Odbc.Default
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new OdbcDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException();
 
-        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Odbc.Default {CoreStrings.S_Not_Implemented_Feature}");
+        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Odbc.Default {CoreErrorStrings.S_Not_Implemented_Feature}");
 
         /// <summary>
         /// 生成一个普通访问功能的 IFreeSql 对象，用来访问 odbc 
