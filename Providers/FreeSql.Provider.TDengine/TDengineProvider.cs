@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using FreeSql.Aop;
 using FreeSql.Provider.TDengine.Attributes;
 using FreeSql.TDengine.Curd;
 using Newtonsoft.Json.Linq;
@@ -25,19 +26,22 @@ namespace FreeSql.TDengine
             this.CodeFirst = new TDengineCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
             //处理超级表查询问题
-            this.Aop.ConfigEntityProperty += (s, e) =>
-            {
-                if (e.Property.ReflectedType == null) return;
+            //this.Aop.ConfigEntityProperty += (s, e) =>
+            //{
+            //    if (e.Property.ReflectedType == null)
+            //        return;
 
-                if (e.Property.ReflectedType.BaseType == null) return;
+            //    if (e.Property.ReflectedType.BaseType == null)
+            //        return;
 
-                var propertyInfo = e.Property.ReflectedType.BaseType.GetProperty(e.Property.Name);
+            //    var propertyInfo = e.Property.ReflectedType.BaseType.GetProperty(e.Property.Name);
 
-                if (propertyInfo == null) return;
+            //    if (propertyInfo == null)
+            //        return;
 
-                if (propertyInfo.GetCustomAttribute(typeof(TDengineTagAttribute)) != null)
-                    e.ModifyResult.IsIgnore = true;
-            };
+            //    if (propertyInfo.GetCustomAttribute(typeof(TDengineTagAttribute)) != null)
+            //        e.ModifyResult.IsIgnore = true;
+            //};
 
             //处理参数化
             this.Aop.CommandBefore += (_, e) =>

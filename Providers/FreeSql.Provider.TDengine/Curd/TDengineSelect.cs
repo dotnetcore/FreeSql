@@ -1,11 +1,12 @@
-﻿using System;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
+using FreeSql.Provider.TDengine.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using FreeSql.Internal;
-using FreeSql.Internal.Model;
 
 namespace FreeSql.TDengine.Curd
 {
@@ -14,6 +15,7 @@ namespace FreeSql.TDengine.Curd
         public TDengineSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)
         {
+          
         }
 
         internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select,

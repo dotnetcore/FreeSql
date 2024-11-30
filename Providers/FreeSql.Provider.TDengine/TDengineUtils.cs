@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using FreeSql.DataAnnotations;
 using FreeSql.TDengine.Describes;
 using TDengine.Data.Client;
@@ -230,5 +232,6 @@ namespace FreeSql.TDengine
 
             return stableDescribeValue;
         }
+
     }
 }

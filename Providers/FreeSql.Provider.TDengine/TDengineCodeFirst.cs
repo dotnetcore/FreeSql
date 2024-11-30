@@ -150,12 +150,13 @@ namespace FreeSql.TDengine
                     if (superTableDescribe == null) return;
 
                     var superTableName = _commonUtils.QuoteSqlName(database, superTableDescribe.SuperTableName);
+                    var superTableInfo = GetTableByEntity(superTableDescribe.SuperTableType);
 
                     //判断超表是否存在
                     if (!TryTableExists(superTableName))
                     {
                         //先创建超级表
-                        CreateSuperTable(ref tb, ref sb, superTableName);
+                        CreateSuperTable(ref superTableInfo, ref sb, superTableName);
                         _orm.Ado.ExecuteNonQuery(sb.ToString());
                         sb = sb.Clear();
                     }
@@ -163,7 +164,7 @@ namespace FreeSql.TDengine
                     var subTableName = _commonUtils.QuoteSqlName(database, subTableAttribute.Name);
 
                     //创建子表
-                    CreateSubTable(ref tb, ref sb, superTableName, subTableName);
+                    CreateSubTable(ref tb, ref sb, superTableName, subTableName, ref superTableInfo);
                 }
             }
             //要创建的为超级表
@@ -185,24 +186,26 @@ namespace FreeSql.TDengine
         /// <summary>
         /// 创建子表
         /// </summary>
-        /// <param name="tb"></param>
+        /// <param name="childTableInfo"></param>
         /// <param name="sb"></param>
         /// <param name="superTableName"></param>
-        private void CreateSubTable(ref TableInfo tb, ref StringBuilder sb, string superTableName, string subTableName)
+        private void CreateSubTable(ref TableInfo childTableInfo, ref StringBuilder sb, string superTableName,
+            string subTableName, ref TableInfo
+                superTableInfo)
         {
             sb.Append($"CREATE TABLE {subTableName}{Environment.NewLine}");
             sb.Append($"USING {superTableName} (");
 
-            var columnInfos = tb.ColumnsByPosition.Where(c =>
+            var tagCols = superTableInfo.ColumnsByPosition.Where(c =>
                 c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute))).ToArray();
 
-            var tagValues = new List<object>(columnInfos.Count());
+            var tagValues = new List<object>(tagCols.Count());
 
-            var tableInstance = Activator.CreateInstance(tb.Type);
+            var tableInstance = Activator.CreateInstance(childTableInfo.Type);
 
-            foreach (var columnInfo in columnInfos)
+            foreach (var columnInfo in tagCols)
             {
-                var tagValue = columnInfo.Table.Properties[columnInfo.CsName].GetValue(tableInstance);
+                var tagValue = childTableInfo.Properties[columnInfo.CsName].GetValue(tableInstance);
                 tagValues.Add(tagValue);
                 sb.Append($" {Environment.NewLine}  ").Append(_commonUtils.QuoteSqlName(columnInfo.Attribute.Name))
                     .Append(",");
@@ -230,8 +233,10 @@ namespace FreeSql.TDengine
             CreateColumns(ref tb, ref sb);
             sb.Append($" TAGS (");
 
-            foreach (var columnInfo in tb.ColumnsByPosition.Where(c =>
-                         c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute))))
+            var columInfos = tb.ColumnsByPosition.Where(c =>
+                c.Table.Properties[c.CsName].IsDefined(typeof(TDengineTagAttribute)));
+
+            foreach (var columnInfo in columInfos)
             {
                 sb.Append($" {Environment.NewLine}  ").Append(_commonUtils.QuoteSqlName(columnInfo.Attribute.Name))
                     .Append(" ")
