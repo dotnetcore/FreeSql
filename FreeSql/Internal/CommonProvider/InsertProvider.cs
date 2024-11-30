@@ -631,7 +631,7 @@ namespace FreeSql.Internal.CommonProvider
                     foreach (var item in atarr)
                     {
                         _source = item.ToList();
-                        sb.Append(ToSqlValuesOrSelectUnionAllExtension103(isValues, onrowPre, onrow, true)).Append("\r\n\r\n;\r\n\r\n");
+                        sb.Append(ToSqlValuesOrSelectUnionAllExtension103(isValues, onrowPre, onrow, true, ignoreColumn)).Append("\r\n\r\n;\r\n\r\n");
                     }
                     _source = oldSource;
                     if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
@@ -644,7 +644,7 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in _table.Columns.Values)
             {
                 //增加忽略插入的列
-                if (ignoreColumn != null && ignoreColumn.Contains(col.CsName)) continue;
+                if (ignoreColumn?.Contains(col.CsName) == true) continue;
                 if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
@@ -666,7 +666,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in _table.Columns.Values)
                 {
                     //增加忽略插入的列
-                    if (ignoreColumn != null && ignoreColumn.Contains(col.CsName)) continue;
+                    if (ignoreColumn?.Contains(col.CsName) == true) continue;
                     if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 

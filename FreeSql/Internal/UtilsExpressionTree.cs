@@ -228,7 +228,9 @@ namespace FreeSql.Internal
 			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
 			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
-			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse && common._orm.Ado.DataType != DataType.TDengine)
+			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && 
+                common._orm.Ado.DataType != DataType.ClickHouse && 
+                common._orm.Ado.DataType != DataType.TDengine)
 			{
 				colattr.IsNullable = false;
 				colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
