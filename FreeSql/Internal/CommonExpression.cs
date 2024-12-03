@@ -1065,6 +1065,20 @@ namespace FreeSql.Internal
                     var exp3 = exp as MethodCallExpression;
                     if (exp3.IsExpressionCall())
                     {
+                        //SqlExt.In 替换成 Array.Contains 解析，可避免 MapType 问题
+                        if (exp3.Method.Name == "In" && exp3.Method.DeclaringType == typeof(FreeSqlGlobalExpressionCallExtensions))
+                        {
+                            var exp3MethodGenericType = exp3.Method.GetGenericArguments().FirstOrDefault();
+                            if (exp3MethodGenericType != null)
+                            {
+                                var exp3ContainsMethod = Select0Provider.GetMethodEnumerable("Contains").MakeGenericMethod(exp3MethodGenericType);
+                                var exp3Arg1 = exp3.Arguments.Skip(1).ToArray();
+                                var exp3ConvertExp = exp3Arg1.Length == 1 && exp3Arg1[0].Type.IsArray ?
+                                    Expression.Call(exp3ContainsMethod, exp3Arg1[0], exp3.Arguments[0]) :
+                                    Expression.Call(exp3ContainsMethod, Expression.NewArrayInit(exp3MethodGenericType, exp3Arg1), exp3.Arguments[0]);
+                                return ExpressionLambdaToSql(exp3ConvertExp, tsc.CloneDisableDiyParse());
+                            }
+                        }
                         var ecc = new ExpressionCallContext
                         {
                             _commonExp = this,
