@@ -581,9 +581,9 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -618,6 +618,53 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+
+            var dbpars = new List<DbParameter>();
+
+            var a1id1 = Guid.NewGuid();
+            var a1id2 = Guid.NewGuid();
+            //fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+            var sql1a0 = fsql.Select<User1>()
+                .WithParameters(dbpars)
+                .Where(a => a.Id == a1id1)
+                .OrderBy(a => a.Id)
+
+                .UnionAll(
+                    fsql.Select<User1>()
+                        .WithParameters(dbpars)
+                        .Where(a => a.Id == a1id2)
+                        .OrderByDescending(a => a.Id),
+
+                    fsql.Select<User1>()
+                        .WithParameters(dbpars)
+                        .Where(a => a.Id == a1id2)
+                        .OrderByDescending(a => a.Id)
+                )
+                .Where(a => a.Id == a1id1 || a.Id == a1id2)
+                .ToList();
+            var sql1a1 = fsql.Select<User1>()
+                .Where(a => a.Id == a1id1)
+                .UnionAll(
+                    fsql.Select<User1>()
+                    .Where(a => a.Id == a1id2)
+                )
+                .Where(a => a.Id == a1id1 || a.Id == a1id2)
+                .ToList();
+            var sql1a2 = fsql.Select<User1, UserGroup>()
+                .InnerJoin((a, b) => a.GroupId == b.Id)
+                .Where((a, b) => a.Id == a1id1)
+                .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
+
+                .UnionAll(
+                    fsql.Select<User1, UserGroup>()
+                        .InnerJoin((a, b) => a.GroupId == b.Id)
+                        .Where((a, b) => a.Id == a1id2)
+                        .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
+                )
+
+                .Where(a => a.user.Id == a1id1 || a.user.Id == a1id2)
+                .ToList();
 
             fsql.Aop.AuditValue += (_, e) =>
             {
@@ -1676,48 +1723,6 @@ var sql11111 = fsql.Select<Class1111>()
             var sqlskdfj = fsql.Select<object>().AsType(typeof(BBB)).ToSql(a => new CCC());
 
 
-            var dbpars = new List<DbParameter>();
-
-            var a1id1 = Guid.NewGuid();
-            var a1id2 = Guid.NewGuid();
-            //fsql.CodeFirst.IsGenerateCommandParameterWithLambda = true;
-            var sql1a0 = fsql.Select<User1>()
-                .WithParameters(dbpars)
-                .Where(a => a.Id == a1id1)
-
-                .UnionAll(
-                    fsql.Select<User1>()
-                        .WithParameters(dbpars)
-                        .Where(a => a.Id == a1id2),
-
-                    fsql.Select<User1>()
-                        .WithParameters(dbpars)
-                        .Where(a => a.Id == a1id2)
-                )
-                .Where(a => a.Id == a1id1 || a.Id == a1id2)
-                .ToSql();
-            var sql1a1 = fsql.Select<User1>()
-                .Where(a => a.Id == a1id1)
-                .UnionAll(
-                    fsql.Select<User1>()
-                    .Where(a => a.Id == a1id2)
-                )
-                .Where(a => a.Id == a1id1 || a.Id == a1id2)
-                .ToSql();
-            var sql1a2 = fsql.Select<User1, UserGroup>()
-                .InnerJoin((a, b) => a.GroupId == b.Id)
-                .Where((a, b) => a.Id == a1id1)
-                .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
-
-                .UnionAll(
-                    fsql.Select<User1, UserGroup>()
-                        .InnerJoin((a, b) => a.GroupId == b.Id)
-                        .Where((a, b) => a.Id == a1id2)
-                        .WithTempQuery((a, b) => new { user = a, group = b }) //匿名类型
-                )
-
-                .Where(a => a.user.Id == a1id1 || a.user.Id == a1id2)
-                .ToSql();
 
 
             var ddlsql01 = fsql.CodeFirst.GetComparisonDDLStatements<StringNulable>();

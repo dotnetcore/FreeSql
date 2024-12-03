@@ -271,9 +271,9 @@ namespace FreeSql.Internal.CommonProvider
             querys = querys?.Where(q => q != null).ToArray();
             if (querys?.Any() != true) return this;
             var ret = (_orm as BaseDbProvider).CreateSelectProvider<T1>(null) as Select1Provider<T1>;
-            var sb = new StringBuilder().Append(LocalGetQuerySql(this));
+            var sb = new StringBuilder().Append(this._select).Append(" * from (").Append(LocalGetQuerySql(this)).Append(") ftb");
             foreach (var select2 in querys)
-                sb.Append(" \r\nUNION ALL \r\n").Append(LocalGetQuerySql(select2));
+                sb.Append(" \r\nUNION ALL \r\nselect * from (").Append(LocalGetQuerySql(select2)).Append(") ftb");
             ret.WithSql(sb.ToString());
             sb.Clear();
             ret._commandTimeout = _commandTimeout;
