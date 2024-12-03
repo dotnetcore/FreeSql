@@ -29,7 +29,7 @@ namespace FreeSql
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
         bool _isQuoteSqlName = true;
-        bool? _isAdoConnectionPool = false;
+        bool? _isAdoConnectionPool = null;
         MappingPriorityType[] _mappingPriorityTypes;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
