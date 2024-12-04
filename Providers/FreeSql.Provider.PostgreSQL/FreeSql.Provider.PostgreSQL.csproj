@@ -50,7 +50,7 @@
 		<DefineConstants>nts</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0'">
-		<DefineConstants>net60</DefineConstants>
+		<DefineConstants>net60;nts</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
