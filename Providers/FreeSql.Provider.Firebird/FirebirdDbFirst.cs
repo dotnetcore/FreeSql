@@ -125,10 +125,11 @@ namespace FreeSql.Firebird
 
             var sql = @"
 select
+rdb$system_flag,
 trim(rdb$relation_name) as id,
 trim(rdb$owner_name) as owner,
 trim(rdb$relation_name) as name,
-trim(rdb$external_description) as comment,
+trim(rdb$description) as comment,
 rdb$relation_type as type
 from rdb$relations
 where rdb$system_flag=0" + (tbname == null ? "" : $" and {(ignoreCase ? "upper(trim(rdb$relation_name))" : "trim(rdb$relation_name)")} = {_commonUtils.FormatSql("{0}", tbname.Last())}");
