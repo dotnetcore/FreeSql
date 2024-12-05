@@ -331,6 +331,11 @@
             名称
             </summary>
         </member>
+        <member name="T:Account">
+            <summary>
+            账户
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表

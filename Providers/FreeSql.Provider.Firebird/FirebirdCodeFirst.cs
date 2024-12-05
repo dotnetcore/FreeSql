@@ -268,9 +268,9 @@ where trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
                         sb.Remove(sb.Length - 2, 2).Append(");\r\n");
                     }
                 }
-                var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select trim(rdb$external_description) from rdb$relations where rdb$system_flag=0 and trim(rdb$relation_name) = {0}", tbname)));
+                var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select trim(rdb$description) from rdb$relations where rdb$system_flag=0 and trim(rdb$relation_name) = {0}", tbname)));
                 if (dbcomment != (tb.Comment ?? ""))
-                    sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" COMMENT ").Append(" ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
+                    sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
             }
             return sb.Length == 0 ? null : sb.ToString();
         }
