@@ -125,7 +125,6 @@ namespace FreeSql.Firebird
 
             var sql = @"
 select
-rdb$system_flag,
 trim(rdb$relation_name) as id,
 trim(rdb$owner_name) as owner,
 trim(rdb$relation_name) as name,
