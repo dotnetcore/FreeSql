@@ -330,8 +330,22 @@ namespace FreeSql.Internal
                         for (var a = 0; a < initExp.NewExpression.Arguments.Count; a++)
                         {
                             var initExpArg = initExp.NewExpression.Arguments[a];
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
@@ -428,8 +442,22 @@ namespace FreeSql.Internal
                             var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
                             if (initAssignExp == null) continue;
                             var initExpArg = initAssignExp.Expression;
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance), //#427 不能使用 BindingFlags.IgnoreCase
@@ -465,8 +493,22 @@ namespace FreeSql.Internal
                         for (var a = 0; a < newExp.Arguments.Count; a++)
                         {
                             var initExpArg = newExp.Arguments[a];
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var csname = newExp.Members != null ? newExp.Members[a].Name : (initExpArg as MemberExpression)?.Member.Name;
                             var child = new ReadAnonymousTypeInfo
                             {
