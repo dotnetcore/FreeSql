@@ -82,6 +82,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.BaseEntity`1.SaveMany(System.String)">
+            <summary>
+            To completely save the navigation properties of the entity in the form of sub-tables. <br />
+            【完整】保存导航属性，子表
+            </summary>
+            <param name="navigatePropertyName">Navigation property name</param>
+        </member>
         <member name="T:FreeSql.BaseEntityAsync`2">
             <summary>
             Entity base class, including CreateTime/UpdateTime/IsDeleted, the async CRUD methods, and ID primary key definition.
@@ -151,6 +158,13 @@
             更新或插入
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.SaveManyAsync(System.String)">
+            <summary>
+            To completely save the navigation properties of the entity in the form of sub-tables. <br />
+            【完整】保存导航属性，子表
+            </summary>
+            <param name="navigatePropertyName">Navigation property name</param>
         </member>
         <member name="T:FreeSql.BaseEntity">
             <summary>

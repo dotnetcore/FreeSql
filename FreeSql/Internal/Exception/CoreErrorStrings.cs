@@ -11,33 +11,33 @@ namespace FreeSql
         /// <summary>
         /// [Table(AsTable = "{asTable}")] 特性值格式错误
         /// </summary>
-        public static string AsTable_PropertyName_FormatError(object asTable) => string.Format(Language == "cn" ?
-            @"[Table(AsTable = ""{0}"")] 特性值格式错误" :
-            @"FreeSql: [Table(AsTable=""{0}"")] Property value formatted incorrectly", asTable);
+        public static string AsTable_PropertyName_FormatError(object asTable) => Language == "cn" ?
+            $@"[Table(AsTable = ""{asTable}"")] 特性值格式错误" :
+            $@"FreeSql: [Table(AsTable=""{asTable}"")] Property value formatted incorrectly";
         /// <summary>
         /// [Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不是 DateTime 类型
         /// </summary>
-        public static string AsTable_PropertyName_NotDateTime(object atmGroupsValue) => string.Format(Language == "cn" ?
-            @"[Table(AsTable = xx)] 设置的属性名 {0} 不是 DateTime 类型" :
-            @"FreeSql: The property name {0} set by [Table (AsTable = xx)] is not of type DateTime", atmGroupsValue);
+        public static string AsTable_PropertyName_NotDateTime(object atmGroupsValue) => Language == "cn" ?
+            $@"[Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不是 DateTime 类型" :
+            $@"FreeSql: The property name {atmGroupsValue} set by [Table (AsTable = xx)] is not of type DateTime";
         /// <summary>
         /// {name}: Failed to get resource {statistics}
         /// </summary>
-        public static string Available_Failed_Get_Resource(object name, object statistics) => string.Format(Language == "cn" ?
-            @"{0}: Failed to get resource {1}" :
-            @"FreeSql: {0}: Failed to get resource {1}", name, statistics);
+        public static string Available_Failed_Get_Resource(object name, object statistics) => Language == "cn" ?
+            $@"{name}: Failed to get resource {statistics}" :
+            $@"FreeSql: {name}: Failed to get resource {statistics}";
         /// <summary>
         /// {name}: An exception needs to be thrown
         /// </summary>
-        public static string Available_Thrown_Exception(object name) => string.Format(Language == "cn" ?
-            @"{0}: An exception needs to be thrown" :
-            @"FreeSql: {0}: An exception needs to be thrown", name);
+        public static string Available_Thrown_Exception(object name) => Language == "cn" ?
+            $@"{name}: An exception needs to be thrown" :
+            $@"FreeSql: {name}: An exception needs to be thrown";
         /// <summary>
         /// 错误的表达式格式 {column}
         /// </summary>
-        public static string Bad_Expression_Format(object column) => string.Format(Language == "cn" ?
-            @"错误的表达式格式 {0}" :
-            @"FreeSql: Wrong expression format {0}", column);
+        public static string Bad_Expression_Format(object column) => Language == "cn" ?
+            $@"错误的表达式格式 {column}" :
+            $@"FreeSql: Wrong expression format {column}";
         /// <summary>
         /// Chunk 功能之前不可使用 Select
         /// </summary>
@@ -59,21 +59,21 @@ namespace FreeSql
         /// <summary>
         /// {name} 不能为 null
         /// </summary>
-        public static string Cannot_Be_NULL_Name(object name) => string.Format(Language == "cn" ?
-            @"{0} 不能为 null" :
-            @"FreeSql: {0} cannot be null", name);
+        public static string Cannot_Be_NULL_Name(object name) => Language == "cn" ?
+            $@"{name} 不能为 null" :
+            $@"FreeSql: {name} cannot be null";
         /// <summary>
         /// 无法匹配 {property}
         /// </summary>
-        public static string Cannot_Match_Property(object property) => string.Format(Language == "cn" ?
-            @"无法匹配 {0}" :
-            @"FreeSql: Unable to match {0}", property);
+        public static string Cannot_Match_Property(object property) => Language == "cn" ?
+            $@"无法匹配 {property}" :
+            $@"FreeSql: Unable to match {property}";
         /// <summary>
         /// {property} 无法解析为表达式树
         /// </summary>
-        public static string Cannot_Resolve_ExpressionTree(object property) => string.Format(Language == "cn" ?
-            @"{0} 无法解析为表达式树" :
-            @"FreeSql: {0} cannot be resolved to an expression tree", property);
+        public static string Cannot_Resolve_ExpressionTree(object property) => Language == "cn" ?
+            $@"{property} 无法解析为表达式树" :
+            $@"FreeSql: {property} cannot be resolved to an expression tree";
         /// <summary>
         /// 参数 masterConnectionString 不可为空，请检查 UseConnectionString
         /// </summary>
@@ -95,39 +95,39 @@ namespace FreeSql
         /// <summary>
         /// 自定义表达式解析错误：类型 {exp3MethodDeclaringType} 需要定义 static ThreadLocal&amp;lt;ExpressionCallContext&amp;gt; 字段、字段、字段（重要三次提醒）
         /// </summary>
-        public static string Custom_Expression_ParsingError(object exp3MethodDeclaringType) => string.Format(Language == "cn" ?
-            @"自定义表达式解析错误：类型 {0} 需要定义 static ThreadLocal<ExpressionCallContext> 字段、字段、字段（重要三次提醒）" :
-            @"FreeSql: Custom expression parsing error: type {0} needs to define static ThreadLocal<ExpressionCallContext>field, field, field (important three reminders)", exp3MethodDeclaringType);
+        public static string Custom_Expression_ParsingError(object exp3MethodDeclaringType) => Language == "cn" ?
+            $@"自定义表达式解析错误：类型 {exp3MethodDeclaringType} 需要定义 static ThreadLocal<ExpressionCallContext> 字段、字段、字段（重要三次提醒）" :
+            $@"FreeSql: Custom expression parsing error: type {exp3MethodDeclaringType} needs to define static ThreadLocal<ExpressionCallContext>field, field, field (important three reminders)";
         /// <summary>
         /// Custom { 反射信息 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
         /// </summary>
         public static string Custom_Reflection_IsNotNull => Language == "cn" ?
-            @"Custom { 反射信息 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }" :
-            @"FreeSql: Custom {Reflection Information} cannot be empty, format: {static method name}{space}{reflection information}";
+            $@"Custom {{ 反射信息 }}不能为空，格式：{{ 静态方法名 }}{{ 空格 }}{{ 反射信息 }}" :
+            $@"FreeSql: Custom {{Reflection Information}} cannot be empty, format: {{static method name}}{{space}}{{reflection information}}";
         /// <summary>
         /// Custom { 静态方法名 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
         /// </summary>
         public static string Custom_StaticMethodName_IsNotNull => Language == "cn" ?
-            @"Custom { 静态方法名 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }" :
-            @"FreeSql: Custom {static method name} cannot be empty, format: {static method name}{space}{reflection information}";
+            $@"Custom {{ 静态方法名 }}不能为空，格式：{{ 静态方法名 }}{{ 空格 }}{{ 反射信息 }}" :
+            $@"FreeSql: Custom {{static method name}} cannot be empty, format: {{static method name}}{{space}}{{reflection information}}";
         /// <summary>
         /// Custom 对应的{{ 静态方法名 }}：{fiValueCustomArray} 未设置 [DynamicFilterCustomAttribute] 特性
         /// </summary>
-        public static string Custom_StaticMethodName_NotSet_DynamicFilterCustom(object fiValueCustomArray) => string.Format(Language == "cn" ?
-            @"Custom 对应的{{ 静态方法名 }}：{0} 未设置 [DynamicFilterCustomAttribute] 特性" :
-            @"FreeSql: Custom corresponding {{static method name}}:{0} The [DynamicFilterCustomAttribute] attribute is not set", fiValueCustomArray);
+        public static string Custom_StaticMethodName_NotSet_DynamicFilterCustom(object fiValueCustomArray) => Language == "cn" ?
+            $@"Custom 对应的{{{{ 静态方法名 }}}}：{fiValueCustomArray} 未设置 [DynamicFilterCustomAttribute] 特性" :
+            $@"FreeSql: Custom corresponding {{{{static method name}}}}:{fiValueCustomArray} The [DynamicFilterCustomAttribute] attribute is not set";
         /// <summary>
         /// Custom 要求 Field 应该空格分割，并且长度为 2，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
         /// </summary>
         public static string CustomFieldSeparatedBySpaces => Language == "cn" ?
-            @"Custom 要求 Field 应该空格分割，并且长度为 2，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }" :
-            @"FreeSql: Custom requires that Fields be space-split and 2-length in the format: {static method name}{space}{reflection information}";
+            $@"Custom 要求 Field 应该空格分割，并且长度为 2，格式：{{ 静态方法名 }}{{ 空格 }}{{ 反射信息 }}" :
+            $@"FreeSql: Custom requires that Fields be space-split and 2-length in the format: {{static method name}}{{space}}{{reflection information}}";
         /// <summary>
         /// 操作的数据类型({dataDisplayCsharp}) 与 AsType({tableTypeDisplayCsharp}) 不一致，请检查。
         /// </summary>
-        public static string DataType_AsType_Inconsistent(object dataDisplayCsharp, object tableTypeDisplayCsharp) => string.Format(Language == "cn" ?
-            @"操作的数据类型({0}) 与 AsType({1}) 不一致，请检查。" :
-            @"FreeSql: The data type of the operation ({0}) is inconsistent with AsType({1}), Please check.", dataDisplayCsharp, tableTypeDisplayCsharp);
+        public static string DataType_AsType_Inconsistent(object dataDisplayCsharp, object tableTypeDisplayCsharp) => Language == "cn" ?
+            $@"操作的数据类型({dataDisplayCsharp}) 与 AsType({tableTypeDisplayCsharp}) 不一致，请检查。" :
+            $@"FreeSql: The data type of the operation ({dataDisplayCsharp}) is inconsistent with AsType ({tableTypeDisplayCsharp}). Please check.";
         /// <summary>
         /// DateRange 要求 Value 应该逗号分割，并且长度为 2
         /// </summary>
@@ -143,9 +143,9 @@ namespace FreeSql
         /// <summary>
         /// 记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{sourceCount}，影响的行数{affrows}。
         /// </summary>
-        public static string DbUpdateVersionException_RowLevelOptimisticLock(object sourceCount, object affrows) => string.Format(Language == "cn" ?
-            @"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{0}，影响的行数{1}。" :
-            @"FreeSql: The record may not exist, or the row level optimistic lock version is out of date, the number of updates {0}, the number of rows affected {1}.", sourceCount, affrows);
+        public static string DbUpdateVersionException_RowLevelOptimisticLock(object sourceCount, object affrows) => Language == "cn" ?
+            $@"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{sourceCount}，影响的行数{affrows}。" :
+            $@"FreeSql: The record may not exist, or the row level optimistic lock version is out of date, the number of updates {sourceCount}, the number of rows affected {affrows}.";
         /// <summary>
         /// SlaveConnectionString 数量与 SlaveWeights 不相同
         /// </summary>
@@ -155,33 +155,33 @@ namespace FreeSql
         /// <summary>
         /// ColumnAttribute.Name {colattrName} 重复存在，请检查（注意：不区分大小写）
         /// </summary>
-        public static string Duplicate_ColumnAttribute(object colattrName) => string.Format(Language == "cn" ?
-            @"ColumnAttribute.Name {0} 重复存在，请检查（注意：不区分大小写）" :
-            @"FreeSql: ColumnAttribute.Name {0} exists repeatedly, please check (note: case insensitive)", colattrName);
+        public static string Duplicate_ColumnAttribute(object colattrName) => Language == "cn" ?
+            $@"ColumnAttribute.Name {colattrName} 重复存在，请检查（注意：不区分大小写）" :
+            $@"FreeSql: ColumnAttribute. Name {colattrName} exists repeatedly, please check (note: case insensitive)";
         /// <summary>
         /// 属性名 {pName} 重复存在，请检查（注意：不区分大小写）
         /// </summary>
-        public static string Duplicate_PropertyName(object pName) => string.Format(Language == "cn" ?
-            @"属性名 {0} 重复存在，请检查（注意：不区分大小写）" :
-            @"FreeSql: Property name {0} exists repeatedly, please check (note: case insensitive)", pName);
+        public static string Duplicate_PropertyName(object pName) => Language == "cn" ?
+            $@"属性名 {pName} 重复存在，请检查（注意：不区分大小写）" :
+            $@"FreeSql: Property name {pName} exists repeatedly, please check (note: case insensitive)";
         /// <summary>
         /// {function} 功能要求实体类 {tableCsName} 必须有主键
         /// </summary>
-        public static string Entity_Must_Primary_Key(object function, object tableCsName) => string.Format(Language == "cn" ?
-            @"{0} 功能要求实体类 {1} 必须有主键" :
-            @"FreeSql: The {0} feature requires that the entity class {1} must have a primary key", function, tableCsName);
+        public static string Entity_Must_Primary_Key(object function, object tableCsName) => Language == "cn" ?
+            $@"{function} 功能要求实体类 {tableCsName} 必须有主键" :
+            $@"FreeSql: The {function} feature requires that the entity class {tableCsName} must have a primary key";
         /// <summary>
         /// {tbTypeFullName} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键
         /// </summary>
-        public static string Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(object tbTypeFullName) => string.Format(Language == "cn" ?
-            @"{0} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键" :
-            @"FreeSql: {0} is a parent-child relationship, but combinations of multiple primary keys are not supported in versions below MySql 8.0", tbTypeFullName);
+        public static string Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(object tbTypeFullName) => Language == "cn" ?
+            $@"{tbTypeFullName} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键" :
+            $@"FreeSql: {tbTypeFullName} is a parent-child relationship, but combinations of multiple primary keys are not supported in versions below MySql 8.0";
         /// <summary>
         /// {tbTypeFullName} 不是父子关系，无法使用该功能
         /// </summary>
-        public static string Entity_NotParentChild_Relationship(object tbTypeFullName) => string.Format(Language == "cn" ?
-            @"{0} 不是父子关系，无法使用该功能" :
-            @"FreeSql: {0} is not a parent-child relationship and cannot be used", tbTypeFullName);
+        public static string Entity_NotParentChild_Relationship(object tbTypeFullName) => Language == "cn" ?
+            $@"{tbTypeFullName} 不是父子关系，无法使用该功能" :
+            $@"FreeSql: {tbTypeFullName} is not a parent-child relationship and cannot be used";
         /// <summary>
         /// 这个特别的子查询不能解析
         /// </summary>
@@ -191,33 +191,33 @@ namespace FreeSql
         /// <summary>
         /// 表达式错误，它的顶级对象不是 ParameterExpression：{exp}
         /// </summary>
-        public static string Expression_Error_Use_ParameterExpression(object exp) => string.Format(Language == "cn" ?
-            @"表达式错误，它的顶级对象不是 ParameterExpression：{0}" :
-            @"FreeSql: Expression error, its top object is not ParameterExpression:{0}", exp);
+        public static string Expression_Error_Use_ParameterExpression(object exp) => Language == "cn" ?
+            $@"表达式错误，它的顶级对象不是 ParameterExpression：{exp}" :
+            $@"FreeSql: Expression error, its top object is not ParameterExpression:{exp}";
         /// <summary>
         /// 表达式错误，它不是连续的 MemberAccess 类型：{exp}
         /// </summary>
-        public static string Expression_Error_Use_Successive_MemberAccess_Type(object exp) => string.Format(Language == "cn" ?
-            @"表达式错误，它不是连续的 MemberAccess 类型：{0}" :
-            @"FreeSql: Expression error, it is not a continuous MemberAccess type: {0}", exp);
+        public static string Expression_Error_Use_Successive_MemberAccess_Type(object exp) => Language == "cn" ?
+            $@"表达式错误，它不是连续的 MemberAccess 类型：{exp}" :
+            $@"FreeSql: Expression error, it is not a continuous MemberAccess type: {exp}";
         /// <summary>
         /// ExpressionTree 转换类型错误，值({value})，类型({valueTypeFullName})，目标类型({typeFullName})，{exMessage}
         /// </summary>
-        public static string ExpressionTree_Convert_Type_Error(object value, object valueTypeFullName, object typeFullName, object exMessage) => string.Format(Language == "cn" ?
-            @"ExpressionTree 转换类型错误，值({0})，类型({1})，目标类型({2})，{3}" :
-            @"FreeSql: ExpressionTree conversion type error, value ({0}), type ({1}), target type ({2}), Error:{3}", value, valueTypeFullName, typeFullName, exMessage);
+        public static string ExpressionTree_Convert_Type_Error(object value, object valueTypeFullName, object typeFullName, object exMessage) => Language == "cn" ?
+            $@"ExpressionTree 转换类型错误，值({value})，类型({valueTypeFullName})，目标类型({typeFullName})，{exMessage}" :
+            $@"FreeSql: ExpressionTree conversion type error, value ({value}), type ({valueTypeFullName}), target type ({typeFullName}), Error:{exMessage}";
         /// <summary>
         /// 未能解析分表字段值 {sqlWhere}
         /// </summary>
-        public static string Failed_SubTable_FieldValue(object sqlWhere) => string.Format(Language == "cn" ?
-            @"未能解析分表字段值 {0}" :
-            @"FreeSql: Failed to parse table field value {0}", sqlWhere);
+        public static string Failed_SubTable_FieldValue(object sqlWhere) => Language == "cn" ?
+            $@"未能解析分表字段值 {sqlWhere}" :
+            $@"FreeSql: Failed to parse table field value {sqlWhere}";
         /// <summary>
         /// AsTable 未实现的功能 {asTable}
         /// </summary>
-        public static string Functions_AsTable_NotImplemented(object asTable) => string.Format(Language == "cn" ?
-            @"AsTable 未实现的功能 {0}" :
-            @"FreeSql: Function {0} not implemented by AsTable", asTable);
+        public static string Functions_AsTable_NotImplemented(object asTable) => Language == "cn" ?
+            $@"AsTable 未实现的功能 {asTable}" :
+            $@"FreeSql: Function {asTable} not implemented by AsTable";
         /// <summary>
         /// GBase 暂时不支持逗号以外的分割符
         /// </summary>
@@ -227,27 +227,27 @@ namespace FreeSql
         /// <summary>
         /// tableName：{tableName} 生成了相同的分表名
         /// </summary>
-        public static string Generated_Same_SubTable(object tableName) => string.Format(Language == "cn" ?
-            @"tableName：{0} 生成了相同的分表名" :
-            @"FreeSql: TableName:{0} generated the same table name", tableName);
+        public static string Generated_Same_SubTable(object tableName) => Language == "cn" ?
+            $@"tableName：{tableName} 生成了相同的分表名" :
+            $@"FreeSql: TableName:{tableName} generated the same table name";
         /// <summary>
         /// GetPrimarys 传递的参数 "{primary}" 不正确，它不属于字典数据的键名
         /// </summary>
-        public static string GetPrimarys_ParameterError_IsNotDictKey(object primary) => string.Format(Language == "cn" ?
-            @"GetPrimarys 传递的参数 ""{0}"" 不正确，它不属于字典数据的键名" :
-            @"FreeSql: The parameter'{0}'passed by GetPrimarys is incorrect and does not belong to the key name of the dictionary data", primary);
+        public static string GetPrimarys_ParameterError_IsNotDictKey(object primary) => Language == "cn" ?
+            $@"GetPrimarys 传递的参数 ""{primary}"" 不正确，它不属于字典数据的键名" :
+            $@"FreeSql: The parameter'{primary}'passed by GetPrimarys is incorrect and does not belong to the key name of the dictionary data";
         /// <summary>
         /// 已经指定了 {first}，不能再指定 {second}
         /// </summary>
-        public static string Has_Specified_Cannot_Specified_Second(object first, object second) => string.Format(Language == "cn" ?
-            @"已经指定了 {0}，不能再指定 {1}" :
-            @"FreeSql: {0} has already been specified and {1} can no longer be specified", first, second);
+        public static string Has_Specified_Cannot_Specified_Second(object first, object second) => Language == "cn" ?
+            $@"已经指定了 {first}，不能再指定 {second}" :
+            $@"FreeSql: {first} has already been specified and {second} can no longer be specified";
         /// <summary>
         /// {tb2DbName}.{mp2MemberName} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public
         /// </summary>
-        public static string Ignored_Check_Confirm_PublicGetSet(object tb2DbName, object mp2MemberName) => string.Format(Language == "cn" ?
-            @"{0}.{1} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public" :
-            @"FreeSql: {0}.{1} is ignored, Check the IsIgnore setting to make sure get/set is public", tb2DbName, mp2MemberName);
+        public static string Ignored_Check_Confirm_PublicGetSet(object tb2DbName, object mp2MemberName) => Language == "cn" ?
+            $@"{tb2DbName}.{mp2MemberName} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public" :
+            $@"FreeSql: {tb2DbName}. {mp2MemberName} is ignored. Check the IsIgnore setting to make sure get/set is public";
         /// <summary>
         /// Include 参数类型错误
         /// </summary>
@@ -269,21 +269,21 @@ namespace FreeSql
         /// <summary>
         /// IncludeMany 类型 {tbTypeDisplayCsharp} 的属性 {collMemMemberName} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性
         /// </summary>
-        public static string IncludeMany_NotValid_Navigation(object collMemMemberName, object tbTypeDisplayCsharp) => string.Format(Language == "cn" ?
-            @"IncludeMany 类型 {1} 的属性 {0} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性" :
-            @"FreeSql: The property {0} of IncludeMany type {1} is not a valid navigation property, hint: IsIgnore = true will not be a navigation property", collMemMemberName, tbTypeDisplayCsharp);
+        public static string IncludeMany_NotValid_Navigation(object collMemMemberName, object tbTypeDisplayCsharp) => Language == "cn" ?
+            $@"IncludeMany 类型 {tbTypeDisplayCsharp} 的属性 {collMemMemberName} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性" :
+            $@"FreeSql: The property {collMemMemberName} of IncludeMany type {tbTypeDisplayCsharp} is not a valid navigation property, hint: IsIgnore = true will not be a navigation property";
         /// <summary>
         /// IncludeMany {navigateSelector} 参数错误，Select 只可以使用一个参数的方法，正确格式：.Select(t =&amp;gt;new TNavigate {{}})
         /// </summary>
-        public static string IncludeMany_ParameterError_OnlyUseOneParameter(object navigateSelector) => string.Format(Language == "cn" ?
-            @"IncludeMany {0} 参数错误，Select 只可以使用一个参数的方法，正确格式：.Select(t =>new TNavigate {{}})" :
-            @"FreeSql: IncludeMany {0} parameter is wrong, Select can only use one parameter's method, the correct format:.Select(t =>new TNavigate{{}})", navigateSelector);
+        public static string IncludeMany_ParameterError_OnlyUseOneParameter(object navigateSelector) => Language == "cn" ?
+            $@"IncludeMany {navigateSelector} 参数错误，Select 只可以使用一个参数的方法，正确格式：.Select(t =>new TNavigate {{{{}}}})" :
+            $@"FreeSql: IncludeMany {navigateSelector} parameter is wrong, Select can only use one parameter's method, the correct format:.Select(t =>new TNavigate{{{{}}}})";
         /// <summary>
         /// IncludeMany {navigateSelector} 参数错误，Select lambda参数返回值必须和 {collMemElementType} 类型一致
         /// </summary>
-        public static string IncludeMany_ParameterError_Select_ReturnConsistentType(object navigateSelector, object collMemElementType) => string.Format(Language == "cn" ?
-            @"IncludeMany {0} 参数错误，Select lambda参数返回值必须和 {1} 类型一致" :
-            @"FreeSql: IncludeMany {0} parameter error, Select lambda parameter return value must match {1} type", navigateSelector, collMemElementType);
+        public static string IncludeMany_ParameterError_Select_ReturnConsistentType(object navigateSelector, object collMemElementType) => Language == "cn" ?
+            $@"IncludeMany {navigateSelector} 参数错误，Select lambda参数返回值必须和 {collMemElementType} 类型一致" :
+            $@"FreeSql: IncludeMany {navigateSelector} parameter error, Select lambda parameter return value must match {collMemElementType} type";
         /// <summary>
         /// IncludeMany 参数1 类型错误，表达式类型应该为 MemberAccess
         /// </summary>
@@ -293,169 +293,169 @@ namespace FreeSql
         /// <summary>
         /// IncludeMany {navigateSelector} 参数类型错误，正确格式： a.collections.Take(1).Where(c =&amp;gt;c.aid == a.id).Select(a=&amp;gt; new TNavigate{{}})
         /// </summary>
-        public static string IncludeMany_ParameterTypeError(object navigateSelector) => string.Format(Language == "cn" ?
-            @"IncludeMany {0} 参数类型错误，正确格式： a.collections.Take(1).Where(c =>c.aid == a.id).Select(a=> new TNavigate{{}})" :
-            @"FreeSql: IncludeMany {0} parameter type is wrong, correct format: a.collections.Take(1).Where(c => C.A ID == a.id).Select (a => new TNavigate{{}})", navigateSelector);
+        public static string IncludeMany_ParameterTypeError(object navigateSelector) => Language == "cn" ?
+            $@"IncludeMany {navigateSelector} 参数类型错误，正确格式： a.collections.Take(1).Where(c =>c.aid == a.id).Select(a=> new TNavigate{{{{}}}})" :
+            $@"FreeSql: IncludeMany {navigateSelector} parameter type is wrong, correct format: a.collections.Take(1).Where(c => C.A ID == a.id).Select (a => new TNavigate{{{{}}}})";
         /// <summary>
         /// ISelect.InsertInto() 未选择属性: {displayCsharp}
         /// </summary>
-        public static string InsertInto_No_Property_Selected(object displayCsharp) => string.Format(Language == "cn" ?
-            @"ISelect.InsertInto() 未选择属性: {0}" :
-            @"FreeSql: ISelect.InsertInto() did not select an attribute: {0}", displayCsharp);
+        public static string InsertInto_No_Property_Selected(object displayCsharp) => Language == "cn" ?
+            $@"ISelect.InsertInto() 未选择属性: {displayCsharp}" :
+            $@"FreeSql: ISelect. InsertInto() did not select an attribute: {displayCsharp}";
         /// <summary>
         /// ISelect.InsertInto() 类型错误: {displayCsharp}
         /// </summary>
-        public static string InsertInto_TypeError(object displayCsharp) => string.Format(Language == "cn" ?
-            @"ISelect.InsertInto() 类型错误: {0}" :
-            @"FreeSql: ISelect.InsertInto() type error: {0}", displayCsharp);
+        public static string InsertInto_TypeError(object displayCsharp) => Language == "cn" ?
+            $@"ISelect.InsertInto() 类型错误: {displayCsharp}" :
+            $@"FreeSql: ISelect. InsertInto() type error: {displayCsharp}";
         /// <summary>
         /// InsertOrUpdate 功能执行 merge into 要求实体类 {CsName} 必须有主键
         /// </summary>
-        public static string InsertOrUpdate_Must_Primary_Key(object CsName) => string.Format(Language == "cn" ?
-            @"InsertOrUpdate 功能执行 merge into 要求实体类 {0} 必须有主键" :
-            @"FreeSql: The InsertOrUpdate function performs merge into requiring the entity class {0} to have a primary key", CsName);
+        public static string InsertOrUpdate_Must_Primary_Key(object CsName) => Language == "cn" ?
+            $@"InsertOrUpdate 功能执行 merge into 要求实体类 {CsName} 必须有主键" :
+            $@"FreeSql: The InsertOrUpdate function performs merge into requiring the entity class {CsName} to have a primary key";
         /// <summary>
         /// InsertOrUpdate&amp;lt;&amp;gt;的泛型参数 不支持 {typeofT1},请传递您的实体类
         /// </summary>
-        public static string InsertOrUpdate_NotSuport_Generic_UseEntity(object typeofT1) => string.Format(Language == "cn" ?
-            @"InsertOrUpdate<>的泛型参数 不支持 {0},请传递您的实体类" :
-            @"FreeSql: The generic parameter for InsertOrUpdate<>does not support {0}, Pass in your entity class", typeofT1);
+        public static string InsertOrUpdate_NotSuport_Generic_UseEntity(object typeofT1) => Language == "cn" ?
+            $@"InsertOrUpdate<>的泛型参数 不支持 {typeofT1},请传递您的实体类" :
+            $@"FreeSql: The generic parameter for InsertOrUpdate<>does not support {typeofT1}. Pass in your entity class";
         /// <summary>
         /// 【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载
         /// </summary>
         public static string Install_FreeSql_Extensions_LazyLoading => Language == "cn" ?
             @"【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载" :
-            @"FreeSql: FreeSql needs to be installed for Delayed Loading.Extensions.LazyLoading.Dll, downloadable to nuget";
+            @"FreeSql: FreeSql needs to be installed for Delayed Loading. Extensions. LazyLoading. Dll, downloadable to nuget";
         /// <summary>
         /// 【延时加载】{trytbTypeName} 编译错误：{exMessage}
         /// </summary>
-        public static string LazyLoading_CompilationError(object trytbTypeName, object exMessage, object cscode) => string.Format(Language == "cn" ?
-            @"【延时加载】{0} 编译错误：{1}
+        public static string LazyLoading_CompilationError(object trytbTypeName, object exMessage, object cscode) => Language == "cn" ?
+            $@"【延时加载】{trytbTypeName} 编译错误：{exMessage}
 
-{2}" :
-            @"FreeSql: {0} Compilation error: {1}
+{cscode}" :
+            $@"FreeSql: {trytbTypeName} Compilation error: {exMessage}
 
-{2}", trytbTypeName, exMessage, cscode);
+{cscode}";
         /// <summary>
         /// 【延时加载】实体类型 {trytbTypeName} 必须声明为 public
         /// </summary>
-        public static string LazyLoading_EntityMustDeclarePublic(object trytbTypeName) => string.Format(Language == "cn" ?
-            @"【延时加载】实体类型 {0} 必须声明为 public" :
-            @"FreeSql: Entity type {0} must be declared public", trytbTypeName);
+        public static string LazyLoading_EntityMustDeclarePublic(object trytbTypeName) => Language == "cn" ?
+            $@"【延时加载】实体类型 {trytbTypeName} 必须声明为 public" :
+            $@"FreeSql: Entity type {trytbTypeName} must be declared public";
         /// <summary>
         /// ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法
         /// </summary>
         public static string ManyToMany_AsSelect_NotSupport_Sum_Avg_etc => Language == "cn" ?
             @"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法" :
-            @"FreeSql: ManyToMany navigation properties.AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method";
+            @"FreeSql: ManyToMany navigation properties. AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbmidCsName} 中没有找到对应的字段，如：{midTypePropsTrytbName}{findtrytbPkCsName}、{midTypePropsTrytbName}_{findtrytbPkCsName}
         /// </summary>
-        public static string ManyToMany_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object findtrytbPkCsName) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 在 {2} 中没有找到对应的字段，如：{3}{4}、{3}_{4}" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} did not find a corresponding field in {2}, such as: {3}{4}, {3}_ {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, findtrytbPkCsName);
+        public static string ManyToMany_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object findtrytbPkCsName) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbmidCsName} 中没有找到对应的字段，如：{midTypePropsTrytbName}{findtrytbPkCsName}、{midTypePropsTrytbName}_{findtrytbPkCsName}" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} did not find a corresponding field in {tbmidCsName}, such as: {midTypePropsTrytbName}{findtrytbPkCsName}, {midTypePropsTrytbName}_ {findtrytbPkCsName}";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]
         /// </summary>
-        public static string ManyToMany_ParsingError_EntityMissing_PrimaryKey(object trytbTypeName, object pnvName, object tbrefTypeName) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 解析错误，实体类型 {2} 缺少主键标识，[Column(IsPrimary = true)]" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, tbrefTypeName);
+        public static string ManyToMany_ParsingError_EntityMissing_PrimaryKey(object trytbTypeName, object pnvName, object tbrefTypeName) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} missing primary key identity, [Column (IsPrimary = true)]";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性
         /// </summary>
-        public static string ManyToMany_ParsingError_EntityMustHas_NavigateCollection(object trytbTypeName, object pnvName, object tbrefTypeName) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 解析错误，实体类型 {2} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, entity type {2} must have a corresponding [Navigate (ManyToMany = x)] collection property", trytbTypeName, pnvName, tbrefTypeName);
+        public static string ManyToMany_ParsingError_EntityMustHas_NavigateCollection(object trytbTypeName, object pnvName, object tbrefTypeName) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} must have a corresponding [Navigate (ManyToMany = x)] collection property";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{tbmidCsName}.{trycolCsName} 和 {trytbCsName}.{trytbPrimarysCsName} 类型不一致
         /// </summary>
-        public static string ManyToMany_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object tbmidCsName, object trycolCsName, object trytbCsName, object trytbPrimarysCsName) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 解析错误，{2}.{3} 和 {4}.{5} 类型不一致" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, {2}.{3} and {4}.{5} type inconsistent", trytbTypeName, pnvName, tbmidCsName, trycolCsName, trytbCsName, trytbPrimarysCsName);
+        public static string ManyToMany_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object tbmidCsName, object trycolCsName, object trytbCsName, object trytbPrimarysCsName) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{tbmidCsName}.{trycolCsName} 和 {trytbCsName}.{trytbPrimarysCsName} 类型不一致" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, {tbmidCsName}. {trycolCsName} and {trytbCsName}. {trytbPrimarysCsName} type inconsistent";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 错误：{exMessage}
         /// </summary>
-        public static string ManyToMany_ParsingError_IntermediateClass_ErrorMessage(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object exMessage) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 解析错误，中间类 {2}.{3} 错误：{4}" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, intermediate class {2}.{3} Error: {4}", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName, exMessage);
+        public static string ManyToMany_ParsingError_IntermediateClass_ErrorMessage(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName, object exMessage) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 错误：{exMessage}" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}.{midTypePropsTrytbName} Error: {exMessage}";
         /// <summary>
         /// 【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】
         /// </summary>
-        public static string ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName) => string.Format(Language == "cn" ?
-            @"【ManyToMany】导航属性 {0}.{1} 解析错误，中间类 {2}.{3} 导航属性不是【ManyToOne】或【OneToOne】" :
-            @"FreeSql: [ManyToMany] Navigation property {0}.{1} parsing error, intermediate class {2}.The {3} navigation property is not ManyToOne or OneToOne", trytbTypeName, pnvName, tbmidCsName, midTypePropsTrytbName);
+        public static string ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}. The {midTypePropsTrytbName} navigation property is not ManyToOne or OneToOne";
         /// <summary>
         /// 映射异常：{name} 没有一个属性名相同
         /// </summary>
-        public static string Mapping_Exception_HasNo_SamePropertyName(object name) => string.Format(Language == "cn" ?
-            @"映射异常：{0} 没有一个属性名相同" :
-            @"FreeSql: Mapping exception: {0} None of the property names are the same", name);
+        public static string Mapping_Exception_HasNo_SamePropertyName(object name) => Language == "cn" ?
+            $@"映射异常：{name} 没有一个属性名相同" :
+            $@"FreeSql: Mapping exception: {name} None of the property names are the same";
         /// <summary>
         /// Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决
         /// </summary>
         public static string MasterPool_IsNull_UseTransaction => Language == "cn" ?
             @"Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决" :
-            @"FreeSql: Ado.MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution";
+            @"FreeSql: Ado. MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution";
         /// <summary>
         /// 缺少 FreeSql 数据库实现包：FreeSql.Provider.{Provider}.dll，可前往 nuget 下载
         /// </summary>
-        public static string Missing_FreeSqlProvider_Package(object Provider) => string.Format(Language == "cn" ?
-            @"缺少 FreeSql 数据库实现包：FreeSql.Provider.{0}.dll，可前往 nuget 下载" :
-            @"FreeSql: Missing FreeSql database implementation package: FreeSql.Provider.{0}.Dll, downloadable to nuget", Provider);
+        public static string Missing_FreeSqlProvider_Package(object Provider) => Language == "cn" ?
+            $@"缺少 FreeSql 数据库实现包：FreeSql.Provider.{Provider}.dll，可前往 nuget 下载" :
+            $@"FreeSql: Missing FreeSql database implementation package: FreeSql.Provider.{Provider}.Dll, downloadable to nuget";
         /// <summary>
         /// 缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})
         /// </summary>
-        public static string Missing_FreeSqlProvider_Package_Reason(object dll, object providerType) => string.Format(Language == "cn" ?
-            @"缺少 FreeSql 数据库实现包：{0}，可前往 nuget 下载；如果存在 {0} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({2})" :
-            @"FreeSql: The FreeSql database implementation package is missing: {0} can be downloaded to nuget; If there is {0} and an error still occurs (due to environmental issues that cause the type to be unreflected), manually pass in typeof ({2}) in the third parameter of UseConnectionString/UseConnectionFactory", dll, providerType);
+        public static string Missing_FreeSqlProvider_Package_Reason(object dll, object providerType) => Language == "cn" ?
+            $@"缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({{2}})" :
+            $@"FreeSql: The FreeSql database implementation package is missing: {dll} can be downloaded to nuget; If there is {dll} and an error still occurs (due to environmental issues that cause the type to be unreflected), manually pass in typeof ({{2}}) in the third parameter of UseConnectionString/UseConnectionFactory";
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] Bind 数目({bindColumnsCount}) 与 外部主键数目({tbrefPrimarysLength}) 不相同
         /// </summary>
-        public static string Navigation_Bind_Number_Different(object trytbTypeName, object pnvName, object bindColumnsCount, object tbrefPrimarysLength) => string.Format(Language == "cn" ?
-            @"导航属性 {0}.{1} 特性 [Navigate] Bind 数目({2}) 与 外部主键数目({3}) 不相同" :
-            @"FreeSql: Navigation property {0}.{1}, The number of attributes [Navigate] Binds ({2}) is different from the number of external primary keys ({3})", trytbTypeName, pnvName, bindColumnsCount, tbrefPrimarysLength);
+        public static string Navigation_Bind_Number_Different(object trytbTypeName, object pnvName, object bindColumnsCount, object tbrefPrimarysLength) => Language == "cn" ?
+            $@"导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] Bind 数目({bindColumnsCount}) 与 外部主键数目({tbrefPrimarysLength}) 不相同" :
+            $@"FreeSql: Navigation property {trytbTypeName}. The number of {pnvName} attributes [Navigate] Binds ({bindColumnsCount}) is different from the number of external primary keys ({tbrefPrimarysLength})";
         /// <summary>
         /// {tb2DbName}.{mp2MemberName} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a =&amp;gt; a.{mp2MemberName}) 中使用，请移步参考 IncludeMany 文档。
         /// </summary>
-        public static string Navigation_Missing_AsSelect(object tb2DbName, object mp2MemberName) => string.Format(Language == "cn" ?
-            @"{0}.{1} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a => a.{1}) 中使用，请移步参考 IncludeMany 文档。" :
-            @"FreeSql: {0}.{1} Navigation Property Collection forgotten.AsSelect()? If used in ToList(a => a.{1}), step by step to refer to the IncludeMany document.", tb2DbName, mp2MemberName);
+        public static string Navigation_Missing_AsSelect(object tb2DbName, object mp2MemberName) => Language == "cn" ?
+            $@"{tb2DbName}.{mp2MemberName} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a => a.{mp2MemberName}) 中使用，请移步参考 IncludeMany 文档。" :
+            $@"FreeSql: {tb2DbName}. {mp2MemberName} Navigation Property Collection forgotten. AsSelect()? If used in ToList (a => a. {mp2MemberName}), step by step to refer to the IncludeMany document.";
         /// <summary>
         /// 【导航属性】{trytbTypeDisplayCsharp}.{pName} 缺少 set 属性
         /// </summary>
-        public static string Navigation_Missing_SetProperty(object trytbTypeDisplayCsharp, object pName) => string.Format(Language == "cn" ?
-            @"【导航属性】{0}.{1} 缺少 set 属性" :
-            @"FreeSql: Navigation Properties {0}.Missing set attribute for {1}", trytbTypeDisplayCsharp, pName);
+        public static string Navigation_Missing_SetProperty(object trytbTypeDisplayCsharp, object pName) => Language == "cn" ?
+            $@"【导航属性】{trytbTypeDisplayCsharp}.{pName} 缺少 set 属性" :
+            $@"FreeSql: Navigation Properties {trytbTypeDisplayCsharp}. Missing set attribute for {pName}";
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 没有找到对应的字段，如：{pnvName}{findtbrefPkCsName}、{pnvName}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。
         /// </summary>
-        public static string Navigation_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object findtbrefPkCsName) => string.Format(Language == "cn" ?
-            @"导航属性 {0}.{1} 没有找到对应的字段，如：{1}{3}、{1}_{3}。或者使用 [Navigate] 特性指定关系映射。" :
-            @"FreeSql: Navigation property {0}.{1} No corresponding fields were found, such as: {1}{3}, {1}_ {3}, Or use the [Navigate] attribute to specify the relationship mapping.", trytbTypeName, pnvName, findtbrefPkCsName);
+        public static string Navigation_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object findtbrefPkCsName) => Language == "cn" ?
+            $@"导航属性 {trytbTypeName}.{pnvName} 没有找到对应的字段，如：{pnvName}{{3}}、{pnvName}_{{3}}。或者使用 [Navigate] 特性指定关系映射。" :
+            $@"FreeSql: Navigation property {trytbTypeName}. {pnvName} No corresponding fields were found, such as: {pnvName}{{3}}, {pnvName}_ {{3}}. Or use the [Navigate] attribute to specify the relationship mapping.";
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {trytcTypeName} 缺少主键标识，[Column(IsPrimary = true)]
         /// </summary>
-        public static string Navigation_ParsingError_EntityMissingPrimaryKey(object trytbTypeName, object pnvName, object trytcTypeName) => string.Format(Language == "cn" ?
-            @"导航属性 {0}.{1} 解析错误，实体类型 {2} 缺少主键标识，[Column(IsPrimary = true)]" :
-            @"FreeSql: Navigation property {0}.{1} parsing error, entity type {2} missing primary key identity, [Column (IsPrimary = true)]", trytbTypeName, pnvName, trytcTypeName);
+        public static string Navigation_ParsingError_EntityMissingPrimaryKey(object trytbTypeName, object pnvName, object trytcTypeName) => Language == "cn" ?
+            $@"导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {trytcTypeName} 缺少主键标识，[Column(IsPrimary = true)]" :
+            $@"FreeSql: Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {trytcTypeName} missing primary key identity, [Column (IsPrimary = true)]";
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trycolCsName} 和 {tbrefCsName}.{tbrefPrimarysCsName} 类型不一致
         /// </summary>
-        public static string Navigation_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object trytbCsName, object trycolCsName, object tbrefCsName, object tbrefPrimarysCsName) => string.Format(Language == "cn" ?
-            @"导航属性 {0}.{1} 解析错误，{2}.{3} 和 {4}.{5} 类型不一致" :
-            @"FreeSql: Navigation property {0}.{1} parsing error, {2}.{3} and {4}.{5} type inconsistent", trytbTypeName, pnvName, trytbCsName, trycolCsName, tbrefCsName, tbrefPrimarysCsName);
+        public static string Navigation_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object trytbCsName, object trycolCsName, object tbrefCsName, object tbrefPrimarysCsName) => Language == "cn" ?
+            $@"导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trycolCsName} 和 {tbrefCsName}.{tbrefPrimarysCsName} 类型不一致" :
+            $@"FreeSql: Navigation property {trytbTypeName}. {pnvName} parsing error, {trytbCsName}. {trycolCsName} and {tbrefCsName}. {tbrefPrimarysCsName} type inconsistent";
         /// <summary>
         /// 导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}
         /// </summary>
-        public static string Navigation_ParsingError_NotFound_Property(object trytbTypeName, object pnvName, object tbrefTypeName, object bi) => string.Format(Language == "cn" ?
-            @"导航属性 {0}.{1} 特性 [Navigate] 解析错误，在 {2} 未找到属性：{3}" :
-            @"FreeSql: Navigation property {0}.{1} attribute [Navigate] parsing error, property not found at {2}: {3}", trytbTypeName, pnvName, tbrefTypeName, bi);
+        public static string Navigation_ParsingError_NotFound_Property(object trytbTypeName, object pnvName, object tbrefTypeName, object bi) => Language == "cn" ?
+            $@"导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}" :
+            $@"FreeSql: Navigation property {trytbTypeName}. {pnvName} attribute [Navigate] parsing error, property not found at {tbrefTypeName}: {bi}";
         /// <summary>
         /// {tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键
         /// </summary>
-        public static string NoPrimaryKey_UseSetDto(object tableTypeDisplayCsharp) => string.Format(Language == "cn" ?
-            @"{0} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键" :
-            @"FreeSql: {0} has no primary key defined and cannot use SetSource, Try SetDto", tableTypeDisplayCsharp);
+        public static string NoPrimaryKey_UseSetDto(object tableTypeDisplayCsharp) => Language == "cn" ?
+            $@"{tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键" :
+            $@"FreeSql: {tableTypeDisplayCsharp} has no primary key defined and cannot use SetSource. Try SetDto";
         /// <summary>
         ///  没有定义属性 
         /// </summary>
@@ -471,21 +471,21 @@ namespace FreeSql
         /// <summary>
         /// 未实现函数表达式 {exp} 解析
         /// </summary>
-        public static string Not_Implemented_Expression(object exp) => string.Format(Language == "cn" ?
-            @"未实现函数表达式 {0} 解析" :
-            @"FreeSql: Function expression {0} parsing not implemented", exp);
+        public static string Not_Implemented_Expression(object exp) => Language == "cn" ?
+            $@"未实现函数表达式 {exp} 解析" :
+            $@"FreeSql: Function expression {exp} parsing not implemented";
         /// <summary>
         /// 未实现函数表达式 {exp} 解析，参数 {expArguments} 必须为常量
         /// </summary>
-        public static string Not_Implemented_Expression_ParameterUseConstant(object exp, object expArguments) => string.Format(Language == "cn" ?
-            @"未实现函数表达式 {0} 解析，参数 {1} 必须为常量" :
-            @"FreeSql: Function expression {0} parsing not implemented, parameter {1} must be constant", exp, expArguments);
+        public static string Not_Implemented_Expression_ParameterUseConstant(object exp, object expArguments) => Language == "cn" ?
+            $@"未实现函数表达式 {exp} 解析，参数 {expArguments} 必须为常量" :
+            $@"FreeSql: Function expression {exp} parsing not implemented, parameter {expArguments} must be constant";
         /// <summary>
         /// 未实现函数表达式 {exp} 解析，如果正在操作导航属性集合，请使用 .AsSelect().{exp3MethodName}({exp3ArgumentsCount})
         /// </summary>
-        public static string Not_Implemented_Expression_UseAsSelect(object exp, object exp3MethodName, object exp3ArgumentsCount) => string.Format(Language == "cn" ?
-            @"未实现函数表达式 {0} 解析，如果正在操作导航属性集合，请使用 .AsSelect().{1}({2})" :
-            @"FreeSql: Function expression {0} parsing is not implemented, Use if you are working on a navigation property collection, AsSelect().{1}({2})", exp, exp3MethodName, exp3ArgumentsCount);
+        public static string Not_Implemented_Expression_UseAsSelect(object exp, object exp3MethodName, object exp3ArgumentsCount) => Language == "cn" ?
+            $@"未实现函数表达式 {exp} 解析，如果正在操作导航属性集合，请使用 .AsSelect().{exp3MethodName}({exp3ArgumentsCount})" :
+            $@"FreeSql: Function expression {exp} parsing is not implemented. Use if you are working on a navigation property collection. AsSelect (). {exp3MethodName} ({exp3ArgumentsCount})";
         /// <summary>
         /// 未实现 MemberAccess 下的 Constant
         /// </summary>
@@ -495,9 +495,9 @@ namespace FreeSql
         /// <summary>
         /// 未实现 {name}
         /// </summary>
-        public static string Not_Implemented_Name(object name) => string.Format(Language == "cn" ?
-            @"未实现 {0}" :
-            @"FreeSql: {0} is not implemented", name);
+        public static string Not_Implemented_Name(object name) => Language == "cn" ?
+            $@"未实现 {name}" :
+            $@"FreeSql: {name} is not implemented";
         /// <summary>
         /// 不支持
         /// </summary>
@@ -507,57 +507,57 @@ namespace FreeSql
         /// <summary>
         /// {dataType} 不支持 OrderByRandom 随机排序
         /// </summary>
-        public static string Not_Support_OrderByRandom(object dataType) => string.Format(Language == "cn" ?
-            @"{0} 不支持 OrderByRandom 随机排序" :
-            @"FreeSql: {0} does not support OrderByRandom sorting", dataType);
+        public static string Not_Support_OrderByRandom(object dataType) => Language == "cn" ?
+            $@"{dataType} 不支持 OrderByRandom 随机排序" :
+            $@"FreeSql: {dataType} does not support OrderByRandom sorting";
         /// <summary>
         /// {property} 不是有效的导航属性
         /// </summary>
-        public static string Not_Valid_Navigation_Property(object property) => string.Format(Language == "cn" ?
-            @"{0} 不是有效的导航属性" :
-            @"FreeSql: {0} is not a valid navigation property", property);
+        public static string Not_Valid_Navigation_Property(object property) => Language == "cn" ?
+            $@"{property} 不是有效的导航属性" :
+            $@"FreeSql: {property} is not a valid navigation property";
         /// <summary>
         /// {dbName} 找不到列 {memberName}
         /// </summary>
-        public static string NotFound_Column(object dbName, object memberName) => string.Format(Language == "cn" ?
-            @"{0} 找不到列 {1}" :
-            @"FreeSql: {0} Column {1} not found", dbName, memberName);
+        public static string NotFound_Column(object dbName, object memberName) => Language == "cn" ?
+            $@"{dbName} 找不到列 {memberName}" :
+            $@"FreeSql: {dbName} Column {memberName} not found";
         /// <summary>
         /// 找不到 {CsName} 对应的列
         /// </summary>
-        public static string NotFound_CsName_Column(object CsName) => string.Format(Language == "cn" ?
-            @"找不到 {0} 对应的列" :
-            @"FreeSql: Cannot find the column corresponding to {0}", CsName);
+        public static string NotFound_CsName_Column(object CsName) => Language == "cn" ?
+            $@"找不到 {CsName} 对应的列" :
+            $@"FreeSql: Cannot find the column corresponding to {CsName}";
         /// <summary>
         /// 找不到属性：{memberName}
         /// </summary>
-        public static string NotFound_Property(object memberName) => string.Format(Language == "cn" ?
-            @"找不到属性：{0}" :
-            @"FreeSql: Attribute not found: {0}", memberName);
+        public static string NotFound_Property(object memberName) => Language == "cn" ?
+            $@"找不到属性：{memberName}" :
+            $@"FreeSql: Attribute not found: {memberName}";
         /// <summary>
         /// 找不到属性名 {proto}
         /// </summary>
-        public static string NotFound_PropertyName(object proto) => string.Format(Language == "cn" ?
-            @"找不到属性名 {0}" :
-            @"FreeSql: Property name {0} not found", proto);
+        public static string NotFound_PropertyName(object proto) => Language == "cn" ?
+            $@"找不到属性名 {proto}" :
+            $@"FreeSql: Property name {proto} not found";
         /// <summary>
         /// Custom 找不到对应的{{ 反射信息 }}：{fiValueCustomArray}
         /// </summary>
-        public static string NotFound_Reflection(object fiValueCustomArray) => string.Format(Language == "cn" ?
-            @"Custom 找不到对应的{{ 反射信息 }}：{0}" :
-            @"FreeSql: Custom could not find the corresponding {{reflection information}}:{0}", fiValueCustomArray);
+        public static string NotFound_Reflection(object fiValueCustomArray) => Language == "cn" ?
+            $@"Custom 找不到对应的{{{{ 反射信息 }}}}：{fiValueCustomArray}" :
+            $@"FreeSql: Custom could not find the corresponding {{{{reflection information}}}}:{fiValueCustomArray}";
         /// <summary>
         /// Custom 找不到对应的{{ 静态方法名 }}：{fiValueCustomArray}
         /// </summary>
-        public static string NotFound_Static_MethodName(object fiValueCustomArray) => string.Format(Language == "cn" ?
-            @"Custom 找不到对应的{{ 静态方法名 }}：{0}" :
-            @"FreeSql: Custom could not find the corresponding {{static method name}}:{0}", fiValueCustomArray);
+        public static string NotFound_Static_MethodName(object fiValueCustomArray) => Language == "cn" ?
+            $@"Custom 找不到对应的{{{{ 静态方法名 }}}}：{fiValueCustomArray}" :
+            $@"FreeSql: Custom could not find the corresponding {{{{static method name}}}}:{fiValueCustomArray}";
         /// <summary>
         /// [Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不存在
         /// </summary>
-        public static string NotFound_Table_Property_AsTable(object atmGroupsValue) => string.Format(Language == "cn" ?
-            @"[Table(AsTable = xx)] 设置的属性名 {0} 不存在" :
-            @"FreeSql: The property name {0} set by [Table(AsTable = xx)] does not exist", atmGroupsValue);
+        public static string NotFound_Table_Property_AsTable(object atmGroupsValue) => Language == "cn" ?
+            $@"[Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不存在" :
+            $@"FreeSql: The property name {atmGroupsValue} set by [Table(AsTable = xx)] does not exist";
         /// <summary>
         /// 未指定 UseConnectionString 或者 UseConnectionFactory
         /// </summary>
@@ -567,33 +567,33 @@ namespace FreeSql
         /// <summary>
         /// 【{policyName}】ObjectPool.{GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081
         /// </summary>
-        public static string ObjectPool_Get_Timeout(object policyName, object GetName, object totalSeconds) => string.Format(Language == "cn" ?
-            @"【{0}】ObjectPool.{1}() timeout {2} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081" :
-            @"FreeSql: [{0}] ObjectPool.{1}() timeout {2} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081", policyName, GetName, totalSeconds);
+        public static string ObjectPool_Get_Timeout(object policyName, object GetName, object totalSeconds) => Language == "cn" ?
+            $@"【{policyName}】ObjectPool.{GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081" :
+            $@"FreeSql: [{policyName}] ObjectPool. {GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081";
         /// <summary>
-        /// 【{policyName}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {asyncGetCapacity}
+        /// 【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}
         /// </summary>
-        public static string ObjectPool_GetAsync_Queue_Long(object policyName, object asyncGetCapacity) => string.Format(Language == "cn" ?
-            @"【{0}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {1}" :
-            @"FreeSql: [{0}] ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {1}", policyName, asyncGetCapacity);
+        public static string ObjectPool_GetAsync_Queue_Long(object policyName, object asyncGetCapacity) => Language == "cn" ?
+            $@"【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}" :
+            $@"FreeSql: [{policyName}] ObjectPool. GetAsync() The queue is too long. Policy. AsyncGetCapacity = {asyncGetCapacity}";
         /// <summary>
         /// 【OneToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbrefCsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}
         /// </summary>
-        public static string OneToMany_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object tbrefCsName, object findtrytb, object findtrytbPkCsName) => string.Format(Language == "cn" ?
-            @"【OneToMany】导航属性 {0}.{1} 在 {2} 中没有找到对应的字段，如：{3}{4}、{3}_{4}" :
-            @"FreeSql: [OneToMany] Navigation property {0}.{1} did not find a corresponding field in {2}, such as: {3}{4}, {3}_{4}", trytbTypeName, pnvName, tbrefCsName, findtrytb, findtrytbPkCsName);
+        public static string OneToMany_NotFound_CorrespondingField(object trytbTypeName, object pnvName, object tbrefCsName, object findtrytb, object findtrytbPkCsName) => Language == "cn" ?
+            $@"【OneToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbrefCsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" :
+            $@"FreeSql: [OneToMany] Navigation property {trytbTypeName}.{pnvName} did not find a corresponding field in {tbrefCsName}, such as: {findtrytb}{findtrytbPkCsName}, {findtrytb}_{findtrytbPkCsName}";
         /// <summary>
         /// 【OneToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trytbPrimarysCsName} 和 {tbrefCsName}.{trycolCsName} 类型不一致
         /// </summary>
-        public static string OneToMany_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object trytbCsName, object trytbPrimarysCsName, object tbrefCsName, object trycolCsName) => string.Format(Language == "cn" ?
-            @"【OneToMany】导航属性 {0}.{1} 解析错误，{2}.{3} 和 {4}.{5} 类型不一致" :
-            @"FreeSql: [OneToMany] Navigation property {0}.{1} parsing error, {2}.{3} and {4}.{5} is of inconsistent type", trytbTypeName, pnvName, trytbCsName, trytbPrimarysCsName, tbrefCsName, trycolCsName);
+        public static string OneToMany_ParsingError_InconsistentType(object trytbTypeName, object pnvName, object trytbCsName, object trytbPrimarysCsName, object tbrefCsName, object trycolCsName) => Language == "cn" ?
+            $@"【OneToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trytbPrimarysCsName} 和 {tbrefCsName}.{trycolCsName} 类型不一致" :
+            $@"FreeSql: [OneToMany] Navigation property {trytbTypeName}.{pnvName} parsing error, {trytbCsName}.{trytbPrimarysCsName} and {tbrefCsName}.{trycolCsName} is of inconsistent type";
         /// <summary>
         /// 、{refpropName}{findtrytbPkCsName}、{refpropName}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。
         /// </summary>
-        public static string OneToMany_UseNavigate(object refpropName, object findtrytbPkCsName) => string.Format(Language == "cn" ?
-            @"、{0}{1}、{0}_{1}。或者使用 [Navigate] 特性指定关系映射。" :
-            @", {0}{1}, {0}_{1}, Or use the [Navigate] attribute to specify the relationship mapping.", refpropName, findtrytbPkCsName);
+        public static string OneToMany_UseNavigate(object refpropName, object findtrytbPkCsName) => Language == "cn" ?
+            $@"、{refpropName}{findtrytbPkCsName}、{refpropName}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。" :
+            $@", {refpropName}{findtrytbPkCsName}, {refpropName}_{findtrytbPkCsName}. Or use the [Navigate] attribute to specify the relationship mapping.";
         /// <summary>
         /// 参数 field 未指定
         /// </summary>
@@ -603,51 +603,51 @@ namespace FreeSql
         /// <summary>
         /// {property} 参数错误，它不是集合属性，必须为 IList&amp;lt;T&amp;gt; 或者 ICollection&amp;lt;T&amp;gt;
         /// </summary>
-        public static string ParameterError_NotValid_Collection(object property) => string.Format(Language == "cn" ?
-            @"{0} 参数错误，它不是集合属性，必须为 IList<T> 或者 ICollection<T>" :
-            @"FreeSql: The {0} parameter is incorrect, it is not a collection property and must be IList<T>or ICollection<T>", property);
+        public static string ParameterError_NotValid_Collection(object property) => Language == "cn" ?
+            $@"{property} 参数错误，它不是集合属性，必须为 IList<T> 或者 ICollection<T>" :
+            $@"FreeSql: The {property} parameter is incorrect, it is not a collection property and must be IList<T>or ICollection<T>";
         /// <summary>
         /// {property} 参数错误，它不是有效的导航属性
         /// </summary>
-        public static string ParameterError_NotValid_Navigation(object property) => string.Format(Language == "cn" ?
-            @"{0} 参数错误，它不是有效的导航属性" :
-            @"FreeSql: The {0} parameter is incorrect, it is not a valid navigation property", property);
+        public static string ParameterError_NotValid_Navigation(object property) => Language == "cn" ?
+            $@"{property} 参数错误，它不是有效的导航属性" :
+            $@"FreeSql: The {property} parameter is incorrect, it is not a valid navigation property";
         /// <summary>
         /// {where} 参数错误，{keyval} 不是有效的属性名，在实体类 {reftbTypeDisplayCsharp} 无法找到
         /// </summary>
-        public static string ParameterError_NotValid_PropertyName(object where, object keyval, object reftbTypeDisplayCsharp) => string.Format(Language == "cn" ?
-            @"{0} 参数错误，{1} 不是有效的属性名，在实体类 {2} 无法找到" :
-            @"FreeSql: {0} parameter error, {1} is not a valid property name and cannot be found in entity class {2}", where, keyval, reftbTypeDisplayCsharp);
+        public static string ParameterError_NotValid_PropertyName(object where, object keyval, object reftbTypeDisplayCsharp) => Language == "cn" ?
+            $@"{where} 参数错误，{keyval} 不是有效的属性名，在实体类 {reftbTypeDisplayCsharp} 无法找到" :
+            $@"FreeSql: {where} parameter error, {keyval} is not a valid property name and cannot be found in entity class {reftbTypeDisplayCsharp}";
         /// <summary>
         /// {property} 参数错误，格式 "TopicId=Id，多组使用逗号连接" 
         /// </summary>
-        public static string ParameterError_NotValid_UseCommas(object property) => string.Format(Language == "cn" ?
-            @"{0} 参数错误，格式 ""TopicId=Id，多组使用逗号连接"" " :
-            @"FreeSql: {0} parameter error, format ""TopicId=Id, multiple groups using comma connection""", property);
+        public static string ParameterError_NotValid_UseCommas(object property) => Language == "cn" ?
+            $@"{property} 参数错误，格式 ""TopicId=Id，多组使用逗号连接"" " :
+            $@"FreeSql: {property} parameter error, format ""TopicId=Id, multiple groups using comma connection""";
         /// <summary>
         /// 解析失败 {callExpMethodName} {message}
         /// </summary>
-        public static string Parsing_Failed(object callExpMethodName, object message) => string.Format(Language == "cn" ?
-            @"解析失败 {0} {1}" :
-            @"FreeSql: Parsing failed {0} {1}", callExpMethodName, message);
+        public static string Parsing_Failed(object callExpMethodName, object message) => Language == "cn" ?
+            $@"解析失败 {callExpMethodName} {message}" :
+            $@"FreeSql: Parsing failed {callExpMethodName} {message}";
         /// <summary>
         /// 【{policyName}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079
         /// </summary>
-        public static string Policy_ObjectPool_Dispose(object policyName) => string.Format(Language == "cn" ?
-            @"【{0}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079" :
-            @"FreeSql: [{0}] The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079", policyName);
+        public static string Policy_ObjectPool_Dispose(object policyName) => Language == "cn" ?
+            $@"【{policyName}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079" :
+            $@"FreeSql: [{policyName}] The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079";
         /// <summary>
         /// 【{policyName}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableExceptionMessage}
         /// </summary>
-        public static string Policy_Status_NotAvailable(object policyName, object UnavailableExceptionMessage) => string.Format(Language == "cn" ?
-            @"【{0}】状态不可用，等待后台检查程序恢复方可使用。{1}" :
-            @"FreeSql: The {0} status is unavailable and cannot be used until the background checker is restored, {1}", policyName, UnavailableExceptionMessage);
+        public static string Policy_Status_NotAvailable(object policyName, object UnavailableExceptionMessage) => Language == "cn" ?
+            $@"【{policyName}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableExceptionMessage}" :
+            $@"FreeSql: The {policyName} status is unavailable and cannot be used until the background checker is restored. {UnavailableExceptionMessage}";
         /// <summary>
         /// 属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable
         /// </summary>
-        public static string Properties_AsRowLock_Must_Numeric_Byte(object trytbVersionColumnCsName) => string.Format(Language == "cn" ?
-            @"属性{0} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable" :
-            @"FreeSql: The property {0} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[] or string, and it cannot be Nullable", trytbVersionColumnCsName);
+        public static string Properties_AsRowLock_Must_Numeric_Byte(object trytbVersionColumnCsName) => Language == "cn" ?
+            $@"属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[] 或者 string，并且不可为 Nullable" :
+            $@"FreeSql: The property {trytbVersionColumnCsName} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[] or string, and it cannot be Nullable";
         /// <summary>
         /// properties 参数不能为空
         /// </summary>
@@ -657,9 +657,9 @@ namespace FreeSql
         /// <summary>
         /// {property} 属性名无法找到
         /// </summary>
-        public static string Property_Cannot_Find(object property) => string.Format(Language == "cn" ?
-            @"{0} 属性名无法找到" :
-            @"FreeSql: {0} property name not found", property);
+        public static string Property_Cannot_Find(object property) => Language == "cn" ?
+            $@"{property} 属性名无法找到" :
+            $@"FreeSql: {property} property name not found";
         /// <summary>
         /// Range 要求 Value 应该逗号分割，并且长度为 2
         /// </summary>
@@ -681,15 +681,15 @@ namespace FreeSql
         /// <summary>
         /// {qoteSql} is NULL，除非设置特性 [Column(IsNullable = false)]
         /// </summary>
-        public static string Set_Column_IsNullable_False(object qoteSql) => string.Format(Language == "cn" ?
-            @"{0} is NULL，除非设置特性 [Column(IsNullable = false)]" :
-            @"FreeSql: {0} is NULL unless the attribute [Column (IsNullable = false)]", qoteSql);
+        public static string Set_Column_IsNullable_False(object qoteSql) => Language == "cn" ?
+            $@"{qoteSql} is NULL，除非设置特性 [Column(IsNullable = false)]" :
+            $@"FreeSql: {qoteSql} is NULL unless the attribute [Column (IsNullable = false)]";
         /// <summary>
         /// 分表字段值 "{dt}" 不能小于 "{beginTime} "
         /// </summary>
-        public static string SubTableFieldValue_CannotLessThen(object dt, object beginTime) => string.Format(Language == "cn" ?
-            @"分表字段值 ""{0}"" 不能小于 ""{1} """ :
-            @"FreeSql: Subtable field value'{0}'cannot be less than'{1}'", dt, beginTime);
+        public static string SubTableFieldValue_CannotLessThen(object dt, object beginTime) => Language == "cn" ?
+            $@"分表字段值 ""{dt}"" 不能小于 ""{beginTime} """ :
+            $@"FreeSql: Subtable field value'{dt}'cannot be less than'{beginTime}'";
         /// <summary>
         /// 分表字段值不能为 null
         /// </summary>
@@ -699,15 +699,15 @@ namespace FreeSql
         /// <summary>
         /// 分表字段值 "{columnValue}" 不能转化成 DateTime
         /// </summary>
-        public static string SubTableFieldValue_NotConvertDateTime(object columnValue) => string.Format(Language == "cn" ?
-            @"分表字段值 ""{0}"" 不能转化成 DateTime" :
-            @"FreeSql: The tabular field value'{0}'cannot be converted to DateTime", columnValue);
+        public static string SubTableFieldValue_NotConvertDateTime(object columnValue) => Language == "cn" ?
+            $@"分表字段值 ""{columnValue}"" 不能转化成 DateTime" :
+            $@"FreeSql: The tabular field value'{columnValue}'cannot be converted to DateTime";
         /// <summary>
         /// 分表字段值 "{dt}" 未匹配到分表名
         /// </summary>
-        public static string SubTableFieldValue_NotMatchTable(object dt) => string.Format(Language == "cn" ?
-            @"分表字段值 ""{0}"" 未匹配到分表名" :
-            @"FreeSql: Table field value'{0}'does not match table name", dt);
+        public static string SubTableFieldValue_NotMatchTable(object dt) => Language == "cn" ?
+            $@"分表字段值 ""{dt}"" 未匹配到分表名" :
+            $@"FreeSql: Table field value'{dt}'does not match table name";
         /// <summary>
         /// T2 类型错误
         /// </summary>
@@ -717,63 +717,63 @@ namespace FreeSql
         /// <summary>
         /// tableName 格式错误，示例：“log_{yyyyMMdd}”
         /// </summary>
-        public static string TableName_Format_Error(object yyyyMMdd) => string.Format(Language == "cn" ?
-            @"tableName 格式错误，示例：“log_{0}”" :
-            @"FreeSql: TableName format error, example: ""log_{0}""", yyyyMMdd);
+        public static string TableName_Format_Error(object yyyyMMdd) => Language == "cn" ?
+            $@"tableName 格式错误，示例：“log_{yyyyMMdd}”" :
+            $@"FreeSql: TableName format error, example: ""log_{yyyyMMdd}""";
         /// <summary>
         /// {Type}.AsType 参数错误，请传入正确的实体类型
         /// </summary>
-        public static string Type_AsType_Parameter_Error(object Type) => string.Format(Language == "cn" ?
-            @"{0}.AsType 参数错误，请传入正确的实体类型" :
-            @"FreeSql: {0}.AsType parameter error, please pass in the correct entity type", Type);
+        public static string Type_AsType_Parameter_Error(object Type) => Language == "cn" ?
+            $@"{Type}.AsType 参数错误，请传入正确的实体类型" :
+            $@"FreeSql: {Type}.AsType parameter error, please pass in the correct entity type";
         /// <summary>
         /// {thatFullName} 类型无法访问构造函数
         /// </summary>
-        public static string Type_Cannot_Access_Constructor(object thatFullName) => string.Format(Language == "cn" ?
-            @"{0} 类型无法访问构造函数" :
-            @"FreeSql: The {0} type cannot access the constructor", thatFullName);
+        public static string Type_Cannot_Access_Constructor(object thatFullName) => Language == "cn" ?
+            $@"{thatFullName} 类型无法访问构造函数" :
+            $@"FreeSql: The {thatFullName} type cannot access the constructor";
         /// <summary>
         /// {name} 类型错误
         /// </summary>
-        public static string Type_Error_Name(object name) => string.Format(Language == "cn" ?
-            @"{0} 类型错误" :
-            @"FreeSql: {0} type error", name);
+        public static string Type_Error_Name(object name) => Language == "cn" ?
+            $@"{name} 类型错误" :
+            $@"FreeSql: {name} type error";
         /// <summary>
         /// {Type}.AsType 参数不支持指定为 object
         /// </summary>
-        public static string TypeAsType_NotSupport_Object(object Type) => string.Format(Language == "cn" ?
-            @"{0}.AsType 参数不支持指定为 object" :
-            @"FreeSql: {0}.AsType parameter does not support specifying as object", Type);
+        public static string TypeAsType_NotSupport_Object(object Type) => Language == "cn" ?
+            $@"{Type}.AsType 参数不支持指定为 object" :
+            $@"FreeSql: {Type}.AsType parameter does not support specifying as object";
         /// <summary>
         /// 类型 {typeofFullName} 错误，不能使用 IncludeMany
         /// </summary>
-        public static string TypeError_CannotUse_IncludeMany(object typeofFullName) => string.Format(Language == "cn" ?
-            @"类型 {0} 错误，不能使用 IncludeMany" :
-            @"FreeSql: Type {0} error, IncludeMany cannot be used", typeofFullName);
+        public static string TypeError_CannotUse_IncludeMany(object typeofFullName) => Language == "cn" ?
+            $@"类型 {typeofFullName} 错误，不能使用 IncludeMany" :
+            $@"FreeSql: Type {typeofFullName} error, IncludeMany cannot be used";
         /// <summary>
         /// 无法解析表达式：{exp}
         /// </summary>
-        public static string Unable_Parse_Expression(object exp) => string.Format(Language == "cn" ?
-            @"无法解析表达式：{0}" :
-            @"FreeSql: Unable to parse expression: {0}", exp);
+        public static string Unable_Parse_Expression(object exp) => Language == "cn" ?
+            $@"无法解析表达式：{exp}" :
+            $@"FreeSql: Unable to parse expression: {exp}";
         /// <summary>
         /// 无法解析表达式方法 {exp3tmpCallMethodName}
         /// </summary>
-        public static string Unable_Parse_ExpressionMethod(object exp3tmpCallMethodName) => string.Format(Language == "cn" ?
-            @"无法解析表达式方法 {0}" :
-            @"FreeSql: Unable to parse expression method {0}", exp3tmpCallMethodName);
+        public static string Unable_Parse_ExpressionMethod(object exp3tmpCallMethodName) => Language == "cn" ?
+            $@"无法解析表达式方法 {exp3tmpCallMethodName}" :
+            $@"FreeSql: Unable to parse expression method {exp3tmpCallMethodName}";
         /// <summary>
         /// 请使用 fsql.InsertDict(dict) 方法插入字典数据
         /// </summary>
         public static string Use_InsertDict_Method => Language == "cn" ?
             @"请使用 fsql.InsertDict(dict) 方法插入字典数据" :
-            @"FreeSql: Please use fsql.InsertDict(dict) method inserts dictionary data";
+            @"FreeSql: Please use fsql. InsertDict (dict) method inserts dictionary data";
         /// <summary>
         /// 找不到 {name}
         /// </summary>
-        public static string S_NotFound_Name(object name) => string.Format(Language == "cn" ?
-            @"找不到 {0}" :
-            @"FreeSql: {0} not found", name);
+        public static string S_NotFound_Name(object name) => Language == "cn" ?
+            $@"找不到 {name}" :
+            $@"FreeSql: {name} not found";
         /// <summary>
         /// 从库
         /// </summary>
@@ -791,25 +791,25 @@ namespace FreeSql
         /// </summary>
         public static string S_Access_InsertOnlyOneAtTime => Language == "cn" ?
             @"蛋疼的 Access 插入只能一条一条执行，不支持 values(..),(..) 也不支持 select .. UNION ALL select .." :
-            @"FreeSql: values (..),(..) are not supported";
+            @"FreeSql: Egg pain Accs insertion can only be performed one at a time, values (..) are not supported. (..) Select is also not supported.. UNION ALL select..";
         /// <summary>
         /// BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null
         /// </summary>
         public static string S_BaseEntity_Initialization_Error => Language == "cn" ?
             @"BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null" :
-            @"FreeSql: BaseEntity.Initialization initialization error, get IFreeSql is null";
+            @"FreeSql: BaseEntity. Initialization initialization error, get IFreeSql is null";
         /// <summary>
         /// 【{thisName}】Block access and wait for recovery: {exMessage}
         /// </summary>
-        public static string S_BlockAccess_WaitForRecovery(object thisName, object exMessage) => string.Format(Language == "cn" ?
-            @"【{0}】Block access and wait for recovery: {1}" :
-            @"FreeSql: [{0}] Block access and wait for recovery: {1}", thisName, exMessage);
+        public static string S_BlockAccess_WaitForRecovery(object thisName, object exMessage) => Language == "cn" ?
+            $@"【{thisName}】Block access and wait for recovery: {exMessage}" :
+            $@"FreeSql: [{thisName}] Block access and wait for recovery: {exMessage}";
         /// <summary>
         /// 无法将 IQueryable&amp;lt;{typeofName}&amp;gt; 转换为 ISelect&amp;lt;{typeofName}&amp;gt;，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider
         /// </summary>
-        public static string S_CannotBeConverted_To_ISelect(object typeofName) => string.Format(Language == "cn" ?
-            @"无法将 IQueryable<{0}> 转换为 ISelect<{0}>，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider" :
-            @"FreeSql: IQueryable<{0}> cannot be converted to ISelect<{0}> because its implementation is not FreeSql.Extensions.Linq.QueryableProvider", typeofName);
+        public static string S_CannotBeConverted_To_ISelect(object typeofName) => Language == "cn" ?
+            $@"无法将 IQueryable<{typeofName}> 转换为 ISelect<{typeofName}>，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider" :
+            $@"FreeSql: IQueryable<{typeofName}> cannot be converted to ISelect<{typeofName}> because its implementation is not FreeSql.Extensions.Linq.QueryableProvider";
         /// <summary>
         /// 连接字符串错误
         /// </summary>
@@ -819,9 +819,9 @@ namespace FreeSql
         /// <summary>
         /// 【{thisName}】连接字符串错误，请检查。
         /// </summary>
-        public static string S_ConnectionStringError_Check(object thisName) => string.Format(Language == "cn" ?
-            @"【{0}】连接字符串错误，请检查。" :
-            @"FreeSql: [{0}] Connection string error, please check.", thisName);
+        public static string S_ConnectionStringError_Check(object thisName) => Language == "cn" ?
+            $@"【{thisName}】连接字符串错误，请检查。" :
+            $@"FreeSql: [{thisName}] Connection string error, please check.";
         /// <summary>
         /// 连接字符串错误，或者检查项目属性 &amp;gt; 生成 &amp;gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台
         /// </summary>
@@ -831,9 +831,9 @@ namespace FreeSql
         /// <summary>
         /// 【{thisName}】连接字符串错误，请检查。或者检查项目属性 &amp;gt; 生成 &amp;gt; 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台
         /// </summary>
-        public static string S_ConnectionStringError_CheckProjectConnection(object thisName) => string.Format(Language == "cn" ?
-            @"【{0}】连接字符串错误，请检查。或者检查项目属性 > 生成 > 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台" :
-            @"FreeSql: [{0}] Connection string error, please check, Or check Project Properties > Build > Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform", thisName);
+        public static string S_ConnectionStringError_CheckProjectConnection(object thisName) => Language == "cn" ?
+            $@"【{thisName}】连接字符串错误，请检查。或者检查项目属性 > 生成 > 目标平台：x86 | x64，或者改用 FreeSql.Provider.SqliteCore 访问 arm 平台" :
+            $@"FreeSql: [{thisName}] Connection string error, please check. Or check Project Properties > Build > Target Platform: x86 | x64, Or use FreeSql.Provider.SqliteCore accessing arm platform";
         /// <summary>
         /// FreeSql.Provider.CustomAdapter 无法使用 CreateCommand
         /// </summary>
@@ -849,9 +849,9 @@ namespace FreeSql
         /// <summary>
         /// 达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}
         /// </summary>
-        public static string S_Dameng_NotSupport_TablespaceSchemas(object tbname) => string.Format(Language == "cn" ?
-            @"达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {0}" :
-            @"FreeSql: Dream CodeFirst does not support code creation tablespace and schemas {0}", tbname);
+        public static string S_Dameng_NotSupport_TablespaceSchemas(object tbname) => Language == "cn" ?
+            $@"达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}" :
+            $@"FreeSql: Dream CodeFirst does not support code creation tablespace and schemas {tbname}";
         /// <summary>
         /// -DB 参数错误，未提供 ConnectionString
         /// </summary>
@@ -867,15 +867,15 @@ namespace FreeSql
         /// <summary>
         /// -DB 参数错误，不支持的类型："{dbargs}"
         /// </summary>
-        public static string S_DB_ParameterError_UnsupportedType(object dbargs) => string.Format(Language == "cn" ?
-            @"-DB 参数错误，不支持的类型：""{0}""" :
-            @"FreeSql: -DB parameter error, unsupported type: ""{0}""", dbargs);
+        public static string S_DB_ParameterError_UnsupportedType(object dbargs) => Language == "cn" ?
+            $@"-DB 参数错误，不支持的类型：""{dbargs}""" :
+            $@"FreeSql: -DB parameter error, unsupported type: ""{dbargs}""";
         /// <summary>
         /// {method} 是 FreeSql.Provider.{provider} 特有的功能
         /// </summary>
-        public static string S_Features_Unique(object method, object provider) => string.Format(Language == "cn" ?
-            @"{0} 是 FreeSql.Provider.{1} 特有的功能" :
-            @"FreeSql: {0} is FreeSql.Provider.{1} specific features", method, provider);
+        public static string S_Features_Unique(object method, object provider) => Language == "cn" ?
+            $@"{method} 是 FreeSql.Provider.{provider} 特有的功能" :
+            $@"FreeSql: {method} is FreeSql.Provider.{provider} specific features";
         /// <summary>
         /// fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作
         /// </summary>
@@ -885,9 +885,9 @@ namespace FreeSql
         /// <summary>
         /// MygisGeometry.Parse 未实现 "{wkt}"
         /// </summary>
-        public static string S_MygisGeometry_NotImplement(object wkt) => string.Format(Language == "cn" ?
-            @"MygisGeometry.Parse 未实现 ""{0}""" :
-            @"FreeSql: MygisGeometry.Parse does not implement ""{0}""", wkt);
+        public static string S_MygisGeometry_NotImplement(object wkt) => Language == "cn" ?
+            $@"MygisGeometry.Parse 未实现 ""{wkt}""" :
+            $@"FreeSql: MygisGeometry. Parse does not implement ""{wkt}""";
         /// <summary>
         /// -NameOptions 参数错误，格式为：0,0,0,0
         /// </summary>
@@ -909,15 +909,15 @@ namespace FreeSql
         /// <summary>
         /// FreeSql.Provider.{providerName} 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id
         /// </summary>
-        public static string S_NotImplementSkipOffset(object providerName) => string.Format(Language == "cn" ?
-            @"FreeSql.Provider.{0} 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id" :
-            @"FreeSql: FreeSql.Provider.{0} does not implement Skip/Offset functionality, use to determine last ID if paging is required", providerName);
+        public static string S_NotImplementSkipOffset(object providerName) => Language == "cn" ?
+            $@"FreeSql.Provider.{providerName} 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id" :
+            $@"FreeSql: FreeSql.Provider.{providerName} does not implement Skip/Offset functionality, use to determine last ID if paging is required";
         /// <summary>
         /// 旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名
         /// </summary>
-        public static string S_OldTableExists(object tboldname, object tbname) => string.Format(Language == "cn" ?
-            @"旧表(OldName)：{0} 存在，数据库已存在 {1} 表，无法改名" :
-            @"FreeSql: Old table (OldName): {0} exists, database already exists {1} table, cannot rename", tboldname, tbname);
+        public static string S_OldTableExists(object tboldname, object tbname) => Language == "cn" ?
+            $@"旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名" :
+            $@"FreeSql: Old table (OldName): {tboldname} exists, database already exists {tbname} table, cannot rename";
         /// <summary>
         /// OnConflictDoUpdate 功能要求实体类必须设置 IsPrimary 属性
         /// </summary>
@@ -927,51 +927,51 @@ namespace FreeSql
         /// <summary>
         /// Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}
         /// </summary>
-        public static string S_Oracle_NotSupport_TablespaceSchemas(object tbname) => string.Format(Language == "cn" ?
-            @"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {0}" :
-            @"FreeSql: Oracle CodeFirst does not support code creation of tablespace and schemas {0}", tbname);
+        public static string S_Oracle_NotSupport_TablespaceSchemas(object tbname) => Language == "cn" ?
+            $@"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname}" :
+            $@"FreeSql: Oracle CodeFirst does not support code creation of tablespace and schemas {tbname}";
         /// <summary>
         /// 解析失败 {callExpMethodName} {message}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询
         /// </summary>
-        public static string S_ParsingFailed_UseRestoreToSelect(object callExpMethodName, object message) => string.Format(Language == "cn" ?
-            @"解析失败 {0} {1}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询" :
-            @"FreeSql: Parsing failed {0} {1}, hint: Extension method IQueryable.RestoreToSelect() can be used", callExpMethodName, message);
+        public static string S_ParsingFailed_UseRestoreToSelect(object callExpMethodName, object message) => Language == "cn" ?
+            $@"解析失败 {callExpMethodName} {message}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询" :
+            $@"FreeSql: Parsing failed {callExpMethodName} {message}, hint: Extension method IQueryable can be used. RestoreToSelect() reverted to ISelect re-query";
         /// <summary>
         /// fsql.InsertOrUpdate + IfExistsDoNothing + {providerName}要求实体类 {tableCsName} 必须有主键
         /// </summary>
-        public static string S_RequiresEntityPrimaryKey(object providerName, object tableCsName) => string.Format(Language == "cn" ?
-            @"fsql.InsertOrUpdate + IfExistsDoNothing + {0}要求实体类 {1} 必须有主键" :
-            @"FreeSql: InsertOrUpdate + IfExistsDoNothing + {0} requires the entity class {1} to have a primary key", providerName, tableCsName);
+        public static string S_RequiresEntityPrimaryKey(object providerName, object tableCsName) => Language == "cn" ?
+            $@"fsql.InsertOrUpdate + IfExistsDoNothing + {providerName}要求实体类 {tableCsName} 必须有主键" :
+            $@"FreeSql: InsertOrUpdate + IfExistsDoNothing + {providerName} requires the entity class {tableCsName} to have a primary key";
         /// <summary>
         /// SelectMany 错误的类型：{typeFullName}
         /// </summary>
-        public static string S_SelectManayErrorType(object typeFullName) => string.Format(Language == "cn" ?
-            @"SelectMany 错误的类型：{0}" :
-            @"FreeSql: SelectMany error type: {0}", typeFullName);
+        public static string S_SelectManayErrorType(object typeFullName) => Language == "cn" ?
+            $@"SelectMany 错误的类型：{typeFullName}" :
+            $@"FreeSql: SelectMany error type: {typeFullName}";
         /// <summary>
         /// 类型 {objentityTypeFullName} 不可迁移
         /// </summary>
-        public static string S_Type_IsNot_Migrable(object objentityTypeFullName) => string.Format(Language == "cn" ?
-            @"类型 {0} 不可迁移" :
-            @"FreeSql: Type {0} is not migrable", objentityTypeFullName);
+        public static string S_Type_IsNot_Migrable(object objentityTypeFullName) => Language == "cn" ?
+            $@"类型 {objentityTypeFullName} 不可迁移" :
+            $@"FreeSql: Type {objentityTypeFullName} is not migrable";
         /// <summary>
         /// 类型 {objentityTypeFullName} 不可迁移，可迁移属性0个
         /// </summary>
-        public static string S_Type_IsNot_Migrable_0Attributes(object objentityTypeFullName) => string.Format(Language == "cn" ?
-            @"类型 {0} 不可迁移，可迁移属性0个" :
-            @"FreeSql: Type {0} is not migrable, migratable property 0", objentityTypeFullName);
+        public static string S_Type_IsNot_Migrable_0Attributes(object objentityTypeFullName) => Language == "cn" ?
+            $@"类型 {objentityTypeFullName} 不可迁移，可迁移属性0个" :
+            $@"FreeSql: Type {objentityTypeFullName} is not migrable, migratable property 0";
         /// <summary>
         /// 未实现 {columnDbTypeTextFull} 类型映射
         /// </summary>
-        public static string S_TypeMappingNotImplemented(object columnDbTypeTextFull) => string.Format(Language == "cn" ?
-            @"未实现 {0} 类型映射" :
-            @"FreeSql: {0} type mapping not implemented", columnDbTypeTextFull);
+        public static string S_TypeMappingNotImplemented(object columnDbTypeTextFull) => Language == "cn" ?
+            $@"未实现 {columnDbTypeTextFull} 类型映射" :
+            $@"FreeSql: {columnDbTypeTextFull} type mapping not implemented";
         /// <summary>
         /// 错误的参数设置：{args}
         /// </summary>
-        public static string S_WrongParameter(object args) => string.Format(Language == "cn" ?
-            @"错误的参数设置：{0}" :
-            @"FreeSql: Wrong parameter setting: {0}", args);
+        public static string S_WrongParameter(object args) => Language == "cn" ?
+            $@"错误的参数设置：{args}" :
+            $@"FreeSql: Wrong parameter setting: {args}";
         /// <summary>
         /// 对象池
         /// </summary>
@@ -2019,7 +2019,13 @@ for (var a= 0; a < datas.length; a++) {
       en = en.replace(args[b], '{' + csargsdict[argname] + '}');
       cn = cn.replace(args[b], '{' + csargsdict[argname] + '}');
    }
-   sb += ') => string.Format(Language == "cn" ? \r\n            @"' + cn.replace(/"/g, '""') + '" : \r\n            @"' + en.replace(/"/g, '""') + '", ' + csargs.join(', ') + ');';
+   var cn = cn.replace(/"/g, '""').replace(/\{/g, '{{').replace(/\}/g, '}}');
+   var en = en.replace(/"/g, '""').replace(/\{/g, '{{').replace(/\}/g, '}}');
+   for (var b = 0; b < csargs.length; b++) {
+      cn = cn.replace(new RegExp('\\{\\{' + b + '\\}\\}', 'g'), '{' + csargs[b] + '}');
+      en = en.replace(new RegExp('\\{\\{' + b + '\\}\\}', 'g'), '{' + csargs[b] + '}');
+   }
+   sb += ') => Language == "cn" ? \r\n            $@"' + cn + '" : \r\n            $@"' + en + '";';
    }
 }
 sb += '\r\n}\r\n';

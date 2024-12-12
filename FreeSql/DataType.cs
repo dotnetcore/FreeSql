@@ -65,6 +65,8 @@ namespace FreeSql
 
         CustomOracle, CustomSqlServer, CustomMySql, CustomPostgreSQL,
 
-        DuckDB
+        DuckDB,
+
+        TDengine
     }
 }

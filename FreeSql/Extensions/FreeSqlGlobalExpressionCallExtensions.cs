@@ -68,7 +68,65 @@ public static class FreeSqlGlobalExpressionCallExtensions
 			expContext.Value.ParsedContent["end"];
 		expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} >= {time1} and {expContext.Value.ParsedContent["that"]} < {time2}";
 		return false;
-	}
+    }
+
+    #region IN 与 new[]{ 1,2,3 }.Contains(a.Id) 相同
+    static Dictionary<string, string> pc => expContext.Value.ParsedContent;
+    /// <summary>
+    /// field IN (value1)
+    /// </summary>
+    public static bool In<T>(this T field, T value1)
+    {
+        if (expContext.Value == null) return field.Equals(value1);
+        expContext.Value.Result = $"{pc["field"]} = {pc["value1"]}";
+        return true;
+    }
+    /// <summary>
+    /// field in (value1, value2)
+    /// </summary>
+    public static bool In<T>(this T field, T value1, T value2)
+    {
+        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2);
+        expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]})";
+        return true;
+    }
+    /// <summary>
+    /// field in (value1, value2, value3)
+    /// </summary>
+    public static bool In<T>(this T field, T value1, T value2, T value3)
+    {
+        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3);
+        expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]})";
+        return true;
+    }
+    /// <summary>
+    /// field in (value1, value2, value3, value4)
+    /// </summary>
+    public static bool In<T>(this T field, T value1, T value2, T value3, T value4)
+    {
+        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3) || field.Equals(value4);
+        expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]},{pc["value4"]})";
+        return true;
+    }
+    /// <summary>
+    /// field in (value1, value2, value3, value4, value5)
+    /// </summary>
+    public static bool In<T>(this T field, T value1, T value2, T value3, T value4, T value5)
+    {
+        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3) || field.Equals(value4) || field.Equals(value5);
+        expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]},{pc["value4"]},{pc["value5"]})";
+        return true;
+    }
+    /// <summary>
+    /// field in (values)
+    /// </summary>
+    public static bool In<T>(this T field, T[] values)
+    {
+        if (expContext.Value == null) return values?.Contains(field) == true;
+        expContext.Value.Result = $"{pc["field"]} IN {pc["values"]}";
+        return true;
+    }
+    #endregion
 }
 
 namespace FreeSql
@@ -284,13 +342,13 @@ namespace FreeSql
 			}
 			return 0;
 		}
-		#endregion
+        #endregion
 
-		/// <summary>
-		/// case when .. then .. end
-		/// </summary>
-		/// <returns></returns>
-		public static ICaseWhenEnd Case() => SqlExtExtensions.Case();
+        /// <summary>
+        /// case when .. then .. end
+        /// </summary>
+        /// <returns></returns>
+        public static ICaseWhenEnd Case() => SqlExtExtensions.Case();
 		/// <summary>
 		/// case when .. then .. end
 		/// </summary>

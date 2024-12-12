@@ -385,6 +385,7 @@ namespace System.Linq.Expressions
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             if (Result && node.IsExpressionCall()) Result = false;
+            if (Result && node.Method.Name == "NewGuid" && node.Method.DeclaringType == typeof(Guid) && node.Object == null) Result = false;
             return base.VisitMethodCall(node);
         }
     }

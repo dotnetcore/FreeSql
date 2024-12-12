@@ -228,7 +228,9 @@ namespace FreeSql.Internal
 			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
 			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
-			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse)
+			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && 
+                common._orm.Ado.DataType != DataType.ClickHouse && 
+                common._orm.Ado.DataType != DataType.TDengine)
 			{
 				colattr.IsNullable = false;
 				colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
@@ -397,6 +399,7 @@ namespace FreeSql.Internal
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong:
+                    case DataType.Xugu:
                         if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
@@ -424,6 +427,10 @@ namespace FreeSql.Internal
 						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
 							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
 						break;
+                    case DataType.TDengine:
+                        colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
 					case DataType.MsAccess:
 						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
 						if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
@@ -470,7 +477,8 @@ namespace FreeSql.Internal
 					case DataType.CustomPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-						colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
+                    case DataType.Xugu:
+                        colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
 						break;
 					case DataType.Oracle:
 					case DataType.OdbcOracle:

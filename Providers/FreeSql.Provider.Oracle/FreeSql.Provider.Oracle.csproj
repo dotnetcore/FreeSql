@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;net5.0;netstandard2.1;netstandard2.0;net45;net40</TargetFrameworks>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;net5.0;netcoreapp31;netstandard2.1;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.5.100-preview20241112</Version>
+		<Version>3.5.103-preview20241205</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -27,13 +27,9 @@
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.210" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'netcoreapp31'">
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.6.1" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net5.0'">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
-	</ItemGroup>
-
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
 		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.18.0" />
 	</ItemGroup>

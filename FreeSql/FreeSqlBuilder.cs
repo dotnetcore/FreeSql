@@ -29,7 +29,7 @@ namespace FreeSql
         bool _isLazyLoading = false;
         bool _isExitAutoDisposePool = true;
         bool _isQuoteSqlName = true;
-        bool? _isAdoConnectionPool = false;
+        bool? _isAdoConnectionPool = null;
         MappingPriorityType[] _mappingPriorityTypes;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -383,6 +383,11 @@ namespace FreeSql
                     case DataType.DuckDB:
                         type = Type.GetType("FreeSql.Duckdb.DuckdbProvider`1,FreeSql.Provider.Duckdb")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.Duckdb.dll", "FreeSql.Duckdb.DuckdbProvider<>");
+                        break;
+
+                    case DataType.TDengine:
+                        type = Type.GetType("FreeSql.TDengine.TDengineProvider`1,FreeSql.Provider.TDengine")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.TDengine.dll", "FreeSql.TDengine.TDengineProvider<>");
                         break;
 
                     default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);

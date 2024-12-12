@@ -5559,7 +5559,7 @@
         </member>
         <member name="M:FreeSql.CoreErrorStrings.ObjectPool_GetAsync_Queue_Long(System.Object,System.Object)">
             <summary>
-            【{policyName}】ObjectPool.GetAsync() The queue is too long, Policy.AsyncGetCapacity = {asyncGetCapacity}
+            【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}
             </summary>
         </member>
         <member name="M:FreeSql.CoreErrorStrings.OneToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
@@ -5939,6 +5939,36 @@
             <param name="start"></param>
             <param name="end"></param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0)">
+            <summary>
+            field IN (value1)
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0,``0)">
+            <summary>
+            field in (value1, value2)
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0,``0,``0)">
+            <summary>
+            field in (value1, value2, value3)
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0,``0,``0,``0)">
+            <summary>
+            field in (value1, value2, value3, value4)
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0,``0,``0,``0,``0)">
+            <summary>
+            field in (value1, value2, value3, value4, value5)
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCallExtensions.In``1(``0,``0[])">
+            <summary>
+            field in (values)
+            </summary>
         </member>
         <member name="M:FreeSqlGlobalExtensions.DisplayCsharp(System.Type,System.Boolean)">
             <summary>
