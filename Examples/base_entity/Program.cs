@@ -9,7 +9,6 @@ using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
 using MessagePack;
 using Microsoft.Data.SqlClient;
-using MySqlConnector;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -577,7 +576,7 @@ namespace base_entity
                 .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
@@ -618,6 +617,12 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Delete<IdentityTable>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new IdentityTable { name = "name01", create_time = DateTime.Now }).ExecuteAffrows();
+            var itrt01 = fsql.Select<IdentityTable>().ToList();
+            var itrt02 = fsql.Select<IdentityTable>().ToList(a => a.create_time);
+            var itrt03 = fsql.Select<IdentityTable>().ToList(a => new { a.create_time });
 
             fsql.CodeFirst.SyncStructure<Account>();
 
@@ -1413,9 +1418,9 @@ var sql11111 = fsql.Select<Class1111>()
             //});
             fsql.Insert(Enumerable.Range(0, 100).Select(a => new User1 { Id = Guid.NewGuid(), Nickname = $"nickname{a}", Username = $"username{a}", Description = $"desc{a}" }).ToArray()).ExecuteAffrows();
 
-            fsql.InsertOrUpdate<User1>()
-                .SetSource(fsql.Select<User1>().ToList())
-                .ExecuteMySqlBulkCopy();
+            //fsql.InsertOrUpdate<User1>()
+            //    .SetSource(fsql.Select<User1>().ToList())
+            //    .ExecuteMySqlBulkCopy();
 
             var updatejoin01 = fsql.Update<User1>()
                 .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)

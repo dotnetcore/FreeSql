@@ -1,5 +1,6 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -76,4 +77,7 @@ public class IdentityTable
     public int id { get; set; }
 
     public string name { get; set; }
+
+    [JsonProperty, Column(DbType = "datetime")]
+    public DateTime? create_time { get; set; }
 }

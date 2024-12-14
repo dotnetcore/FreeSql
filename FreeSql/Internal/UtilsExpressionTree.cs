@@ -2385,6 +2385,7 @@ namespace FreeSql.Internal
                 Expression tryparseExp = null;
                 Expression tryparseBooleanExp = null;
                 ParameterExpression tryparseVarExp = null;
+                ParameterExpression tryparseVarExpDecimal = null;
                 switch (type.FullName)
                 {
                     case "System.Guid":
@@ -2531,36 +2532,48 @@ namespace FreeSql.Internal
                         break;
                     case "System.Int16":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(short)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(short)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodShortTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.Int32":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(int)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(int)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodIntTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.Int64":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(long)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(long)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodLongTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
@@ -2579,36 +2592,48 @@ namespace FreeSql.Internal
                         break;
                     case "System.UInt16":
                         tryparseExp = Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(ushort)) },
+                               new[] { tryparseVarExp = Expression.Variable(typeof(ushort)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodUShortTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.UInt32":
                         tryparseExp = Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(uint)) },
+                               new[] { tryparseVarExp = Expression.Variable(typeof(uint)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodUIntTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.UInt64":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(ulong)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(ulong)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodULongTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
