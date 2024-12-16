@@ -7,7 +7,6 @@ using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -208,10 +207,12 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
                         var trycol = insert._table.Columns[col.ColumnName];
                         var tp = insert._orm.CodeFirst.GetDbInfo(trycol.Attribute.MapType)?.type;
                         if (tp != null) npgsqlDbType = (NpgsqlDbType)tp.Value;
-                        if (npgsqlDbType.HasValue && npgsqlDbType != NpgsqlDbType.Unknown)
-                            writer.Write(item[col.ColumnName], npgsqlDbType.Value);
-                        else
+                        if (npgsqlDbType == null || npgsqlDbType == NpgsqlDbType.Unknown)
                             writer.Write(item[col.ColumnName]);
+                        else if (npgsqlDbType == NpgsqlDbType.Date && item[col.ColumnName] != null && (item[col.ColumnName] is DateTime || item[col.ColumnName] is DateTime?))
+                            writer.Write(((DateTime)item[col.ColumnName]).ToString("yyyy-MM-dd"), npgsqlDbType.Value);
+                        else
+                            writer.Write(item[col.ColumnName], npgsqlDbType.Value);
                     }
                     //writer.WriteRow(item.ItemArray); #1532
                 }
@@ -307,10 +308,12 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
                         var trycol = insert._table.Columns[col.ColumnName];
                         var tp = insert._orm.CodeFirst.GetDbInfo(trycol.Attribute.MapType)?.type;
                         if (tp != null) npgsqlDbType = (NpgsqlDbType)tp.Value;
-                        if (npgsqlDbType.HasValue && npgsqlDbType != NpgsqlDbType.Unknown)
-                            await writer.WriteAsync(item[col.ColumnName], npgsqlDbType.Value, cancellationToken);
-                        else
+                        if (npgsqlDbType == null || npgsqlDbType == NpgsqlDbType.Unknown)
                             await writer.WriteAsync(item[col.ColumnName], cancellationToken);
+                        else if (npgsqlDbType == NpgsqlDbType.Date && item[col.ColumnName] != null && (item[col.ColumnName] is DateTime || item[col.ColumnName] is DateTime?))
+                            await writer.WriteAsync(((DateTime)item[col.ColumnName]).ToString("yyyy-MM-dd"), npgsqlDbType.Value, cancellationToken);
+                        else
+                            await writer.WriteAsync(item[col.ColumnName], npgsqlDbType.Value, cancellationToken);
                     }
                     //await writer.WriteRowAsync(cancellationToken, item.ItemArray); #1532
                 }
