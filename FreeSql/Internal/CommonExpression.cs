@@ -1902,11 +1902,17 @@ namespace FreeSql.Internal
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
                             case "System.TimeSpan":
-                                if (exp4.Expression != null && exp4.Expression.NodeType == ExpressionType.Call && 
+                                if (exp4.Expression != null && (
+                                    // 如果是以 TimeSpan.Subtract(DateTime) 的方式调用的
+                                    (exp4.Expression.NodeType == ExpressionType.Call && 
                                     exp4.Expression is MethodCallExpression exp4CallExp && 
                                     exp4CallExp.Method.Name == "Subtract" &&
                                     exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
                                     exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
+                                    // 如果是以 TimeSpan1 -/+ TimeSpan2 的方式调用的
+                                    || (exp4.Expression.NodeType == ExpressionType.Subtract || exp4.Expression.NodeType == ExpressionType.Add)
+                                    )
+                                    )
                                 {
                                     var left = ExpressionLambdaToSql(exp4.Expression, tsc);
                                     switch (exp4.Member.Name)
