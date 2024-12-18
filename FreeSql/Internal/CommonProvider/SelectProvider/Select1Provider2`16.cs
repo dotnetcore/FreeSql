@@ -166,6 +166,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.Join(Expression<Func<T1, T2, bool>> exp) => (this as ISelect<T1, T2>).InnerJoin(exp);
         ISelect<T1, T2> ISelect<T1, T2>.InnerJoin(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -304,6 +305,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2>).LeftJoin((Expression<Func<T1, T2, bool>>)expModify);
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.Join(Expression<Func<HzyTuple<T1, T2>, bool>> exp) => (this as ISelect<T1, T2>).InnerJoin(exp);
         ISelect<T1, T2> ISelect<T1, T2>.InnerJoin(Expression<Func<HzyTuple<T1, T2>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -640,6 +642,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Join(Expression<Func<T1, T2, T3, bool>> exp) => (this as ISelect<T1, T2, T3>).InnerJoin(exp);
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.InnerJoin(Expression<Func<T1, T2, T3, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -778,6 +781,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3>).LeftJoin((Expression<Func<T1, T2, T3, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Join(Expression<Func<HzyTuple<T1, T2, T3>, bool>> exp) => (this as ISelect<T1, T2, T3>).InnerJoin(exp);
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -1117,6 +1121,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.Join(Expression<Func<T1, T2, T3, T4, bool>> exp) => (this as ISelect<T1, T2, T3, T4>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.InnerJoin(Expression<Func<T1, T2, T3, T4, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -1255,6 +1260,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4>).LeftJoin((Expression<Func<T1, T2, T3, T4, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4>, bool>> exp) => (this as ISelect<T1, T2, T3, T4>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -1597,6 +1603,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.Join(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -1735,6 +1742,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -2080,6 +2088,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -2218,6 +2227,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -2566,6 +2576,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -2704,6 +2715,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -3055,6 +3067,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -3193,6 +3206,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -3547,6 +3561,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -3685,6 +3700,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -4042,6 +4058,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -4180,6 +4197,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -4540,6 +4558,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -4678,6 +4697,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -5041,6 +5061,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -5179,6 +5200,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -5545,6 +5567,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -5683,6 +5706,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -6052,6 +6076,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -6190,6 +6215,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -6562,6 +6588,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -6700,6 +6727,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -7075,6 +7103,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -7213,6 +7242,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -7391,5 +7421,3 @@ namespace FreeSql.Internal.CommonProvider
 
 
 }
-
-

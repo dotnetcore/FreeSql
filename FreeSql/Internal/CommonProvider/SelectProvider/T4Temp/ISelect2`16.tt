@@ -106,6 +106,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         double Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
 
         ISelect<<#=NewStr #>> LeftJoin(Expression<Func<<#=NewStr #>, bool>> exp);
+        ISelect<<#=NewStr #>> Join(Expression<Func<<#=NewStr #>, bool>> exp);
         ISelect<<#=NewStr #>> InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp);
         ISelect<<#=NewStr #>> RightJoin(Expression<Func<<#=NewStr #>, bool>> exp);
 
@@ -141,6 +142,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         double Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
 
         ISelect<<#=NewStr #>> LeftJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        ISelect<<#=NewStr #>> Join(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
         ISelect<<#=NewStr #>> InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
         ISelect<<#=NewStr #>> RightJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
 

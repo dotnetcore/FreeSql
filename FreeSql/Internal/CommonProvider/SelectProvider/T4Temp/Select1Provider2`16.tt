@@ -214,7 +214,8 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
-
+        
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Join(Expression<Func<<#=NewStr #>, bool>> exp) => (this as ISelect<<#=NewStr #>>).InnerJoin(exp);
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -352,7 +353,8 @@ namespace FreeSql.Internal.CommonProvider
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<<#=NewStr #>>).LeftJoin((Expression<Func<<#=NewStr #>, bool>>)expModify);
         }
-
+        
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Join(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp) => (this as ISelect<<#=NewStr #>>).InnerJoin(exp);
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);

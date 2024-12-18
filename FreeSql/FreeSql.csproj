@@ -31,14 +31,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
-			<DependentUpon>Select1Provider2`16.tt</DependentUpon>
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>ISelect2`16.cs</LastGenOutput>
