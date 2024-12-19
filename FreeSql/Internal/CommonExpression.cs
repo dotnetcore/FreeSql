@@ -1902,32 +1902,46 @@ namespace FreeSql.Internal
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
                             case "System.TimeSpan":
-                                if (exp4.Expression != null && (
-                                    // 如果是以 TimeSpan.Subtract(DateTime) 的方式调用的
-                                    (exp4.Expression.NodeType == ExpressionType.Call && 
-                                    exp4.Expression is MethodCallExpression exp4CallExp && 
-                                    exp4CallExp.Method.Name == "Subtract" &&
-                                    exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
-                                    exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
-                                    // 如果是以 TimeSpan1 -/+ TimeSpan2 的方式调用的
-                                    || (exp4.Expression.NodeType == ExpressionType.Subtract || exp4.Expression.NodeType == ExpressionType.Add)
-                                    )
-                                    )
+                                if (exp4.Expression != null)
                                 {
-                                    var left = ExpressionLambdaToSql(exp4.Expression, tsc);
-                                    switch (exp4.Member.Name)
+                                    var exp4MemberIsTrue = false;
+                                    // 如果是以 DateTime.Subtract(DateTime) 的方式调用的
+                                    if (exp4.Expression.NodeType == ExpressionType.Call &&
+                                        exp4.Expression is MethodCallExpression exp4CallExp &&
+                                        exp4CallExp.Method.Name == "Subtract" &&
+                                        exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
+                                        exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
                                     {
-                                        case "Days": return $"floor(({left})/{60 * 60 * 24})";
-                                        case "Hours": return $"floor(({left})/{60 * 60}%24)";
-                                        case "Milliseconds": return $"(({left})*1000)";
-                                        case "Minutes": return $"floor(({left})/60%60)";
-                                        case "Seconds": return $"(({left})%60)";
-                                        case "Ticks": return $"(({left})*10000000)";
-                                        case "TotalDays": return $"(({left})/{60 * 60 * 24}.0)";
-                                        case "TotalHours": return $"(({left})/{60 * 60}.0)";
-                                        case "TotalMilliseconds": return $"(({left})*1000)";
-                                        case "TotalMinutes": return $"(({left})/60.0)";
-                                        case "TotalSeconds": return $"({left})";
+                                        extRet = ExpressionLambdaToSqlCallDateDiff(exp4.Member.Name, exp4CallExp.Object, exp4CallExp.Arguments[0], tsc);
+                                        if (string.IsNullOrEmpty(extRet) == false) return extRet;
+                                        exp4MemberIsTrue = true;
+                                    }
+                                    // 如果是以 DateTime1 - DateTime2 的方式调用的
+                                    else if (exp4.Expression.NodeType == ExpressionType.Subtract && exp4.Expression.Type == typeof(TimeSpan) &&
+                                        exp4.Expression is BinaryExpression exp4BinaryExp &&
+                                        exp4BinaryExp.Left.Type == typeof(DateTime) && exp4BinaryExp.Right.Type == typeof(DateTime))
+                                    {
+                                        extRet = ExpressionLambdaToSqlCallDateDiff(exp4.Member.Name, exp4BinaryExp.Left, exp4BinaryExp.Right, tsc);
+                                        if (string.IsNullOrEmpty(extRet) == false) return extRet;
+                                        exp4MemberIsTrue = true;
+                                    }
+                                    if (exp4MemberIsTrue)
+                                    {
+                                        var left = ExpressionLambdaToSql(exp4.Expression, tsc);
+                                        switch (exp4.Member.Name)
+                                        {
+                                            case "Days": return $"floor(({left})/{60 * 60 * 24})";
+                                            case "Hours": return $"floor(({left})/{60 * 60}%24)";
+                                            case "Milliseconds": return $"(({left})*1000)";
+                                            case "Minutes": return $"floor(({left})/60%60)";
+                                            case "Seconds": return $"(({left})%60)";
+                                            case "Ticks": return $"(({left})*10000000)";
+                                            case "TotalDays": return $"(({left})/{60 * 60 * 24}.0)";
+                                            case "TotalHours": return $"(({left})/{60 * 60}.0)";
+                                            case "TotalMilliseconds": return $"(({left})*1000)";
+                                            case "TotalMinutes": return $"(({left})/60.0)";
+                                            case "TotalSeconds": return $"({left})";
+                                        }
                                     }
                                 }
                                 throw new Exception(CoreErrorStrings.Unable_Parse_Expression(exp4));
@@ -2398,6 +2412,7 @@ namespace FreeSql.Internal
         public abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc);
+        public virtual string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc) { return null; }
         public abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);

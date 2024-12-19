@@ -428,6 +428,18 @@ namespace FreeSql.ShenTong
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"datediff('day',{getExp(date2)},{getExp(date1)})";
+                case "TotalHours": return $"datediff('hour',{getExp(date2)},{getExp(date1)})";
+                case "TotalMinutes": return $"datediff('minute',{getExp(date2)},{getExp(date1)})";
+                case "TotalSeconds": return $"datediff('second',{getExp(date2)},{getExp(date1)})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -460,7 +472,7 @@ namespace FreeSql.ShenTong
                     case "AddMilliseconds": return $"dateadd('second',({args1})/1000,{left})";
                     case "AddMinutes": return $"dateadd('minute',{args1},{left})";
                     case "AddMonths": return $"dateadd('month',{args1},{left})";
-                    case "AddSeconds": return $"dateadd('second', {args1}, {left})";
+                    case "AddSeconds": return $"dateadd('second',{args1},{left})";
                     case "AddTicks": return $"dateadd('second',({args1})/10000000,{left})";
                     case "AddYears": return $"dateadd('year',{args1},{left})";
                     case "Subtract":

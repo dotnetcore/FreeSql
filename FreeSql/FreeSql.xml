@@ -2088,85 +2088,71 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Freout(System.Int32)">
+        <member name="M:FreeSql.ISelect0`2.ToDelete">
             <summary>
-            命令超时设置(秒)
-            </summary>
-            <param name="timeout"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.TrackToList(System.Action{System.Object})">
-            <summary>
-            审核或跟踪 ToList 即将返回的数据
-            </summary>
-            <param name="action"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.ToDataTable(System.String)">
-            <summary>
-            执行SQL查询，返回 DataTable
+            将查询转为删除对象，以便支持导航对象或其他查询功能删除数据，如下：<para></para>
+            fsql.Select&lt;T1&gt;().Where(a => a.Options.xxx == 1).ToDelete().ExecuteAffrows()<para></para>
+            注意：此方法不是将数据查询到内存循环删除，上面的代码产生如下 SQL 执行：<para></para>
+            DELETE FROM `T1` WHERE id in (select a.id from T1 a left join Options b on b.t1id = a.id where b.xxx = 1)<para></para>
+            复杂删除使用该方案的好处：<para></para>
+            1、删除前可预览测试数据，防止错误删除操作；<para></para>
+            2、支持更加复杂的删除操作（IDelete 默认只支持简单的操作）；
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToDataTableByPropertyName(System.String[])">
+        <member name="M:FreeSql.ISelect0`2.ToUpdate">
             <summary>
-            执行SQL查询，返回 properties 指定的实体类属性，并以 DataTable 接收
-            </summary>
-            <param name="properties">属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.ToDictionary``1(System.Func{`1,``0})">
-            <summary>
-            以字典的形式返回查询结果<para></para>
-            注意：字典的特点会导致返回的数据无序
-            </summary>
-            <typeparam name="TKey"></typeparam>
-            <param name="keySelector"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.ToList">
-            <summary>
-            执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>
-            注意：<para></para>
-            1、ToList(a => a) 可以返回 a 所有实体<para></para>
-            2、ToList(a => new { a }) 这样也可以<para></para>
-            3、ToList((a, b, c) => new { a, b, c }) 这样也可以<para></para>
-            4、abc 怎么来的？请试试 fsql.Select&lt;T1, T2, T3&gt;()
+            将查询转为更新对象，以便支持导航对象或其他查询功能更新数据，如下：<para></para>
+            fsql.Select&lt;T1&gt;().Where(a => a.Options.xxx == 1).ToUpdate().Set(a => a.Title, "111").ExecuteAffrows()<para></para>
+            注意：此方法不是将数据查询到内存循环更新，上面的代码产生如下 SQL 执行：<para></para>
+            UPDATE `T1` SET Title = '111' WHERE id in (select a.id from T1 a left join Options b on b.t1id = a.id where b.xxx = 1)<para></para>
+            复杂更新使用该方案的好处：<para></para>
+            1、更新前可预览测试数据，防止错误更新操作；<para></para>
+            2、支持更加复杂的更新操作（IUpdate 默认只支持简单的操作）；
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToList(System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.AsTable(System.Func{System.Type,System.String,System.String})">
             <summary>
-            执行SQL查询，返回 T1 实体、以及 LeftJoin/InnerJoin/RightJoin 对象
+            设置表名规则，可用于分库/分表，参数1：实体类型；参数2：默认表名；返回值：新表名； <para></para>
+            设置多次，可查询分表后的多个子表记录，以 UNION ALL 形式执行。 <para></para>
+            如：select.AsTable((type, oldname) => "table_1").AsTable((type, oldname) => "table_2").AsTable((type, oldname) => "table_3").ToSql(a => a.Id); <para></para>
+            select * from (SELECT a."Id" as1 FROM "table_1" a) ftb <para></para>
+            UNION ALL select * from (SELECT a."Id" as1 FROM "table_2" a) ftb <para></para>
+            UNION ALL select * from (SELECT a."Id" as1 FROM "table_3" a) ftb <para></para>
+            还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
             </summary>
-            <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
+            <param name="tableRule"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}},System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.AsAlias(System.Func{System.Type,System.String,System.String})">
             <summary>
-            执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
+            设置别名规则，可用于拦截表别名，实现类似 sqlserver 的 with(nolock) 需求<para></para>
+            如：select.AsAlias((_, old) => $"{old} with(lock)")
             </summary>
-            <param name="size">数据块的大小</param>
-            <param name="done">处理数据块</param>
-            <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.ToList``1(System.String)">
-            <summary>
-            执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
-            </summary>
-            <typeparam name="TTuple"></typeparam>
-            <param name="field"></param>
+            <param name="aliasRule"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToOne">
+        <member name="M:FreeSql.ISelect0`2.AsType(System.Type)">
             <summary>
-            执行SQL查询，返回 T1 实体所有字段的第一条记录，记录不存在时返回 null
+            动态Type，在使用 Select&lt;object&gt; 后使用本方法，指定实体类型
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.ToSql(System.String)">
+            <summary>
+            返回即将执行的SQL语句
+            </summary>
+            <param name="field">指定字段</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.Any">
+            <summary>
+            执行SQL查询，是否有记录
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.First">
-            <summary>
-            执行SQL查询，返回 T1 实体所有字段的第�    </member>
         <member name="M:FreeSql.ISelect0`2.Count">
             <summary>
             查询的记录数量
@@ -2818,87 +2804,6 @@
             按聚合条件过滤，Having(a => a.Count() > 10)
             </summary>
             <param name="exp">lambda表达式</param>
-            <returns></return��： (a => new TNavigate { Title = a.Title }) 
-            </param>
-            <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.IncludeByPropertyName(System.String)">
-            <summary>
-            按属性名字符串进行 Include/IncludeMany 操作
-            </summary>
-            <param name="property"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.IncludeByPropertyNameIf(System.Boolean,System.String)">
-            <summary>
-            按属性名字符串进行 Include/IncludeMany 操作
-            </summary>
-            <param name="condition">true 时生效</param>
-            <param name="property"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.WithSql(System.String,System.Object)">
-            <summary>
-            实现 select .. from ( select ... from t ) a 这样的功能<para></para>
-            使用 AsTable 方法也可以达到效果<para></para>
-            示例：WithSql("select * from id=@id", new { id = 1 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="sql">SQL语句</param>
-            <param name="parms">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.WithMemory``1(System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            实现 select .. from ( select .. UNION ALL select .. ) a 这样的功能（基于内存数据）
-            </summary>
-            <param name="source">内存数据</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.WithTempQuery``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
-            <summary>
-            嵌套查询 select * from ( select ... from table ... ) a
-            </summary>
-            <typeparam name="TDto"></typeparam>
-            <param name="selector"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelectFromExpression`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
-            </summary>
-            <param name="exp">lambda表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelectFromExpression`1.WhereIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            查询条件，Where(true, a => a.Id > 10)，支导航对象查询，Where(true, a => a.Author.Email == "2881099@qq.com")
-            </summary>
-            <param name="condition">true 时生效</param>
-            <param name="exp">lambda表达式</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelectFromExpression`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
-            <summary>
-            按列排序，OrderBy(a => a.Time)
-            </summary>
-            <typeparam name="TMember"></typeparam>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelectFromExpression`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
-            <summary>
-            按列倒向排序，OrderByDescending(a => a.Time)
-            </summary>
-            <param name="column">列</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelectGrouping`2.Having(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},System.Boolean}})">
-            <summary>
-            按聚合条件过滤，Having(a => a.Count() > 10)
-            </summary>
-            <param name="exp">lambda表达式</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelectGrouping`2.HavingIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},System.Boolean}})">
@@ -3384,13 +3289,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IUpdate`1.ExecuteUpdatedAsync(System.Threading.CancellationToken)">
-            <summary>
-            执行SQL语句，返回更新后的记录<para></para>
-            注意：此方法只有 Postgresql/SqlServer 有效果
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.IUpdateJoin`2.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
             指定事务对象
@@ -3486,91 +3384,108 @@
         </member>
         <member name="M:FreeSql.IUpdateJoin`2.DisableGlobalFilter(System.String[])">
             <summary>
-            禁用全局过滤功能，不传参�【主库】
+            禁用全局过滤功能，不传参数时将禁用所有
             </summary>
-            <param name="fetchHandler"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
+            <param name="name">零个或多个过滤器名字</param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.String,System.Object)">
+        <member name="M:FreeSql.IUpdateJoin`2.AsTable(System.String,System.String)">
             <summary>
-            查询，ExecuteReader(dr => {}, "select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            设置表名
             </summary>
-            <param name="fetchHandler"></param>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
+            <param name="tableName"></param>
+            <param name="joinTableName"></param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteArray(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="M:FreeSql.IUpdateJoin`2.ToSql">
             <summary>
-            查询
+            返回即将执行的SQL语句
             </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteArray(System.String,System.Object)">
+        <member name="M:FreeSql.IUpdateJoin`2.ExecuteAffrows">
             <summary>
-            查询，ExecuteArray("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+            执行SQL语句，返回影响的行数
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.IAdo.MasterPool">
+            <summary>
+            主库连接池
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.SlavePools">
+            <summary>
+            从库连接池
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.DataType">
+            <summary>
+            数据库类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.ConnectionString">
+            <summary>
+            UseConnectionString 时候的值
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.SlaveConnectionStrings">
+            <summary>
+            UseSalve 时候的值
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.Identifier">
+            <summary>
+            唯一标识
+            </summary>
+        </member>
+        <member name="M:FreeSql.IAdo.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步）
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:FreeSql.IAdo.Transaction(System.Data.IsolationLevel,System.Action)">
+            <summary>
+            开启事务（不支持异步）
+            </summary>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="P:FreeSql.IAdo.TransactionCurrentThread">
+            <summary>
+            当前线程的事务
+            </summary>
+        </member>
+        <member name="M:FreeSql.IAdo.GetDbParamtersByObject(System.Object)">
+            <summary>
+            将 new { id = 1 } 或者 Dictionary&lt;string, object&gt; 转换为 DbParameter[]
+            </summary>
+            <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.CommandFluent(System.String,System.Object)">
+            <summary>
+            SQL 命令执行类，fsql.Ado.CommandFluent("select * from user where age > @age", new { age = 25 })<para></para>
+            .WithConnection(connection)<para></para>
+            .WithTransaction(transaction)<para></para>
+            .WithParameter("age", 25)<para></para>
+            .WithParameter("id", 11)<para></para>
+            .CommandType(CommandType.Text)<para></para>
+            .CommandTimeout(60)<para></para>
+            .Query&lt;T&gt;(); 或者 ExecuteNonQuery/ExecuteScalar/ExecuteDataTable/ExecuteDataSet/ExecuteArray
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSet(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="M:FreeSql.IAdo.ExecuteConnectTest(System.Int32)">
             <summary>
-            查询
+            测试数据库是否连接正确，本方法执行如下命令：<para></para>
+            MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+            Oracle: SELECT 1 FROM dual<para></para>
             </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSet(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataSet("select * from user where age > @age; select 2", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTable(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTable(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataTable("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.Em name="commandTimeout">命令超时设置(秒)</param>
+            <param name="commandTimeout">命令超时设置(秒)</param>
             <returns>true: 成功, false: 失败</returns>
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
@@ -3718,177 +3633,6 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteConnectTestAsync(System.Int32,System.Threading.CancellationToken)">
-            <summary>
-            测试数据库是否连接正确，本方法执行如下命令：<para></para>
-            MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
-            Oracle: SELECT 1 FROM dual<para></para>
-            </summary>
-            <param name="commandTimeout">命令超时设置(秒)</param>
-            <param name="cancellationToken"></param>
-            <returns>true: 成功, false: 失败</returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
-            </summary>
-            <param name="readerHander"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="readerHander"></param>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object,System.Threading.CancellationToken)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User, Address&gt;("select * from user where age > @age; select * from address", new { age = 25 })<para></para>
-            提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <param name="cancellationToken"></param>
-            <returns></returns>
-        </member>
         <member name="E:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
@@ -3977,7 +3721,360 @@
         <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyResult">
             <summary>
             实体配置
- t.GetTablesByDatabase(System.String[])">
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyIndexResult">
+            <summary>
+            索引配置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.EntityType">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.Property">
+            <summary>
+            实体的属性
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.ModifyResult">
+            <summary>
+            实体的属性配置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 CurdBefore 与 CurdAfter 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.CurdType">
+            <summary>
+            操作类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.EntityType">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Table">
+            <summary>
+            实体类型的元数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Sql">
+            <summary>
+            执行的 SQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.DbParms">
+            <summary>
+            参数化命令
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 CurdAfter 共享
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ExecuteResult">
+            <summary>
+            执行SQL命令，返回的结果
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 SyncStructureBeforeEventArgs 与 SyncStructureAfterEventArgs 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.EntityTypes">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 SyncStructureAfter 共享
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Sql">
+            <summary>
+            执行的 SQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.AuditValueType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Column">
+            <summary>
+            属性列的元数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Property">
+            <summary>
+            反射的属性信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Value">
+            <summary>
+            获取实体的属性值，也可以设置实体的属性新值
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Object">
+            <summary>
+            实体对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.ObjectAuditBreak">
+            <summary>
+            中断实体对象审计<para></para>
+            false: 每个实体对象的属性都会审计（默认）<para></para>
+            true: 每个实体对象只审计一次
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.DataReader">
+            <summary>
+            ADO.NET 数据流读取对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Index">
+            <summary>
+            DataReader 对应的 Index 位置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Property">
+            <summary>
+            DataReader 对应的 PropertyInfo
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditDataReaderEventArgs.Value">
+            <summary>
+            获取 Index 对应的值，也可以设置拦截的新值
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 CommandBefore 与 CommandAfter 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 CommandAfter 共享
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.Log">
+            <summary>
+            执行SQL命令，返回的结果
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 TraceBeforeEventArgs 与 TraceAfterEventArgs 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 TraceAfter 共享
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsAutoSyncStructure">
+            <summary>
+            【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsSyncStructureToLower">
+            <summary>
+            转小写同步结构，适用 PostgreSQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsSyncStructureToUpper">
+            <summary>
+            转大写同步结构，适用 Oracle/达梦/人大金仓
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
+            <summary>
+            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+            本功能会影响 IFreeSql 首次访问的速度。<para></para>
+            若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsNoneCommandParameter">
+            <summary>
+            不使用命令参数化执行，针对 Insert/Update
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsGenerateCommandParameterWithLambda">
+            <summary>
+            是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
+            注意：常量不会参数化，变量才会做参数化<para></para>
+            var id = 100;
+            fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
+            fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
+            </summary>
+        </member>
+        <member name="P:FreeSql.ICodeFirst.IsLazyLoading">
+            <summary>
+            延时加载导航属性对象，导航属性需要声明 virtual
+            </summary>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements``1">
+            <summary>
+            将实体类型与数据库对比，返回DDL语句
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type[])">
+            <summary>
+            将实体类型集合与数据库对比，返回DDL语句
+            </summary>
+            <param name="entityTypes">实体类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type,System.String)">
+            <summary>
+            将实体类型与数据库对比，返回DDL语句（指定表名）
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.SyncStructure``1">
+            <summary>
+            同步实体类型到数据库<para></para>
+            注意：生产环境中谨慎使用
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type[])">
+            <summary>
+            同步实体类型集合到数据库<para></para>
+            注意：生产环境中谨慎使用
+            </summary>
+            <param name="entityTypes"></param>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String,System.Boolean)">
+            <summary>
+            同步实体类型到数据库（指定表名）<para></para>
+            注意：生产环境中谨慎使用
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
+            <param name="isForceSync">强制同步结构，无视缓存每次都同步</param>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
+            <summary>
+            根据 System.Type 获取数据库信息
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.ConfigEntity``1(System.Action{FreeSql.DataAnnotations.TableFluent{``0}})">
+            <summary>
+            FreeSql FluentApi 配置实体，方法名与特性相同
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.ConfigEntity(System.Type,System.Action{FreeSql.DataAnnotations.TableFluent})">
+            <summary>
+            FreeSql FluentApi 配置实体，方法名与特性相同
+            </summary>
+            <param name="type"></param>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetConfigEntity(System.Type)">
+            <summary>
+            获取 FreeSql FluentApi 配置实体的元数据
+            </summary>
+            <param name="type"></param>
+            <returns>未使用ConfigEntity配置时，返回null</returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetTableByEntity(System.Type)">
+            <summary>
+            获取实体类核心配置
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetDatabases">
+            <summary>
+            获取所有数据库
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetTablesByDatabase(System.String[])">
             <summary>
             获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
             </summary>
@@ -4025,329 +4122,6 @@
             <summary>
             获取c#类型，int、long
             </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取c#类型对象
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取ado.net读取方法, GetBoolean、GetInt64
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            序列化
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            反序列化
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
-            <summary>
-            获取数据库枚举类型，适用 PostgreSQL
-            </summary>
-            <param name="database"></param>
-            <returns></returns>
-        </member>
-        <member name="F:FreeSql.Internal.BaseDiyMemberExpression._lambdaParameter">
-            <summary>
-            临时 LambdaExpression.Parameter
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">
-            <summary>
-            如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
-            </summary>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
-            <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
-            <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.CommonUtils.GetPropertyCommentByDescriptionAttribute(System.Type)">
-            <summary>
-            动态读取 DescriptionAttribute 注释文本
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
-            <summary>
-            通过属性的注释文本，通过 xml 读取
-            </summary>
-            <param name="type"></param>
-            <returns>Dict：key=属性名，value=注释</returns>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.Table">
-            <summary>
-            更新实体的元数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.Sql">
-            <summary>
-            执行更新的 SQL
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.DbParams">
-            <summary>
-            执行更新命令的参数
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.Affrows">
-            <summary>
-            执行更新命令影响的行
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySourceCount">
-            <summary>
-            更新的实体数量
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySource">
-            <summary>
-            更新的实体
-            </summary>
-        </member>
-        <member name="T:FreeSql.Internal.MappingPriorityType">
-            <summary>
-            映射优先级，默认： Attribute > FluentApi > Aop
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.MappingPriorityType.Attribute">
-            <summary>
-            实体特性<para></para>
-            [Table(Name = "tabname")]<para></para>
-            [Column(Name = "table_id")]
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.MappingPriorityType.FluentApi">
-            <summary>
-            流式接口<para></para>
-            fsql.CodeFirst.ConfigEntity(a => a.Name("tabname"))<para></para>
-            fsql.CodeFirst.ConfigEntity(a => a.Property(b => b.Id).Name("table_id"))
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.MappingPriorityType.Aop">
-            <summary>
-            AOP 特性 https://github.com/dotnetcore/FreeSql/wiki/AOP<para></para>
-            fsql.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = "public.tabname";<para></para>
-            fsql.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = "table_id";<para></para>
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToLower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
-            <summary>
-            创建一个过滤器<para></para>
-            提示：在 Lambda 中判断登陆身份，请参考资料 AsyncLocal
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="where">表达式</param>
-            <param name="before">条件在最前面</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.ApplyIf``1(System.String,System.Func{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
-            <summary>
-            创建一个动态过滤器，当 condition 返回值为 true 时才生效<para></para>
-            场景：当登陆身份是管理员，则过滤条件不生效<para></para>
-            提示：在 Lambda 中判断登陆身份，请参考资料 AsyncLocal
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="condition">委托，返回值为 true 时才生效</param>
-            <param name="where">表达式</param>
-            <param name="before">条件在最前面</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.ApplyOnly``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
-            <summary>
-            创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
-            提示：在 Lambda 中判断登陆身份，请参考资料 AsyncLocal
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="where">表达式</param>
-            <param name="before">条件在最前面</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.ApplyOnlyIf``1(System.String,System.Func{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
-            <summary>
-            创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
-            场景：当登陆身份是管理员，则过滤条件不生效<para></para>
-            提示：在 Lambda 中判断登陆身份，请参考资料 AsyncLocal
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="condition">委托，返回值为 true 时才生效</param>
-            <param name="where">表达式</param>
-            <param name="before">条件在最前面</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithConnection(System.Data.Common.DbConnection)">
-            <summary>
-            使用指定 DbConnection 连接执行
-            </summary>
-            <param name="conn"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithTransaction(System.Data.Common.DbTransaction)">
-            <summary>
-            使用指定 DbTransaction 事务执行
-            </summary>
-            <param name="tran"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithParameter(System.String,System.Object,System.Action{System.Data.Common.DbParameter})">
-            <summary>
-            增加参数化对象
-            </summary>
-            <param name="parameterName">参数名</param>
-            <param name="value">参数值</param>
-            <param name="modify">修改本次创建好的参数化对象，比如将 parameterName 参数修改为 Output 类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.CommandType(System.Data.CommandType)">
-            <summary>
-            设置执行的命令类型，SQL文本、或存储过程
-            </summary>
-            <param name="commandType"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.CommandTimeout(System.Int32)">
-            <summary>
-            设置命令执行超时（秒）
-            </summary>
-            <param name="commandTimeout"></param>
-            <returns></returns>
-        </member>
-        <member name="T:FreeSql.Internal.Model.BasePagingInfo">
-            <summary>
-            分页信息
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BasePagingInfo.PageNumber">
-            <summary>
-            第几页，从1开始
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BasePagingInfo.PageSize">
-            <summary>
-            每页多少
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BasePagingInfo.Count">
-            <summary>
-            查询的记录数量
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">
-            <summary>
-            当前操作的数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Current">
-            <summary>
-            当前批次
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Total">
-            <summary>
-            总批次数量
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetDbValue(System.Object)">
-            <summary>
-            获取 obj.CsName 属性值 MapType 之后的数据库值
-            </summary>
-            <param name="obj"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetValue(System.Object)">
-            <summary>
-            获取 obj.CsName 属性原始值（不经过 MapType）
-            </summary>
-            <param name="obj"></param>
-        </member>
-        <member name="M:FreeSql.Internal.Model.ColumnInfo.SetValue(System.Object,System.Object)">
-            <summary>
-            设置 obj.CsName 属性值
-            </summary>
-            <param name="obj"></param>
-            <param name="val"></param>
-        </member>
-        <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
-            <summary>
-            动态过滤条件
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Field">
-            <summary>
-            属性名：Name<para></para>
-            导航属性：Parent.Name<para></para>
-            多表：b.Name<para></para>
-            </summary>
-        </member>
- summary>
             <param name="column"></param>
             <returns></returns>
         </member>
@@ -4858,12 +4632,6 @@
             <param name="timeout">超时</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
-            <summary>
-            获取资源
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
             <summary>
             使用完毕后，归还资源
@@ -4934,12 +4702,6 @@
             </summary>
         </member>
         <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGet(FreeSql.Internal.ObjectPool.Object{`0})">
-            <summary>
-            从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
-            </summary>
-            <param name="obj">资源对象</param>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0})">
             <summary>
             从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
             </summary>
@@ -5857,28 +5619,6 @@
             <summary>
             对象池
             </summary>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,System.Attribute[])">
-            <summary>
-            动态构建Class Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateInstance(FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Object})">
-            <summary>
-            根据字典，创建 table 对应的实体对象
-            </summary>
-            <param name="table"></param>
-            <param name="dict"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
-            <summary>
-            根据实体对象，创建 table 对应的字典
-            </summary>
-            <param name="table"></param>
-            <param name="instance"></param>
-            <returns></returns>
         </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>

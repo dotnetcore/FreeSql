@@ -396,6 +396,16 @@ namespace FreeSql.Sqlite
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"(strftime('%d',{getExp(date1)})-strftime('%d',{getExp(date2)}))";
+                case "TotalHours": return $"(strftime('%h',{getExp(date1)})-strftime('%h',{getExp(date2)}))";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);

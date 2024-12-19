@@ -384,6 +384,19 @@ namespace FreeSql.Dameng
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"(cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})";
+                case "TotalHours": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*24)";
+                case "TotalMilliseconds": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60 * 60 * 1000})";
+                case "TotalMinutes": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60})";
+                case "TotalSeconds": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60 * 60})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
