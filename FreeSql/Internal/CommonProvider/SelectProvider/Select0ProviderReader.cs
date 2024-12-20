@@ -1247,6 +1247,148 @@ namespace FreeSql.Internal.CommonProvider
             if (SameSelectPending(ref sql, csspsod)) return Task.FromResult(new List<T1>());
             return ToListAfPrivateAsync(sql, af, otherData, cancellationToken);
         }
+        #region ToChunkAsync
+        async internal Task ToListAfChunkPrivateAsync(int chunkSize, Func<FetchCallbackArgs<List<T1>>, Task> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
+        {
+            if (_cancel?.Invoke() == true) return;
+            var dbParms = _params.ToArray();
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new FetchCallbackArgs<List<T1>> { Object = new List<T1>() };
+            var retCount = 0;
+            Exception exception = null;
+            var checkDoneTimes = 0;
+            try
+            {
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, async fetch =>
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        fetch.IsBreak = true;
+                        return;
+                    }
+                    ret.Object.Add(af.Read(_orm, fetch.Object));
+                    if (otherData != null)
+                    {
+                        var idx = af.FieldCount - 1;
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, ret.Object.Count - 1, null, null));
+                    }
+                    retCount++;
+                    if (chunkSize > 0 && chunkSize == ret.Object.Count)
+                    {
+                        checkDoneTimes++;
+
+                        foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
+                        _trackToList?.Invoke(ret.Object);
+                        await chunkDone(ret);
+                        fetch.IsBreak = ret.IsBreak;
+
+                        ret.Object.Clear();
+                        if (otherData != null)
+                            foreach (var other in otherData)
+                                other.retlist.Clear();
+                    }
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            if (ret.Object.Any() || checkDoneTimes == 0)
+            {
+                foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
+                _trackToList?.Invoke(ret.Object);
+                await chunkDone(ret);
+            }
+        }
+        internal Task ToListChunkPrivateAsync(int chunkSize, Func<FetchCallbackArgs<List<T1>>, Task> chunkDone, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
+        {
+            string sql = null;
+            if (otherData?.Length > 0)
+            {
+                var sbField = new StringBuilder().Append(af.Field);
+                foreach (var other in otherData)
+                    sbField.Append(other.field);
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
+            }
+            else
+                sql = this.ToSql(af.Field);
+
+            return ToListAfChunkPrivateAsync(chunkSize, chunkDone, sql, af, otherData, cancellationToken);
+        }
+        public Task ToChunkAsync(int size, Func<FetchCallbackArgs<List<T1>>, Task> done, bool includeNestedMembers = false, CancellationToken cancellationToken = default)
+        {
+            if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
+            return this.ToListChunkPrivateAsync(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
+        }
+
+        async internal Task ToListMrChunkPrivateAsync<TReturn>(int chunkSize, Func<FetchCallbackArgs<List<TReturn>>, Task> chunkDone, string sql, ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken)
+        {
+            if (_cancel?.Invoke() == true) return;
+            var type = typeof(TReturn);
+            var dbParms = _params.ToArray();
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new FetchCallbackArgs<List<TReturn>> { Object = new List<TReturn>() };
+            var retCount = 0;
+            Exception exception = null;
+            var checkDoneTimes = 0;
+            try
+            {
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, async fetch =>
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        fetch.IsBreak = true;
+                        return;
+                    }
+                    var index = -1;
+                    ret.Object.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, ret.Object.Count, af.fillIncludeMany, af.fillSubSelectMany));
+                    retCount++;
+                    if (chunkSize > 0 && chunkSize == ret.Object.Count)
+                    {
+                        checkDoneTimes++;
+
+                        foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
+                        _trackToList?.Invoke(ret.Object);
+                        await chunkDone(ret);
+                        fetch.IsBreak = ret.IsBreak;
+
+                        ret.Object.Clear();
+                    }
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            if (ret.Object.Any() || checkDoneTimes == 0)
+            {
+                foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
+                _trackToList?.Invoke(ret.Object);
+                await chunkDone(ret);
+            }
+        }
+        public Task InternalToChunkAsync<TReturn>(Expression select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var af = this.GetExpressionField(select);
+            var sql = this.ToSql(af.field);
+            return this.ToListMrChunkPrivateAsync<TReturn>(size, done, sql, af, cancellationToken);
+        }
+        #endregion
 
         public Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector, CancellationToken cancellationToken) => ToDictionaryAsync(keySelector, a => a, cancellationToken);
         async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector, CancellationToken cancellationToken)

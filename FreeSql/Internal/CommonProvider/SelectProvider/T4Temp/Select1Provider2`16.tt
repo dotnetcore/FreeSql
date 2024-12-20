@@ -439,6 +439,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<<#=NewStr #>>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<<#=NewStr #>>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<<#=NewStr #>>.ToChunkAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -500,6 +507,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<<#=NewStr #>>).ToListAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
+        }
+        
+        Task ISelect<<#=NewStr #>>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToChunkAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
