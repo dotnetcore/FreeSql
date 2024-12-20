@@ -1248,6 +1248,12 @@ namespace FreeSql.Internal
                             }
                         }
                     }
+                    if (exp3.Method.Name == "Select" && exp3.Method.DeclaringType == typeof(Enumerable) && exp3.Arguments[0].CanDynamicInvoke())
+                    {
+                        //Where(a => dArray.Select(p => p.Key).Contains(a.Id))
+                        return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    }
+
                     if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
                         switch (exp3.Method.Name)
