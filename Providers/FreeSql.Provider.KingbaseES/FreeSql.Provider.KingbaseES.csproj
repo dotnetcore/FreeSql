@@ -27,6 +27,10 @@
 	<ItemGroup>
 		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
 		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net461\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net6.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net7.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net8.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net9.0\" />
 		<None Include="lib/**/*.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
