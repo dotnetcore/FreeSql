@@ -83,7 +83,7 @@ namespace FreeSql.Dameng
                 {
                     userId = DamengConnectionPool.GetUserId(conn.Value.ConnectionString);
                 }
-            var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列：列，表，自增
+            var seqcols = new List<NativeTuple<Internal.Model.ColumnInfo, string[], bool>>(); //序列：列，表，自增
             var seqnameDel = new List<string>(); //要删除的序列+触发器
 
             var sb = new StringBuilder();
