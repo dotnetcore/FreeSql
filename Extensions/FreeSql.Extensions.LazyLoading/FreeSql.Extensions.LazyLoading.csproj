@@ -15,7 +15,7 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<Version>3.5.103-preview20241205</Version>
+		<Version>3.5.103-preview20241224</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
