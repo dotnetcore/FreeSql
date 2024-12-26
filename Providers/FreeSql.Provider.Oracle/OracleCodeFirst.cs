@@ -349,7 +349,8 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                     sb.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(_commonUtils.QuoteSqlName(oldpk)).Append("';\r\n");
 
                 //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
-                var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
+                var newtablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                var tablename = tboldname == null ? newtablename : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}");
                 //创建临时表
                 sb.Append("execute immediate 'CREATE TABLE ").Append(tmptablename).Append(" ( ");
@@ -407,7 +408,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 {
                     sb.Append("execute immediate 'CREATE ");
                     if (uk.IsUnique) sb.Append("UNIQUE ");
-                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename).Append("(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
