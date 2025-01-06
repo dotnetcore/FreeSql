@@ -15,7 +15,7 @@ namespace FreeSql.Dameng
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Internal.Model.ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (DmDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
@@ -114,7 +114,7 @@ namespace FreeSql.Dameng
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
 
-        public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value)
+        public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, Internal.Model.ColumnInfo col, Type type, object value)
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
