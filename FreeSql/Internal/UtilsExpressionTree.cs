@@ -2430,7 +2430,7 @@ namespace FreeSql.Internal
                                 Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, tryparseVarDblExp), typeof(object))),
                                 Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                             );
-                        if (TypeTimeOnly != null) timeSpanExp = Expression.IfThenElse(
+                        if (TypeTimeOnly != null && MethodTimeOnlyToTimeSpan != null) timeSpanExp = Expression.IfThenElse(
                                 Expression.TypeIs(valueExp, TypeTimeOnly),
                                 Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeTimeOnly), MethodTimeOnlyToTimeSpan), typeof(object))),
                                 timeSpanExp
@@ -2472,7 +2472,7 @@ namespace FreeSql.Internal
                                 Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
                                 Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                             );
-                        if (TypeDateOnly != null) dateTimeExp = Expression.IfThenElse(
+                        if (TypeDateOnly != null && MethodDateOnlyToDateTime != null) dateTimeExp = Expression.IfThenElse(
                                 Expression.TypeIs(valueExp, TypeDateOnly),
                                 Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeDateOnly), MethodDateOnlyToDateTime, Expression.Constant(TypeTimeOnly.CreateInstanceGetDefaultValue(), TypeTimeOnly)), typeof(object))),
                                 dateTimeExp
