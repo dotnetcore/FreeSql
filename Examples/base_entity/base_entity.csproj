@@ -15,7 +15,7 @@
 	<ItemGroup>
 		<PackageReference Include="Confluent.Kafka" Version="2.2.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="MessagePack" Version="2.4.35" />
+		<PackageReference Include="MessagePack" Version="3.1.1" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.5" />
 	</ItemGroup>
 
@@ -41,9 +41,6 @@
 	</ItemGroup>
 	
     <ItemGroup>
-      <Reference Include="DmProvider">
-        <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
-      </Reference>
       <Reference Include="XuguClient">
         <HintPath>..\..\Providers\FreeSql.Provider.Xugu\lib\XuguClient\netstandard2.0\XuguClient.dll</HintPath>
       </Reference>

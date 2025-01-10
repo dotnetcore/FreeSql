@@ -618,6 +618,43 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Delete<RequestEntity>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<RequestDetailEntity>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new RequestEntity
+            {
+                ID = 21968,
+                AddDate = DateTime.Now,
+                ApproveDate = DateTime.Now,
+            }).ExecuteAffrows();
+            fsql.Insert(new RequestDetailEntity
+            {
+                ID = 55377,
+                RequestID = 21968,
+                OutboundDate = DateTime.Now,
+            }).ExecuteAffrows();
+            // 1.联表, 主表id查询,返回RequestEntity,AddDate不为null
+            var aaa = fsql.Select<RequestEntity, RequestDetailEntity>()
+                .LeftJoin((a, b) => a.ID == b.RequestID)
+                .Where((a, b) => a.ID == 21968)
+                .ToList();
+
+            // 2.联表, 相同的主表ID,AddDate为null, 子表的OutboundDate也为null
+            var bbb = fsql.Select<RequestEntity, RequestDetailEntity>()
+                .LeftJoin((a, b) => a.ID == b.RequestID)
+                .Where((a, b) => a.ID == 21968)
+                .ToList((a, b) => new
+                {
+                    a.ID,
+                    DetailID = b.ID,
+                    a.AddDate,
+                    b.OutboundDate,
+                });
+
+            // 3.单表, 以上相同的子表id, OutboundDate 不为null
+            var data = fsql.Select<RequestDetailEntity>()
+                .Where(a => a.ID == 55377)
+                .ToList();
+
             fsql.Delete<IdentityTable>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new IdentityTable { name = "name01", create_time = DateTime.Now }).ExecuteAffrows();
             var itrt01 = fsql.Select<IdentityTable>().ToList();
@@ -3353,4 +3390,31 @@ class TableOptions
 {
     public int Value1 { get; set; }
     public string Value2 { get; set; }
+}
+
+[Table(Name = "tb_request_detail")]
+public class RequestDetailEntity
+{
+    [Column(IsPrimary = true)]
+    public int ID { get; set; }
+
+    [Column(IsNullable = false)]
+    public int RequestID { get; set; }
+
+    [JsonProperty]
+    public DateTime? OutboundDate { get; set; }
+}
+
+
+[Table(Name = "tb_request")]
+public class RequestEntity
+{
+    [Column(IsPrimary = true, Position = 1)]
+    public int ID { get; set; }
+
+    [Column(Position = -2, IsNullable = false, DbType = "datetime")]
+    public DateTime? AddDate { get; set; }
+
+    [Column(IsNullable = true, Position = 71)]
+    public DateTime? ApproveDate { get; set; }
 }

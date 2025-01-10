@@ -1727,10 +1727,12 @@ namespace FreeSql.Internal
                     break;
                 case DataType.MySql:
                 case DataType.CustomMySql:
-                    if (dr.GetFieldType(index).FullName == "MySqlConnector.MySqlDateTime")
+                    switch (dr.GetFieldType(index).FullName)
                     {
-                        if (dr.IsDBNull(index)) return null;
-                        return dr.GetDateTime(index);
+                        case "MySql.Data.Types.MySqlDateTime": //Allow Zero Datetime=True;
+                        case "MySqlConnector.MySqlDateTime":
+                            if (dr.IsDBNull(index)) return null;
+                            return dr.GetDateTime(index);
                     }
                     break;
             }
