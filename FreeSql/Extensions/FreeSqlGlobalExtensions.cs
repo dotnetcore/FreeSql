@@ -169,12 +169,12 @@ public static partial class FreeSqlGlobalExtensions
         if (that == typeof(byte[])) return default(byte[]);
         if (that.IsArray) return Array.CreateInstance(that.GetElementType(), 0);
         if (that.IsInterface || that.IsAbstract) return null;
-        var ctorParms = that.InternalGetTypeConstructor0OrFirst(false)?.GetParameters();
+        var ctor = that.InternalGetTypeConstructor0OrFirst(false);
+        var ctorParms = ctor?.GetParameters();
         if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, true);
-        return Activator.CreateInstance(that, ctorParms
-            .Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract || a.ParameterType == typeof(string) || a.ParameterType.IsArray ?
-            null :
-            Activator.CreateInstance(a.ParameterType, null)).ToArray());
+        var ctorArgs = ctorParms.Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract || a.ParameterType == typeof(string) || a.ParameterType.IsArray ? 
+            null : Activator.CreateInstance(a.ParameterType, null)).ToArray();
+        return ctor.Invoke(ctorArgs);
     }
     internal static NewExpression InternalNewExpression(this Type that)
     {
@@ -186,13 +186,10 @@ public static partial class FreeSqlGlobalExtensions
     internal static ConstructorInfo InternalGetTypeConstructor0OrFirst(this Type that, bool isThrow = true)
     {
         var ret = _dicInternalGetTypeConstructor0OrFirst.GetOrAdd(that, tp =>
-            new Lazy<ConstructorInfo>(() =>
-            {
-                return tp.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null) ??
-                    tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .OrderBy(a => a.IsPublic ? 0 : 1)
-                    .FirstOrDefault();
-            }));
+            new Lazy<ConstructorInfo>(() => tp.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null) ??
+                tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .OrderBy(a => a.IsPublic ? 0 : 1)
+                .FirstOrDefault()));
         if (ret.Value == null && isThrow) throw new ArgumentException(CoreErrorStrings.Type_Cannot_Access_Constructor(that.FullName));
         return ret.Value;
     }

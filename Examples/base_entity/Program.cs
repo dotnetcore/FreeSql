@@ -522,6 +522,8 @@ namespace base_entity
 
         static void Main(string[] args)
         {
+            var ddultval = typeof(System.Text.Json.Nodes.JsonArray).CreateInstanceGetDefaultValue();
+
             var pams = new Dictionary<string, string>();
             var sql2rscs = Utils.ReplaceSqlConstString("'', 'SARTEN ACERO VITR.18CM''''GRAFIT''''', 'a",
                 pams, "@lantin1");
@@ -906,22 +908,22 @@ namespace base_entity
                 })
                 .ToSql();
 			Console.WriteLine(list0x1sql);
-			var sql1c2 = fsql.Select<User1>()
-				.GroupBy(a => new { a.Nickname, a.Avatar })
-				.WithTempQuery(b => new
-				{
-					sum = b.Sum(b.Value.Sort),
-					b.Key.Nickname,
-					b.Key.Avatar,
-				})
-				.OrderByDescending(arg => arg.sum)
-				.ToSql(arg => new
-				{
-					str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
-					str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
-				});   //报错 多括号
-					  //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
-			Console.WriteLine(sql1c2);
+			//var sql1c2 = fsql.Select<User1>()
+			//	.GroupBy(a => new { a.Nickname, a.Avatar })
+			//	.WithTempQuery(b => new
+			//	{
+			//		sum = b.Sum(b.Value.Sort),
+			//		b.Key.Nickname,
+			//		b.Key.Avatar,
+			//	})
+			//	.OrderByDescending(arg => arg.sum)
+			//	.ToSql(arg => new
+			//	{
+			//		str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
+			//		str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
+			//	});   //报错 多括号
+			//		  //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
+			//Console.WriteLine(sql1c2);
 
 			//var clickhouseSql1 = fsql.Select<User1>().Where(a => new[] { 1, 2, 3 }.Contains(a.GroupId)).ToSql();
 			//         var clickhouseVal1 = new[] { 1, 2, 3 };
