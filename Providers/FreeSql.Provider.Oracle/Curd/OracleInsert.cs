@@ -66,7 +66,7 @@ namespace FreeSql.Oracle.Curd
                 tmpsb.Append(col.Attribute.IsIdentity && !string.IsNullOrEmpty(col.DbInsertValue) ? col.DbInsertValue : colname);
                 ++colidx;
             }
-            sb.Append(") ").Append("\r\nSELECT ").Append(tmpsb.ToString()).Append(" FROM \r\n(\r\n");
+            sb.Append(") ").Append("\r\nSELECT ").Append(tmpsb.ToString()).Append(" FROM ( \r\n");
             tmpsb.Clear();
 
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
@@ -74,7 +74,7 @@ namespace FreeSql.Oracle.Curd
             var didx = 0;
             foreach (var d in _source)
             {
-                if (didx > 0) sb.Append("\r\n  UNION ALL\r\n ");
+                if (didx > 0) sb.Append(" \r\nUNION ALL\r\n ");
                 sb.Append("  SELECT ");
                 var colidx2 = 0;
                 foreach (var col in cols)
@@ -100,7 +100,7 @@ namespace FreeSql.Oracle.Curd
                 sb.Append(" FROM dual ");
                 ++didx;
             }
-            sb.Append(")");
+            sb.Append(" )");
             if (_noneParameter && specialParams.Any()) _params = specialParams.ToArray();
             return sb.ToString();
         }
