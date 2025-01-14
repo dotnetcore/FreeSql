@@ -74,7 +74,7 @@ namespace FreeSql.Oracle.Curd
             var didx = 0;
             foreach (var d in _source)
             {
-                if (_source.Count > 1) sb.Append("\r\n  UNION ALL\r\n ");
+                if (didx > 0) sb.Append("\r\n  UNION ALL\r\n ");
                 sb.Append("  SELECT ");
                 var colidx2 = 0;
                 foreach (var col in cols)
