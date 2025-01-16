@@ -620,6 +620,18 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var p_0 = "x1";
+            var p_0r1 = fsql.Select<User1>().Where(a => a.Nickname == p_0)
+                .GroupBy(a => a.GroupId)
+                .WithTempQuery(a => new
+                {
+                    GroupId = a.Key,
+                    Sum = fsql.Select<UserGroup>()
+                    .Where(b => b.Id == a.Key && b.GroupName == p_0)
+                    .Sum(b => b.Id)
+                })
+                .ToList();
+
             fsql.Delete<RequestEntity>().Where("1=1").ExecuteAffrows();
             fsql.Delete<RequestDetailEntity>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new RequestEntity
