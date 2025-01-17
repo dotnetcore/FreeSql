@@ -620,6 +620,21 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var res = fsql.Select<MemberActionDayCountModel>()
+                .Where(x => x.Date >= 20230101 && x.Date < 20240101 && x.ScanCode > 0)
+                .Where(x =>
+                    fsql.Select<MemberActionDayCountModel>()
+                        .Where(a => a.Date >= 20220101 && a.Date < 20230101 && a.ScanCode > 0)
+                        .Distinct()
+                        .ToList(a => a.MemberId)
+                        .Contains(x.MemberId)
+                )
+                .ToAggregateAsync(x => new
+                {
+                    MemberCount = x.Count(),
+                    ScanSum = x.Sum(x.Key.ScanCode)
+                });
+
             var p_0 = "x1";
             var p_0r1 = fsql.Select<User1>().Where(a => a.Nickname == p_0)
                 .GroupBy(a => a.GroupId)
@@ -3431,4 +3446,68 @@ public class RequestEntity
 
     [Column(IsNullable = true, Position = 71)]
     public DateTime? ApproveDate { get; set; }
+}
+public sealed class MemberActionDayCountModel
+{
+    #region properties
+    /// <summary>
+    /// MemberId
+    /// </summary>
+    [Column(IsPrimary = true)] public long MemberId { get; set; }
+
+    /// <summary>
+    /// 日期
+    /// </summary>
+    [Column(IsPrimary = true)] public int Date { get; set; }
+
+    /// <summary>
+    /// 所有活动
+    /// </summary>
+    public int Activity { get; set; }
+
+    /// <summary>
+    /// 线上活动
+    /// </summary>
+    public int OnlineActivity { get; set; }
+
+    /// <summary>
+    /// 线下活动
+    /// </summary>
+    public int OfflineActivity { get; set; }
+
+    /// <summary>
+    /// 线下活动中的品鉴会
+    /// </summary>
+    public int Pinjianhui { get; set; }
+
+    /// <summary>
+    /// 线下活动中的回场游
+    /// </summary>
+    public int Huichangyou { get; set; }
+
+    /// <summary>
+    /// 所有订单
+    /// </summary>
+    public int Form { get; set; }
+
+    /// <summary>
+    /// 所有订单金额
+    /// </summary>
+    public decimal FormAmount { get; set; }
+
+    /// <summary>
+    /// 订单中的积分订单
+    /// </summary>
+    public int IntegralForm { get; set; }
+
+    /// <summary>
+    /// 所有扫码
+    /// </summary>
+    public int ScanCode { get; set; }
+
+    /// <summary>
+    /// 所有扫码金额
+    /// </summary>
+    public decimal ScanCodeAmount { get; set; }
+    #endregion
 }

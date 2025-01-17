@@ -1824,6 +1824,10 @@ namespace FreeSql.Internal
                                         var exp3Args0 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
                                         if (exp3Args0.Parameters.Count == 1 && exp3Args0.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                             exp3Args0 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args0, fsqltables);
+                                        var exp3Args0Tables = fsqltables.Where(a => a.Type != SelectTableInfoType.Parent).ToArray();
+                                        if (exp3Args0Tables.Length == exp3Args0.Parameters.Count)
+                                            for (var exp3Args02Index = 0; exp3Args02Index < exp3Args0.Parameters.Count; exp3Args02Index++)
+                                                exp3Args0Tables[exp3Args02Index].Parameter = exp3Args0.Parameters[exp3Args02Index];
                                         var sqlSumField = $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})";
                                         var sqlSum = tscClone1.subSelect001._limit <= 0 && tscClone1.subSelect001._skip <= 0 ?
                                             fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString() :
@@ -1856,6 +1860,10 @@ namespace FreeSql.Internal
                                         var exp3Args02 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
                                         if (exp3Args02.Parameters.Count == 1 && exp3Args02.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                             exp3Args02 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args02, fsqltables);
+                                        var exp3Args02Tables = fsqltables.Where(a => a.Type != SelectTableInfoType.Parent).ToArray();
+                                        if (exp3Args02Tables.Length == exp3Args02.Parameters.Count)
+                                            for (var exp3Args02Index = 0; exp3Args02Index < exp3Args02.Parameters.Count; exp3Args02Index++)
+                                                exp3Args02Tables[exp3Args02Index].Parameter = exp3Args02.Parameters[exp3Args02Index];
                                         var sqlFirstField = ExpressionLambdaToSql(exp3Args02, tscClone2);
                                         var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { sqlFirstField })?.ToString();
                                         if (string.IsNullOrEmpty(sqlFirst) == false)
