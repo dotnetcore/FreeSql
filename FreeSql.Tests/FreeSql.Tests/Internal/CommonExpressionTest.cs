@@ -301,6 +301,8 @@ FROM (
     GROUP BY a.""EntityId"", b.""StartDateTime"", b.""EndDateTime"" ) a", sql);
 
         }
+
+
         public class IIFTest02Model1
         {
             public long _Id { get; set; }
@@ -318,6 +320,52 @@ FROM (
         /// 任务统计日期
         /// </summary>
         public class IIFTest02Model2
+        {
+            public long Id { get; set; }
+            public DateTime StartDateTime { get; set; }
+            public DateTime EndDateTime { get; set; }
+
+        }
+
+
+        [Fact]
+        public void IIFTest03()
+        {
+            var parameters = new List<DbParameter>();
+
+            var fsql = g.dameng;
+            var sql = "";
+            var startTime = DateTime.UtcNow;
+            //fsql.CodeFirst.SyncStructure<IIFTest03Model>();
+            //fsql.Insert(new IIFTest03Model { StartDateTime = startTime, EndDateTime = startTime.AddHours(1) }).ExecuteAffrows();
+
+            var query = fsql.Select<IIFTest03Model>();
+
+            //sql = query.ToSql(model => new
+            //{
+            //    Timespan = (model.EndDateTime - model.StartDateTime).TotalSeconds,
+            //});
+
+            var result = query.ToList(model => new
+                {
+                    Timespan = (model.EndDateTime - model.StartDateTime),
+                });
+
+            //            sql = query.ToSql();
+            //            Assert.Equal($@"SELECT * 
+            //FROM ( 
+            //    SELECT a.""EntityId"", b.""StartDateTime"" ""DateTime"", sum(((strftime('%s',case when a.""StopTime"" > b.""EndDateTime"" then b.""EndDateTime"" else a.""StopTime"" end)-strftime('%s',case when a.""StartTime"" < b.""StartDateTime"" then b.""StartDateTime"" else a.""StartTime"" end)))) ""TotalRunTime"", count(1) ""Count"" 
+            //    FROM ""IIFTest02Model1"" a 
+            //    INNER JOIN ""IIFTest02Model2"" b ON b.""StartDateTime"" = '{startTime.ToString("yyyy-MM-dd HH:mm:ss")}' AND a.""StartTime"" <= b.""EndDateTime"" AND a.""StopTime"" > b.""StartDateTime"" 
+            //    GROUP BY a.""EntityId"", b.""StartDateTime"", b.""EndDateTime"" ) a", sql);
+
+        }
+
+
+        /// <summary>
+        /// 任务统计日期
+        /// </summary>
+        public class IIFTest03Model
         {
             public long Id { get; set; }
             public DateTime StartDateTime { get; set; }

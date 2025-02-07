@@ -389,11 +389,11 @@ namespace FreeSql.Dameng
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
             switch (memberName)
             {
-                case "TotalDays": return $"(cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})";
-                case "TotalHours": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*24)";
-                case "TotalMilliseconds": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60 * 60 * 1000})";
-                case "TotalMinutes": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60})";
-                case "TotalSeconds": return $"((cast({getExp(date1)} as timestamp with time zone)-{getExp(date2)})*{24 * 60 * 60})";
+                case "TotalDays": return $"DATEDIFF(Day, {getExp(date2)}, {getExp(date1)})";
+                case "TotalHours": return $"DATEDIFF(Hour, {getExp(date2)}, {getExp(date1)})";
+                case "TotalMilliseconds": return $"DATEDIFF(MS, {getExp(date2)}, {getExp(date1)})";
+                case "TotalMinutes": return $"DATEDIFF(Minute, {getExp(date2)}, {getExp(date1)})";
+                case "TotalSeconds": return $"DATEDIFF(Second, {getExp(date2)}, {getExp(date1)})";
             }
             return null;
         }
@@ -435,7 +435,8 @@ namespace FreeSql.Dameng
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"((cast({left} as timestamp with time zone)-{args1})*{24 * 60 * 60})";
+                            //case "System.DateTime": return $"((cast({left} as timestamp with time zone)-{args1})*{24 * 60 * 60})";
+                            case "System.DateTime": return $"DATEDIFF(Second, {args1}, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
