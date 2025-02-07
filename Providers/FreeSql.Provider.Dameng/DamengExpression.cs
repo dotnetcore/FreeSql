@@ -435,7 +435,8 @@ namespace FreeSql.Dameng
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"((cast({left} as timestamp with time zone)-{args1})*{24 * 60 * 60})";
+                            //case "System.DateTime": return $"((cast({left} as timestamp with time zone)-{args1})*{24 * 60 * 60})";
+                            case "System.DateTime": return $"DATEDIFF(Second, {args1}, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
