@@ -9,7 +9,6 @@ using FreeSql.Internal.Model;
 using FreeSql.Odbc.Default;
 using MessagePack;
 using Microsoft.Data.SqlClient;
-using MySqlConnector;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -523,6 +522,8 @@ namespace base_entity
 
         static void Main(string[] args)
         {
+            var ddultval = typeof(System.Text.Json.Nodes.JsonArray).CreateInstanceGetDefaultValue();
+
             var pams = new Dictionary<string, string>();
             var sql2rscs = Utils.ReplaceSqlConstString("'', 'SARTEN ACERO VITR.18CM''''GRAFIT''''', 'a",
                 pams, "@lantin1");
@@ -577,7 +578,7 @@ namespace base_entity
                 .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
@@ -618,6 +619,76 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var res = fsql.Select<MemberActionDayCountModel>()
+                .Where(x => x.Date >= 20230101 && x.Date < 20240101 && x.ScanCode > 0)
+                .Where(x =>
+                    fsql.Select<MemberActionDayCountModel>()
+                        .Where(a => a.Date >= 20220101 && a.Date < 20230101 && a.ScanCode > 0)
+                        .Distinct()
+                        .ToList(a => a.MemberId)
+                        .Contains(x.MemberId)
+                )
+                .ToAggregateAsync(x => new
+                {
+                    MemberCount = x.Count(),
+                    ScanSum = x.Sum(x.Key.ScanCode)
+                });
+
+            var p_0 = "x1";
+            var p_0r1 = fsql.Select<User1>().Where(a => a.Nickname == p_0)
+                .GroupBy(a => a.GroupId)
+                .WithTempQuery(a => new
+                {
+                    GroupId = a.Key,
+                    Sum = fsql.Select<UserGroup>()
+                    .Where(b => b.Id == a.Key && b.GroupName == p_0)
+                    .Sum(b => b.Id)
+                })
+                .ToList();
+
+            fsql.Delete<RequestEntity>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<RequestDetailEntity>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new RequestEntity
+            {
+                ID = 21968,
+                AddDate = DateTime.Now,
+                ApproveDate = DateTime.Now,
+            }).ExecuteAffrows();
+            fsql.Insert(new RequestDetailEntity
+            {
+                ID = 55377,
+                RequestID = 21968,
+                OutboundDate = DateTime.Now,
+            }).ExecuteAffrows();
+            // 1.联表, 主表id查询,返回RequestEntity,AddDate不为null
+            var aaa = fsql.Select<RequestEntity, RequestDetailEntity>()
+                .LeftJoin((a, b) => a.ID == b.RequestID)
+                .Where((a, b) => a.ID == 21968)
+                .ToList();
+
+            // 2.联表, 相同的主表ID,AddDate为null, 子表的OutboundDate也为null
+            var bbb = fsql.Select<RequestEntity, RequestDetailEntity>()
+                .LeftJoin((a, b) => a.ID == b.RequestID)
+                .Where((a, b) => a.ID == 21968)
+                .ToList((a, b) => new
+                {
+                    a.ID,
+                    DetailID = b.ID,
+                    a.AddDate,
+                    b.OutboundDate,
+                });
+
+            // 3.单表, 以上相同的子表id, OutboundDate 不为null
+            var data = fsql.Select<RequestDetailEntity>()
+                .Where(a => a.ID == 55377)
+                .ToList();
+
+            fsql.Delete<IdentityTable>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new IdentityTable { name = "name01", create_time = DateTime.Now }).ExecuteAffrows();
+            var itrt01 = fsql.Select<IdentityTable>().ToList();
+            var itrt02 = fsql.Select<IdentityTable>().ToList(a => a.create_time);
+            var itrt03 = fsql.Select<IdentityTable>().ToList(a => new { a.create_time });
 
             fsql.CodeFirst.SyncStructure<Account>();
 
@@ -864,22 +935,22 @@ namespace base_entity
                 })
                 .ToSql();
 			Console.WriteLine(list0x1sql);
-			var sql1c2 = fsql.Select<User1>()
-				.GroupBy(a => new { a.Nickname, a.Avatar })
-				.WithTempQuery(b => new
-				{
-					sum = b.Sum(b.Value.Sort),
-					b.Key.Nickname,
-					b.Key.Avatar,
-				})
-				.OrderByDescending(arg => arg.sum)
-				.ToSql(arg => new
-				{
-					str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
-					str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
-				});   //报错 多括号
-					  //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
-			Console.WriteLine(sql1c2);
+			//var sql1c2 = fsql.Select<User1>()
+			//	.GroupBy(a => new { a.Nickname, a.Avatar })
+			//	.WithTempQuery(b => new
+			//	{
+			//		sum = b.Sum(b.Value.Sort),
+			//		b.Key.Nickname,
+			//		b.Key.Avatar,
+			//	})
+			//	.OrderByDescending(arg => arg.sum)
+			//	.ToSql(arg => new
+			//	{
+			//		str1 = string.Concat(arg.Nickname, '-', arg.Avatar, '-'),
+			//		str2 = string.Concat(arg.Nickname, '-', arg.Avatar)
+			//	});   //报错 多括号
+			//		  //.ToOne(arg => string.Concat(arg.Nickname, '-', arg.Avatar)); //正常
+			//Console.WriteLine(sql1c2);
 
 			//var clickhouseSql1 = fsql.Select<User1>().Where(a => new[] { 1, 2, 3 }.Contains(a.GroupId)).ToSql();
 			//         var clickhouseVal1 = new[] { 1, 2, 3 };
@@ -1413,9 +1484,9 @@ var sql11111 = fsql.Select<Class1111>()
             //});
             fsql.Insert(Enumerable.Range(0, 100).Select(a => new User1 { Id = Guid.NewGuid(), Nickname = $"nickname{a}", Username = $"username{a}", Description = $"desc{a}" }).ToArray()).ExecuteAffrows();
 
-            fsql.InsertOrUpdate<User1>()
-                .SetSource(fsql.Select<User1>().ToList())
-                .ExecuteMySqlBulkCopy();
+            //fsql.InsertOrUpdate<User1>()
+            //    .SetSource(fsql.Select<User1>().ToList())
+            //    .ExecuteMySqlBulkCopy();
 
             var updatejoin01 = fsql.Update<User1>()
                 .Join(fsql.Select<UserGroup>(), (a, b) => a.GroupId == b.Id)
@@ -3348,4 +3419,95 @@ class TableOptions
 {
     public int Value1 { get; set; }
     public string Value2 { get; set; }
+}
+
+[Table(Name = "tb_request_detail")]
+public class RequestDetailEntity
+{
+    [Column(IsPrimary = true)]
+    public int ID { get; set; }
+
+    [Column(IsNullable = false)]
+    public int RequestID { get; set; }
+
+    [JsonProperty]
+    public DateTime? OutboundDate { get; set; }
+}
+
+
+[Table(Name = "tb_request")]
+public class RequestEntity
+{
+    [Column(IsPrimary = true, Position = 1)]
+    public int ID { get; set; }
+
+    [Column(Position = -2, IsNullable = false, DbType = "datetime")]
+    public DateTime? AddDate { get; set; }
+
+    [Column(IsNullable = true, Position = 71)]
+    public DateTime? ApproveDate { get; set; }
+}
+public sealed class MemberActionDayCountModel
+{
+    #region properties
+    /// <summary>
+    /// MemberId
+    /// </summary>
+    [Column(IsPrimary = true)] public long MemberId { get; set; }
+
+    /// <summary>
+    /// 日期
+    /// </summary>
+    [Column(IsPrimary = true)] public int Date { get; set; }
+
+    /// <summary>
+    /// 所有活动
+    /// </summary>
+    public int Activity { get; set; }
+
+    /// <summary>
+    /// 线上活动
+    /// </summary>
+    public int OnlineActivity { get; set; }
+
+    /// <summary>
+    /// 线下活动
+    /// </summary>
+    public int OfflineActivity { get; set; }
+
+    /// <summary>
+    /// 线下活动中的品鉴会
+    /// </summary>
+    public int Pinjianhui { get; set; }
+
+    /// <summary>
+    /// 线下活动中的回场游
+    /// </summary>
+    public int Huichangyou { get; set; }
+
+    /// <summary>
+    /// 所有订单
+    /// </summary>
+    public int Form { get; set; }
+
+    /// <summary>
+    /// 所有订单金额
+    /// </summary>
+    public decimal FormAmount { get; set; }
+
+    /// <summary>
+    /// 订单中的积分订单
+    /// </summary>
+    public int IntegralForm { get; set; }
+
+    /// <summary>
+    /// 所有扫码
+    /// </summary>
+    public int ScanCode { get; set; }
+
+    /// <summary>
+    /// 所有扫码金额
+    /// </summary>
+    public decimal ScanCodeAmount { get; set; }
+    #endregion
 }

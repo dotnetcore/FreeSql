@@ -369,6 +369,19 @@ namespace FreeSql.Firebird
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"datediff(day from {getExp(date2)} to {getExp(date1)})";
+                case "TotalHours": return $"datediff(hour from {getExp(date2)} to {getExp(date1)})";
+                case "TotalMilliseconds": return $"datediff(millisecond from {getExp(date2)} to {getExp(date1)})";
+                case "TotalMinutes": return $"datediff(minute from {getExp(date2)} to {getExp(date1)})";
+                case "TotalSeconds": return $"datediff(second from {getExp(date2)} to {getExp(date1)})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);

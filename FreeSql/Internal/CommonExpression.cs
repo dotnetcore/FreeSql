@@ -330,8 +330,22 @@ namespace FreeSql.Internal
                         for (var a = 0; a < initExp.NewExpression.Arguments.Count; a++)
                         {
                             var initExpArg = initExp.NewExpression.Arguments[a];
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
@@ -428,8 +442,22 @@ namespace FreeSql.Internal
                             var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
                             if (initAssignExp == null) continue;
                             var initExpArg = initAssignExp.Expression;
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance), //#427 不能使用 BindingFlags.IgnoreCase
@@ -465,8 +493,22 @@ namespace FreeSql.Internal
                         for (var a = 0; a < newExp.Arguments.Count; a++)
                         {
                             var initExpArg = newExp.Arguments[a];
-                            if (initExpArg.Type == typeof(bool) && initExpArg.NodeType == ExpressionType.Call)
-                                initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                            if (initExpArg.Type == typeof(bool))
+                                switch (initExpArg.NodeType)
+                                {
+                                    case ExpressionType.Call:
+                                    case ExpressionType.OrElse:
+                                    case ExpressionType.AndAlso:
+                                    case ExpressionType.GreaterThan:
+                                    case ExpressionType.GreaterThanOrEqual:
+                                    case ExpressionType.LessThan:
+                                    case ExpressionType.LessThanOrEqual:
+                                    case ExpressionType.NotEqual:
+                                    case ExpressionType.Equal:
+                                    case ExpressionType.Not:
+                                        initExpArg = Expression.Condition(initExpArg, Expression.Constant(true, typeof(bool)), Expression.Constant(false, typeof(bool)));
+                                        break;
+                                }
                             var csname = newExp.Members != null ? newExp.Members[a].Name : (initExpArg as MemberExpression)?.Member.Name;
                             var child = new ReadAnonymousTypeInfo
                             {
@@ -1206,6 +1248,12 @@ namespace FreeSql.Internal
                             }
                         }
                     }
+                    if (exp3.Method.Name == "Select" && exp3.Method.DeclaringType == typeof(Enumerable) && exp3.Arguments[0].CanDynamicInvoke())
+                    {
+                        //Where(a => dArray.Select(p => p.Key).Contains(a.Id))
+                        return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    }
+
                     if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
                         switch (exp3.Method.Name)
@@ -1776,6 +1824,10 @@ namespace FreeSql.Internal
                                         var exp3Args0 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
                                         if (exp3Args0.Parameters.Count == 1 && exp3Args0.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                             exp3Args0 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args0, fsqltables);
+                                        var exp3Args0Tables = fsqltables.Where(a => a.Type != SelectTableInfoType.Parent).ToArray();
+                                        if (exp3Args0Tables.Length == exp3Args0.Parameters.Count)
+                                            for (var exp3Args02Index = 0; exp3Args02Index < exp3Args0.Parameters.Count; exp3Args02Index++)
+                                                exp3Args0Tables[exp3Args02Index].Parameter = exp3Args0.Parameters[exp3Args02Index];
                                         var sqlSumField = $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})";
                                         var sqlSum = tscClone1.subSelect001._limit <= 0 && tscClone1.subSelect001._skip <= 0 ?
                                             fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString() :
@@ -1808,6 +1860,10 @@ namespace FreeSql.Internal
                                         var exp3Args02 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
                                         if (exp3Args02.Parameters.Count == 1 && exp3Args02.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
                                             exp3Args02 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args02, fsqltables);
+                                        var exp3Args02Tables = fsqltables.Where(a => a.Type != SelectTableInfoType.Parent).ToArray();
+                                        if (exp3Args02Tables.Length == exp3Args02.Parameters.Count)
+                                            for (var exp3Args02Index = 0; exp3Args02Index < exp3Args02.Parameters.Count; exp3Args02Index++)
+                                                exp3Args02Tables[exp3Args02Index].Parameter = exp3Args02.Parameters[exp3Args02Index];
                                         var sqlFirstField = ExpressionLambdaToSql(exp3Args02, tscClone2);
                                         var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { sqlFirstField })?.ToString();
                                         if (string.IsNullOrEmpty(sqlFirst) == false)
@@ -1860,32 +1916,46 @@ namespace FreeSql.Internal
                             case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, tsc); break;
                             case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc); break;
                             case "System.TimeSpan":
-                                if (exp4.Expression != null && (
-                                    // 如果是以 TimeSpan.Subtract(DateTime) 的方式调用的
-                                    (exp4.Expression.NodeType == ExpressionType.Call && 
-                                    exp4.Expression is MethodCallExpression exp4CallExp && 
-                                    exp4CallExp.Method.Name == "Subtract" &&
-                                    exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
-                                    exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
-                                    // 如果是以 TimeSpan1 -/+ TimeSpan2 的方式调用的
-                                    || (exp4.Expression.NodeType == ExpressionType.Subtract || exp4.Expression.NodeType == ExpressionType.Add)
-                                    )
-                                    )
+                                if (exp4.Expression != null)
                                 {
-                                    var left = ExpressionLambdaToSql(exp4.Expression, tsc);
-                                    switch (exp4.Member.Name)
+                                    var exp4MemberIsTrue = false;
+                                    // 如果是以 DateTime.Subtract(DateTime) 的方式调用的
+                                    if (exp4.Expression.NodeType == ExpressionType.Call &&
+                                        exp4.Expression is MethodCallExpression exp4CallExp &&
+                                        exp4CallExp.Method.Name == "Subtract" &&
+                                        exp4CallExp.Object != null && exp4CallExp.Object.Type == typeof(DateTime) &&
+                                        exp4CallExp.Arguments.Count == 1 && exp4CallExp.Arguments[0].Type == typeof(DateTime))
                                     {
-                                        case "Days": return $"floor(({left})/{60 * 60 * 24})";
-                                        case "Hours": return $"floor(({left})/{60 * 60}%24)";
-                                        case "Milliseconds": return $"(({left})*1000)";
-                                        case "Minutes": return $"floor(({left})/60%60)";
-                                        case "Seconds": return $"(({left})%60)";
-                                        case "Ticks": return $"(({left})*10000000)";
-                                        case "TotalDays": return $"(({left})/{60 * 60 * 24}.0)";
-                                        case "TotalHours": return $"(({left})/{60 * 60}.0)";
-                                        case "TotalMilliseconds": return $"(({left})*1000)";
-                                        case "TotalMinutes": return $"(({left})/60.0)";
-                                        case "TotalSeconds": return $"({left})";
+                                        extRet = ExpressionLambdaToSqlCallDateDiff(exp4.Member.Name, exp4CallExp.Object, exp4CallExp.Arguments[0], tsc);
+                                        if (string.IsNullOrEmpty(extRet) == false) return extRet;
+                                        exp4MemberIsTrue = true;
+                                    }
+                                    // 如果是以 DateTime1 - DateTime2 的方式调用的
+                                    else if (exp4.Expression.NodeType == ExpressionType.Subtract && exp4.Expression.Type == typeof(TimeSpan) &&
+                                        exp4.Expression is BinaryExpression exp4BinaryExp &&
+                                        exp4BinaryExp.Left.Type == typeof(DateTime) && exp4BinaryExp.Right.Type == typeof(DateTime))
+                                    {
+                                        extRet = ExpressionLambdaToSqlCallDateDiff(exp4.Member.Name, exp4BinaryExp.Left, exp4BinaryExp.Right, tsc);
+                                        if (string.IsNullOrEmpty(extRet) == false) return extRet;
+                                        exp4MemberIsTrue = true;
+                                    }
+                                    if (exp4MemberIsTrue)
+                                    {
+                                        var left = ExpressionLambdaToSql(exp4.Expression, tsc);
+                                        switch (exp4.Member.Name)
+                                        {
+                                            case "Days": return $"floor(({left})/{60 * 60 * 24})";
+                                            case "Hours": return $"floor(({left})/{60 * 60}%24)";
+                                            case "Milliseconds": return $"(({left})*1000)";
+                                            case "Minutes": return $"floor(({left})/60%60)";
+                                            case "Seconds": return $"(({left})%60)";
+                                            case "Ticks": return $"(({left})*10000000)";
+                                            case "TotalDays": return $"(({left})/{60 * 60 * 24}.0)";
+                                            case "TotalHours": return $"(({left})/{60 * 60}.0)";
+                                            case "TotalMilliseconds": return $"(({left})*1000)";
+                                            case "TotalMinutes": return $"(({left})/60.0)";
+                                            case "TotalSeconds": return $"({left})";
+                                        }
                                     }
                                 }
                                 throw new Exception(CoreErrorStrings.Unable_Parse_Expression(exp4));
@@ -2356,6 +2426,7 @@ namespace FreeSql.Internal
         public abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc);
+        public virtual string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc) { return null; }
         public abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);

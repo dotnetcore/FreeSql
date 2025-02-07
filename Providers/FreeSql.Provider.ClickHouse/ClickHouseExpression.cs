@@ -421,6 +421,19 @@ namespace FreeSql.ClickHouse
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"dateDiff(day,{getExp(date2)},toDateTime({getExp(date1)}))";
+                case "TotalHours": return $"dateDiff(hour,{getExp(date2)},toDateTime({getExp(date1)}))";
+                case "TotalMilliseconds": return $"dateDiff(millisecond, {getExp(date2)},toDateTime({getExp(date1)}))";
+                case "TotalMinutes": return $"dateDiff(minute,{getExp(date2)},toDateTime({getExp(date1)}))";
+                case "TotalSeconds": return $"dateDiff(second,{getExp(date2)},toDateTime({getExp(date1)}))";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);

@@ -369,6 +369,19 @@ namespace FreeSql.GBase
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"({getExp(date1)}-{getExp(date2)})";
+                case "TotalHours": return $"(({getExp(date1)}-{getExp(date2)})*24)";
+                case "TotalMilliseconds": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60 * 60 * 1000})";
+                case "TotalMinutes": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60})";
+                case "TotalSeconds": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60 * 60})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);

@@ -166,6 +166,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.Join(Expression<Func<T1, T2, bool>> exp) => (this as ISelect<T1, T2>).InnerJoin(exp);
         ISelect<T1, T2> ISelect<T1, T2>.InnerJoin(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -304,6 +305,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2>).LeftJoin((Expression<Func<T1, T2, bool>>)expModify);
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.Join(Expression<Func<HzyTuple<T1, T2>, bool>> exp) => (this as ISelect<T1, T2>).InnerJoin(exp);
         ISelect<T1, T2> ISelect<T1, T2>.InnerJoin(Expression<Func<HzyTuple<T1, T2>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -388,6 +390,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -449,6 +458,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2>).ToListAsync((Expression<Func<T1, T2, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2>).ToChunkAsync((Expression<Func<T1, T2, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2>, TReturn>> select, CancellationToken cancellationToken)
@@ -640,6 +655,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Join(Expression<Func<T1, T2, T3, bool>> exp) => (this as ISelect<T1, T2, T3>).InnerJoin(exp);
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.InnerJoin(Expression<Func<T1, T2, T3, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -778,6 +794,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3>).LeftJoin((Expression<Func<T1, T2, T3, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Join(Expression<Func<HzyTuple<T1, T2, T3>, bool>> exp) => (this as ISelect<T1, T2, T3>).InnerJoin(exp);
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -862,6 +879,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -923,6 +947,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3>).ToListAsync((Expression<Func<T1, T2, T3, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3>).ToChunkAsync((Expression<Func<T1, T2, T3, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3>, TReturn>> select, CancellationToken cancellationToken)
@@ -1117,6 +1147,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.Join(Expression<Func<T1, T2, T3, T4, bool>> exp) => (this as ISelect<T1, T2, T3, T4>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.InnerJoin(Expression<Func<T1, T2, T3, T4, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -1255,6 +1286,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4>).LeftJoin((Expression<Func<T1, T2, T3, T4, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4>, bool>> exp) => (this as ISelect<T1, T2, T3, T4>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -1339,6 +1371,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -1400,6 +1439,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4>).ToListAsync((Expression<Func<T1, T2, T3, T4, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TReturn>> select, CancellationToken cancellationToken)
@@ -1597,6 +1642,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.Join(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -1735,6 +1781,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -1819,6 +1866,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -1880,6 +1934,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TReturn>> select, CancellationToken cancellationToken)
@@ -2080,6 +2140,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -2218,6 +2279,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -2302,6 +2364,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -2363,6 +2432,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TReturn>> select, CancellationToken cancellationToken)
@@ -2566,6 +2641,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -2704,6 +2780,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -2788,6 +2865,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -2849,6 +2933,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select, CancellationToken cancellationToken)
@@ -3055,6 +3145,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -3193,6 +3284,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -3277,6 +3369,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -3338,6 +3437,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select, CancellationToken cancellationToken)
@@ -3547,6 +3652,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -3685,6 +3791,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -3769,6 +3876,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -3830,6 +3944,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TReturn>> select, CancellationToken cancellationToken)
@@ -4042,6 +4162,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -4180,6 +4301,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -4264,6 +4386,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -4325,6 +4454,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TReturn>> select, CancellationToken cancellationToken)
@@ -4540,6 +4675,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -4678,6 +4814,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -4762,6 +4899,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -4823,6 +4967,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TReturn>> select, CancellationToken cancellationToken)
@@ -5041,6 +5191,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -5179,6 +5330,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -5263,6 +5415,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -5324,6 +5483,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TReturn>> select, CancellationToken cancellationToken)
@@ -5545,6 +5710,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -5683,6 +5849,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -5767,6 +5934,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -5828,6 +6002,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TReturn>> select, CancellationToken cancellationToken)
@@ -6052,6 +6232,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -6190,6 +6371,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -6274,6 +6456,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -6335,6 +6524,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TReturn>> select, CancellationToken cancellationToken)
@@ -6562,6 +6757,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -6700,6 +6896,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -6784,6 +6981,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -6845,6 +7049,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TReturn>> select, CancellationToken cancellationToken)
@@ -7075,6 +7285,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Join(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -7213,6 +7424,7 @@ namespace FreeSql.Internal.CommonProvider
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>>)expModify);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Join(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, bool>> exp) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).InnerJoin(exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -7297,6 +7509,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToChunkAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -7358,6 +7577,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).ToListAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).ToChunkAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>>)expModify, size, done, cancellationToken);
         }
 
         Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TReturn>> select, CancellationToken cancellationToken)

@@ -336,6 +336,66 @@
             账户
             </summary>
         </member>
+        <member name="P:MemberActionDayCountModel.MemberId">
+            <summary>
+            MemberId
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Date">
+            <summary>
+            日期
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Activity">
+            <summary>
+            所有活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.OnlineActivity">
+            <summary>
+            线上活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.OfflineActivity">
+            <summary>
+            线下活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Pinjianhui">
+            <summary>
+            线下活动中的品鉴会
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Huichangyou">
+            <summary>
+            线下活动中的回场游
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Form">
+            <summary>
+            所有订单
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.FormAmount">
+            <summary>
+            所有订单金额
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.IntegralForm">
+            <summary>
+            订单中的积分订单
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.ScanCode">
+            <summary>
+            所有扫码
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.ScanCodeAmount">
+            <summary>
+            所有扫码金额
+            </summary>
+        </member>
         <member name="T:EMSServerModel.Model.Role">
             <summary>
             角色表
@@ -500,6 +560,12 @@
             <summary>
             用户导航
             </summary>
+        </member>
+        <member name="T:MessagePack.GeneratedMessagePackResolver">
+            <summary>A MessagePack resolver that uses generated formatters for types in this assembly.</summary>
+        </member>
+        <member name="F:MessagePack.GeneratedMessagePackResolver.Instance">
+            <summary>An instance of this resolver that only returns formatters specifically generated for types in this assembly.</summary>
         </member>
     </members>
 </doc>

@@ -56,6 +56,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
+        Task ToChunkAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken = default);
 
         Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
@@ -73,6 +74,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task ToChunkAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken = default);
 
         Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
@@ -106,6 +108,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         double Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
 
         ISelect<<#=NewStr #>> LeftJoin(Expression<Func<<#=NewStr #>, bool>> exp);
+        ISelect<<#=NewStr #>> Join(Expression<Func<<#=NewStr #>, bool>> exp);
         ISelect<<#=NewStr #>> InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp);
         ISelect<<#=NewStr #>> RightJoin(Expression<Func<<#=NewStr #>, bool>> exp);
 
@@ -141,6 +144,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         double Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
 
         ISelect<<#=NewStr #>> LeftJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        ISelect<<#=NewStr #>> Join(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
         ISelect<<#=NewStr #>> InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
         ISelect<<#=NewStr #>> RightJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
 

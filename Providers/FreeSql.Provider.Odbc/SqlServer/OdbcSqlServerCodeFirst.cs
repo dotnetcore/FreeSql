@@ -362,7 +362,8 @@ use [" + database + "];", tboldname ?? tbname);
                     }
                     //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
                     bool idents = false;
-                    var tablename = tboldname == null ? _commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2]) : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]);
+                    var newtablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2]);
+                    var tablename = tboldname == null ? newtablename : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]);
                     var tmptablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1], $"FreeSqlTmp_{tbname[2]}");
                     sb.Append("BEGIN TRANSACTION\r\n")
                         .Append("SET QUOTED_IDENTIFIER ON\r\n")
@@ -439,7 +440,7 @@ use [" + database + "];", tboldname ?? tbname);
                     {
                         sb.Append("CREATE ");
                         if (uk.IsUnique) sb.Append("UNIQUE ");
-                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename).Append("(");
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));

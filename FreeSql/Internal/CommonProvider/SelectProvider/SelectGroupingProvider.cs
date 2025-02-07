@@ -249,7 +249,7 @@ namespace FreeSql.Internal.CommonProvider
             ret._transaction = _select._transaction;
             ret._whereGlobalFilter = new List<GlobalFilter.Item>(_select._whereGlobalFilter.ToArray());
             ret._cancel = _select._cancel;
-            ret._params.AddRange(_select._params);
+            //ret._params.AddRange(_select._params); //#1965 WithTempQueryParser 子查询参数化，押后添加参数
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
             Select0Provider.WithTempQueryParser parser = null;
             _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bug
@@ -275,6 +275,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
+            ret._params.AddRange(_select._params);
             return ret;
         }
 

@@ -379,6 +379,18 @@ namespace FreeSql.Custom.MySql
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"timestampdiff(day,{getExp(date2)},{getExp(date1)})";
+                case "TotalHours": return $"timestampdiff(hour,{getExp(date2)},{getExp(date1)})";
+                case "TotalMinutes": return $"timestampdiff(minute,{getExp(date2)},{getExp(date1)})";
+                case "TotalSeconds": return $"timestampdiff(second,{getExp(date2)},{getExp(date1)})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);

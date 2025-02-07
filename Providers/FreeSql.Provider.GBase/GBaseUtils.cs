@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.GBase
 {
@@ -76,7 +77,21 @@ namespace FreeSql.GBase
         }
         public override string[] SplitTableName(string name) => name?.Split(new char[] { ':' }, 1);
         public override string QuoteParamterName(string name) => $"?{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
-        public override string IsNull(string sql, object value) => $"nvl({sql}, {value})";
+
+        readonly static Regex _regDateTime = new Regex(@"^'(\d{4,4}\-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})(\.\d+)?'$", RegexOptions.Compiled);
+        public override string IsNull(string sql, object value)
+        {
+            if (value is string valueStr)
+            {
+                var match = _regDateTime.Match(valueStr);
+                if (match.Success)
+                {
+                    if (string.IsNullOrEmpty(match.Groups[2].Value)) value = $"DATETIME({match.Groups[1].Value}) YEAR TO SECOND";
+                    else value = $"DATETIME({match.Groups[1].Value}{match.Groups[2].Value}) YEAR TO FRACTION({(match.Groups[2].Value.Length - 1)})";
+                }
+            }
+            return $"nvl({sql}, {value})";
+        }
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"mod({left},{right})";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"trunc({left}/{right})";

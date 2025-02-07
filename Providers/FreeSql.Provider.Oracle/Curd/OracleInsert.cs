@@ -39,23 +39,23 @@ namespace FreeSql.Oracle.Curd
         public string ToSqlBatchIdentityColumn()
         {
             if (_source == null || _source.Any() == false) return null;
+            _identCol = null;
             var cols = new List<ColumnInfo>();
             foreach (var col in _table.Columns.Values)
             {
+                if (col.Attribute.IsIdentity) _identCol = col;
                 if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 cols.Add(col);
             }
 
-            _identCol = null;
             var sb = new StringBuilder();
             var tmpsb = new StringBuilder();
             sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append("(");
             var colidx = 0;
             foreach (var col in cols)
             {
-                if (col.Attribute.IsIdentity) _identCol = col;
                 if (colidx > 0)
                 {
                     sb.Append(", ");
@@ -66,7 +66,7 @@ namespace FreeSql.Oracle.Curd
                 tmpsb.Append(col.Attribute.IsIdentity && !string.IsNullOrEmpty(col.DbInsertValue) ? col.DbInsertValue : colname);
                 ++colidx;
             }
-            sb.Append(") ").Append("\r\nSELECT ").Append(tmpsb.ToString()).Append(" FROM \r\n(\r\n");
+            sb.Append(") ").Append("\r\nSELECT ").Append(tmpsb.ToString()).Append(" FROM ( \r\n");
             tmpsb.Clear();
 
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
@@ -74,11 +74,12 @@ namespace FreeSql.Oracle.Curd
             var didx = 0;
             foreach (var d in _source)
             {
-                if (_source.Count > 1) sb.Append("\r\n  UNION ALL\r\n ");
+                if (didx > 0) sb.Append(" \r\nUNION ALL\r\n ");
                 sb.Append("  SELECT ");
                 var colidx2 = 0;
                 foreach (var col in cols)
                 {
+                    if (col.Attribute.IsIdentity && !string.IsNullOrEmpty(col.DbInsertValue)) continue;
                     if (colidx2 > 0) sb.Append(", ");
                     if (string.IsNullOrEmpty(col.DbInsertValue) == false && _ignoreInsertValueSql.ContainsKey(col.Attribute.Name) == false)
                         sb.Append(col.DbInsertValue);
@@ -93,13 +94,13 @@ namespace FreeSql.Oracle.Curd
                         if (_noneParameter == false)
                             _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col, col.Attribute.MapType, val);
                     }
-                    if (didx == 0) sb.Append(" as ").Append(col.Attribute.Name);
+                    if (didx == 0) sb.Append(" as ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                     ++colidx2;
                 }
                 sb.Append(" FROM dual ");
                 ++didx;
             }
-            sb.Append(")");
+            sb.Append(" )");
             if (_noneParameter && specialParams.Any()) _params = specialParams.ToArray();
             return sb.ToString();
         }
@@ -107,6 +108,9 @@ namespace FreeSql.Oracle.Curd
         public override string ToSql()
         {
             if (_source == null || _source.Any() == false) return null;
+            if (_source.Count > 1 && _table.Columns.Values.Any(col => col.Attribute.IsIdentity && !string.IsNullOrEmpty(col.DbInsertValue)))
+                return ToSqlBatchIdentityColumn();
+
             var sb = new StringBuilder();
             sb.Append("INSERT ");
             if (_source.Count > 1) sb.Append("ALL");

@@ -15,7 +15,7 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<Version>3.5.103-preview20241205</Version>
+		<Version>3.5.105-preview20250116</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -25,32 +25,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="lib\DmProvider\net6.0\DmProvider.dll" Pack="true" PackagePath="\lib\net6.0\" />
-		<None Include="lib\DmProvider\netstandard2.0\DmProvider.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
-		<None Include="lib\DmProvider\netcoreapp3.1\DmProvider.dll" Pack="true" PackagePath="\lib\netcoreapp3.1\" />
-		<None Include="lib\DmProvider\net45\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
-		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib/**/*.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="DM.DmProvider" Version="8.3.1.28188" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="DmProvider">
-			<HintPath>lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-	</ItemGroup>
-
+	</ItemGroup>	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0'">
 		<DefineConstants>ns20;netstandard20</DefineConstants>
 	</PropertyGroup>

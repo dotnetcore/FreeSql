@@ -119,7 +119,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     
     static TReturn LocalWithIndex<TReturn>(TReturn query, string indexName, Dictionary<Type, string> rule)
     {
-        if (string.IsNullOrWhiteSpace(indexName)) return query;
+        if (string.IsNullOrWhiteSpace(indexName) && rule?.Any() != true) return query;
         var selectProvider = query as Select0Provider;
         switch (selectProvider._orm.Ado.DataType)
         {
@@ -134,7 +134,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         selectProvider._aliasRule = (type, old) =>
         {
             if (oldalias != null) old = oldalias(type, old);
-            if (type == selectProvider._tables[0].Table.Type) return LocalAppendWithString(old, $"index={indexName}");
+            if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendWithString(old, $"index={indexName}");
             if (rule == null) return old;
             return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendWithString(old, $"index={tryidxName}") : old;
         };

@@ -1323,7 +1323,6 @@ namespace FreeSql.Internal.CommonProvider
             ret._transaction = _transaction;
             ret._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
             ret._cancel = _cancel;
-            ret._params.AddRange(_params);
             if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
             if (selector is LambdaExpression lambdaExp && lambdaExp != null)
             {
@@ -1339,6 +1338,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
             ret.WithSql(sql);
             ret._diymemexpWithTempQuery = parser;
+            ret._params.AddRange(_params);
             return ret;
         }
 

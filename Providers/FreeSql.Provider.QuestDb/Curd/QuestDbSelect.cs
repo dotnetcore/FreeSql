@@ -40,7 +40,7 @@ namespace FreeSql.QuestDb.Curd
                 sb.Append(_select);
                 if (_distinct) sb.Append("DISTINCT ");
                 sb.Append(field).Append(" \r\nFROM ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {

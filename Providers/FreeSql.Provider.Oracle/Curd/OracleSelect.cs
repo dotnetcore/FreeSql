@@ -35,7 +35,7 @@ namespace FreeSql.Oracle.Curd
 
                 sbunion.Append(_select);
                 if (_distinct) sbunion.Append("DISTINCT ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
 
                 var isRownum = string.IsNullOrEmpty(_orderby) && _skip > 0;

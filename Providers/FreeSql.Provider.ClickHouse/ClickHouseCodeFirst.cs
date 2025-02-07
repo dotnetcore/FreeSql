@@ -462,8 +462,9 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                     }
 
                     //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
+                    var newtablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1]);
                     var tablename = tboldname == null
-                        ? _commonUtils.QuoteSqlName(tbname[0], tbname[1])
+                        ? newtablename
                         : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1]);
                     var tmptablename = _commonUtils.QuoteSqlName(tbname[0], $"FreeSqlTmp_{tbname[1]}");
                     //创建临时表
@@ -539,8 +540,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
 
                     sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
                     sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
-                    sb.Append("RENAME TABLE ").Append(tmptablename).Append(" TO ")
-                        .Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(";\r\n");
+                    sb.Append("RENAME TABLE ").Append(tmptablename).Append(" TO ").Append(newtablename).Append(";\r\n");
                 }
 
                 var res = sb.Length == 0 ? null : sb.ToString();
