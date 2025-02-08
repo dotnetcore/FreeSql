@@ -150,12 +150,79 @@ namespace FreeSql
 		//    return false;
 		//}
 
-		#region SqlServer/PostgreSQL over
 		/// <summary>
-		/// rank() over(order by ...)
+		/// count(1)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> Rank() => Over<long>("rank()");
+		public static int AggregateCount()
+		{
+            expContext.Value.Result = "count(1)";
+			return 0;
+        }
+        /// <summary>
+        /// count(column)<para></para>
+		/// 或者<para></para>
+		/// sum(case when column then 1 else 0 end)
+        /// </summary>
+        /// <typeparam name="T3"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static int AggregateCount<T3>(T3 column) {
+			if (typeof(T3) == typeof(bool)) expContext.Value.Result = $"sum({expContext.Value.Utility.CommonUtils.IIF(expContext.Value.ParsedContent["column"], "1", "0")})";
+            else expContext.Value.Result = $"count({expContext.Value.ParsedContent["column"]})";
+			return 0;
+        }
+		/// <summary>
+		/// sum(column)
+		/// </summary>
+		/// <typeparam name="T3"></typeparam>
+		/// <param name="column"></param>
+		/// <returns></returns>
+		public static decimal AggregateSum<T3>(T3 column)
+		{
+            expContext.Value.Result = $"sum({expContext.Value.ParsedContent["column"]})";
+            return 0;
+        }
+        /// <summary>
+        /// avg(column)
+        /// </summary>
+        /// <typeparam name="T3"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static decimal AggregateAvg<T3>(T3 column)
+		{
+            expContext.Value.Result = $"avg({expContext.Value.ParsedContent["column"]})";
+            return 0;
+        }
+        /// <summary>
+        /// max(column)
+        /// </summary>
+        /// <typeparam name="T3"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static T3 AggregateMax<T3>(T3 column)
+		{
+            expContext.Value.Result = $"max({expContext.Value.ParsedContent["column"]})";
+            return default;
+        }
+        /// <summary>
+        /// min(column)
+        /// </summary>
+        /// <typeparam name="T3"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static T3 AggregateMin<T3>(T3 column)
+		{
+			expContext.Value.Result = $"min({expContext.Value.ParsedContent["column"]})";
+			return default;
+		}
+
+        #region SqlServer/PostgreSQL over
+        /// <summary>
+        /// rank() over(order by ...)
+        /// </summary>
+        /// <returns></returns>
+        public static ISqlOver<long> Rank() => Over<long>("rank()");
 		/// <summary>
 		/// dense_rank() over(order by ...)
 		/// </summary>
