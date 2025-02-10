@@ -6,7 +6,9 @@
 | 神州通用 | FreeSql.Provider.ShenTong | PostgreSQL |
 | 人大金仓 | FreeSql.Provider.KingbaseES | PostgreSQL |
 | 南大通用 | FreeSql.Provider.GBase | Informix |
+| 虚谷 | FreeSql.Provider.Xugu | Oracle |
 | 翰高 | FreeSql.Provider.Custom、FreeSql.Provider.Odbc | PostgreSQL |
+| 华为(OpenGuass) | FreeSql.Provider.PostgreSQL | PostgreSQL |
 
 由于太多，在此不一一列举，它们大多数语法兼容 MySql、Oracle、SqlServer、PostgreSQL 四种常用数据库之一。
 
@@ -20,8 +22,8 @@ FreeSql.Provider.Custom 不依赖具体 ado.net/odbc/oledb dll 驱动，使用�
 var fsql = new FreeSqlBuilder()
     .UseConnectionFactory(DataType.CustomMySql, () => 
         new MySqlConnection("Data Source=..."))
-    .UseNoneParameter(true)
-    .UseMonitorCommand(Console.WriteLine(cmd.CommandText))
+    .UseNoneCommandParameter(true)
+    .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText))
     .Build();
 fsql.SetDbProviderFactory(MySqlConnectorFactory.Instance);
 ```
@@ -32,6 +34,29 @@ fsql.SetDbProviderFactory(MySqlConnectorFactory.Instance);
 - 将上面 MySqlConnectorFactory.Instance 替换成对应的 DbProviderFactory
 
 提示：对方 DLL 一般都会提供这两个现实类
+
+---
+
+华为报错：Received AuthenticationSASL message with 0 mechanisms!
+
+1、连接串
+
+```shell
+Host=127.0.0.1;Port=15432;Username=qadmin;Password=******;Database=db;No Reset On Close=true;Pooling=true;Minimum Pool Size=1
+```
+
+2、pg_hba.conf
+
+```shell
+host    all             all             0.0.0.0/0               sha256
+host    all             all             127.0.0.1/32            trust
+```
+
+3、postgresql.conf
+
+```shell
+password_encryption_type = 1
+```
 
 # 自定义适配
 
