@@ -359,18 +359,11 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                         if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
                         {
                             var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
-
                             var charMatch = Regex.Match(dbtypeNoneNotNull, "(N?)VARCHAR(2?)\\((?<precision>[0-9]+)\\)");
-
-                            if(charMatch != null)
-                            {
-                                if (ushort.TryParse(charMatch.Groups["precision"]?.Value, out var precision))
-                                {
-                                    dbtypeNoneNotNull = Regex.Replace(dbtypeNoneNotNull, $"\\(({precision})\\)", $"");
-                                }
-                            }
-
-                            insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
+                            if (charMatch != null && ushort.TryParse(charMatch.Groups["precision"]?.Value, out var precision))
+                                dbtypeNoneNotNull = Regex.Replace(dbtypeNoneNotNull, $"\\(({precision})\\)", $"");
+                            if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "BLOB")
+                                insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
                         }
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"nvl({insertvalue},{tbcol.DbDefaultValue})";
