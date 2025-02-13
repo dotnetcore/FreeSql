@@ -18,7 +18,7 @@ namespace FreeSql.Tests.ShenTong
         {
             var fsql = g.shentong;
             fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
-            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "ÎÒÊÇÖĞ¹úÈË")) };
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº")) };
             Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
             var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -55,58 +55,58 @@ namespace FreeSql.Tests.ShenTong
         }
 
         [Fact]
-        public void ÖĞÎÄ±í_×Ö¶Î()
+        public void ä¸­æ–‡è¡¨_å­—æ®µ()
         {
-            var sql = g.shentong.CodeFirst.GetComparisonDDLStatements<²âÊÔÖĞÎÄ±í>();
-            g.shentong.CodeFirst.SyncStructure<²âÊÔÖĞÎÄ±í>();
+            var sql = g.shentong.CodeFirst.GetComparisonDDLStatements<æµ‹è¯•ä¸­æ–‡è¡¨>();
+            g.shentong.CodeFirst.SyncStructure<æµ‹è¯•ä¸­æ–‡è¡¨>();
 
-            var item = new ²âÊÔÖĞÎÄ±í
+            var item = new æµ‹è¯•ä¸­æ–‡è¡¨
             {
-                ±êÌâ = "²âÊÔ±êÌâ",
-                ´´½¨Ê±¼ä = DateTime.Now
+                æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜",
+                åˆ›å»ºæ—¶é—´ = DateTime.Now
             };
-            Assert.Equal(1, g.shentong.Insert<²âÊÔÖĞÎÄ±í>().NoneParameter().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±àºÅ);
-            var item2 = g.shentong.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            Assert.Equal(1, g.shentong.Insert<æµ‹è¯•ä¸­æ–‡è¡¨>().NoneParameter().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ç¼–å·);
+            var item2 = g.shentong.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ";
-            Assert.Equal(1, g.shentong.Update<²âÊÔÖĞÎÄ±í>().NoneParameter().SetSource(item).ExecuteAffrows());
-            item2 = g.shentong.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°";
+            Assert.Equal(1, g.shentong.Update<æµ‹è¯•ä¸­æ–‡è¡¨>().NoneParameter().SetSource(item).ExecuteAffrows());
+            item2 = g.shentong.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo";
-            var repo = g.shentong.GetRepository<²âÊÔÖĞÎÄ±í>();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo";
+            var repo = g.shentong.GetRepository<æµ‹è¯•ä¸­æ–‡è¡¨>();
             repo.DbContextOptions.NoneParameter = true;
             Assert.Equal(1, repo.Update(item));
-            item2 = g.shentong.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.shentong.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo22";
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.shentong.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.shentong.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
         }
-        class ²âÊÔÖĞÎÄ±í
+        class æµ‹è¯•ä¸­æ–‡è¡¨
         {
             [Column(IsPrimary = true)]
-            public Guid ±àºÅ { get; set; }
+            public Guid ç¼–å· { get; set; }
 
-            public string ±êÌâ { get; set; }
+            public string æ ‡é¢˜ { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
-            public DateTime ´´½¨Ê±¼ä { get; set; }
+            public DateTime åˆ›å»ºæ—¶é—´ { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
-            public DateTime ¸üĞÂÊ±¼ä { get; set; }
+            public DateTime æ›´æ–°æ—¶é—´ { get; set; }
         }
 
         [Fact]
@@ -168,7 +168,7 @@ namespace FreeSql.Tests.ShenTong
         public void GetComparisonDDLStatements()
         {
             var sql = g.shentong.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            Assert.True(string.IsNullOrEmpty(sql)); //²âÊÔÔËĞĞÁ½´Îºó
+            Assert.True(string.IsNullOrEmpty(sql)); //æµ‹è¯•è¿è¡Œä¸¤æ¬¡å
             g.shentong.Select<TableAllType>();
         }
 
@@ -196,8 +196,8 @@ namespace FreeSql.Tests.ShenTong
                 //testFieldByteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6 },
                 //testFieldByteArrayNullable = new byte?[] { 0, 1, 2, 3, null, 4, 5, 6 },
                 testFieldByteNullable = byte.MinValue,
-                testFieldBytes = Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"),
-                //testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"), Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË") },
+                testFieldBytes = Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"),
+                //testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"), Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº") },
                 testFieldDateTime = DateTime.Now,
                 //testFieldDateTimeArray = new[] { DateTime.Now, DateTime.Now.AddHours(2) },
                 //testFieldDateTimeArrayNullable = new DateTime?[] { DateTime.Now, null, DateTime.Now.AddHours(2) },
@@ -240,9 +240,9 @@ namespace FreeSql.Tests.ShenTong
                 //testFieldShortArray = new short[] { 1, 2, 3, 4, 5 },
                 //testFieldShortArrayNullable = new short?[] { 1, 2, 3, null, 4, 5 },
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "ÎÒÊÇÖĞ¹úÈËstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldString = "æˆ‘æ˜¯ä¸­å›½äººstring'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldChar = 'X',
-                //testFieldStringArray = new[] { "ÎÒÊÇÖĞ¹úÈËString1", "ÎÒÊÇÖĞ¹úÈËString2", null, "ÎÒÊÇÖĞ¹úÈËString3" },
+                //testFieldStringArray = new[] { "æˆ‘æ˜¯ä¸­å›½äººString1", "æˆ‘æ˜¯ä¸­å›½äººString2", null, "æˆ‘æ˜¯ä¸­å›½äººString3" },
                 testFieldTimeSpan = TimeSpan.FromHours(10),
                 //testFieldTimeSpanArray = new[] { TimeSpan.FromHours(10), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
                 //testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromHours(10), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
