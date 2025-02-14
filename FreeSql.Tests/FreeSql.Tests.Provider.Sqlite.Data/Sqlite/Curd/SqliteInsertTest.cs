@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,5 +138,27 @@ namespace FreeSql.Tests.Sqlite
             sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).AsTable(a => "Topic_InsertAsTable").ToSql();
             Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\") VALUES(@Clicks_0), (@Clicks_1), (@Clicks_2), (@Clicks_3), (@Clicks_4), (@Clicks_5), (@Clicks_6), (@Clicks_7), (@Clicks_8), (@Clicks_9)", sql);
         }
+
+        [Fact]
+        public void BulkInsert()
+        {
+            g.sqlite.Delete<Topic>().Where(m => true).ExecuteAffrows();
+            var list = new List<Topic>();
+            for (int i = 0; i < 10; i++)
+            {
+                list.Add(new Topic { Id = i, Clicks = i * 2, Title = "BULK" + i.ToString(), CreateTime = DateTime.Now });
+            }
+            insert.AppendData(list).BulkInsert();
+            Assert.Equal(10, g.sqlite.Select<Topic>().Where(m => m.Title.StartsWith("BULK")).Count());
+
+            g.sqlite.Delete<Topic>().Where(m => true).ExecuteAffrows();
+            g.sqlite.Transaction(() =>
+            {
+                g.sqlite.Insert(list).BulkInsert();
+                Assert.Equal(10, g.sqlite.Select<Topic>().Where(m => m.Title.StartsWith("BULK")).Count());
+            });
+        }
+
+
     }
 }
