@@ -16,7 +16,8 @@ public static partial class FreeSqlSqliteGlobalExtensions
     /// <returns></returns>
     public static string FormatSqlite(this string that, params object[] args) => _sqliteAdo.Addslashes(that, args);
     static FreeSql.Sqlite.SqliteAdo _sqliteAdo = new FreeSql.Sqlite.SqliteAdo();
-    public static void BulkInsert<T>(this IInsert<T> that) where T : class
+
+    public static void ExecuteSqliteBulkInsert<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.Sqlite.Curd.SqliteInsert<T>;
         if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("BulkInsert", "Sqlite"));
@@ -112,7 +113,7 @@ public static partial class FreeSqlSqliteGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException($"ExecuteSqlBulkCopy {CoreErrorStrings.S_Not_Implemented_FeedBack}");
+                throw new NotImplementedException($"ExecuteSqliteBulkInsert {CoreErrorStrings.S_Not_Implemented_FeedBack}");
             }
         }
         finally
