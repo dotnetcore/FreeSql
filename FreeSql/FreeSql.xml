@@ -4750,6 +4750,13 @@
             动态过滤条件
             </summary>
         </member>
+        <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.UseAllLogic">
+            <summary>
+            使用所有逻辑运算符，默认为False。
+            False：按照原来的模式，只有分组的逻辑运算符会生成到查询条件中,只有OR分组会生成括号。
+            True：按照新的模式，所有的逻辑运算符都会生成到查询条件中，所有分组(AND或OR)都会生成括号。
+            </summary>
+        </member>
         <member name="P:FreeSql.Internal.Model.DynamicFilterInfo.Field">
             <summary>
             属性名：Name<para></para>

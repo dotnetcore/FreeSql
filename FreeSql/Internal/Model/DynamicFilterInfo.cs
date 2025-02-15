@@ -17,15 +17,24 @@ namespace FreeSql.Internal.Model
     public class DynamicFilterInfo
     {
         /// <summary>
+        /// 使用所有逻辑运算符，默认为False。
+        /// False：按照原来的模式，只有分组的逻辑运算符会生成到查询条件中,只有OR分组会生成括号。
+        /// True：按照新的模式，所有的逻辑运算符都会生成到查询条件中，所有分组(AND或OR)都会生成括号。
+        /// </summary>
+        public bool UseAllLogic { get; set; }
+
+        /// <summary>
         /// 属性名：Name<para></para>
         /// 导航属性：Parent.Name<para></para>
         /// 多表：b.Name<para></para>
         /// </summary>
         public string Field { get; set; }
+
         /// <summary>
         /// 操作符
         /// </summary>
         public DynamicFilterOperator Operator { get; set; }
+
         /// <summary>
         /// 值
         /// </summary>
@@ -35,6 +44,7 @@ namespace FreeSql.Internal.Model
         /// Filters 下的逻辑运算符
         /// </summary>
         public DynamicFilterLogic Logic { get; set; }
+
         /// <summary>
         /// 子过滤条件，它与当前的逻辑关系是 And<para></para>
         /// 注意：当前 Field 可以留空
@@ -42,13 +52,16 @@ namespace FreeSql.Internal.Model
         public List<DynamicFilterInfo> Filters { get; set; }
     }
 
-    public enum DynamicFilterLogic { And, Or }
+    public enum DynamicFilterLogic
+    { And, Or }
+
     public enum DynamicFilterOperator
     {
         /// <summary>
         /// like
         /// </summary>
         Contains,
+
         StartsWith,
         EndsWith,
         NotContains,
@@ -60,16 +73,19 @@ namespace FreeSql.Internal.Model
         /// Equal/Equals/Eq 效果相同
         /// </summary>
         Equal,
+
         /// <summary>
         /// =<para></para>
         /// Equal/Equals/Eq 效果相同
         /// </summary>
         Equals,
+
         /// <summary>
         /// =<para></para>
         /// Equal/Equals/Eq 效果相同
         /// </summary>
         Eq,
+
         /// <summary>
         /// &lt;&gt;
         /// </summary>
@@ -79,14 +95,17 @@ namespace FreeSql.Internal.Model
         /// &gt;
         /// </summary>
         GreaterThan,
+
         /// <summary>
         /// &gt;=
         /// </summary>
         GreaterThanOrEqual,
+
         /// <summary>
         /// &lt;
         /// </summary>
         LessThan,
+
         /// <summary>
         /// &lt;=
         /// </summary>
@@ -116,6 +135,7 @@ namespace FreeSql.Internal.Model
         /// 此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
         /// </summary>
         Any,
+
         /// <summary>
         /// not in (1,2,3)<para></para>
         /// 此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
@@ -143,5 +163,6 @@ namespace FreeSql.Internal.Model
     /// 授权 DynamicFilter 支持 Custom 自定义解析
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class DynamicFilterCustomAttribute : Attribute { }
+    public class DynamicFilterCustomAttribute : Attribute
+    { }
 }
