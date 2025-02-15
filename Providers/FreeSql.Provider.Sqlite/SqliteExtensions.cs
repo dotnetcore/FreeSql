@@ -3,7 +3,6 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Text;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 public static partial class FreeSqlSqliteGlobalExtensions
 {
