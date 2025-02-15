@@ -20,7 +20,7 @@ public static partial class FreeSqlSqliteGlobalExtensions
     public static void ExecuteSqliteBulkInsert<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.Sqlite.Curd.SqliteInsert<T>;
-        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("BulkInsert", "Sqlite"));
+        if (insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("ExecuteSqliteBulkInsert", "Sqlite"));
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
