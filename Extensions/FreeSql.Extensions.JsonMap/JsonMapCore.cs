@@ -13,7 +13,7 @@ public static class FreeSqlJsonMapCoreExtensions
 {
     static int _isAoped = 0;
     static ConcurrentDictionary<Type, bool> _dicTypes = new ConcurrentDictionary<Type, bool>();
-    static MethodInfo MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
+    static MethodInfo MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type), typeof(JsonSerializerSettings) });
     static MethodInfo MethodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
     static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicJsonMapFluentApi = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
     static object _concurrentObj = new object();
@@ -44,7 +44,7 @@ public static class FreeSqlJsonMapCoreExtensions
                 if (_dicTypes.ContainsKey(type)) return Expression.IfThenElse(
                     Expression.TypeIs(valueExp, type),
                     Expression.Return(returnTarget, valueExp),
-                    Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type))
+                    Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type),Expression.Constant(settings)), type))
                 );
                 return null;
             });
