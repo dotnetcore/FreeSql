@@ -43,6 +43,31 @@ namespace FreeSql.TDengine
             //        e.ModifyResult.IsIgnore = true;
             //};
 
+            //TDengine 特殊处理:
+            this.Aop.AuditDataReader += (_, e) =>
+            {
+                var dataTypeName = e.DataReader.GetDataTypeName(e.Index);
+                switch (dataTypeName)
+                {
+                    case "TIMESTAMP":
+                        try
+                        {
+                            var value = e.DataReader.GetValue(e.Index);
+                            if (value != null)
+                                e.Value = e.DataReader.GetDateTime(e.Index);
+                            else
+                                e.Value = null;
+
+                            return;
+                        }
+                        catch
+                        {
+                            e.Value = new DateTime();
+                            return;
+                        }
+                }
+            };
+
             //处理参数化
             this.Aop.CommandBefore += (_, e) =>
             {
@@ -75,7 +100,8 @@ namespace FreeSql.TDengine
 
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere)
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException(
+                $"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere)
@@ -85,7 +111,8 @@ namespace FreeSql.TDengine
 
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>()
         {
-            throw new NotImplementedException($"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
+            throw new NotImplementedException(
+                $"FreeSql.Provider.TDengine {CoreErrorStrings.S_Not_Implemented_Feature}");
         }
 
         ~TDengineProvider() => this.Dispose();
