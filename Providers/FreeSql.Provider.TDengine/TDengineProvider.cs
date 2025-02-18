@@ -53,10 +53,7 @@ namespace FreeSql.TDengine
                         try
                         {
                             var value = e.DataReader.GetValue(e.Index);
-                            if (value != null)
-                                e.Value = e.DataReader.GetDateTime(e.Index);
-                            else
-                                e.Value = null;
+                            e.Value = value != null ? e.DataReader.GetDateTime(e.Index) : null;
 
                             return;
                         }
