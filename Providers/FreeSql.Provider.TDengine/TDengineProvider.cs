@@ -52,17 +52,13 @@ namespace FreeSql.TDengine
                     case "TIMESTAMP":
                         try
                         {
-                            var value = e.DataReader.GetValue(e.Index);
-                            if (value != null)
-                                e.Value = e.DataReader.GetDateTime(e.Index);
-                            else
-                                e.Value = null;
-
+                            if (e.DataReader.IsDBNull(e.Index)) e.Value = null;
+                            else e.Value = e.DataReader.GetDateTime(e.Index);
                             return;
                         }
                         catch
                         {
-                            e.Value = new DateTime();
+                            e.Value = DateTime.MinValue;
                             return;
                         }
                 }
