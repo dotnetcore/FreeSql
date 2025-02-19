@@ -4,7 +4,7 @@ using Xunit;
 
 namespace FreeSql.Tests.Provider.TDengine.TDengine.TDengineAdo
 {
-    public class TDengineAdoTest
+    public class TDengineCrudTest
     {
         IFreeSql fsql => g.tdengine;
 
