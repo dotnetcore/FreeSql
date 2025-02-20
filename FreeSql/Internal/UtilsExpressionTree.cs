@@ -16,6 +16,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace FreeSql.Internal
 {
@@ -1003,6 +1004,7 @@ namespace FreeSql.Internal
                     var midTypePropsTrytb = tbmid.Properties.Where(a => a.Value.PropertyType == trytb.Type).FirstOrDefault().Value;
                     //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
                     var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var minPkCols = new List<ColumnInfo>();
 
                     if (pnvAttr?.ManyToMany != null)
                     {
@@ -1039,6 +1041,8 @@ namespace FreeSql.Internal
                                 if (tbmid.Primarys.Any() == false)
                                     foreach (var c in trytbTf.Columns)
                                         tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.AddRange(trytbTf.Columns);
 
                                 if (isLazy)
                                 {
@@ -1086,6 +1090,8 @@ namespace FreeSql.Internal
                                     if (tbmid.Primarys.Any() == false)
                                         foreach (var c in tbrefTf.Columns)
                                             tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                    else
+                                        minPkCols.AddRange(tbrefTf.Columns);
 
                                     if (isLazy)
                                     {
@@ -1129,6 +1135,8 @@ namespace FreeSql.Internal
                             nvref.MiddleColumns.Add(trycol);
                             if (tbmid.Primarys.Any() == false)
                                 trycol.Attribute.IsPrimary = true;
+                            else
+                                minPkCols.Add(trycol);
 
                             if (isLazy)
                             {
@@ -1169,6 +1177,8 @@ namespace FreeSql.Internal
                                 nvref.MiddleColumns.Add(trycol);
                                 if (tbmid.Primarys.Any() == false)
                                     trycol.Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.Add(trycol);
 
                                 if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
                             }
@@ -1196,6 +1206,11 @@ namespace FreeSql.Internal
                                         break;
                                 }
                             }
+                        }
+                        else if(minPkCols.Any(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary == false)) 
+                        {
+                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类主键错误：{midType.Name}({string.Join(",", tbmid.Primarys.Select(a => a.CsName))}) 与两边不匹配");
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         }
                     }
 
