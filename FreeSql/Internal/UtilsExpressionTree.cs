@@ -16,7 +16,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace FreeSql.Internal
 {
