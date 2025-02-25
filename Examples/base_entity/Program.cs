@@ -13,6 +13,7 @@ using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
+using Org.BouncyCastle.Tls;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -619,6 +620,18 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var sql20250205 = fsql.Select<OrderLine, Product>()
+                .InnerJoin((l, p) => l.ProductId == p.ID)
+                .GroupBy((l, p) => new { p.ID, ShopType = l.ShopType ?? 0 })
+                .ToSql(x => new
+                {
+                    TradeId = x.Key.ID,
+                    ShopType = x.Key.ShopType,
+                    FieldCount = x.CountDistinct(x.Value.Item2.ID),
+                    Count = x.Count(x.Value.Item1.Id),
+                    Kb = (long)x.Sum(x.Value.Item1.Amount)
+                });
 
             var res = fsql.Select<MemberActionDayCountModel>()
                 .Where(x => x.Date >= 20230101 && x.Date < 20240101 && x.ScanCode > 0)
@@ -3510,4 +3523,14 @@ public sealed class MemberActionDayCountModel
     /// </summary>
     public decimal ScanCodeAmount { get; set; }
     #endregion
+}
+[ExpressionCall]
+public static class ExpressionCallExtesions
+{
+    static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+    public static int CountDistinct<TKey, TValue>(this ISelectGroupingAggregate<TKey, TValue> that, object column)
+    {
+        context.Value.Result = $"count(distinct {context.Value.ParsedContent["column"]})";
+        return 0;
+    }
 }

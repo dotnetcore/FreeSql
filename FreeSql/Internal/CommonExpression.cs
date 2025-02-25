@@ -2055,6 +2055,7 @@ namespace FreeSql.Internal
                         {
                             var expStackFirst = expStack.First() as ParameterExpression;
                             var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
+                            if (bidx == 2 && expStack.Count == 1) return ""; //不解析
                             var diyexpMembers = expStack.Where((a, b) => b >= bidx).ToArray();
                             if (diyexpMembers.Any() == false && diymemexp != null && diymemexp is Select0Provider.WithTempQueryParser tempQueryParser && tempQueryParser.GetOutsideSelectTable(expStackFirst) != null)
                                 diyexpMembers = expStack.ToArray();
