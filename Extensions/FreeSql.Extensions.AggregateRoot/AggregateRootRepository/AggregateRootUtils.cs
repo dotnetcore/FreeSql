@@ -81,6 +81,7 @@ namespace FreeSql
                     if (table.ColumnsByCs.ContainsKey(col.CsName))
                     {
                         if (col.Attribute.IsVersion) continue;
+                        if (col.Attribute.CanUpdate == false) continue;
                         var propvalBefore = table.GetPropertyValue(entityBefore, col.CsName);
                         var propvalAfter = table.GetPropertyValue(entityAfter, col.CsName);
                         //if (object.Equals(propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
