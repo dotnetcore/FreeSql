@@ -99,13 +99,12 @@ namespace FreeSql
             if (string.IsNullOrEmpty(key)) throw new Exception(DbContextErrorStrings.Incomparable_PrimaryKey_NotSet(Orm.GetEntityString(EntityType, newdata)));
             if (_states.TryGetValue(key, out var oldState) == false || oldState == null) throw new Exception($"不可对比，数据未被跟踪：{Orm.GetEntityString(EntityType, newdata)}");
             AggregateRootTrackingChangeInfo tracking = new AggregateRootTrackingChangeInfo();
-            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, oldState, newdata, null, tracking);
-            return new Dictionary<string, object[]>
-            {
-                ["Insert"] = tracking.InsertLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray(),
-                ["Delete"] = tracking.DeleteLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray(),
-                ["Update"] = tracking.UpdateLog.Select(a => new object[] { a.Item1, a.Item2, a.Item3, a.Item4 }).ToArray(),
-            };
+            AggregateRootUtils.CompareEntityValue(_boundaryName, Orm, EntityType, oldState.Value, newdata, null, tracking);
+            var result = new Dictionary<string, object[]>();
+            if (tracking.InsertLog.Any()) result.Add("Insert", tracking.InsertLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray());
+            if (tracking.DeleteLog.Any()) result.Add("Delete", tracking.DeleteLog.Select(a => new object[] { a.Item1, a.Item2 }).ToArray());
+            if (tracking.UpdateLog.Any()) result.Add("Update", tracking.UpdateLog.Select(a => new object[] { a.Item1, a.Item2, a.Item3, a.Item4 }).ToArray());
+            return result;
         }
         public void FlushState()
         {
