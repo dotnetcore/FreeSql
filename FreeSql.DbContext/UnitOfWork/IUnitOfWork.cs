@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FreeSql
 {
@@ -37,5 +39,13 @@ namespace FreeSql
         /// 用户自定义的状态数据，便于扩展
         /// </summary>
         Dictionary<string, object> States { get; }
+
+#if NETCOREAPP3_1_OR_GREATER
+        Task<DbTransaction> GetOrBeginTransactionAsync(bool isCreate = true, CancellationToken cancellationToken = default);
+
+        Task CommitAsync(CancellationToken cancellationToken = default);
+
+        Task RollbackAsync(CancellationToken cancellationToken = default);
+#endif
     }
 }
