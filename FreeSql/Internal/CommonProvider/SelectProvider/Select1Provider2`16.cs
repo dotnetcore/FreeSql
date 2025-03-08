@@ -62,6 +62,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2>>(exp?.Body);
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.GroupBySelf<TMember>(Expression<Func<T1, T2, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2>.Max<TMember>(Expression<Func<T1, T2, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -231,6 +238,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2>).GroupBy((Expression<Func<T1, T2, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2> ISelect<T1, T2>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2>).GroupBySelf((Expression<Func<T1, T2, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2>.Max<TMember>(Expression<Func<HzyTuple<T1, T2>, TMember>> column)
@@ -551,6 +564,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3>.Max<TMember>(Expression<Func<T1, T2, T3, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -720,6 +740,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3>).GroupBy((Expression<Func<T1, T2, T3, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3>).GroupBySelf((Expression<Func<T1, T2, T3, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3>, TMember>> column)
@@ -1043,6 +1069,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4>.Max<TMember>(Expression<Func<T1, T2, T3, T4, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -1212,6 +1245,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4>).GroupBy((Expression<Func<T1, T2, T3, T4, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4>).GroupBySelf((Expression<Func<T1, T2, T3, T4, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4>, TMember>> column)
@@ -1538,6 +1577,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -1707,6 +1753,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5>, TMember>> column)
@@ -2036,6 +2088,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -2205,6 +2264,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6>, TMember>> column)
@@ -2537,6 +2602,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -2706,6 +2778,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column)
@@ -3041,6 +3119,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -3210,6 +3295,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
@@ -3548,6 +3639,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -3717,6 +3815,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TMember>> column)
@@ -4058,6 +4162,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -4227,6 +4338,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, TMember>> column)
@@ -4571,6 +4688,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -4740,6 +4864,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, TMember>> column)
@@ -5087,6 +5217,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -5256,6 +5393,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, TMember>> column)
@@ -5606,6 +5749,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -5775,6 +5925,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, TMember>> column)
@@ -6128,6 +6284,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -6297,6 +6460,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, TMember>> column)
@@ -6653,6 +6822,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -6822,6 +6998,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, TMember>> column)
@@ -7181,6 +7363,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>>(exp?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.GroupBySelf<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -7350,6 +7539,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TKey>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.GroupBySelf<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>).GroupBySelf((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>>)expModify);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, TMember>> column)

@@ -851,6 +851,19 @@ namespace FreeSql.Internal.CommonProvider
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
+        public TSelect InternalGroupBySelf(Expression column)
+        {
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    this.GroupBy(string.Join(", ", newExp.Members.Select((b, a) => _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, _diymemexpWithTempQuery))));
+                    return this as TSelect;
+            }
+            return this.GroupBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, _diymemexpWithTempQuery));
+        }
         public TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
             _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);

@@ -116,6 +116,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         ISelect<<#=NewStr #>> WhereIf(bool condition, Expression<Func<<#=NewStr #>, bool>> exp);
 
         ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> GroupBy<TKey>(Expression<Func<<#=NewStr #>, TKey>> exp);
+        ISelect<<#=NewStr #>> GroupBySelf<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
 
         ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
@@ -152,6 +153,7 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         ISelect<<#=NewStr #>> WhereIf(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
 
         ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> GroupBy<TKey>(Expression<Func<HzyTuple<<#=NewStr #>>, TKey>> exp);
+        ISelect<<#=NewStr #>> GroupBySelf<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
 
         ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);

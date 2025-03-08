@@ -293,6 +293,15 @@ namespace FreeSql
         /// <param name="exp"></param>
         /// <returns></returns>
         ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
+        /// <summary>
+        /// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})<para></para>
+        /// * GroupBy 返回 ISelectGrouping&lt;T&gt;<para></para>
+        /// * GroupBySelf 返回 ISelect&lt;T&gt;（限制少）
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        ISelect<T1> GroupBySelf<TMember>(Expression<Func<T1, TMember>> column);
 
         /// <summary>
         /// 按列排序，OrderBy(a => a.Time)

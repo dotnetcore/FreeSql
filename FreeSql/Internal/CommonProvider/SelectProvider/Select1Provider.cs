@@ -304,6 +304,12 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = columns.Parameters[0];
             return this.InternalGroupBy<TKey, T1>(columns);
         }
+        public ISelect<T1> GroupBySelf<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return this;
+            _tables[0].Parameter = column.Parameters[0];
+            return this.InternalGroupBySelf(column.Body);
+        }
 
         public TMember Max<TMember>(Expression<Func<T1, TMember>> column)
         {
