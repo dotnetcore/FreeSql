@@ -621,6 +621,19 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.InsertOrUpdate<AppInfoEntity>().SetSource(new AppInfoEntity { AppID = "03DN8CW8", AppName = "app_01" }).ExecuteAffrows();
+            var repo2211 = fsql.GetRepository<AppInfoEntity>();
+
+            var appInfo = repo2211.Where(info => info.AppID == "03DN8CW8").First();
+            appInfo = repo2211.Where(info => info.AppID == "03DN8CW8").First();
+            var compareDic = new Dictionary<string, object[]>();
+            var updateInfo = "";
+
+            repo2211.Attach(appInfo);
+            appInfo.AppName = "测试";
+            compareDic = repo2211.CompareState(appInfo);
+            Console.WriteLine(appInfo.AppName);
+
             var sql20250205 = fsql.Select<OrderLine, Product>()
                 .InnerJoin((l, p) => l.ProductId == p.ID)
                 .GroupBy((l, p) => new { p.ID, ShopType = l.ShopType ?? 0 })
@@ -2997,6 +3010,13 @@ class String_TestIdAndIdentity : TypeHandler<TestIdAndIdentity>
     }
 }
 }
+        public class AppInfoEntity
+        {
+            [Column(IsPrimary = true, Name = "APP_ID")]
+            public string AppID { get; set; }
+            [Column(Name = "APP_NAME")]
+            public string AppName { get; set; }
+        }
 public partial class OrderLine22x
 {
 
