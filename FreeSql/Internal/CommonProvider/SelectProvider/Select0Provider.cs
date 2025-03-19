@@ -1032,6 +1032,7 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect WhereIf(bool condition, string sql, object parms = null)
         {
             if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
+            if (_groupBySelfFlag) return this.Having(sql, parms);
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;

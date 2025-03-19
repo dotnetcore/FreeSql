@@ -851,8 +851,10 @@ namespace FreeSql.Internal.CommonProvider
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
+        bool _groupBySelfFlag = false;
         public TSelect InternalGroupBySelf(Expression column)
         {
+            _groupBySelfFlag = true;
             if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
             switch (column?.NodeType)
             {
