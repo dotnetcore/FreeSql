@@ -18,9 +18,15 @@ using System.Threading;
 
 namespace FreeSql.PostgreSQL
 {
-
-    public class PostgreSQLProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
+    public interface IPostgreSQLProviderOptions
     {
+        bool UseMergeInto{ get; set; }
+    }
+
+    public class PostgreSQLProvider<TMark> : BaseDbProvider, IFreeSql<TMark>, IPostgreSQLProviderOptions
+    {
+        public bool UseMergeInto { get; set; }
+
         static int _firstInit = 1;
         static void InitInternal()
         {
@@ -145,6 +151,7 @@ namespace FreeSql.PostgreSQL
 
         ~PostgreSQLProvider() => this.Dispose();
         int _disposeCounter;
+
         public override void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
