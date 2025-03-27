@@ -621,6 +621,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Insert(new User1()).ExecuteInserted();
+
             fsql.InsertOrUpdate<AppInfoEntity>().SetSource(new AppInfoEntity { AppID = "03DN8CW8", AppName = "app_01" }).ExecuteAffrows();
             var repo2211 = fsql.GetRepository<AppInfoEntity>();
 

@@ -89,12 +89,25 @@ namespace FreeSql.Custom.MySql
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            foreach (var col in _table.Columns.Values)
+            var propidx = 0;
+            var props = _table.Type.GetPropertiesDictIgnoreCase();
+            var indexes = new int[props.Count];
+            var sbflag = new StringBuilder().Append("insertedQuery");
+            foreach (var prop in props)
             {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
+                if (_table.ColumnsByCs.TryGetValue(prop.Key, out var col))
+                {
+                    if (colidx > 0) sb.Append(", ");
+                    sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                    sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                    indexes[propidx] = colidx;
+                    ++colidx;
+                }
+                else
+                    indexes[propidx] = -1;
+                ++propidx;
             }
+            var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -102,12 +115,15 @@ namespace FreeSql.Custom.MySql
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
+                {
+                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, _table.TypeLazy ?? _table.Type, indexes, fetch.Object, 0, _commonUtils));
+                }, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -169,12 +185,25 @@ namespace FreeSql.Custom.MySql
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            foreach (var col in _table.Columns.Values)
+            var propidx = 0;
+            var props = _table.Type.GetPropertiesDictIgnoreCase();
+            var indexes = new int[props.Count];
+            var sbflag = new StringBuilder().Append("insertedQuery");
+            foreach (var prop in props)
             {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
+                if (_table.ColumnsByCs.TryGetValue(prop.Key, out var col))
+                {
+                    if (colidx > 0) sb.Append(", ");
+                    sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                    sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                    indexes[propidx] = colidx;
+                    ++colidx;
+                }
+                else
+                    indexes[propidx] = -1;
+                ++propidx;
             }
+            var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -182,12 +211,16 @@ namespace FreeSql.Custom.MySql
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
+                {
+                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, _table.TypeLazy ?? _table.Type, indexes, fetch.Object, 0, _commonUtils));
+                    return Task.FromResult(false);
+                }, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

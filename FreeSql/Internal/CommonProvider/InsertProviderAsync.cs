@@ -189,7 +189,7 @@ namespace FreeSql.Internal.CommonProvider
             if (ss.Length == 1)
             {
                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteInsertedAsync(cancellationToken);
+                ret = await this.InternalExecuteInsertedAsync(cancellationToken);
                 ClearData();
                 return ret;
             }
@@ -210,7 +210,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         _source = ss[a]; 
                         _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(await this.RawExecuteInsertedAsync(cancellationToken));
+                        ret.AddRange(await this.InternalExecuteInsertedAsync(cancellationToken));
                     }
                 }
                 else
@@ -227,7 +227,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 _source = ss[a];
                                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(await this.RawExecuteInsertedAsync(cancellationToken));
+                                ret.AddRange(await this.InternalExecuteInsertedAsync(cancellationToken));
                             }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
@@ -282,6 +282,12 @@ namespace FreeSql.Internal.CommonProvider
 
         protected abstract Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default);
         protected abstract Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default);
+        async private Task<List<T1>> InternalExecuteInsertedAsync(CancellationToken cancellationToken = default)
+        {
+            var ret = await RawExecuteInsertedAsync(cancellationToken);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
 
         public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
         public abstract Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default);

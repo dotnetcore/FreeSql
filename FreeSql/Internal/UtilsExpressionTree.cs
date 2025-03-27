@@ -1752,6 +1752,8 @@ namespace FreeSql.Internal
             }
             return dr.GetValue(index);
         }
+        public static object ExecuteReaderToClass(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils) =>
+            ExecuteArrayRowReadClassOrTuple(flagStr, typeOrg, indexes, row, dataIndex, _commonUtils)?.Value;
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)
         {
             if (string.IsNullOrEmpty(flagStr)) flagStr = "all";

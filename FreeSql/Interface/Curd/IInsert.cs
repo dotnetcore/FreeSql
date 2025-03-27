@@ -156,7 +156,7 @@ namespace FreeSql
         long ExecuteIdentity();
         /// <summary>
         /// 执行SQL语句，返回插入后的记录<para></para>
-        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
+        /// 注意：此方法只有 Postgresql/SqlServer/MySql8.0.30+/Maridb/Firebird/DuckDB/人大金仓 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();
@@ -174,6 +174,11 @@ namespace FreeSql
 #else
         Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
         Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// 执行SQL语句，返回插入后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer/MySql8.0.30+/Maridb/Firebird/DuckDB/人大金仓 有效果
+        /// </summary>
+        /// <returns></returns>
         Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default);
 #endif
     }

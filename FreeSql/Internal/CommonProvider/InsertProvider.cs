@@ -431,7 +431,7 @@ namespace FreeSql.Internal.CommonProvider
             if (ss.Length == 1)
             {
                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = this.RawExecuteInserted();
+                ret = this.InternalExecuteInserted();
                 ClearData();
                 return ret;
             }
@@ -452,7 +452,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         _source = ss[a];
                         _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(this.RawExecuteInserted());
+                        ret.AddRange(this.InternalExecuteInserted());
                     }
                 }
                 else
@@ -469,7 +469,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 _source = ss[a];
                                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(this.RawExecuteInserted());
+                                ret.AddRange(this.InternalExecuteInserted());
                             }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
@@ -525,6 +525,12 @@ namespace FreeSql.Internal.CommonProvider
 
         protected abstract long RawExecuteIdentity();
         protected abstract List<T1> RawExecuteInserted();
+        private List<T1> InternalExecuteInserted()
+        {
+            var ret = RawExecuteInserted();
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
 
         public abstract int ExecuteAffrows();
         public abstract long ExecuteIdentity();
