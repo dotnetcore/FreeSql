@@ -51,7 +51,7 @@ namespace FreeSql.Internal.CommonProvider
                     sb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                     idx = 1;
                 }
-                sb.Append(AddslashesProcessParam(z, mapType, mapColumn));
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", AddslashesProcessParam(z, mapType, mapColumn)));
             }
 
             return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
