@@ -1,10 +1,12 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,24 +91,18 @@ namespace FreeSql.Custom.MySql
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            var propidx = 0;
-            var props = _table.Type.GetPropertiesDictIgnoreCase();
-            var indexes = new int[props.Count];
-            var sbflag = new StringBuilder().Append("insertedQuery");
-            foreach (var prop in props)
+            var sbflag = new StringBuilder().Append("adoQuery(crud)");
+            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+            foreach (var col in _table.Columns.Values)
             {
-                if (_table.ColumnsByCs.TryGetValue(prop.Key, out var col))
-                {
-                    if (colidx > 0) sb.Append(", ");
-                    sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                    sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                    indexes[propidx] = colidx;
-                    ++colidx;
-                }
-                else
-                    indexes[propidx] = -1;
-                ++propidx;
+                if (colidx > 0) sb.Append(", ");
+                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                if (dic.ContainsKey(col.CsName)) continue;
+                sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                dic.Add(col.CsName, colidx);
+                ++colidx;
             }
+            var indexes = AdoProvider.GetQueryTypeProperties(_table.TypeLazy ?? _table.Type).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
             var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -185,24 +181,18 @@ namespace FreeSql.Custom.MySql
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            var propidx = 0;
-            var props = _table.Type.GetPropertiesDictIgnoreCase();
-            var indexes = new int[props.Count];
-            var sbflag = new StringBuilder().Append("insertedQuery");
-            foreach (var prop in props)
+            var sbflag = new StringBuilder().Append("adoQuery(crud)");
+            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+            foreach (var col in _table.Columns.Values)
             {
-                if (_table.ColumnsByCs.TryGetValue(prop.Key, out var col))
-                {
-                    if (colidx > 0) sb.Append(", ");
-                    sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                    sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                    indexes[propidx] = colidx;
-                    ++colidx;
-                }
-                else
-                    indexes[propidx] = -1;
-                ++propidx;
+                if (colidx > 0) sb.Append(", ");
+                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                if (dic.ContainsKey(col.CsName)) continue;
+                sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                dic.Add(col.CsName, colidx);
+                ++colidx;
             }
+            var indexes = AdoProvider.GetQueryTypeProperties(_table.TypeLazy ?? _table.Type).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
             var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);

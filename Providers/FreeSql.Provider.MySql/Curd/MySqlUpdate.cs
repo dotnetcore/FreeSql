@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,9 @@ namespace FreeSql.MySql.Curd
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
+            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+            int[] queryIndexs = null;
+            var queryFlag = "";
             ToSqlFetch(sb =>
             {
                 if (dbParms == null)
@@ -44,12 +48,19 @@ namespace FreeSql.MySql.Curd
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
+                    var sbflag = new StringBuilder().Append("adoQuery(crud)");
+                    var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sb.Append(", ");
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                        if (dic.ContainsKey(col.CsName)) continue;
+                        sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                        dic.Add(col.CsName, colidx);
                         ++colidx;
                     }
+                    queryIndexs = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
+                    queryFlag = sbflag.ToString();
                 }
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
@@ -58,8 +69,11 @@ namespace FreeSql.MySql.Curd
                 Exception exception = null;
                 try
 				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    var rettmp = new List<TReturn>();
+                    _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
+                    {
+                        rettmp.Add((TReturn)Utils.ExecuteReaderToClass(queryFlag, queryType, queryIndexs, fetch.Object, 0, _commonUtils));
+                    }, CommandType.Text, sql, _commandTimeout, dbParms);
 					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
@@ -125,6 +139,9 @@ namespace FreeSql.MySql.Curd
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
+            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+            int[] queryIndexs = null;
+            var queryFlag = "";
             await ToSqlFetchAsync(async sb =>
             {
                 if (dbParms == null)
@@ -134,12 +151,19 @@ namespace FreeSql.MySql.Curd
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
+                    var sbflag = new StringBuilder().Append("adoQuery(crud)");
+                    var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sb.Append(", ");
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+                        if (dic.ContainsKey(col.CsName)) continue;
+                        sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
+                        dic.Add(col.CsName, colidx);
                         ++colidx;
                     }
+                    queryIndexs = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
+                    queryFlag = sbflag.ToString();
                 }
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
@@ -147,10 +171,14 @@ namespace FreeSql.MySql.Curd
 
                 Exception exception = null;
                 try
-				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                {
+                    var rettmp = new List<TReturn>();
+                    await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
+                    {
+                        rettmp.Add((TReturn)Utils.ExecuteReaderToClass(queryFlag, queryType, queryIndexs, fetch.Object, 0, _commonUtils));
+                        return Task.FromResult(false);
+                    }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)

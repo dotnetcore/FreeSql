@@ -621,7 +621,16 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Delete<User1>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new List<User1>
+            {
+                new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                new User1 { Nickname = "n2", Username = "u2", Description = "d2" },
+                new User1 { Nickname = "n3", Username = "u3", Description = "d3" },
+            }).ExecuteAffrows();
+
             fsql.Insert(new User1()).ExecuteInserted();
+            fsql.Update<User1>().SetSource(new User1()).ExecuteUpdated();
 
             fsql.InsertOrUpdate<AppInfoEntity>().SetSource(new AppInfoEntity { AppID = "03DN8CW8", AppName = "app_01" }).ExecuteAffrows();
             var repo2211 = fsql.GetRepository<AppInfoEntity>();
