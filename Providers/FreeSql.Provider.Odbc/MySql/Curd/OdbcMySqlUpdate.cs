@@ -52,7 +52,7 @@ namespace FreeSql.Odbc.MySql
                     var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sb.Append(", ");
+                        if (colidx > 0) sbret.Append(", ");
                         sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
                         if (dic.ContainsKey(col.CsName)) continue;
                         sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
@@ -155,7 +155,7 @@ namespace FreeSql.Odbc.MySql
                     var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sb.Append(", ");
+                        if (colidx > 0) sbret.Append(", ");
                         sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
                         if (dic.ContainsKey(col.CsName)) continue;
                         sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");

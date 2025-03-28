@@ -102,7 +102,8 @@ namespace FreeSql.Custom.MySql
                 dic.Add(col.CsName, colidx);
                 ++colidx;
             }
-            var indexes = AdoProvider.GetQueryTypeProperties(_table.TypeLazy ?? _table.Type).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
+            var queryType = _table.TypeLazy ?? _table.Type;
+            var indexes = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
             var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -113,7 +114,7 @@ namespace FreeSql.Custom.MySql
             {
                 _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
-                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, _table.TypeLazy ?? _table.Type, indexes, fetch.Object, 0, _commonUtils));
+                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, queryType, indexes, fetch.Object, 0, _commonUtils));
                 }, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
@@ -192,7 +193,8 @@ namespace FreeSql.Custom.MySql
                 dic.Add(col.CsName, colidx);
                 ++colidx;
             }
-            var indexes = AdoProvider.GetQueryTypeProperties(_table.TypeLazy ?? _table.Type).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
+            var queryType = _table.TypeLazy ?? _table.Type;
+            var indexes = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
             var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -203,7 +205,7 @@ namespace FreeSql.Custom.MySql
             {
                 await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
-                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, _table.TypeLazy ?? _table.Type, indexes, fetch.Object, 0, _commonUtils));
+                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, queryType, indexes, fetch.Object, 0, _commonUtils));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, _commandTimeout, _params);
             }
