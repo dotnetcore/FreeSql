@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FreeSql
 {
@@ -138,7 +139,7 @@ namespace FreeSql
         }
         IUnitOfWork CreateUow(IsolationLevel? isolationLevel)
         {
-            var uow = new UnitOfWorkOrginal(new UnitOfWork(OrmOriginal));
+            var uow = new UnitOfWorkOriginal(new UnitOfWork(OrmOriginal));
             var uowInfo = new UowInfo(uow, UowInfo.UowType.Orginal, false);
             if (isolationLevel != null) uow.IsolationLevel = isolationLevel.Value;
             try { uow.GetOrBeginTransaction(); }
@@ -156,6 +157,74 @@ namespace FreeSql
             return uow;
         }
 
+#if NETCOREAPP3_1_OR_GREATER
+        /// <summary>
+        /// 创建工作单元
+        /// </summary>
+        /// <param name="propagation">事务传播方式</param>
+        /// <param name="isolationLevel">事务隔离级别</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns></returns>
+        public async Task<IUnitOfWork> BeginAsync(Propagation propagation = Propagation.Required, IsolationLevel? isolationLevel = null, CancellationToken cancellationToken = default)
+        {
+            switch (propagation)
+            {
+                case Propagation.Required: return await FindedUowCreateVirtualAsync(cancellationToken) ?? await CreateUowAsync(isolationLevel, cancellationToken);
+                case Propagation.Supports: return await FindedUowCreateVirtualAsync(cancellationToken) ?? CreateUowNothing(_allUows.LastOrDefault()?.IsNotSupported ?? false);
+                case Propagation.Mandatory: return await FindedUowCreateVirtualAsync(cancellationToken) ?? throw new Exception(DbContextStrings.Propagation_Mandatory);
+                case Propagation.NotSupported: return CreateUowNothing(true);
+                case Propagation.Never:
+                    var isNotSupported = _allUows.LastOrDefault()?.IsNotSupported ?? false;
+                    if (isNotSupported == false)
+                    {
+                        for (var a = _rawUows.Count - 1; a >= 0; a--)
+                            if (await _rawUows[a].Uow.GetOrBeginTransactionAsync(false, cancellationToken) != null)
+                                throw new Exception(DbContextStrings.Propagation_Never);
+                    }
+                    return CreateUowNothing(isNotSupported);
+                case Propagation.Nested: return await CreateUowAsync(isolationLevel, cancellationToken);
+                default: throw new NotImplementedException();
+            }
+        }
+
+        async Task<IUnitOfWork> CreateUowAsync(IsolationLevel? isolationLevel, CancellationToken cancellationToken = default)
+        {
+            var uow = new UnitOfWorkOriginal(new UnitOfWork(OrmOriginal));
+            var uowInfo = new UowInfo(uow, UowInfo.UowType.Orginal, false);
+            if (isolationLevel != null) uow.IsolationLevel = isolationLevel.Value;
+            try { await uow.GetOrBeginTransactionAsync(true, cancellationToken); }
+            catch { uow.Dispose(); throw; }
+
+            uow.OnDispose = () =>
+            {
+                _rawUows.Remove(uowInfo);
+                _allUows.Remove(uowInfo);
+                SetAllRepositoryUow();
+            };
+            _rawUows.Add(uowInfo);
+            _allUows.Add(uowInfo);
+            SetAllRepositoryUow();
+            return uow;
+        }
+        async Task<IUnitOfWork> FindedUowCreateVirtualAsync(CancellationToken cancellationToken = default)
+        {
+            var isNotSupported = _allUows.LastOrDefault()?.IsNotSupported ?? false;
+            if (isNotSupported == false)
+            {
+                for (var a = _rawUows.Count - 1; a >= 0; a--)
+                    if (await _rawUows[a].Uow.GetOrBeginTransactionAsync(false, cancellationToken) != null)
+                    {
+                        var uow = new UnitOfWorkVirtual(_rawUows[a].Uow);
+                        var uowInfo = new UowInfo(uow, UowInfo.UowType.Virtual, false);
+                        uow.OnDispose = () => _allUows.Remove(uowInfo);
+                        _allUows.Add(uowInfo);
+                        SetAllRepositoryUow();
+                        return uow;
+                    }
+            }
+            return null;
+        }
+#endif
         class RepoInfo
         {
             public IBaseRepository Repository;
@@ -181,11 +250,11 @@ namespace FreeSql
                 this.IsNotSupported = isNotSupported;
             }
         }
-        class UnitOfWorkOrginal : IUnitOfWork
+        class UnitOfWorkOriginal : IUnitOfWork
         {
             IUnitOfWork _baseUow;
             internal Action OnDispose;
-            public UnitOfWorkOrginal(IUnitOfWork baseUow) => _baseUow = baseUow;
+            public UnitOfWorkOriginal(IUnitOfWork baseUow) => _baseUow = baseUow;
             public IFreeSql Orm => _baseUow.Orm;
             public IsolationLevel? IsolationLevel { get => _baseUow.IsolationLevel; set => _baseUow.IsolationLevel = value; }
             public DbContext.EntityChangeReport EntityChangeReport => _baseUow.EntityChangeReport;
@@ -199,6 +268,11 @@ namespace FreeSql
                 _baseUow.Dispose();
                 OnDispose?.Invoke();
             }
+#if NETCOREAPP3_1_OR_GREATER
+            public Task<DbTransaction> GetOrBeginTransactionAsync(bool isCreate = true, CancellationToken cancellationToken = default) => _baseUow.GetOrBeginTransactionAsync(isCreate, cancellationToken);
+            public Task CommitAsync(CancellationToken cancellationToken = default) => _baseUow.CommitAsync(cancellationToken);
+            public Task RollbackAsync(CancellationToken cancellationToken = default) => _baseUow.RollbackAsync(cancellationToken);
+#endif
         }
         class UnitOfWorkVirtual : IUnitOfWork
         {
@@ -214,6 +288,12 @@ namespace FreeSql
             public void Commit() { }
             public void Rollback() => _baseUow.Rollback();
             public void Dispose() => OnDispose?.Invoke();
+
+#if NETCOREAPP3_1_OR_GREATER
+            public Task<DbTransaction> GetOrBeginTransactionAsync(bool isCreate = true, CancellationToken cancellationToken = default) => _baseUow.GetOrBeginTransactionAsync(isCreate, cancellationToken);
+            public Task CommitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task RollbackAsync(CancellationToken cancellationToken = default) => _baseUow.RollbackAsync(cancellationToken);
+#endif
         }
         class UnitOfWorkNothing : IUnitOfWork
         {
@@ -228,12 +308,28 @@ namespace FreeSql
             public DbTransaction GetOrBeginTransaction(bool isCreate = true) => null;
             public void Commit()
             {
-                if (EntityChangeReport != null && EntityChangeReport.OnChange != null && EntityChangeReport.Report.Any() == true)
+                if (EntityChangeReport?.OnChange != null && EntityChangeReport.Report.Any())
                     EntityChangeReport.OnChange.Invoke(EntityChangeReport.Report);
                 EntityChangeReport?.Report.Clear();
             }
             public void Rollback() => EntityChangeReport?.Report.Clear();
             public void Dispose() => OnDispose?.Invoke();
+
+#if NETCOREAPP3_1_OR_GREATER
+            public Task<DbTransaction> GetOrBeginTransactionAsync(bool isCreate = true, CancellationToken cancellationToken = default) => null;
+            public Task CommitAsync(CancellationToken cancellationToken = default)
+            {
+                if (EntityChangeReport?.OnChange != null && EntityChangeReport.Report.Any())
+                    EntityChangeReport.OnChange.Invoke(EntityChangeReport.Report);
+                EntityChangeReport?.Report.Clear();
+                return Task.CompletedTask;
+            }
+            public Task RollbackAsync(CancellationToken cancellationToken = default)
+            {
+                EntityChangeReport?.Report.Clear();
+                return Task.CompletedTask;
+            }
+#endif
         }
     }
 
