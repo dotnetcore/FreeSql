@@ -79,20 +79,12 @@ namespace FreeSql.MySql.Curd
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            var sbflag = new StringBuilder().Append("adoQuery(crud)");
-            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                if (dic.ContainsKey(col.CsName)) continue;
-                sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                dic.Add(col.CsName, colidx);
+                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
-            var queryType = _table.TypeLazy ?? _table.Type;
-            var indexes = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
-            var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -100,10 +92,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
-                {
-                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, queryType, indexes, fetch.Object, 0, _commonUtils));
-                }, CommandType.Text, sql, _commandTimeout, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -159,20 +148,12 @@ namespace FreeSql.MySql.Curd
             sb.Append(sql).Append(" RETURNING ");
 
             var colidx = 0;
-            var sbflag = new StringBuilder().Append("adoQuery(crud)");
-            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                if (dic.ContainsKey(col.CsName)) continue;
-                sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                dic.Add(col.CsName, colidx);
+                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
-            var queryType = _table.TypeLazy ?? _table.Type;
-            var indexes = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
-            var flag = sbflag.ToString();
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -180,11 +161,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
-                {
-                    ret.Add((T1)Utils.ExecuteReaderToClass(flag, queryType, indexes, fetch.Object, 0, _commonUtils));
-                    return Task.FromResult(false);
-                }, CommandType.Text, sql, _commandTimeout, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {

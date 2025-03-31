@@ -31,14 +31,11 @@ namespace FreeSql.Odbc.MySql
 		public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 		protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) => base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
 
-		protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
-		{
-			var ret = new List<TReturn>();
-			DbParameter[] dbParms = null;
-			StringBuilder sbret = null;
-            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-            int[] queryIndexs = null;
-            var queryFlag = "";
+        protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
+        {
+            var ret = new List<TReturn>();
+            DbParameter[] dbParms = null;
+            StringBuilder sbret = null;
             ToSqlFetch(sb =>
             {
                 if (dbParms == null)
@@ -48,19 +45,12 @@ namespace FreeSql.Odbc.MySql
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
-                    var sbflag = new StringBuilder().Append("adoQuery(crud)");
-                    var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
                         if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                        if (dic.ContainsKey(col.CsName)) continue;
-                        sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                        dic.Add(col.CsName, colidx);
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
-                    queryIndexs = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
-                    queryFlag = sbflag.ToString();
                 }
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
@@ -69,30 +59,27 @@ namespace FreeSql.Odbc.MySql
                 Exception exception = null;
                 try
                 {
-                    var rettmp = new List<TReturn>();
-                    _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
-                    {
-                        rettmp.Add((TReturn)Utils.ExecuteReaderToClass(queryFlag, queryType, queryIndexs, fetch.Object, 0, _commonUtils));
-                    }, CommandType.Text, sql, _commandTimeout, dbParms);
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)
-				{
-					exception = ex;
-					throw;
-				}
-				finally
-				{
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfterHandler?.Invoke(this, after);
-				}
-			});
-			sbret?.Clear();
-			return ret;
-		}
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            sbret?.Clear();
+            return ret;
+        }
 
-		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
+        protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
 		{
 			if (primarys.Length == 1)
 			{
@@ -134,14 +121,11 @@ namespace FreeSql.Odbc.MySql
 		public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
 		protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns, cancellationToken);
 
-		async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
-		{
-			var ret = new List<TReturn>();
-			DbParameter[] dbParms = null;
-			StringBuilder sbret = null;
-            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-            int[] queryIndexs = null;
-            var queryFlag = "";
+        async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
+        {
+            var ret = new List<TReturn>();
+            DbParameter[] dbParms = null;
+            StringBuilder sbret = null;
             await ToSqlFetchAsync(async sb =>
             {
                 if (dbParms == null)
@@ -151,19 +135,12 @@ namespace FreeSql.Odbc.MySql
                     sbret.Append(" RETURNING ");
 
                     var colidx = 0;
-                    var sbflag = new StringBuilder().Append("adoQuery(crud)");
-                    var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     foreach (var col in columns)
                     {
                         if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-                        if (dic.ContainsKey(col.CsName)) continue;
-                        sbflag.Append(col.Attribute.Name).Append(":").Append(colidx).Append(",");
-                        dic.Add(col.CsName, colidx);
+                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
-                    queryIndexs = AdoProvider.GetQueryTypeProperties(queryType).Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
-                    queryFlag = sbflag.ToString();
                 }
                 var sql = sb.Append(sbret).ToString();
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
@@ -172,29 +149,25 @@ namespace FreeSql.Odbc.MySql
                 Exception exception = null;
                 try
                 {
-                    var rettmp = new List<TReturn>();
-                    await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
-                    {
-                        rettmp.Add((TReturn)Utils.ExecuteReaderToClass(queryFlag, queryType, queryIndexs, fetch.Object, 0, _commonUtils));
-                        return Task.FromResult(false);
-                    }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                     ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)
-				{
-					exception = ex;
-					throw;
-				}
-				finally
-				{
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfterHandler?.Invoke(this, after);
-				}
-			});
-			sbret?.Clear();
-			return ret;
-		}
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            sbret?.Clear();
+            return ret;
+        }
 #endif
-	}
+    }
 }
