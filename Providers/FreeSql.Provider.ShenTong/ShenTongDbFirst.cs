@@ -484,7 +484,7 @@ where {loc8.ToString().Replace("a.table_name", "a.pktable_schem || '.' || a.pkta
                             bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
                             compare = b2.CompareTo(b1);
                         }
-                        if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
+                        if (compare == 0) compare = c1.Position.CompareTo(c2.Position);
                         return compare;
                     });
                     loc1.Add(loc4);
