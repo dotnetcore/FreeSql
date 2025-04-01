@@ -133,6 +133,11 @@ namespace FreeSql
 #if net40
 #else
         Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// 执行SQL语句，返回被删除的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
+        /// </summary>
+        /// <returns></returns>
         Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default);
 #endif
     }

@@ -303,11 +303,11 @@ namespace FreeSql
 #if net40
 #else
 		Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
-		/// <summary>
-		/// 执行SQL语句，返回更新后的记录<para></para>
-		/// 注意：此方法只有 Postgresql/SqlServer 有效果
-		/// </summary>
-		/// <returns></returns>
+        /// <summary>
+        /// 执行SQL语句，返回更新后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
+        /// </summary>
+        /// <returns></returns>
 		Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
 		Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default);
 #endif

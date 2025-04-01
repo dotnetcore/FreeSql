@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -476,13 +477,20 @@ namespace FreeSql.Internal.CommonProvider
 		public abstract int ExecuteAffrows();
 		protected abstract List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns);
 
-        public List<T1> ExecuteUpdated() => ExecuteUpdated<T1>(_table.ColumnsByPosition);
+        public List<T1> ExecuteUpdated()
+        {
+            var ret = ExecuteUpdated<T1>(_table.Columns.Values);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
         public List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns)
 		{
             var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, returnColumns?.Body, false, null)
                 .Distinct().Select(a => _table.ColumnsByCs.TryGetValue(a, out var c) ? c : null).Where(a => a != null).ToArray();
-			return ExecuteUpdated<TReturn>(cols);
-		}
+			var ret = ExecuteUpdated<TReturn>(cols);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
 
 		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
         public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null));
