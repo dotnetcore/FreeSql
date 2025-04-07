@@ -18,7 +18,7 @@ namespace FreeSql
         public IFreeSql Orm => _ormScoped;
         List<UowInfo> _rawUows = new List<UowInfo>();
         List<UowInfo> _allUows = new List<UowInfo>();
-        List<RepoInfo> _repos = new List<RepoInfo>();
+        List<BindInfo> _binds = new List<BindInfo>();
 
         public UnitOfWorkManager(IFreeSql fsql)
         {
@@ -53,7 +53,7 @@ namespace FreeSql
             {
                 _rawUows.Clear();
                 _allUows.Clear();
-                _repos.Clear();
+                _binds.Clear();
                 GC.SuppressFinalize(this);
             }
         }
@@ -70,15 +70,30 @@ namespace FreeSql
         /// <param name="repository"></param>
         public void Binding(IBaseRepository repository)
         {
-            var repoInfo = new RepoInfo(repository);
+            var bind = new BindInfo(repository);
             repository.UnitOfWork = Current;
-            if (_repos.Any(a => a.Repository == repository)) return;
-            _repos.Add(repoInfo);
+            if (_binds.Any(a => a.Repository == repository)) return;
+            _binds.Add(bind);
         }
-        void SetAllRepositoryUow()
+        /// <summary>
+        /// 将DbContext的事务交给我管理
+        /// </summary>
+        /// <param name="dbContext"></param>
+        public void Binding(DbContext dbContext)
         {
-            foreach (var repo in _repos)
-                repo.Repository.UnitOfWork = Current ?? repo.OrginalUow;
+            var bind = new BindInfo(dbContext);
+            dbContext._isUseUnitOfWork = false;
+            dbContext.UnitOfWork = Current;
+            if (_binds.Any(a => a.DbContext == dbContext)) return;
+            _binds.Add(bind);
+        }
+        void SetAllBindsUow()
+        {
+            foreach (var bind in _binds)
+            {
+                if (bind.Repository != null) bind.Repository.UnitOfWork = Current ?? bind.OrginalUow;
+                if (bind.DbContext != null) bind.DbContext.UnitOfWork = Current ?? bind.OrginalUow;
+            }
         }
 
         /// <summary>
@@ -121,7 +136,7 @@ namespace FreeSql
                         var uowInfo = new UowInfo(uow, UowInfo.UowType.Virtual, isNotSupported);
                         uow.OnDispose = () => _allUows.Remove(uowInfo);
                         _allUows.Add(uowInfo);
-                        SetAllRepositoryUow();
+                        SetAllBindsUow();
                         return uow;
                     }
             }
@@ -133,7 +148,7 @@ namespace FreeSql
             var uowInfo = new UowInfo(uow, UowInfo.UowType.Nothing, isNotSupported);
             uow.OnDispose = () => _allUows.Remove(uowInfo);
             _allUows.Add(uowInfo);
-            SetAllRepositoryUow();
+            SetAllBindsUow();
             return uow;
         }
         IUnitOfWork CreateUow(IsolationLevel? isolationLevel)
@@ -148,23 +163,29 @@ namespace FreeSql
             {
                 _rawUows.Remove(uowInfo);
                 _allUows.Remove(uowInfo);
-                SetAllRepositoryUow();
+                SetAllBindsUow();
             };
             _rawUows.Add(uowInfo);
             _allUows.Add(uowInfo);
-            SetAllRepositoryUow();
+            SetAllBindsUow();
             return uow;
         }
 
-        class RepoInfo
+        class BindInfo
         {
+            public DbContext DbContext;
             public IBaseRepository Repository;
             public IUnitOfWork OrginalUow;
 
-            public RepoInfo(IBaseRepository repository)
+            public BindInfo(IBaseRepository repository)
             {
                 this.Repository = repository;
                 this.OrginalUow = repository.UnitOfWork;
+            }
+            public BindInfo(DbContext dbContext)
+            {
+                this.DbContext = dbContext;
+                this.OrginalUow = dbContext.UnitOfWork;
             }
         }
         class UowInfo
