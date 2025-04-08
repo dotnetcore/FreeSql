@@ -621,6 +621,9 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            Utils.IsStrict = false;
+            var user1Tb = fsql.CodeFirst.GetTableByEntity(typeof(User11));
+
             fsql.Delete<User1>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new List<User1>
             {
@@ -3564,4 +3567,28 @@ public static class ExpressionCallExtesions
         context.Value.Result = $"count(distinct {context.Value.ParsedContent["column"]})";
         return 0;
     }
+}
+
+class User11
+{
+    public int Id { get; set; } //Id、UserId、User_id
+
+    public List<Role11> Role11s { get; set; }
+}
+class Role11
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public List<User11> User11s { get; set; }
+}
+class User11Role11
+{
+    public int Id { get; set; }
+
+    public int User11Id { get; set; }
+    public User11 User11 { get; set; }
+
+    public int Role11Id { get; set; }
+    public Role11 Role11 { get; set; }
 }

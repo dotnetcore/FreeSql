@@ -1,6 +1,9 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace FreeSql
@@ -384,6 +387,12 @@ namespace FreeSql
         public static string ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(object trytbTypeName, object pnvName, object tbmidCsName, object midTypePropsTrytbName) => Language == "cn" ?
             $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】" :
             $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}. The {midTypePropsTrytbName} navigation property is not ManyToOne or OneToOne";
+        /// <summary>
+        /// 导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类主键错误：{tbmidCsName}({string.Join(",", tbmidPrimarys.Select(a => a.CsName))}) 与两边不匹配
+        /// </summary>
+        public static string ManyToMany_ParsingError_InconsistentClass_PrimaryKeyError(object trytbTypeName, object pnvName, object tbmidCsName, ColumnInfo[] tbmidPrimarys) => Language == "cn" ?
+            $@"【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类主键错误：{tbmidCsName}({string.Join(",", tbmidPrimarys.Select(a => a.CsName))}) 与两边不匹配，设置 FreeSql.Internal.Utils.IsStrict = false 可忽略此限制" :
+            $@"FreeSql: [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, Intermediate class primary key error: {tbmidCsName}({string.Join(",", tbmidPrimarys.Select(a => a.CsName))}) Not matching with both sides. Set FreeSql.Internal.Utils.IsStrict = false, This restriction can be ignored";
         /// <summary>
         /// 映射异常：{name} 没有一个属性名相同
         /// </summary>
