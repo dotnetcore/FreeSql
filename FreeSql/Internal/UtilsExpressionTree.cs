@@ -21,6 +21,7 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
+        public static bool IsStrict = true;
         /// <summary>
         /// 用于解决多实例情况下的静态集合缓存问题
         /// </summary>
@@ -1206,7 +1207,7 @@ namespace FreeSql.Internal
                                 }
                             }
                         }
-                        else if(minPkCols.Any(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary == false)) 
+                        else if(IsStrict && minPkCols.Any(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary == false)) 
                         {
                             nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类主键错误：{midType.Name}({string.Join(",", tbmid.Primarys.Select(a => a.CsName))}) 与两边不匹配");
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
