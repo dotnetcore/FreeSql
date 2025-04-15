@@ -270,7 +270,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                         var dbPrimarys = tbstruct.Where(a => a.Value.is_primary).Select(a => a.Key).ToArray();
                         if (!csPrimarys.Any() && dbPrimarys.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" DROP PRIMARY KEY").Append(";\r\n");
                         if (csPrimarys.Any() && !dbPrimarys.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" ADD PRIMARY KEY(").Append(string.Join(", ", tb.Primarys.Select(tbcol => _commonUtils.QuoteSqlName(tbcol.Attribute.Name)))).Append(")").Append(";\r\n");
-                        else if (csPrimarys.Any() && csPrimarys.Except(dbPrimarys, StringComparer.CurrentCultureIgnoreCase).Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" DROP PRIMARY KEY, ADD PRIMARY KEY(").Append(string.Join(", ", tb.Primarys.Select(tbcol => _commonUtils.QuoteSqlName(tbcol.Attribute.Name)))).Append(")").Append(";\r\n");
+                        else if (csPrimarys.Any() && (csPrimarys.Length != dbPrimarys.Length || csPrimarys.Except(dbPrimarys, StringComparer.CurrentCultureIgnoreCase).Any())) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" DROP PRIMARY KEY, ADD PRIMARY KEY(").Append(string.Join(", ", tb.Primarys.Select(tbcol => _commonUtils.QuoteSqlName(tbcol.Attribute.Name)))).Append(")").Append(";\r\n");
                         var dsuksql = _commonUtils.FormatSql(@"
 select 
 a.column_name,
