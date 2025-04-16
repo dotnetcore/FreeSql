@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<TargetFrameworks>net6.0</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IsPackable>true</IsPackable>
 		<PackAsTool>true</PackAsTool>
@@ -15,8 +15,6 @@
 		<PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
 		<Version>3.5.202</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
-		<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
-		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
 	</PropertyGroup>
 
 	<ItemGroup>

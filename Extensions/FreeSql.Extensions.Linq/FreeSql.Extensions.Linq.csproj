@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45;net40;net6.0;net7.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 扩展包，实现 linq queryable 和 linq to sql 语法进行开发.</Description>
@@ -20,8 +20,6 @@
 		<DelaySign>false</DelaySign>
 		<Version>3.5.202</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
-		<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
-		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
 	</PropertyGroup>
 
 	<ItemGroup>
