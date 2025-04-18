@@ -59,12 +59,21 @@ OneToMany 级联删除
 ManyToOne 忽略
 ManyToMany 级联删除中间表（注意不删除外部根）
 	 */
-    public partial class ZeroDbContext
+    public partial class ZeroDbContext : IDisposable
     {
         internal IFreeSql _orm;
         internal DbTransaction _transaction;
         internal int _commandTimeout;
         internal List<ZeroTableInfo> _tables;
+
+        public void Dispose()
+        {
+            _changeReport.Clear();
+            _cascadeAffrows = 0;
+            _cascadeAuditEntityIgnores.Clear();
+            _cascadeIgnores.Clear();
+            _states.Clear();
+        }
 
         /// <summary>
         /// 创建新的ZeroDbCotext实例
