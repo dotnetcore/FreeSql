@@ -305,11 +305,11 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 Scale = a.Scale,
                 Comment = a.Comment,
             }));
-            schema.Indexes.AddRange(dbinfo.Indexes.Select(a => new TableDescriptor.IndexDescriptor
+            schema.Indexes.AddRange(dbinfo.Indexes.Where(a => !a.Columns.All(b => b.Column.IsPrimary)).Select(a => new TableDescriptor.IndexDescriptor
             {
                 Name = a.Name,
                 IsUnique = a.IsUnique,
-                Fields = string.Join(",", a.Columns.Select(b => b.Column)),
+                Fields = string.Join(",", a.Columns.Select(b => b.Column.Name)),
             }));
             if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, true) == 0))
                 _tables.AddRange(ValidateSchemaToInfoInternal(_orm, new[] { schema }));
