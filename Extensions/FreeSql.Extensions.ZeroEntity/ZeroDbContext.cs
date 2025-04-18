@@ -132,7 +132,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             _orm.CodeFirst.SyncStructure(table, table.DbName, false);
         }
 
-
         static List<ZeroTableInfo> ValidateSchemaToInfoInternal(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
         {
             var common = (orm.Ado as AdoProvider)._util;
@@ -262,6 +261,48 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 }
             }
             return tables;
+        }
+
+        /// <summary>
+        /// 从数据库中加载 TableDescriptor 描述<para></para>
+        /// - 不支持 Navigates<para></para>
+        /// - 不支持 Indexes IndexMethod<para></para>
+        /// - 暂支持 SqlServer/MySql decimal(10,2)（其他数据库需实现对应 IDbFirst）
+        /// </summary>
+        static TableDescriptor LoadTableDescriptor(IFreeSql orm, string tableName)
+        {
+            var dbinfo = orm.DbFirst.GetTableByName(tableName, true);
+            if (dbinfo == null) throw new Exception($"表“{tableName}”不存在");
+            var tb = new TableDescriptor
+            {
+                Comment = dbinfo.Comment,
+                DbName = dbinfo.Name,
+                Name = dbinfo.Name,
+                DisableSyncStructure = false,
+            };
+            tb.Columns.AddRange(dbinfo.Columns.Select(a => new TableDescriptor.ColumnDescriptor
+            {
+                Name = a.Name,
+                DbType = a.DbTypeText,
+                IsPrimary = a.IsPrimary,
+                IsIdentity = a.IsIdentity,
+                IsNullable = a.IsNullable,
+                IsVersion = false,
+                MapType = a.CsType,
+                ServerTime = DateTimeKind.Unspecified,
+                InsertValueSql = a.DefaultValue,
+                StringLength = a.MaxLength,
+                Precision = a.Precision,
+                Scale = a.Scale,
+                Comment = a.Comment,
+            }));
+            tb.Indexes.AddRange(dbinfo.Indexes.Select(a => new TableDescriptor.IndexDescriptor
+            {
+                Name = a.Name,
+                IsUnique = a.IsUnique,
+                Fields = string.Join(",", a.Columns.Select(b => b.Column)),
+            }));
+            return tb;
         }
 
         public ZeroDbContext WithTransaction(DbTransaction value)

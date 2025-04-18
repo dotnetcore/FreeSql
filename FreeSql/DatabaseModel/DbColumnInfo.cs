@@ -33,6 +33,14 @@ namespace FreeSql.DatabaseModel
         /// </summary>
         public int MaxLength { get; set; }
         /// <summary>
+        /// 暂支持 SqlServer/MySql（其他数据库待补充）
+        /// </summary>
+        public int Precision { get; set; }
+        /// <summary>
+        /// 暂支持 SqlServer/MySql（其他数据库待补充）
+        /// </summary>
+        public int Scale { get; set; }
+        /// <summary>
         /// 主键
         /// </summary>
         public bool IsPrimary { get; set; }
