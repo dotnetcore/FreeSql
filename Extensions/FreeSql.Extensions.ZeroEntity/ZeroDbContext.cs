@@ -271,7 +271,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
         /// </summary>
         public TableDescriptor LoadSchemaFromDatabase(string tableName)
         {
-            if (_tables.Any(a => string.Compare(a.DbName, tableName, true) == 0)) return;
             var dbinfo = _orm.DbFirst.GetTableByName(tableName, true);
             if (dbinfo == null) throw new Exception($"表“{tableName}”不存在");
             var schema = new TableDescriptor
@@ -303,7 +302,8 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 IsUnique = a.IsUnique,
                 Fields = string.Join(",", a.Columns.Select(b => b.Column)),
             }));
-            _tables.AddRange(ValidateSchemaToInfoInternal(_orm, new[] { schema }));
+            if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, true) == 0))
+                _tables.AddRange(ValidateSchemaToInfoInternal(_orm, new[] { schema }));
             return schema;
         }
 
