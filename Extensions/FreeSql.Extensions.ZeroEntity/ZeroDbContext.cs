@@ -273,7 +273,41 @@ ManyToMany 级联删除中间表（注意不删除外部根）
         }
 
         /// <summary>
-        /// 从数据库中加载<para></para>
+        /// 从自定义中加载（多表）<para></para>
+        /// - tableName 以及 Navigates 所依赖表 Schema
+        /// </summary>
+        public List<TableDescriptor> LoadSchemasAndNavigates(string tableName, Func<string, TableDescriptor> getSchemaHandler)
+        {
+            if (getSchemaHandler == null) throw new Exception($"{nameof(getSchemaHandler)} 不能为 null");
+            var schema = getSchemaHandler(tableName);
+            if (schema == null) throw new Exception($"{nameof(getSchemaHandler)}({tableName}) 返回值不能为 null");
+            var returnSchemas = new List<TableDescriptor>();
+            returnSchemas.Add(schema);
+            LocalEachNavigate(schema);
+            return returnSchemas;
+
+            void LocalEachNavigate(TableDescriptor desc)
+            {
+                if (desc.Navigates?.Any() != true) return;
+                foreach(var nav in desc.Navigates)
+                {
+                    if (returnSchemas.Any(a => a.Name == nav.RelTable)) continue;
+                    var navSchema = getSchemaHandler(nav.RelTable);
+                    if (navSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.RelTable}) 返回值不能为 null");
+                    returnSchemas.Add(navSchema);
+                    LocalEachNavigate(navSchema);
+                    if (nav.Type == TableDescriptor.NavigateType.ManyToMany && !string.IsNullOrWhiteSpace(nav.ManyToMany))
+                    {
+                        var midSchema = getSchemaHandler(nav.ManyToMany);
+                        if (midSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.ManyToMany}) 返回值不能为 null");
+                        returnSchemas.Add(midSchema);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 从数据库中加载（单表）<para></para>
         /// - 不支持 Navigates<para></para>
         /// - 不支持 Indexes IndexMethod<para></para>
         /// - 暂支持 SqlServer/MySql decimal(10,2)（其他数据库需实现对应 IDbFirst）
