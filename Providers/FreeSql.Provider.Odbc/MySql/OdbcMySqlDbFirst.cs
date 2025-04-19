@@ -289,8 +289,8 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     Comment = comment,
                     DefaultValue = defaultValue,
                     Position = position,
-                    Position = position,
                     Precision = numeric_precision,
+                    Scale = numeric_scale,
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);

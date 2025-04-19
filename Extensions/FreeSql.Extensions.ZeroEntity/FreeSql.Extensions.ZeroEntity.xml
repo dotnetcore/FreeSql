@@ -25,6 +25,20 @@
             </summary>
             <param name="name"></param>
         </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.LoadSchemasAndNavigates(System.String,System.Func{System.String,FreeSql.Extensions.ZeroEntity.TableDescriptor})">
+            <summary>
+            从自定义中加载（多表）<para></para>
+            - tableName 以及 Navigates 所依赖表 Schema
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.LoadSchemaFromDatabase(System.String)">
+            <summary>
+            从数据库中加载（单表）<para></para>
+            - 不支持 Navigates<para></para>
+            - 不支持 Indexes IndexMethod<para></para>
+            - 暂支持 SqlServer/MySql decimal(10,2)（其他数据库需实现对应 IDbFirst）
+            </summary>
+        </member>
         <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.Select">
             <summary>
             【有状态管理】自动 Include 查询
