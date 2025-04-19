@@ -172,7 +172,7 @@ public static partial class FreeSqlGlobalExtensions
         var ctor = that.InternalGetTypeConstructor0OrFirst(false);
         var ctorParms = ctor?.GetParameters();
         if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, true);
-        var ctorArgs = ctorParms.Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract || a.ParameterType == typeof(string) || a.ParameterType.IsArray ? 
+        var ctorArgs = ctorParms.Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract || a.ParameterType == typeof(string) || a.ParameterType.IsArray ?
             null : Activator.CreateInstance(a.ParameterType, null)).ToArray();
         return ctor.Invoke(ctorArgs);
     }
@@ -312,6 +312,130 @@ public static partial class FreeSqlGlobalExtensions
         freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>((s, b, c, d, e, f, g, h, i, j, k, l, m, n, o) => s);
     public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class =>
         freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>((s, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => s);
+    #endregion
+
+    #region 克隆ISelect
+    /// <summary>
+    /// 克隆 ISelect
+    /// </summary>
+    public static ISelect<T1> Clone<T1>(this ISelect<T1> query)
+        where T1 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    /// <summary>
+    /// 克隆 ISelect
+    /// </summary>
+    public static ISelect<T1, T2> Clone<T1, T2>(this ISelect<T1, T2> query)
+        where T1 : class where T2 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    /// <summary>
+    /// 克隆 ISelect
+    /// </summary>
+    public static ISelect<T1, T2, T3> Clone<T1, T2, T3>(this ISelect<T1, T2, T3> query)
+        where T1 : class where T2 : class where T3 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4> Clone<T1, T2, T3, T4>(this ISelect<T1, T2, T3, T4> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5> Clone<T1, T2, T3, T4, T5>(this ISelect<T1, T2, T3, T4, T5> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6> Clone<T1, T2, T3, T4, T5, T6>(this ISelect<T1, T2, T3, T4, T5, T6> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7> Clone<T1, T2, T3, T4, T5, T6, T7>(this ISelect<T1, T2, T3, T4, T5, T6, T7> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8> Clone<T1, T2, T3, T4, T5, T6, T7, T8>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> Clone<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> query)
+        where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class
+    {
+        var newQuery = (query as Select0Provider)._orm.Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>();
+        Select0Provider.CopyData(query as Select0Provider, newQuery as Select0Provider, null);
+        return newQuery;
+    }
     #endregion
 
     #region IncludeMany

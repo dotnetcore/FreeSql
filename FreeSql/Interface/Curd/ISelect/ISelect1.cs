@@ -11,7 +11,6 @@ namespace FreeSql
 {
     public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>
     {
-
 #if net40
 #else
         Task<bool> AnyAsync(Expression<Func<T1, bool>> exp, CancellationToken cancellationToken = default);
