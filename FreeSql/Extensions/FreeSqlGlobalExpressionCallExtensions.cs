@@ -222,17 +222,17 @@ namespace FreeSql
         /// rank() over(order by ...)
         /// </summary>
         /// <returns></returns>
-        public static ISqlOver<long> Rank() => Over<long>("rank()");
+        public static ISqlOver<int> Rank() => Over<int>("rank()");
 		/// <summary>
 		/// dense_rank() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> DenseRank() => Over<long>("dense_rank()");
+		public static ISqlOver<int> DenseRank() => Over<int>("dense_rank()");
 		/// <summary>
 		/// count() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> Count(object column) => Over<long>($"count({expContext.Value.ParsedContent["column"]})");
+		public static ISqlOver<int> Count(object column) => Over<int>($"count({expContext.Value.ParsedContent["column"]})");
 		/// <summary>
 		/// sum(..) over(order by ...)
 		/// </summary>
@@ -262,7 +262,7 @@ namespace FreeSql
 		/// SqlServer row_number() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> RowNumber() => Over<long>("row_number()");
+		public static ISqlOver<int> RowNumber() => Over<int>("row_number()");
 		#endregion
 
 		/// <summary>
@@ -284,7 +284,7 @@ namespace FreeSql
 		/// <typeparam name="T"></typeparam>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public static long DistinctCount<T>(T column)
+		public static int DistinctCount<T>(T column)
 		{
 			expContext.Value.Result = $"count(distinct {expContext.Value.ParsedContent["column"]})";
 			return 0;

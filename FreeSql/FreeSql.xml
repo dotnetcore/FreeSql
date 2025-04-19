@@ -583,6 +583,16 @@
             最大长度
             </summary>
         </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Precision">
+            <summary>
+            暂支持 SqlServer/MySql（其他数据库待补充）
+            </summary>
+        </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Scale">
+            <summary>
+            暂支持 SqlServer/MySql（其他数据库待补充）
+            </summary>
+        </member>
         <member name="P:FreeSql.DatabaseModel.DbColumnInfo.IsPrimary">
             <summary>
             主键
@@ -4415,7 +4425,7 @@
             <summary>
             获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
             </summary>
-            <param name="database"></param>
+            <param name="database">可选-默认查询当前数据库</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
@@ -6076,6 +6086,21 @@
             多表查询
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``1(FreeSql.ISelect{``0})">
+            <summary>
+            克隆 ISelect
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``2(FreeSql.ISelect{``0,``1})">
+            <summary>
+            克隆 ISelect
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``3(FreeSql.ISelect{``0,``1,``2})">
+            <summary>
+            克隆 ISelect
+            </summary>
         </member>
         <member name="M:FreeSqlGlobalExtensions.IncludeMany``2(System.Collections.Generic.List{``0},IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Collections.Generic.IEnumerable{``1}}},System.Action{FreeSql.ISelect{``1}})">
             <summary>
