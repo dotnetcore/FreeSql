@@ -284,6 +284,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             var returnSchemas = new List<TableDescriptor>();
             returnSchemas.Add(schema);
             LocalEachNavigate(schema);
+            _tables.AddRange(ValidateSchemaToInfoInternal(_orm, returnSchemas));
             return returnSchemas;
 
             void LocalEachNavigate(TableDescriptor desc)
