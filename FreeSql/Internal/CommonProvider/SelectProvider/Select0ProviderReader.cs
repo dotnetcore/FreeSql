@@ -851,7 +851,6 @@ namespace FreeSql.Internal.CommonProvider
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
-        bool _groupBySelfFlag = false;
         public TSelect InternalGroupBySelf(Expression column)
         {
             _groupBySelfFlag = true;
@@ -913,7 +912,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, _groupBySelfFlag == false);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, new ReadAnonymousTypeOtherInfo[0]);
 
@@ -930,7 +929,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, _groupBySelfFlag == false);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
@@ -1554,7 +1553,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, _groupBySelfFlag == false);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, new ReadAnonymousTypeOtherInfo[0], cancellationToken);
 
@@ -1571,7 +1570,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, _groupBySelfFlag == false);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));

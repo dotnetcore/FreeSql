@@ -763,7 +763,6 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        bool _isIncluded = false;
         public ISelect<T1> IncludeIf<TNavigate>(bool condition, Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class => condition ? Include(navigateSelector) : this;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
         {

@@ -49,6 +49,8 @@ namespace FreeSql.Internal.CommonProvider
         public bool _is_AsTreeCte;
         public BaseDiyMemberExpression _diymemexpWithTempQuery;
         public Func<DbTransaction> _resolveHookTransaction;
+        public bool _groupBySelfFlag = false;
+        public bool _isIncluded = false;
 
         public bool IsDefaultSqlContent => _tables.Count == 1 && _tables[0].Table?.AsTableImpl == null &&
             _distinct == false && _is_AsTreeCte == false && _where.Length == 0 && _join.Length == 0 &&
@@ -157,6 +159,9 @@ namespace FreeSql.Internal.CommonProvider
             to._cancel = from._cancel;
             to._is_AsTreeCte = from._is_AsTreeCte;
             to._diymemexpWithTempQuery = from._diymemexpWithTempQuery;
+            to._resolveHookTransaction = from._resolveHookTransaction;
+            to._groupBySelfFlag = from._groupBySelfFlag;
+            to._isIncluded = from._isIncluded;
         }
 
         internal class WithTempQueryParser : BaseDiyMemberExpression
