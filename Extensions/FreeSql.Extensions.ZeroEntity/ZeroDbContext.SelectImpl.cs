@@ -586,21 +586,39 @@ namespace FreeSql.Extensions.ZeroEntity
 				return this;
 			}
 			/// <summary>
-			/// Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
-			/// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+			/// WHERE [field] IN (...)
 			/// </summary>
-			public SelectImpl Where(object multipleFields)
+			public SelectImpl WhereIn(string field, object value) => Where(field, "in", value);
+            /// <summary>
+            /// WHERE [field] NOT IN (...)
+            /// </summary>
+            public SelectImpl WhereNotIn(string field, object value) => Where(field, "!in", value);
+            /// <summary>
+            /// Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            /// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+            /// </summary>
+            public SelectImpl Where(object multipleFields)
 			{
 				if (multipleFields == null) return this;
 				foreach (var prop in multipleFields.GetType().GetProperties())
 					WhereDynamicFilter(new DynamicFilterInfo { Field = prop.Name, Operator = DynamicFilterOperator.Eq, Value = prop.GetValue(multipleFields, null) });
 				return this;
 			}
-			/// <summary>
-			/// WHERE [field] = ..
-			/// </summary>
-			public SelectImpl Where(string field, object value) => WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Eq, Value = value });
-			public SelectImpl Where(string field, string @operator, object value)
+            /// <summary>
+            /// WHERE [field] = ..<para></para>
+            /// 更全请看重载 Where(string field, string @operator, object value)
+            /// </summary>
+            public SelectImpl Where(string field, object value) => WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Eq, Value = value });
+            /// <summary>
+            /// WHERE [field] <para></para>
+			/// !=、&gt;、&gt;=、&lt;、&lt;=、like、!like、in、!in<para></para>
+            /// </summary>
+            /// <param name="field"></param>
+            /// <param name="operator"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception"></exception>
+            public SelectImpl Where(string field, string @operator, object value)
 			{
 				switch (@operator?.ToLower().Trim())
 				{
@@ -631,7 +649,7 @@ namespace FreeSql.Extensions.ZeroEntity
 					case "!in":
 					case "notin":
 					case "not in":
-						return WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Any, Value = value });
+						return WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.NotAny, Value = value });
 				}
 				throw new Exception($"未实现 {@operator}");
 			}
@@ -741,26 +759,28 @@ namespace FreeSql.Extensions.ZeroEntity
 					return query;
 				}
 			}
-			public SelectImpl WhereExists(Func<SubQuery, SelectImpl> q)
-			{
-				var query = q?.Invoke(new SubQuery { _parentQuery = this });
-				switch (_orm.Ado.DataType)
-				{
-					case DataType.Oracle:
-					case DataType.OdbcOracle:
-					case DataType.CustomOracle:
-					case DataType.Dameng:
-					case DataType.GBase:
-						query.Limit(-1);
-						break;
-					default:
-						query.Limit(1); //#462 ORACLE rownum <= 2 会影响索引变慢
-						break;
-				}
-				_selectProvider._where.Append($" AND EXISTS({query.ToSql("1").Replace(" \r\n", " \r\n    ")})");
-				return this;
-			}
-			public SelectImpl GroupByRaw(string sql)
+            SelectImpl WhereExists(Func<SubQuery, SelectImpl> q, bool notExists)
+            {
+                var query = q?.Invoke(new SubQuery { _parentQuery = this });
+                switch (_orm.Ado.DataType)
+                {
+                    case DataType.Oracle:
+                    case DataType.OdbcOracle:
+                    case DataType.CustomOracle:
+                    case DataType.Dameng:
+                    case DataType.GBase:
+                        query.Limit(-1);
+                        break;
+                    default:
+                        query.Limit(1); //#462 ORACLE rownum <= 2 会影响索引变慢
+                        break;
+                }
+                _selectProvider._where.Append($" AND {(notExists ? "NOT " : "")}EXISTS({query.ToSql("1").Replace(" \r\n", " \r\n    ")})");
+                return this;
+            }
+			public SelectImpl WhereExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, false);
+            public SelectImpl WhereNotExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, true);
+            public SelectImpl GroupByRaw(string sql)
 			{
 				if (string.IsNullOrWhiteSpace(sql)) return this;
 				_useStates = false;
