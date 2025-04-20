@@ -82,7 +82,7 @@
             举例2：RightJoin("table1", "id", "user.id", "xid", "user.xid") -> RIGTH JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
             </summary>
         </member>
-        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.IDictionary{System.String,System.Object}})">
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
             <summary>
             WHERE [Id] IN (...)
             </summary>

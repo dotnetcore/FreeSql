@@ -8,7 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
-using T = System.Collections.Generic.IDictionary<string, object>;
+using T = System.Collections.Generic.Dictionary<string, object>;
 
 namespace FreeSql.Extensions.ZeroEntity
 {
@@ -249,7 +249,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			T FetchResult(DbDataReader reader)
 			{
 				var fieldIndex = 0;
-				T result = new Dictionary<string, object>();
+				var result = new T();
 				for (var aliasIndex = 0; aliasIndex < _tableAlias.Count; aliasIndex++)
 				{
 					var navValue = result;
@@ -281,7 +281,7 @@ namespace FreeSql.Extensions.ZeroEntity
 							fieldIndex += _tableAlias[aliasIndex].Table.Columns.Count;
 							continue;
 						}
-						drctx.Result = new Dictionary<string, object>();
+						drctx.Result = new T();
 						navValue[_tableAlias[aliasIndex].NavPath.LastOrDefault()] = drctx.Result;
 					}
 					_fieldReader[aliasIndex](drctx);

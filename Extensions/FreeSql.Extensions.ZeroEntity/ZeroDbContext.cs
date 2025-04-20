@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
-using T = System.Collections.Generic.IDictionary<string, object>;
+using T = System.Collections.Generic.Dictionary<string, object>;
 
 namespace FreeSql.Extensions.ZeroEntity
 {
@@ -607,7 +607,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                                     {
                                         var valueEach = _AuditJsonElementMethodJsonElementEnumerateObject.Invoke(value, new object[0]) as IEnumerable;
                                         if (valueEach == null) return resetValue?.Invoke(null);
-                                        var newValue = new Dictionary<string, object>();
+                                        var newValue = new T();
                                         foreach (var valueItem in valueEach)
                                         {
                                             if (valueItem == null) continue;
@@ -1101,7 +1101,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 
                 var key = GetEntityKeyString(table, entityFrom);
                 if (key == null) return;
-                var state = new EntityState(new Dictionary<string, object>(), key);
+                var state = new EntityState(new T(), key);
 
                 LocalMapEntityValue(table, entityFrom, state.Value);
 
@@ -1140,7 +1140,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                                     //entityTo.Remove(nav.Key);
                                     continue;
                                 }
-                                var valTo = new Dictionary<string, object>();
+                                var valTo = new T();
                                 SetNavigateRelationshipValue(nav.Value, entityFrom, valFrom);
                                 if (LocalMapEntityValue(nav.Value.RefTable, valFrom, valTo))
                                     entityTo[nav.Key] = valTo;
@@ -1159,7 +1159,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                                 foreach (var fromObj in valFromList)
                                 {
                                     if (fromObj is T fromItem == false || fromItem == null) continue;
-                                    var toItem = new Dictionary<string, object>();
+                                    var toItem = new T();
                                     if (LocalMapEntityValue(nav.Value.RefTable, fromItem, toItem))
                                         valTo.Add(toItem);
                                 }
@@ -1179,7 +1179,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                                 {
                                     if (fromObj is T fromItem == false || fromItem == null) continue;
                                     LocalAttachCascade(nav.Value.RefTable, fromItem, includeOutside); //创建新的 states
-                                    var toItem = new Dictionary<string, object>();
+                                    var toItem = new T();
                                     foreach (var col in nav.Value.RefTable.Primarys) //多对多状态只存储 PK
                                         if (fromItem.TryGetValue(col.CsName, out var colval))
                                             toItem[col.CsName] = colval;
@@ -1197,7 +1197,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                                     continue;
                                 }
                                 LocalAttachCascade(nav.Value.RefTable, valFrom, includeOutside); //创建新的 states
-                                var valTo = new Dictionary<string, object>();
+                                var valTo = new T();
                                 foreach (var col in nav.Value.RefTable.Columns.Values)
                                     if (valFrom.TryGetValue(col.CsName, out var colval))
                                         valTo[col.CsName] = colval;
@@ -1568,7 +1568,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             foreach (var ritem in rights)
             {
                 if (ritem is T right == false || right == null) continue;
-                var midval = new Dictionary<string, object>();
+                var midval = new T();
                 for (var x = 0; x < nav.Columns.Count; x++)
                     if (entity.TryGetValue(nav.Columns[x], out var colval))
                         midval[nav.MiddleColumns[x]] = colval;
