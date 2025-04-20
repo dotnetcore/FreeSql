@@ -589,26 +589,37 @@ namespace FreeSql.Extensions.ZeroEntity
 			/// WHERE [field] IN (...)
 			/// </summary>
 			public SelectImpl WhereIn(string field, object value) => Where(field, "in", value);
+			public SelectImpl WhereInIf(bool condition, string field, object value) => condition ? Where(field, "in", value) : this;
             /// <summary>
             /// WHERE [field] NOT IN (...)
             /// </summary>
             public SelectImpl WhereNotIn(string field, object value) => Where(field, "!in", value);
+            public SelectImpl WhereNotInIf(bool condition, string field, object value) => condition ? Where(field, "!in", value) : this;
             /// <summary>
-            /// Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
-            /// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+            /// 匿名对象：Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            /// 字典对象：Where(new Dictionary&lt;string, object&gt; { ["Year"] = 2017, ["CategoryId"] = 198, ["IsPublished"] = true })<para></para>
+            /// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1<para></para>
             /// </summary>
-            public SelectImpl Where(object multipleFields)
+            public SelectImpl WhereDynamic(object dywhere)
 			{
-				if (multipleFields == null) return this;
-				foreach (var prop in multipleFields.GetType().GetProperties())
-					WhereDynamicFilter(new DynamicFilterInfo { Field = prop.Name, Operator = DynamicFilterOperator.Eq, Value = prop.GetValue(multipleFields, null) });
+				if (dywhere == null) return this;
+				if (dywhere is Dictionary<string, object> dict)
+				{
+					foreach(var kv in dict)
+                        WhereDynamicFilter(new DynamicFilterInfo { Field = kv.Key, Operator = DynamicFilterOperator.Eq, Value = kv.Value });
+					return this;
+                }
+				foreach (var prop in dywhere.GetType().GetProperties())
+					WhereDynamicFilter(new DynamicFilterInfo { Field = prop.Name, Operator = DynamicFilterOperator.Eq, Value = prop.GetValue(dywhere, null) });
 				return this;
 			}
+            public SelectImpl WhereDynamicIf(bool condition, object dywhere) => condition ? WhereDynamic(dywhere) : this;
             /// <summary>
             /// WHERE [field] = ..<para></para>
             /// 更全请看重载 Where(string field, string @operator, object value)
             /// </summary>
             public SelectImpl Where(string field, object value) => WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Eq, Value = value });
+            public SelectImpl WhereIf(bool condition, string field, object value) => condition ? Where(field, value) : this;
             /// <summary>
             /// WHERE [field] <para></para>
 			/// !=、&gt;、&gt;=、&lt;、&lt;=、like、!like、in、!in<para></para>
@@ -652,8 +663,18 @@ namespace FreeSql.Extensions.ZeroEntity
 						return WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.NotAny, Value = value });
 				}
 				throw new Exception($"未实现 {@operator}");
-			}
-			public SelectImpl WhereColumns(string field1, string @operator, string field2)
+            }
+            public SelectImpl WhereIf(bool condition, string field, string @operator, object value) => condition ? Where(field, @operator, value) : this;
+
+			/// <summary>
+			/// WHERE 字段与字段
+			/// </summary>
+			/// <param name="field1"></param>
+			/// <param name="operator"></param>
+			/// <param name="field2"></param>
+			/// <returns></returns>
+			/// <exception cref="Exception"></exception>
+            public SelectImpl WhereColumns(string field1, string @operator, string field2)
 			{
 				var field1Result = ParseField(null, null, field1);
 				if (field1Result == null) throw new Exception($"未匹配字段名 {field1}");
@@ -685,7 +706,8 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				throw new Exception($"未实现 {@operator}");
 			}
-			public SelectImpl WhereDynamicFilter(DynamicFilterInfo filter)
+            public SelectImpl WhereColumnsIf(bool condition, string field, string @operator, string field2) => condition ? WhereColumns(field, @operator, field2) : this;
+            public SelectImpl WhereDynamicFilter(DynamicFilterInfo filter)
 			{
 				var sql = ParseDynamicFilter(filter);
 				_selectProvider._where.Append(sql);
@@ -778,8 +800,15 @@ namespace FreeSql.Extensions.ZeroEntity
                 _selectProvider._where.Append($" AND {(notExists ? "NOT " : "")}EXISTS({query.ToSql("1").Replace(" \r\n", " \r\n    ")})");
                 return this;
             }
+			/// <summary>
+			/// WHERE exists(select ...)
+			/// </summary>
+			/// <param name="q"></param>
+			/// <returns></returns>
 			public SelectImpl WhereExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, false);
+            public SelectImpl WhereExistsIf(bool condition, Func<SubQuery, SelectImpl> q) => condition ? WhereExists(q, false) : this;
             public SelectImpl WhereNotExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, true);
+            public SelectImpl WhereNotExistsIf(bool condition, Func<SubQuery, SelectImpl> q) => condition ? WhereExists(q, true) : this;
             public SelectImpl GroupByRaw(string sql)
 			{
 				if (string.IsNullOrWhiteSpace(sql)) return this;
