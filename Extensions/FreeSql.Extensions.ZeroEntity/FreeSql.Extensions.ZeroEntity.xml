@@ -82,21 +82,61 @@
             举例2：RightJoin("table1", "id", "user.id", "xid", "user.xid") -> RIGTH JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
             </summary>
         </member>
-        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.IDictionary{System.String,System.Object}})">
             <summary>
             WHERE [Id] IN (...)
             </summary>
         </member>
-        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Object)">
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereIn(System.String,System.Object)">
             <summary>
-            Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
-            WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+            WHERE [field] IN (...)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereNotIn(System.String,System.Object)">
+            <summary>
+            WHERE [field] NOT IN (...)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereDynamic(System.Object)">
+            <summary>
+            匿名对象：Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            字典对象：Where(new Dictionary&lt;string, object&gt; { ["Year"] = 2017, ["CategoryId"] = 198, ["IsPublished"] = true })<para></para>
+            WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1<para></para>
             </summary>
         </member>
         <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.String,System.Object)">
             <summary>
-            WHERE [field] = ..
+            WHERE [field] = ..<para></para>
+            更全请看重载 Where(string field, string @operator, object value)
             </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.String,System.String,System.Object)">
+            <summary>
+            WHERE [field] <para></para>
+            !=、&gt;、&gt;=、&lt;、&lt;=、like、!like、in、!in<para></para>
+            </summary>
+            <param name="field"></param>
+            <param name="operator"></param>
+            <param name="value"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereColumns(System.String,System.String,System.String)">
+            <summary>
+            WHERE 字段与字段
+            </summary>
+            <param name="field1"></param>
+            <param name="operator"></param>
+            <param name="field2"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereExists(System.Func{FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.SubQuery,FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl})">
+            <summary>
+            WHERE exists(select ...)
+            </summary>
+            <param name="q"></param>
+            <returns></returns>
         </member>
     </members>
 </doc>

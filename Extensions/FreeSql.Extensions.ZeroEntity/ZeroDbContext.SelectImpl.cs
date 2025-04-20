@@ -8,7 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
-using T = System.Collections.Generic.Dictionary<string, object>;
+using T = System.Collections.Generic.IDictionary<string, object>;
 
 namespace FreeSql.Extensions.ZeroEntity
 {
@@ -249,7 +249,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			T FetchResult(DbDataReader reader)
 			{
 				var fieldIndex = 0;
-				var result = new T();
+				T result = new Dictionary<string, object>();
 				for (var aliasIndex = 0; aliasIndex < _tableAlias.Count; aliasIndex++)
 				{
 					var navValue = result;
@@ -281,7 +281,7 @@ namespace FreeSql.Extensions.ZeroEntity
 							fieldIndex += _tableAlias[aliasIndex].Table.Columns.Count;
 							continue;
 						}
-						drctx.Result = new T();
+						drctx.Result = new Dictionary<string, object>();
 						navValue[_tableAlias[aliasIndex].NavPath.LastOrDefault()] = drctx.Result;
 					}
 					_fieldReader[aliasIndex](drctx);
@@ -603,7 +603,7 @@ namespace FreeSql.Extensions.ZeroEntity
             public SelectImpl WhereDynamic(object dywhere)
 			{
 				if (dywhere == null) return this;
-				if (dywhere is Dictionary<string, object> dict)
+				if (dywhere is IDictionary<string, object> dict)
 				{
 					foreach(var kv in dict)
                         WhereDynamicFilter(new DynamicFilterInfo { Field = kv.Key, Operator = DynamicFilterOperator.Eq, Value = kv.Value });
