@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using T = System.Collections.Generic.Dictionary<string, object>;
 
 namespace FreeSql.Extensions.ZeroEntity
@@ -533,7 +534,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				return this;
 			}
 
-			NativeTuple<string, ColumnInfo> ParseField(ZeroTableInfo firstTable, string firstTableAlias, string property)
+			NativeTuple<string, ColumnInfo, string> ParseField(ZeroTableInfo firstTable, string firstTableAlias, string property)
 			{
 				if (string.IsNullOrEmpty(property)) return null;
 				var field = property.Split('.').Select(a => a.Trim()).ToArray();
@@ -541,43 +542,43 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (field.Length == 1)
 				{
 					if (firstTable != null && firstTable.ColumnsByCs.TryGetValue(field[0], out var col2) == true)
-						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
 
 					foreach (var ta2 in _tableAlias)
 					{
 						if (ta2.Table.ColumnsByCs.TryGetValue(field[0], out col2))
-							return NativeTuple.Create($"{ta2.Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+							return NativeTuple.Create($"{ta2.Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2.Alias);
 					}
 				}
 				else if (field.Length == 2)
 				{
 					if (firstTable != null && firstTable.CsName.ToLower() == field[0].ToLower() && firstTable.ColumnsByCs.TryGetValue(field[1], out var col2) == true)
-						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
 
 					var ta2s = _tableAlias.Where(a => a.Table.CsName.ToLower() == field[0].ToLower()).ToArray();
 					if (ta2s.Length == 1 && ta2s[0].Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-						return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2s[0].Alias);
 					if (ta2s.Length > 1)
 					{
 						ta2s = _tableAlias.Where(a => a.Table.CsName == field[0]).ToArray();
 						if (ta2s.Length == 1 && ta2s[0].Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-							return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+							return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2s[0].Alias);
 					}
 					if (_tableAlias.Where(a => a.Alias == field[0]).FirstOrDefault()?.Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, field[0]);
 				}
 
 				var navPath = string.Join(".", field.Skip(1).Take(field.Length - 1));
 				var ta = _tableAlias.Where(a => string.Join(".", a.NavPath) == navPath).FirstOrDefault();
 				if (ta?.Table.ColumnsByCs.TryGetValue(field.Last(), out var col) == true)
-					return NativeTuple.Create($"{ta.Alias}.{_common.QuoteSqlName(col.Attribute.Name)}", col);
+					return NativeTuple.Create($"{ta.Alias}.{_common.QuoteSqlName(col.Attribute.Name)}", col, ta.Alias);
 				throw new Exception(CoreErrorStrings.Cannot_Match_Property(property));
 			}
 
-			/// <summary>
-			/// WHERE [Id] IN (...)
-			/// </summary>
-			public SelectImpl Where(IEnumerable<T> items)
+            /// <summary>
+            /// WHERE [Id] IN (1,2,3)
+            /// </summary>
+            public SelectImpl Where(IEnumerable<T> items)
 			{
 				var alias = _tableAlias.Where(a => a.Table == _tables[_mainTableIndex]).FirstOrDefault()?.Alias;
 				if (!string.IsNullOrWhiteSpace(alias)) alias = $"{alias}.";
@@ -586,12 +587,12 @@ namespace FreeSql.Extensions.ZeroEntity
 				return this;
 			}
 			/// <summary>
-			/// WHERE [field] IN (...)
+			/// WHERE [field] IN (1,2,3)
 			/// </summary>
 			public SelectImpl WhereIn(string field, object value) => Where(field, "in", value);
 			public SelectImpl WhereInIf(bool condition, string field, object value) => condition ? Where(field, "in", value) : this;
             /// <summary>
-            /// WHERE [field] NOT IN (...)
+            /// WHERE [field] NOT IN (1,2,3)
             /// </summary>
             public SelectImpl WhereNotIn(string field, object value) => Where(field, "!in", value);
             public SelectImpl WhereNotInIf(bool condition, string field, object value) => condition ? Where(field, "!in", value) : this;
@@ -716,7 +717,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			string ParseDynamicFilter(DynamicFilterInfo filter)
 			{
 				var replacedFilter = new DynamicFilterInfo();
-				var replacedMap = new List<NativeTuple<string, string>>();
+				var replacedMap = new List<NativeTuple<string, string, string>>();
 				LocalCloneFilter(filter, replacedFilter);
 				var oldWhere = _selectProvider._where.ToString();
 				var newWhere = "";
@@ -732,9 +733,9 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				foreach (var rm in replacedMap)
 				{
-					var find = $"a.{_common.QuoteSqlName(rm.Item1)}";
+					var find = $"{rm.Item3}.{_common.QuoteSqlName(rm.Item1)}";
 					var idx = newWhere.IndexOf(find);
-					if (idx != -1) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
+					if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]")) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
 				}
 				return newWhere;
 
@@ -753,7 +754,7 @@ namespace FreeSql.Extensions.ZeroEntity
 								target.Field = pname;
 							else
 								target.Field = TestDynamicFilterInfo._dictTypeToPropertyname[typeof(string)];
-							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1));
+							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3));
 						}
 					}
 					if (source.Filters?.Any() == true)

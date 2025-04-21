@@ -15,7 +15,64 @@ using (var fsql = new FreeSqlBuilder()
 	.UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText + "\r\n"))
 	.Build())
 {
-	var json = JsonConvert.SerializeObject(Helper.GetTestDesc());
+        var table1 = new TableDescriptor
+        {
+            Name = "aaa",
+            DisableSyncStructure = false,
+            Comment = "测试表"
+        };
+        table1.Columns.Add(new TableDescriptor.ColumnDescriptor
+        {
+            Name = "Column1",
+            DbType = "varchar",
+            IsPrimary = true,
+            IsIdentity = true,
+            IsNullable = false,
+            MapType = typeof(string),
+            Comment = "主键"
+        });
+        table1.Columns.Add(new TableDescriptor.ColumnDescriptor
+        {
+            Name = "Column2",
+            DbType = "varchar",
+            IsNullable = false,
+            MapType = typeof(string),
+            Comment = "名称"
+        });
+        var table2 = new TableDescriptor
+        {
+            Name = "bbb",
+            DisableSyncStructure = false,
+            Comment = "测试表"
+        };
+        table2.Columns.Add(new TableDescriptor.ColumnDescriptor
+        {
+            Name = "Column1",
+            DbType = "varchar",
+            IsPrimary = true,
+            IsIdentity = true,
+            IsNullable = false,
+            MapType = typeof(string),
+            Comment = "主键"
+        });
+        table2.Columns.Add(new TableDescriptor.ColumnDescriptor
+        {
+            Name = "Column2",
+            DbType = "varchar",
+            IsNullable = false,
+            MapType = typeof(string),
+            Comment = "名称"
+        });
+        var context = new ZeroDbContext(fsql, [table1, table2]);
+
+        var sql = context.Select
+                .WhereExists(subQuery =>
+                {
+                    return subQuery.From("bbb").Where("Column1", "aaa");
+                }).ToSql();
+        Console.WriteLine(sql);
+
+    var json = JsonConvert.SerializeObject(Helper.GetTestDesc());
 
 	var dyctx = new ZeroDbContext(fsql, JsonConvert.DeserializeObject<TableDescriptor[]>(@"
 [

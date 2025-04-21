@@ -84,17 +84,17 @@
         </member>
         <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
             <summary>
-            WHERE [Id] IN (...)
+            WHERE [Id] IN (1,2,3)
             </summary>
         </member>
         <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereIn(System.String,System.Object)">
             <summary>
-            WHERE [field] IN (...)
+            WHERE [field] IN (1,2,3)
             </summary>
         </member>
         <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereNotIn(System.String,System.Object)">
             <summary>
-            WHERE [field] NOT IN (...)
+            WHERE [field] NOT IN (1,2,3)
             </summary>
         </member>
         <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereDynamic(System.Object)">
