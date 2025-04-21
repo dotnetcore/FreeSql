@@ -621,6 +621,50 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
+            usergroupRepository.Delete(a => true);
+            usergroupRepository.Insert(new[]{
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group1",
+                    UpdateTime = DateTime.Now,
+                    Sort = 1,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
+                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
+                    }
+                },
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group2",
+                    UpdateTime = DateTime.Now,
+                    Sort = 2,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
+                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
+                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                    }
+                },
+            });
+            var ugroupFirst = usergroupRepository.Select.First();
+            ugroupFirst.Sort++;
+            usergroupRepository.Update(ugroupFirst);
+            var userRepository = fsql.GetAggregateRootRepository<User1>();
+
+            var testsublist1 = fsql.Select<UserGroup>()
+                .ToList(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => a.Id == 1).Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = fsql.Select<User1>().Where(b => a.Id == 2).Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
+
             Utils.IsStrict = false;
             var user1Tb = fsql.CodeFirst.GetTableByEntity(typeof(User11));
 
@@ -805,48 +849,7 @@ namespace base_entity
 
             fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
 
-            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
-            usergroupRepository.Delete(a => true);
-            usergroupRepository.Insert(new[]{
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group1",
-                    UpdateTime = DateTime.Now,
-                    Sort = 1,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
-                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
-                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
-                    }
-                },
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group2",
-                    UpdateTime = DateTime.Now,
-                    Sort = 2,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
-                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
-                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
-                    }
-                },
-            });
-            var ugroupFirst = usergroupRepository.Select.First();
-            ugroupFirst.Sort++;
-            usergroupRepository.Update(ugroupFirst);
-            var userRepository = fsql.GetAggregateRootRepository<User1>();
-
-            var testsublist1 = fsql.Select<UserGroup>()
-                .First(a => new
-                {
-                    a.Id,
-                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
-                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
-                });
+            
 
 
 
