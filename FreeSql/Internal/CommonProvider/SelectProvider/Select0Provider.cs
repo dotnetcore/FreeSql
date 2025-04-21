@@ -374,11 +374,6 @@ namespace FreeSql.Internal.CommonProvider
             return methods.FirstOrDefault();
         });
 
-        internal Select0Provider SetSharedParameters(List<DbParameter> parameters)
-        {
-            if (parameters != null) _params = parameters;
-            return this;
-        }
         public List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> _SameSelectPendingShareData;
         internal Select0Provider SetSameSelectPendingShareData(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
@@ -414,7 +409,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return false;
         }
-        internal static Expression SetSameSelectPendingShareDataWithExpression(Expression exp, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data, List<DbParameter> sharedParams)
+        internal static Expression SetSameSelectPendingShareDataWithExpression(Expression exp, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
             var callExp = exp as MethodCallExpression;
             var callExpStack = new Stack<MethodCallExpression>();
@@ -431,23 +426,6 @@ namespace FreeSql.Internal.CommonProvider
                 return exp;
             }
             callExp = callExpStack.Pop();
-            //if (callExp.Object.NodeType == ExpressionType.MemberAccess && typeof(ISelect0).IsAssignableFrom(callExp.Object.Type))
-            //    //callExp = Expression.Call(Expression.Call(
-            //    //    Expression.Convert(callExp.Object, typeof(Select0Provider)),
-            //    //    typeof(Select0Provider).GetMethod(nameof(SetSharedParameters), BindingFlags.NonPublic | BindingFlags.Instance),
-            //    //    Expression.Constant(sharedParams, typeof(List<DbParameter>))
-            //    //), callExp.Method, callExp.Arguments);
-            //    callExp = new ReplaceMemberExpressionVisitor().Replace(callExp, callExp.Object, Expression.Convert(Expression.Call(
-            //        Expression.Convert(callExp.Object, typeof(Select0Provider)),
-            //        typeof(Select0Provider).GetMethod(nameof(SetSharedParameters), BindingFlags.NonPublic | BindingFlags.Instance),
-            //        Expression.Constant(sharedParams, typeof(List<DbParameter>))), callExp.Object.Type)
-            //    ) as MethodCallExpression;
-            //else
-            //    callExp = Expression.Call(
-            //        Expression.Convert(callExp, typeof(Select0Provider)),
-            //        typeof(Select0Provider).GetMethod(nameof(SetSharedParameters), BindingFlags.NonPublic | BindingFlags.Instance),
-            //        Expression.Constant(sharedParams, typeof(List<DbParameter>))
-            //    );
             Expression newExp = callExp.Object.NodeType == ExpressionType.MemberAccess && typeof(ISelect0).IsAssignableFrom(callExp.Object.Type) ?
                 new ReplaceMemberExpressionVisitor().Replace(callExp, callExp.Object, Expression.Convert(Expression.Call(
                     Expression.Convert(callExp.Object, typeof(Select0Provider)),

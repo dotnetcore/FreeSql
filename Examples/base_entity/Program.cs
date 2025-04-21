@@ -616,7 +616,7 @@ namespace base_entity
                     //if (cmd.CommandText.StartsWith(""))
                 })
                 .UseLazyLoading(true)
-                .UseGenerateCommandParameterWithLambda(true)
+                //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion

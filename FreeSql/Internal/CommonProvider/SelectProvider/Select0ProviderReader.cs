@@ -942,7 +942,6 @@ namespace FreeSql.Internal.CommonProvider
             if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
 
             var rmev = new ReplaceMemberExpressionVisitor();
-            var sharedParams = new List<DbParameter>();
 
             for (var a = 0; a < otherAfmanys.Count; a++)
             {
@@ -964,7 +963,7 @@ namespace FreeSql.Internal.CommonProvider
                         newexp = rmev.Replace(newexp, d.Item1, newexpParm);
                         return newexpParm;
                     }).ToArray();
-                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData, sharedParams);
+                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData);
                     var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
 
                     var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
@@ -1584,7 +1583,6 @@ namespace FreeSql.Internal.CommonProvider
             if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
 
             var rmev = new ReplaceMemberExpressionVisitor();
-            var sharedParams = new List<DbParameter>();
 
             for (var a = 0; a < otherAfmanys.Count; a++)
             {
@@ -1632,7 +1630,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (asyncMethod != null)
                             newexp = Expression.Call(newexpCallExp.Object, asyncMethod, newexpCallExp.Arguments.Concat(new[] { Expression.Constant(cancellationToken, typeof(CancellationToken)) }).ToArray());
                     }
-                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData, sharedParams);
+                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData);
                     var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
 
                     var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
