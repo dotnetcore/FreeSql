@@ -88,6 +88,10 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<<#=NewStr #>, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);

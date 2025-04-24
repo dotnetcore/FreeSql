@@ -621,6 +621,17 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            Task.Run(async () =>
+            {
+                await foreach (var xxs1 in fsql.Select<User1>().ToChunkAsyncEnumerable(10))
+                {
+                    foreach (var item in xxs1)
+                    {
+                        Console.WriteLine(item.Nickname);
+                    }
+                }
+            }).Wait();
+
             Utils.IsStrict = false;
             var user1Tb = fsql.CodeFirst.GetTableByEntity(typeof(User11));
 

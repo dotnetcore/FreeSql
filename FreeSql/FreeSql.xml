@@ -2219,13 +2219,12 @@
             <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}},System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}})">
             <summary>
             执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
             </summary>
             <param name="size">数据块的大小</param>
             <param name="done">处理数据块</param>
-            <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         </member>
         <member name="M:FreeSql.ISelect0`2.ToList``1(System.String)">
             <summary>

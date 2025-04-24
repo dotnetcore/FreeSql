@@ -9,14 +9,6 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-
-
-
-
-
-
-
-
     public interface ISelect<T1, T2> : ISelect0<ISelect<T1, T2>, T1> where T2 : class
     {
 
@@ -57,6 +49,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, bool>> exp);
@@ -182,6 +178,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select);
@@ -303,6 +303,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, bool>> exp);
@@ -428,6 +432,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select);
@@ -549,6 +557,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
@@ -674,6 +686,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select);
@@ -795,6 +811,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp);
@@ -920,6 +940,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select);
@@ -1041,6 +1065,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp);
@@ -1166,6 +1194,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select);
@@ -1287,6 +1319,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp);
@@ -1412,6 +1448,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select);
@@ -1533,6 +1573,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp);
@@ -1658,6 +1702,10 @@ namespace FreeSql
 
 #endif
 
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, int size);
+#endif
+
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp);
         int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select);
@@ -1779,6 +1827,10 @@ namespace FreeSql
 
         #endregion
 
+#endif
+
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp);

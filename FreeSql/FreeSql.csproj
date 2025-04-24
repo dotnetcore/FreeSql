@@ -35,6 +35,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Interface\Curd\ISelect\ISelect2`16.cs">
+	    <DependentUpon>ISelect2`16.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
+	  <Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
+	    <DependentUpon>Select1Provider2`16.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>ISelect2`16.cs</LastGenOutput>
@@ -56,6 +69,9 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
 		<DefineConstants>net45</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+		<DefineConstants>ns21</DefineConstants>
 	</PropertyGroup>
 
 </Project>

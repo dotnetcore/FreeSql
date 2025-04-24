@@ -18,8 +18,9 @@ namespace FreeSql
         Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task ToChunkAsync<TReturn>(Expression<Func<T1, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken);
         Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
-        
+
         Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
         Task<TDto> ToOneAsync<TDto>(CancellationToken cancellationToken = default);
         Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
@@ -30,6 +31,9 @@ namespace FreeSql
         Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
         Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
         Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
+#endif
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, TReturn>> select, int size);
 #endif
 
         /// <summary>
