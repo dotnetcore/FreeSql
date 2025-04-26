@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zero_entity", "Examples\zero_entity\zero_entity.csproj", "{97E60B48-06AC-42F3-90A8-DFC5FD386582}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.Oracle", "Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj", "{3EDA83F1-0F47-D363-9FD7-6A68B81E93C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.MySql", "Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj", "{8533877A-F032-44E3-8FE2-3EA2970D3D71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3EDA83F1-0F47-D363-9FD7-6A68B81E93C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3EDA83F1-0F47-D363-9FD7-6A68B81E93C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3EDA83F1-0F47-D363-9FD7-6A68B81E93C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3EDA83F1-0F47-D363-9FD7-6A68B81E93C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

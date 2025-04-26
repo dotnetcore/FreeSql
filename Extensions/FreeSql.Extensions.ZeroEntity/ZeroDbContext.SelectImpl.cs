@@ -296,12 +296,12 @@ namespace FreeSql.Extensions.ZeroEntity
 			{
 				if (list?.Any() != true) return;
 				if (flagIndexs == null) flagIndexs = new List<string>();
-				flagIndexs.Add(alias.Table.CsName);
 
 				var nav = alias.Table.Navigates[navMany.Item1];
-				if (_includeAll && flagIndexs.Contains(nav.RefTable.CsName)) return;
+                if (_includeAll && flagIndexs.Contains(nav.RefTable.CsName)) return;
+                flagIndexs.Add(nav.RefTable.CsName);
 
-				if (nav.RefType == TableRefType.OneToMany)
+                if (nav.RefType == TableRefType.OneToMany)
 				{
 					var subTable = nav.RefTable;
 					var subSelect = new SelectImpl(_dbcontext, subTable.CsName);
