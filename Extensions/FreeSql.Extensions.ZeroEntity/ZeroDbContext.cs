@@ -292,17 +292,18 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 if (desc.Navigates?.Any() != true) return;
                 foreach(var nav in desc.Navigates)
                 {
+                    if (nav.Type == TableDescriptor.NavigateType.ManyToMany && !string.IsNullOrWhiteSpace(nav.ManyToMany))
+                    {
+                        var midSchema = getSchemaHandler(nav.ManyToMany);
+                        if (midSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.ManyToMany}) 返回值不能为 null");
+                        if (returnSchemas.Any(a => a.Name == midSchema.Name)) continue;
+                        returnSchemas.Add(midSchema);
+                    }
                     if (returnSchemas.Any(a => a.Name == nav.RelTable)) continue;
                     var navSchema = getSchemaHandler(nav.RelTable);
                     if (navSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.RelTable}) 返回值不能为 null");
                     returnSchemas.Add(navSchema);
                     LocalEachNavigate(navSchema);
-                    if (nav.Type == TableDescriptor.NavigateType.ManyToMany && !string.IsNullOrWhiteSpace(nav.ManyToMany))
-                    {
-                        var midSchema = getSchemaHandler(nav.ManyToMany);
-                        if (midSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.ManyToMany}) 返回值不能为 null");
-                        returnSchemas.Add(midSchema);
-                    }
                 }
             }
         }
