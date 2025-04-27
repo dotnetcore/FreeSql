@@ -1318,7 +1318,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
                 case DataType.Firebird:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock{(skipLocked ? " skip locked" : "")}";
                     break;
             }
             return this as TSelect;
