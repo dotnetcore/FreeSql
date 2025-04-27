@@ -621,14 +621,17 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunk(10, e =>
+            {
+                foreach (var item in e.Object)
+                    Console.WriteLine(item.Nickname);
+            });
             Task.Run(async () =>
             {
-                await foreach (var xxs1 in fsql.Select<User1>().ToChunkAsyncEnumerable(10))
+                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunkAsyncEnumerable(10))
                 {
                     foreach (var item in xxs1)
-                    {
                         Console.WriteLine(item.Nickname);
-                    }
                 }
             }).Wait();
 

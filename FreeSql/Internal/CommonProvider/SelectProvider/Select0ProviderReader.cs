@@ -234,6 +234,23 @@ namespace FreeSql.Internal.CommonProvider
         }
         public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done)
         {
+            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tps = _tables.Select(a =>
+                    {
+                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
+                        a.Parameter = tp;
+                        return tp;
+                    }).ToArray();
+                    this.InternalToChunk<T1>(tps[0], size, done);
+                    return;
+                }
+                var af = withTempQueryParser._insideSelectList[0].InsideAf;
+                this.ToListMrChunkPrivate(size, done, this.ToSql(af.field), af);
+                return;
+            }
             if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
             this.ToListChunkPrivate(size, done, this.GetAllFieldExpressionTreeLevel2(), null);
         }
@@ -1769,6 +1786,24 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IAsyncEnumerable<List<T1>> ToChunkAsyncEnumerable(int size)
         {
+            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tps = _tables.Select(a =>
+                    {
+                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
+                        a.Parameter = tp;
+                        return tp;
+                    }).ToArray();
+                    return this.InternalToChunkAsyncEnumerable<T1>(tps[0], size);
+                }
+                var af = withTempQueryParser._insideSelectList[0].InsideAf;
+                return new LocalAsyncEnumerable<T1>
+                {
+                    _GetAsyncEnumerator = (cancellationToken) => this.ToListMrChunkPrivateAsyncEnumerable<T1>(size, this.ToSql(af.field), af, cancellationToken)
+                };
+            }
             if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
             return this.ToListChunkPrivateAsyncEnumerable(size, this.GetAllFieldExpressionTreeLevel2(), null);
         }
