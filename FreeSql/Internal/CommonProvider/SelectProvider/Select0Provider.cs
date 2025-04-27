@@ -1281,7 +1281,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this as TSelect;
         }
-        public TSelect ForUpdate(bool noawait = false)
+        public TSelect ForUpdate(bool noawait = false, bool skipLocked = false)
         {
             if (_transaction == null && _orm.Ado.TransactionCurrentThread != null) this.WithTransaction(_orm.Ado.TransactionCurrentThread);
             if (_transaction == null && _resolveHookTransaction != null) this.WithTransaction(_resolveHookTransaction());
@@ -1291,25 +1291,25 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.MySql:
                 case DataType.OdbcMySql:
                 case DataType.CustomMySql:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.CustomSqlServer:
-                    _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")})";
+                    _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")}{(skipLocked ? ", ReadPast" : "")})";
                     break;
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.Xugu:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.Sqlite:
                     break;

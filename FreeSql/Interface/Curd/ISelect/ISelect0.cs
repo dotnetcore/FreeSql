@@ -335,8 +335,9 @@ namespace FreeSql
         /// 神通: for update
         /// </summary>
         /// <param name="nowait">noawait</param>
+        /// <param name="skipLocked">skip locked</param>
         /// <returns></returns>
-        TSelect ForUpdate(bool nowait = false);
+        TSelect ForUpdate(bool nowait = false, bool skipLocked = false);
 
         /// <summary>
         /// 按原生sql语法分组，GroupBy("concat(name, @cc)", new { cc = 1 })<para></para>
