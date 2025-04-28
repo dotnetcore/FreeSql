@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,6 +7,7 @@ using System.Reflection;
 using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions.EfCoreFluentApi;
+using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 
 partial class FreeSqlDbContextExtensions
@@ -135,4 +137,5 @@ partial class FreeSqlDbContextExtensions
         }
     }
 #endif
+
 }
