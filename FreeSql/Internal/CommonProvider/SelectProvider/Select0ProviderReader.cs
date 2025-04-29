@@ -234,17 +234,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done)
         {
-            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
             {
                 if (withTempQueryParser._outsideTable[0] != _tables[0])
                 {
-                    var tps = _tables.Select(a =>
-                    {
-                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
-                        a.Parameter = tp;
-                        return tp;
-                    }).ToArray();
-                    this.InternalToChunk<T1>(tps[0], size, done);
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    this.InternalToChunk<T1>(tp, size, done);
                     return;
                 }
                 var af = withTempQueryParser._insideSelectList[0].InsideAf;
@@ -1786,17 +1782,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IAsyncEnumerable<List<T1>> ToChunkAsyncEnumerable(int size)
         {
-            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
             {
                 if (withTempQueryParser._outsideTable[0] != _tables[0])
                 {
-                    var tps = _tables.Select(a =>
-                    {
-                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
-                        a.Parameter = tp;
-                        return tp;
-                    }).ToArray();
-                    return this.InternalToChunkAsyncEnumerable<T1>(tps[0], size);
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    return this.InternalToChunkAsyncEnumerable<T1>(tp, size);
                 }
                 var af = withTempQueryParser._insideSelectList[0].InsideAf;
                 return new LocalAsyncEnumerable<T1>
