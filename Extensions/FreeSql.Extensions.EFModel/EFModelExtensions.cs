@@ -16,7 +16,7 @@ using DbContext = Microsoft.EntityFrameworkCore.DbContext;
 public static partial class EFModelExtensions
 {
     /// <summary>
-    /// 根据 EFCore DbContext ModelBuilder 配置 FreeSql 实体特性
+    /// EFCore ModelBuilder 与 FreeSql 打通实体特性配置（实现室）
     /// </summary>
     /// <param name="codeFirst"></param>
     /// <param name="dbContextTypes"></param>

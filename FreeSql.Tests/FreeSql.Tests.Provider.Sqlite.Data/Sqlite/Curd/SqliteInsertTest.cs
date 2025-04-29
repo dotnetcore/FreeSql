@@ -148,13 +148,13 @@ namespace FreeSql.Tests.Sqlite
             {
                 list.Add(new Topic { Id = i, Clicks = i * 2, Title = "BULK" + i.ToString(), CreateTime = DateTime.Now });
             }
-            insert.AppendData(list).BulkInsert();
+            insert.AppendData(list).ExecuteSqliteBulkInsert();
             Assert.Equal(10, g.sqlite.Select<Topic>().Where(m => m.Title.StartsWith("BULK")).Count());
 
             g.sqlite.Delete<Topic>().Where(m => true).ExecuteAffrows();
             g.sqlite.Transaction(() =>
             {
-                g.sqlite.Insert(list).BulkInsert();
+                g.sqlite.Insert(list).ExecuteSqliteBulkInsert();
                 Assert.Equal(10, g.sqlite.Select<Topic>().Where(m => m.Title.StartsWith("BULK")).Count());
             });
         }
