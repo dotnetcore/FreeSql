@@ -376,9 +376,9 @@ namespace FreeSql
 
                 foreach (var prop in table.Properties.Values)
                 {
-                    if (table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
-                    if (table.ColumnsByCs.ContainsKey(prop.Name))
+                    if (table.ColumnsByCs.ContainsKey(prop.Name) || table.ColumnsByCsIgnore.ContainsKey(prop.Name))
                     {
+                        //与 EntityUtilExtensions.MapEntityValue 同步修改规则，Ignore 也需要 Map
                         if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = table.GetPropertyValue(entityFrom, prop.Name);
                         else table.SetPropertyValue(entityTo, prop.Name, table.GetPropertyValue(entityFrom, prop.Name));
                         continue;

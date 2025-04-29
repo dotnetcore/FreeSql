@@ -116,7 +116,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             return SchemaValidationResult.SuccessedResult;
         }
 
-        public TableInfo GetTableInfo(string name) => _tables.Where(a => a.CsName == name).FirstOrDefault();
+        public TableInfo GetTableInfo(string name) => _tables.Where(a => string.Compare(a.CsName, name, true) == 0).FirstOrDefault();
 
         public void SyncStructure()
         {
