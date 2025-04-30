@@ -446,7 +446,7 @@ namespace FreeSql
         async Task UpdateRangePrivAsync(IEnumerable<TEntity> data, bool isCheck, CancellationToken cancellationToken)
         {
             if (data is List<TEntity> == false) data = data?.ToList();
-            if (CanUpdate(data, true) == false) return;
+            if (isCheck && CanUpdate(data, true) == false) return;
             foreach (var item in data)
             {
                 if (_dicUpdateTimes.ContainsKey(item))

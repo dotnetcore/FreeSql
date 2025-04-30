@@ -41,5 +41,30 @@ namespace FreeSql.Tests.DbContext2
             public string AppName { get; set; }
         }
 
+        [Fact]
+        async public Task TestIssues()
+        {
+            using (var freeSql = g.CreateMemory())
+            {
+                freeSql.Aop.AuditValue += (_, args) =>
+                {
+                    Console.WriteLine(args.AuditValueType);
+                    Console.WriteLine(args.Property.Name);
+                };
+
+                var repository = freeSql.GetRepository<People>();
+                var people = new People { Name = "John Doe" };
+                await repository.InsertOrUpdateAsync(people);
+                people.Name = "Tim Doe";
+                await repository.InsertOrUpdateAsync(people);
+            }
+        }
+
+        public class People
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+        }
     }
 }
