@@ -330,7 +330,7 @@ namespace FreeSql.Extensions.EntityUtil
                 });
                 foreach (var prop in _table.Properties.Values)
                 {
-                    if (_table.ColumnsByCs.ContainsKey(prop.Name) || _table.ColumnsByCsIgnore.ContainsKey(prop.Name))
+                    if (_table.ColumnsByCs.ContainsKey(prop.Name) || _table.ColumnsByCsIgnore.ContainsKey(prop.Name) && prop.CanWrite)
                     {
                         //Ignore 也需要 Map https://github.com/luoyunchong/FreeKit/blob/main/src/IGeekFan.FreeKit.Extras/FreeSql/UnitOfWorkAsyncInterceptor.cs
                         exps.Add(
