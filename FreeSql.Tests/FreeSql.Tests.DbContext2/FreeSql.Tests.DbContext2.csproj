@@ -27,6 +27,7 @@
 		<ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
 	</ItemGroup>
 
 </Project>

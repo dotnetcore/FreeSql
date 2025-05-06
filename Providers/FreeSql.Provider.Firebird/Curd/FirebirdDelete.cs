@@ -39,13 +39,13 @@ namespace FreeSql.Firebird.Curd
                     }
                 }
                 var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.TypeLazy ?? _table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    ret.AddRange(_orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms));
+                    ret.AddRange(_orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms));
                 }
                 catch (Exception ex)
                 {
@@ -90,13 +90,13 @@ namespace FreeSql.Firebird.Curd
                     }
                 }
                 var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.TypeLazy ?? _table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    ret.AddRange(await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken));
+                    ret.AddRange(await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken));
                 }
                 catch (Exception ex)
                 {

@@ -1563,7 +1563,7 @@
             <param name="slaveConnectionString">从数据库连接串</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionFactory(FreeSql.DataType,System.Func{System.Data.Common.DbConnection},System.Type)">
+        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionFactory(FreeSql.DataType,System.Func{System.String,System.Data.Common.DbConnection},System.Type)">
             <summary>
             使用自定义数据库连接对象（放弃内置对象连接池技术）
             </summary>

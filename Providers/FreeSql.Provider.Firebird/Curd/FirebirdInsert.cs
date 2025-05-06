@@ -107,7 +107,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -207,7 +207,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {

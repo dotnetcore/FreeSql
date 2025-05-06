@@ -15,9 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.DbContext2", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.AggregateRoot", "Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj", "{B8F84E4F-46F2-4048-B79B-49F0B8A95335}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{9F309623-51D0-9A59-9FA9-0AE166E30B0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{9F309623-51D0-9A59-9FA9-0AE166E30B0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Extensions.EFModel", "Extensions\FreeSql.Extensions.EFModel\FreeSql.Extensions.EFModel.csproj", "{A05882CE-3E20-40C0-AE2E-9736848198BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.EFModel", "Extensions\FreeSql.Extensions.EFModel\FreeSql.Extensions.EFModel.csproj", "{A05882CE-3E20-40C0-AE2E-9736848198BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Firebird", "Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj", "{5CD37013-EDE0-4901-9169-859A48F25BCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{A05882CE-3E20-40C0-AE2E-9736848198BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A05882CE-3E20-40C0-AE2E-9736848198BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A05882CE-3E20-40C0-AE2E-9736848198BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CD37013-EDE0-4901-9169-859A48F25BCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CD37013-EDE0-4901-9169-859A48F25BCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CD37013-EDE0-4901-9169-859A48F25BCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CD37013-EDE0-4901-9169-859A48F25BCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
