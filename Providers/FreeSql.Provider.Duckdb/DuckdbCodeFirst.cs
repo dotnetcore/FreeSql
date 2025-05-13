@@ -116,6 +116,7 @@ namespace FreeSql.Duckdb
         {
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
+            var indexSb = new StringBuilder();
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
@@ -185,20 +186,20 @@ namespace FreeSql.Duckdb
                         //创建表的索引
                         foreach (var uk in tb.Indexes)
                         {
-                            sb.Append("CREATE ");
+                            indexSb.Append("CREATE ");
                             if (uk.IsUnique)
-                                sb.Append("UNIQUE ");
-                            sb.Append("INDEX ");
-                            sb.Append(uk.Name).Append(" ON ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(createTableName, tbname[1])));
-                            sb.Append("(");
+                                indexSb.Append("UNIQUE ");
+                            indexSb.Append("INDEX ");
+                            indexSb.Append(uk.Name).Append(" ON ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(createTableName, tbname[1])));
+                            indexSb.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
-                                sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                                indexSb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
                                 if (tbcol.IsDesc)
-                                    sb.Append(" DESC");
-                                sb.Append(", ");
+                                    indexSb.Append(" DESC");
+                                indexSb.Append(", ");
                             }
-                            sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                            indexSb.Remove(indexSb.Length - 2, 2).Append(");\r\n");
                         }
                         //备注
                         foreach (var tbcol in tb.ColumnsByPosition)
@@ -221,6 +222,7 @@ namespace FreeSql.Duckdb
                 else
                     tboldname = null; //如果新表已经存在，不走改表名逻辑
             }
+
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
@@ -236,6 +238,9 @@ namespace FreeSql.Duckdb
                     //sb.Append(" SELECT case when max(").Append(colname2).Append(") is null then 0 else setval('").Append(seqname).Append("', max(").Append(colname2).Append(")) end FROM ").Append(tbname2).Append(";\r\n");
                 }
             }
+
+            sb.Append(indexSb);
+
             return sb.Length == 0 ? null : sb.ToString();
         }
     }
