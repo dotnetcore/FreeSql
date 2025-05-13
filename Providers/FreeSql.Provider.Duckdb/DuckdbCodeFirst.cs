@@ -167,32 +167,35 @@ namespace FreeSql.Duckdb
                         }
                         sb.Remove(sb.Length - 1, 1);
                         sb.Append("\r\n) \r\n;\r\n");
+                        ////创建表的索引
+                        //foreach (var uk in tb.Indexes)
+                        //{
+                        //    sb.Append("CREATE ");
+                        //    if (uk.IsUnique) sb.Append("UNIQUE ");
+                        //    sb.Append("INDEX ");
+                        //    sb.Append(_commonUtils.QuoteSqlName(tbname[0], ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tbname[1]).Append("(");
+                        //    foreach (var tbcol in uk.Columns)
+                        //    {
+                        //        sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                        //        if (tbcol.IsDesc) sb.Append(" DESC");
+                        //        sb.Append(", ");
+                        //    }
+                        //    sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                        //}
                         //创建表的索引
                         foreach (var uk in tb.Indexes)
                         {
                             sb.Append("CREATE ");
-                            if (uk.IsUnique) sb.Append("UNIQUE ");
-                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(tbname[0], ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tbname[1]).Append("(");
-                            foreach (var tbcol in uk.Columns)
-                            {
-                                sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                                if (tbcol.IsDesc) sb.Append(" DESC");
-                                sb.Append(", ");
-                            }
-                            sb.Remove(sb.Length - 2, 2).Append(");\r\n");
-                        }
-                        //创建表的索引
-                        foreach (var uk in tb.Indexes)
-                        {
-                            sb.Append("CREATE ");
-                            if (uk.IsUnique) sb.Append("UNIQUE ");
+                            if (uk.IsUnique)
+                                sb.Append("UNIQUE ");
                             sb.Append("INDEX ");
-                            sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName);
+                            sb.Append(uk.Name).Append(" ON ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(createTableName, tbname[1])));
                             sb.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                                if (tbcol.IsDesc) sb.Append(" DESC");
+                                if (tbcol.IsDesc)
+                                    sb.Append(" DESC");
                                 sb.Append(", ");
                             }
                             sb.Remove(sb.Length - 2, 2).Append(");\r\n");
