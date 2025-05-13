@@ -1214,12 +1214,32 @@ namespace FreeSql.Tests.Duckdb
             fsql.CodeFirst.SyncStructure<TableCompoundIndexTest>();
         }
 
+        [Fact]
+        public void TestIsIdentity()
+        {
+            fsql.CodeFirst.SyncStructure<TableIsIdentityTest>();
+        }
+
+
+        [Table(Name = "index_normal_test")]
+        class TableIsIdentityTest
+        {
+            [Column(Name = "id")]
+            public int Id { get; set; }
+
+            [Column(Name = "name")]
+            public string Name { get; set; }
+
+            [Column(Name = "number")]
+            public string Number { get; set; }
+        }
+
         [Table(Name = "index_normal_test")]
         [Index("name_index", "name", false)]
         [Index("number_index", "number", true)]
         class TableNormalIndexTest
         {
-            [Column(Name = "id")]
+            [Column(Name = "id",IsIdentity = true)]
             public int Id { get; set; }
 
             [Column(Name = "name")]
