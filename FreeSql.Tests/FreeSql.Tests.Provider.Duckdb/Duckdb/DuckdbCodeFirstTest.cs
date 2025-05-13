@@ -1203,17 +1203,23 @@ namespace FreeSql.Tests.Duckdb
         }
 
         [Fact]
-        public void TestIndex()
+        public void TestNormalIndex()
         {
-            fsql.CodeFirst.SyncStructure<TableIndexTest>();
+            fsql.CodeFirst.SyncStructure<TableNormalIndexTest>();
         }
 
-        [Table(Name = "index_test")]
+        [Fact]
+        public void TestCompoundIndex()
+        {
+            fsql.CodeFirst.SyncStructure<TableCompoundIndexTest>();
+        }
+
+        [Table(Name = "index_normal_test")]
         [Index("name_index", "name", false)]
         [Index("number_index", "number", true)]
-        class TableIndexTest
+        class TableNormalIndexTest
         {
-            [Column(IsIdentity = true, Name = "id")]
+            [Column(Name = "id")]
             public int Id { get; set; }
 
             [Column(Name = "name")]
@@ -1221,6 +1227,24 @@ namespace FreeSql.Tests.Duckdb
 
             [Column(Name = "number")]
             public string Number { get; set; }
+        }
+
+        [Table(Name = "index_compound_test")]
+        [Index("c_name_index", "name", false)]
+        [Index("c_number_age_index", "number,age", false)]
+        class TableCompoundIndexTest
+        {
+            [Column( Name = "id")]
+            public int Id { get; set; }
+
+            [Column(Name = "name")]
+            public string Name { get; set; }
+
+            [Column(Name = "number")]
+            public string Number { get; set; }
+
+            [Column(Name = "age")]
+            public string Age { get; set; }
         }
 
         public enum TableAllTypeEnumType1
