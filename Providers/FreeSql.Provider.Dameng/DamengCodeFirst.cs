@@ -362,7 +362,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                             var charMatch = Regex.Match(dbtypeNoneNotNull, "(N?)VARCHAR(2?)\\((?<precision>[0-9]+)\\)");
                             if (charMatch != null && ushort.TryParse(charMatch.Groups["precision"]?.Value, out var precision))
                                 dbtypeNoneNotNull = Regex.Replace(dbtypeNoneNotNull, $"\\(({precision})\\)", $"");
-                            if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "BLOB")
+                            if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "NCLOB" && dbtypeNoneNotNull != "BLOB")
                                 insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
                         }
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)

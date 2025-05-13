@@ -135,6 +135,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.TDengine",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.TDengine", "FreeSql.Tests\FreeSql.Tests.Provider.TDengine\FreeSql.Tests.Provider.TDengine.csproj", "{0C178F1C-0F65-47AA-A1DE-545CBF8543D1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.EFModel", "Extensions\FreeSql.Extensions.EFModel\FreeSql.Extensions.EFModel.csproj", "{4281AC48-6FE7-49C3-BE7B-D029058646BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -817,6 +819,18 @@ Global
 		{0C178F1C-0F65-47AA-A1DE-545CBF8543D1}.Release|x64.Build.0 = Release|Any CPU
 		{0C178F1C-0F65-47AA-A1DE-545CBF8543D1}.Release|x86.ActiveCfg = Release|Any CPU
 		{0C178F1C-0F65-47AA-A1DE-545CBF8543D1}.Release|x86.Build.0 = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|x64.Build.0 = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Debug|x86.Build.0 = Debug|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|x64.ActiveCfg = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|x64.Build.0 = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|x86.ActiveCfg = Release|Any CPU
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -860,10 +874,11 @@ Global
 		{D9419896-BFB0-47C1-BEFD-A6C48394643B} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{4871434E-481D-4306-B6DD-73595C61A473} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{329BA8B3-4139-4CCE-AFEC-4BE9B7BED317} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{4281AC48-6FE7-49C3-BE7B-D029058646BC} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_PrefixTranslations = True
+		RESX_NeutralResourcesLanguage = en-US
 	EndGlobalSection
 EndGlobal

@@ -286,6 +286,9 @@ where {1}
 ,a.is_nullable 'isnullable'
 ,a.is_identity 'isidentity'
 ,f.text as 'defaultvalue'
+,a.column_id as 'position'
+,a.precision
+,a.scale
 from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"), @"
 left join syscomments f on f.id = a.default_object_id
 ");
@@ -298,13 +301,15 @@ left join syscomments f on f.id = a.default_object_id
 ,cast(0 as bit) 'isnullable'
 ,a.is_output 'isidentity'
 ,'' as 'defaultvalue'
+,1 as 'position'
+,a.precision
+,a.scale
 from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "");
                 }
                 sql = $"use [{db}];{sql};use [{olddatabase}]; ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var position = 0;
                 foreach (object[] row in ds)
                 {
                     var table_id = string.Concat(row[0]);
@@ -317,7 +322,10 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "
                     var is_nullable = bool.Parse(string.Concat(row[7]));
                     var is_identity = bool.Parse(string.Concat(row[8]));
                     var defaultValue = string.Concat(row[9]);
+                    var position = int.Parse(string.Concat(row[10]));
                     if (max_length == 0) max_length = -1;
+                    int.TryParse(string.Concat(row[11]), out var numeric_precision);
+                    int.TryParse(string.Concat(row[12]), out var numeric_scale);
 
                     loc3[object_id].Add(column, new DbColumnInfo
                     {
@@ -331,7 +339,9 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "
                         Table = loc2[object_id],
                         Comment = comment,
                         DefaultValue = defaultValue,
-                        Position = ++position
+                        Position = position,
+                        Precision = numeric_precision,
+                        Scale = numeric_scale,
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace FreeSql
 {
-    class DefaultRepository<TEntity, TKey> : BaseRepository<TEntity, TKey> where TEntity : class
+    public class DefaultRepository<TEntity, TKey> : BaseRepository<TEntity, TKey> where TEntity : class
     {
         public DefaultRepository(IFreeSql fsql) : base(fsql) { }
         public DefaultRepository(IFreeSql fsql, UnitOfWorkManager uowManger) : base(uowManger?.Orm ?? fsql)

@@ -59,12 +59,21 @@ OneToMany 级联删除
 ManyToOne 忽略
 ManyToMany 级联删除中间表（注意不删除外部根）
 	 */
-    public partial class ZeroDbContext
+    public partial class ZeroDbContext : IDisposable
     {
         internal IFreeSql _orm;
         internal DbTransaction _transaction;
         internal int _commandTimeout;
         internal List<ZeroTableInfo> _tables;
+
+        public void Dispose()
+        {
+            _changeReport.Clear();
+            _cascadeAffrows = 0;
+            _cascadeAuditEntityIgnores.Clear();
+            _cascadeIgnores.Clear();
+            _states.Clear();
+        }
 
         /// <summary>
         /// 创建新的ZeroDbCotext实例
@@ -107,7 +116,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             return SchemaValidationResult.SuccessedResult;
         }
 
-        public TableInfo GetTableInfo(string name) => _tables.Where(a => a.CsName == name).FirstOrDefault();
+        public TableInfo GetTableInfo(string name) => _tables.Where(a => string.Compare(a.CsName, name, true) == 0).FirstOrDefault();
 
         public void SyncStructure()
         {
@@ -131,7 +140,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             var table = GetTableInfo(name);
             _orm.CodeFirst.SyncStructure(table, table.DbName, false);
         }
-
 
         static List<ZeroTableInfo> ValidateSchemaToInfoInternal(IFreeSql orm, IEnumerable<TableDescriptor> schemas)
         {
@@ -262,6 +270,86 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 }
             }
             return tables;
+        }
+
+        /// <summary>
+        /// 从自定义中加载（多表）<para></para>
+        /// - tableName 以及 Navigates 所依赖表 Schema
+        /// </summary>
+        public List<TableDescriptor> LoadSchemasAndNavigates(string tableName, Func<string, TableDescriptor> getSchemaHandler)
+        {
+            if (getSchemaHandler == null) throw new Exception($"{nameof(getSchemaHandler)} 不能为 null");
+            var schema = getSchemaHandler(tableName);
+            if (schema == null) throw new Exception($"{nameof(getSchemaHandler)}({tableName}) 返回值不能为 null");
+            var returnSchemas = new List<TableDescriptor>();
+            returnSchemas.Add(schema);
+            LocalEachNavigate(schema);
+            _tables.AddRange(ValidateSchemaToInfoInternal(_orm, returnSchemas));
+            return returnSchemas;
+
+            void LocalEachNavigate(TableDescriptor desc)
+            {
+                if (desc.Navigates?.Any() != true) return;
+                foreach(var nav in desc.Navigates)
+                {
+                    if (nav.Type == TableDescriptor.NavigateType.ManyToMany && !string.IsNullOrWhiteSpace(nav.ManyToMany))
+                    {
+                        var midSchema = getSchemaHandler(nav.ManyToMany);
+                        if (midSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.ManyToMany}) 返回值不能为 null");
+                        if (returnSchemas.Any(a => a.Name == midSchema.Name)) continue;
+                        returnSchemas.Add(midSchema);
+                    }
+                    if (returnSchemas.Any(a => a.Name == nav.RelTable)) continue;
+                    var navSchema = getSchemaHandler(nav.RelTable);
+                    if (navSchema == null) throw new Exception($"{nameof(getSchemaHandler)}({nav.RelTable}) 返回值不能为 null");
+                    returnSchemas.Add(navSchema);
+                    LocalEachNavigate(navSchema);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 从数据库中加载（单表）<para></para>
+        /// - 不支持 Navigates<para></para>
+        /// - 不支持 Indexes IndexMethod<para></para>
+        /// - 暂支持 SqlServer/MySql decimal(10,2)（其他数据库需实现对应 IDbFirst）
+        /// </summary>
+        public TableDescriptor LoadSchemaFromDatabase(string tableName)
+        {
+            var dbinfo = _orm.DbFirst.GetTableByName(tableName, true);
+            if (dbinfo == null) throw new Exception($"表“{tableName}”不存在");
+            var schema = new TableDescriptor
+            {
+                Comment = dbinfo.Comment,
+                DbName = dbinfo.Name,
+                Name = dbinfo.Name,
+                DisableSyncStructure = false,
+            };
+            schema.Columns.AddRange(dbinfo.Columns.Select(a => new TableDescriptor.ColumnDescriptor
+            {
+                Name = a.Name,
+                DbType = a.DbTypeText,
+                IsPrimary = a.IsPrimary,
+                IsIdentity = a.IsIdentity,
+                IsNullable = a.IsNullable,
+                IsVersion = false,
+                MapType = a.CsType,
+                ServerTime = DateTimeKind.Unspecified,
+                InsertValueSql = a.DefaultValue,
+                StringLength = a.MaxLength,
+                Precision = a.Precision,
+                Scale = a.Scale,
+                Comment = a.Comment,
+            }));
+            schema.Indexes.AddRange(dbinfo.Indexes.Where(a => !a.Columns.All(b => b.Column.IsPrimary)).Select(a => new TableDescriptor.IndexDescriptor
+            {
+                Name = a.Name,
+                IsUnique = a.IsUnique,
+                Fields = string.Join(",", a.Columns.Select(b => b.Column.Name)),
+            }));
+            if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, true) == 0))
+                _tables.AddRange(ValidateSchemaToInfoInternal(_orm, new[] { schema }));
+            return schema;
         }
 
         public ZeroDbContext WithTransaction(DbTransaction value)

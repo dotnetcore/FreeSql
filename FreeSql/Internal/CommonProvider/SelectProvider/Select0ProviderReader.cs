@@ -3,17 +3,15 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static FreeSql.Internal.CommonProvider.AdoProvider;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -234,10 +232,23 @@ namespace FreeSql.Internal.CommonProvider
 
             ToListAfChunkPrivate(chunkSize, chunkDone, sql, af, otherData);
         }
-        public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false)
+        public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done)
         {
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    this.InternalToChunk<T1>(tp, size, done);
+                    return;
+                }
+                var af = withTempQueryParser._insideSelectList[0].InsideAf;
+                this.ToListMrChunkPrivate(size, done, this.ToSql(af.field), af);
+                return;
+            }
             if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
-            this.ToListChunkPrivate(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
+            this.ToListChunkPrivate(size, done, this.GetAllFieldExpressionTreeLevel2(), null);
         }
 
         internal void ToListMrChunkPrivate<TReturn>(int chunkSize, Action<FetchCallbackArgs<List<TReturn>>> chunkDone, string sql, ReadAnonymousTypeAfInfo af)
@@ -851,6 +862,20 @@ namespace FreeSql.Internal.CommonProvider
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
+        public TSelect InternalGroupBySelf(Expression column)
+        {
+            _groupBySelfFlag = true;
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    this.GroupBy(string.Join(", ", newExp.Members.Select((b, a) => _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, newExp.Arguments[a], true, _diymemexpWithTempQuery))));
+                    return this as TSelect;
+            }
+            return this.GroupBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, _tableRule, null, SelectTableInfoType.From, column, true, _diymemexpWithTempQuery));
+        }
         public TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
             _commonExpression.ExpressionJoinLambda(_tables, _tableRule, joinType, exp, _diymemexpWithTempQuery, _whereGlobalFilter);
@@ -898,7 +923,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, _groupBySelfFlag == false);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, new ReadAnonymousTypeOtherInfo[0]);
 
@@ -915,7 +940,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, _groupBySelfFlag == false);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
@@ -1248,87 +1273,6 @@ namespace FreeSql.Internal.CommonProvider
             return ToListAfPrivateAsync(sql, af, otherData, cancellationToken);
         }
         #region ToChunkAsync
-        async internal Task ToListAfChunkPrivateAsync(int chunkSize, Func<FetchCallbackArgs<List<T1>>, Task> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
-        {
-            if (_cancel?.Invoke() == true) return;
-            var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new FetchCallbackArgs<List<T1>> { Object = new List<T1>() };
-            var retCount = 0;
-            Exception exception = null;
-            var checkDoneTimes = 0;
-            try
-            {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, async fetch =>
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        fetch.IsBreak = true;
-                        return;
-                    }
-                    ret.Object.Add(af.Read(_orm, fetch.Object));
-                    if (otherData != null)
-                    {
-                        var idx = af.FieldCount - 1;
-                        foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, ret.Object.Count - 1, null, null));
-                    }
-                    retCount++;
-                    if (chunkSize > 0 && chunkSize == ret.Object.Count)
-                    {
-                        checkDoneTimes++;
-
-                        foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
-                        _trackToList?.Invoke(ret.Object);
-                        await chunkDone(ret);
-                        fetch.IsBreak = ret.IsBreak;
-
-                        ret.Object.Clear();
-                        if (otherData != null)
-                            foreach (var other in otherData)
-                                other.retlist.Clear();
-                    }
-                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
-            if (ret.Object.Any() || checkDoneTimes == 0)
-            {
-                foreach (var include in _includeToListAsync) await include?.Invoke(ret.Object, cancellationToken);
-                _trackToList?.Invoke(ret.Object);
-                await chunkDone(ret);
-            }
-        }
-        internal Task ToListChunkPrivateAsync(int chunkSize, Func<FetchCallbackArgs<List<T1>>, Task> chunkDone, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
-        {
-            string sql = null;
-            if (otherData?.Length > 0)
-            {
-                var sbField = new StringBuilder().Append(af.Field);
-                foreach (var other in otherData)
-                    sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString().TrimStart(','));
-            }
-            else
-                sql = this.ToSql(af.Field);
-
-            return ToListAfChunkPrivateAsync(chunkSize, chunkDone, sql, af, otherData, cancellationToken);
-        }
-        public Task ToChunkAsync(int size, Func<FetchCallbackArgs<List<T1>>, Task> done, bool includeNestedMembers = false, CancellationToken cancellationToken = default)
-        {
-            if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
-            return this.ToListChunkPrivateAsync(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
-        }
-
         async internal Task ToListMrChunkPrivateAsync<TReturn>(int chunkSize, Func<FetchCallbackArgs<List<TReturn>>, Task> chunkDone, string sql, ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken)
         {
             if (_cancel?.Invoke() == true) return;
@@ -1539,7 +1483,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
             var findSubSelectMany = new List<Expression>();
 
-            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, true);
+            _commonExpression.ReadAnonymousField(_tables, _tableRule, field, map, ref index, select, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, findSubSelectMany, _groupBySelfFlag == false);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findSubSelectMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, new ReadAnonymousTypeOtherInfo[0], cancellationToken);
 
@@ -1556,7 +1500,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var otherMap = new ReadAnonymousTypeInfo();
                     field.Clear();
-                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, true);
+                    _commonExpression.ReadAnonymousField(_tables, _tableRule, field, otherMap, ref index, find.Item1, this, _diymemexpWithTempQuery, _whereGlobalFilter, null, null, _groupBySelfFlag == false);
                     var otherRet = new List<object>();
                     var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
                     afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
@@ -1728,6 +1672,206 @@ namespace FreeSql.Internal.CommonProvider
                 _orderby = tmpOrderBy;
             }
         }
+#endif
+
+#if ns21
+        #region ToChunkAsyncEnumerable
+        class LocalAsyncEnumerable<TReturn> : IAsyncEnumerable<List<TReturn>>
+        {
+            internal Func<CancellationToken, IAsyncEnumerator<List<TReturn>>> _GetAsyncEnumerator;
+            public IAsyncEnumerator<List<TReturn>> GetAsyncEnumerator(CancellationToken cancellationToken = default) => _GetAsyncEnumerator(cancellationToken);
+        }
+        class LocalAsyncEnumerator<TReturn> : IAsyncEnumerator<List<TReturn>>
+        {
+            internal Func<List<TReturn>> _Current;
+            internal Func<ValueTask<bool>> _MoveNextAsync;
+            internal Func<ValueTask> _DisposeAsync;
+
+            public List<TReturn> Current => _Current();
+            public ValueTask<bool> MoveNextAsync() => _MoveNextAsync();
+            public ValueTask DisposeAsync() => _DisposeAsync();
+        }
+
+        internal IAsyncEnumerator<List<T1>> ToListAfChunkPrivateAsyncEnumerable(int chunkSize, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
+        {
+            if (_cancel?.Invoke() == true) return new LocalAsyncEnumerator<T1>
+            {
+                _Current = () => null,
+                _MoveNextAsync = () => new ValueTask<bool>(false),
+                _DisposeAsync = () => new ValueTask()
+            };
+            Exception exception = null;
+            var retCount = 0;
+            DbDataReaderAsyncEnumerator dataReaderAsyncEnumerator = null;
+            List<T1> items = null;
+            async ValueTask<bool> LocalMoveNextAsync()
+            {
+                try
+                {
+                    if (dataReaderAsyncEnumerator == null)
+                    {
+                        var dbParms = _params.ToArray();
+                        var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+                        _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                        dataReaderAsyncEnumerator = await (_orm.Ado as AdoProvider).ExecuteReaderMultipleAsync(1, _connection, _transaction, null, null, CommandType.Text, sql, _commandTimeout, dbParms, true, cancellationToken);
+                        if (dataReaderAsyncEnumerator == null) return false;
+                    }
+                    if (!await dataReaderAsyncEnumerator.Reader.ReadAsync(cancellationToken))
+                    {
+                        items = null;
+                        return false;
+                    }
+                    items = null;
+                    for (var a = 0; a < chunkSize; a++)
+                    {
+                        if (!await dataReaderAsyncEnumerator.Reader.ReadAsync(cancellationToken))
+                        {
+                            if (a == 0) return false;
+                            break;
+                        }
+                        if (a == 0) items = new List<T1>();
+                        items.Add(af.Read(_orm, dataReaderAsyncEnumerator.Reader));
+                        if (otherData != null)
+                        {
+                            var idx = af.FieldCount - 1;
+                            foreach (var other in otherData)
+                                other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dataReaderAsyncEnumerator.Reader, ref idx, false, null, items.Count - 1, null, null));
+                        }
+                        retCount++;
+                    }
+                    foreach (var include in _includeToListAsync) await include?.Invoke(items, cancellationToken);
+                    _trackToList?.Invoke(items);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    return false;
+                }
+            }
+            async ValueTask LocalDisposeAsync()
+            {
+                items?.Clear();
+                await dataReaderAsyncEnumerator.Dispose(exception);
+                dataReaderAsyncEnumerator = null;
+            }
+            return new LocalAsyncEnumerator<T1>
+            {
+                _Current = () => items,
+                _MoveNextAsync = LocalMoveNextAsync,
+                _DisposeAsync = LocalDisposeAsync
+            };
+        }
+        internal IAsyncEnumerable<List<T1>> ToListChunkPrivateAsyncEnumerable(int chunkSize, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        {
+            string sql = null;
+            if (otherData?.Length > 0)
+            {
+                var sbField = new StringBuilder().Append(af.Field);
+                foreach (var other in otherData)
+                    sbField.Append(other.field);
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
+            }
+            else
+                sql = this.ToSql(af.Field);
+
+            return new LocalAsyncEnumerable<T1>
+            {
+                _GetAsyncEnumerator = (cancellationToken) => this.ToListAfChunkPrivateAsyncEnumerable(chunkSize, sql, af, otherData, cancellationToken)
+            };
+        }
+        public IAsyncEnumerable<List<T1>> ToChunkAsyncEnumerable(int size)
+        {
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
+            {
+                if (withTempQueryParser._outsideTable[0] != _tables[0])
+                {
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    return this.InternalToChunkAsyncEnumerable<T1>(tp, size);
+                }
+                var af = withTempQueryParser._insideSelectList[0].InsideAf;
+                return new LocalAsyncEnumerable<T1>
+                {
+                    _GetAsyncEnumerator = (cancellationToken) => this.ToListMrChunkPrivateAsyncEnumerable<T1>(size, this.ToSql(af.field), af, cancellationToken)
+                };
+            }
+            if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
+            return this.ToListChunkPrivateAsyncEnumerable(size, this.GetAllFieldExpressionTreeLevel2(), null);
+        }
+
+
+        internal IAsyncEnumerator<List<TReturn>> ToListMrChunkPrivateAsyncEnumerable<TReturn>(int chunkSize, string sql, ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken)
+        {
+            if (_cancel?.Invoke() == true) return new LocalAsyncEnumerator<TReturn>
+            {
+                _Current = () => null,
+                _MoveNextAsync = () => new ValueTask<bool>(false),
+                _DisposeAsync = () => new ValueTask()
+            };
+            Exception exception = null;
+            var retCount = 0;
+            DbDataReaderAsyncEnumerator dataReaderAsyncEnumerator = null;
+            List<TReturn> items = null;
+            async ValueTask<bool> LocalMoveNextAsync()
+            {
+                try
+                {
+                    if (dataReaderAsyncEnumerator == null)
+                    {
+                        var type = typeof(TReturn);
+                        var dbParms = _params.ToArray();
+                        var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+                        _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                        dataReaderAsyncEnumerator = await (_orm.Ado as AdoProvider).ExecuteReaderMultipleAsync(1, _connection, _transaction, null, null, CommandType.Text, sql, _commandTimeout, dbParms, true, cancellationToken);
+                        if (dataReaderAsyncEnumerator == null) return false;
+                    }
+                    items = null;
+                    for (var a = 0; a < chunkSize; a++)
+                    {
+                        if (!await dataReaderAsyncEnumerator.Reader.ReadAsync(cancellationToken))
+                        {
+                            if (a == 0) return false;
+                            break;
+                        }
+                        if (a == 0) items = new List<TReturn>();
+                        var index = -1;
+                        items.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dataReaderAsyncEnumerator.Reader, ref index, false, null, items.Count, af.fillIncludeMany, af.fillSubSelectMany));
+                        retCount++;
+                    }
+                    foreach (var include in _includeToListAsync) await include?.Invoke(items, cancellationToken);
+                    _trackToList?.Invoke(items);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    return false;
+                }
+            }
+            async ValueTask LocalDisposeAsync()
+            {
+                items?.Clear();
+                await dataReaderAsyncEnumerator.Dispose(exception);
+                dataReaderAsyncEnumerator = null;
+            }
+            return new LocalAsyncEnumerator<TReturn>
+            {
+                _Current = () => items,
+                _MoveNextAsync = LocalMoveNextAsync,
+                _DisposeAsync = LocalDisposeAsync
+            };
+        }
+        public IAsyncEnumerable<List<TReturn>> InternalToChunkAsyncEnumerable<TReturn>(Expression select, int chunkSize)
+        {
+            var af = this.GetExpressionField(select);
+            var sql = this.ToSql(af.field);
+            return new LocalAsyncEnumerable<TReturn>
+            {
+                _GetAsyncEnumerator = (cancellationToken) => this.ToListMrChunkPrivateAsyncEnumerable<TReturn>(chunkSize, sql, af, cancellationToken)
+            };
+        }
+        #endregion
 #endif
         #endregion
     }

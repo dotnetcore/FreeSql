@@ -18,7 +18,7 @@
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
         <DelaySign>false</DelaySign>
-		<Version>3.5.105</Version>
+		<Version>3.5.205</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -34,7 +34,7 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0" />
 	</ItemGroup>
-
+	
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.4" />
 	</ItemGroup>

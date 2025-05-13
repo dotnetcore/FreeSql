@@ -196,7 +196,8 @@ a.column_name,
 a.column_type,
 case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
 case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity',
-a.column_comment 'comment'
+a.column_comment 'comment',
+a.column_key
 from information_schema.columns a
 where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                     var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -211,13 +212,19 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                             is_nullable = string.Concat(a[2]) == "1",
                             is_identity = string.Concat(a[3]) == "1",
                             is_unsigned = string.Concat(a[1]).EndsWith(" unsigned"),
-                            comment = string.Concat(a[4])
+                            comment = string.Concat(a[4]),
+                            is_primary = string.Concat(a[5]) == "PRI",
                         };
                     }, StringComparer.CurrentCultureIgnoreCase);
 
                     if (istmpatler == false)
                     {
-                        var existsPrimary = LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" select 1 from information_schema.columns where table_schema={0} and table_name={1} and column_key = 'PRI' limit 1", tbname));
+                        var csPrimarys = tb.Primarys.Select(a => a.Attribute.Name).ToArray();
+                        var dbPrimarys = tbstruct.Where(a => a.Value.is_primary).Select(a => a.Key).ToArray();
+                        if (!csPrimarys.Any() && dbPrimarys.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" DROP PRIMARY KEY").Append(";\r\n");
+                        if (csPrimarys.Any() && !dbPrimarys.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" ADD PRIMARY KEY(").Append(string.Join(", ", tb.Primarys.Select(tbcol => _commonUtils.QuoteSqlName(tbcol.Attribute.Name)))).Append(")").Append(";\r\n");
+                        else if (csPrimarys.Any() && (csPrimarys.Length != dbPrimarys.Length || csPrimarys.Except(dbPrimarys, StringComparer.CurrentCultureIgnoreCase).Any())) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" DROP PRIMARY KEY, ADD PRIMARY KEY(").Append(string.Join(", ", tb.Primarys.Select(tbcol => _commonUtils.QuoteSqlName(tbcol.Attribute.Name)))).Append(")").Append(";\r\n");
+
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
@@ -246,7 +253,6 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                     sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType);
                                     if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
                                     if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
-                                    if (tbcol.Attribute.IsIdentity == true) sbalter.Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
                                     sbalter.Append(";\r\n");
                                 }
                                 if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
@@ -255,7 +261,6 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                     sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                                     if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
                                     if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
-                                    if (tbcol.Attribute.IsIdentity == true) sbalter.Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
                                     sbalter.Append(";\r\n");
                                 }
                                 continue;
@@ -265,7 +270,6 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" && tbcol.Attribute.IsIdentity == false) sbalter.Append(" DEFAULT ").Append(tbcol.DbDefaultValue);
                             if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
                             if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
-                            if (tbcol.Attribute.IsIdentity == true) sbalter.Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
                             sbalter.Append(";\r\n");
                         }
                         var dsuksql = _commonUtils.FormatSql(@"

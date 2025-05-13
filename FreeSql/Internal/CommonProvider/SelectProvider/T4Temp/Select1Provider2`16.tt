@@ -111,6 +111,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalGroupBy<TKey, NativeTuple<<#=NewStr #>>>(exp?.Body);
         }
 
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.GroupBySelf<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
+        }
+
         TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
         {
             if (column == null) return default(TMember);
@@ -258,10 +265,6 @@ namespace FreeSql.Internal.CommonProvider
         TReturn ISelect<<#=NewStr #>>.First<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
         TDto ISelect<<#=NewStr #>>.First<TDto>() => (this as ISelect<<#=NewStr #>>).Limit(1).ToList<TDto>().FirstOrDefault();
 
-
-
-
-
         #region HzyTuple 元组
 
         ISelect<TDto> ISelect<<#=NewStr #>>.WithTempQuery<TDto>(Expression<Func<HzyTuple<<#=NewStr #>>, TDto>> selector)
@@ -280,6 +283,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<<#=NewStr #>>).GroupBy((Expression<Func<<#=NewStr #>, TKey>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.GroupBySelf<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).GroupBySelf((Expression<Func<<#=NewStr #>, TMember>>)expModify);
         }
 
         TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
@@ -392,8 +401,6 @@ namespace FreeSql.Internal.CommonProvider
 
         #endregion
 
-
-
 #if net40
 #else
         Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
@@ -474,9 +481,6 @@ namespace FreeSql.Internal.CommonProvider
         async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
         async Task<TDto> ISelect<<#=NewStr #>>.FirstAsync<TDto>(CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync<TDto>(cancellationToken)).FirstOrDefault();
 
-
-
-
         #region HzyTuple 元组
 
         Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
@@ -538,9 +542,16 @@ namespace FreeSql.Internal.CommonProvider
         async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
             => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
 
-
         #endregion
 
+#endif
+
+#if ns21
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size)
+        {
+            for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
+        }
 #endif
     }
 

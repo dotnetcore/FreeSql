@@ -81,6 +81,7 @@ namespace FreeSql
                     if (table.ColumnsByCs.ContainsKey(col.CsName))
                     {
                         if (col.Attribute.IsVersion) continue;
+                        if (col.Attribute.CanUpdate == false) continue;
                         var propvalBefore = table.GetPropertyValue(entityBefore, col.CsName);
                         var propvalAfter = table.GetPropertyValue(entityAfter, col.CsName);
                         //if (object.Equals(propvalBefore, propvalAfter) == false) changes.Add(col.CsName);
@@ -356,6 +357,7 @@ namespace FreeSql
 
         public static void MapEntityValue(string boundaryName, IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
         {
+            var isDict = rootEntityTo?.GetType() == typeof(Dictionary<string, object>);
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
             LocalMapEntityValue(rootEntityType, rootEntityFrom, rootEntityTo, true);
             ignores.Clear();
@@ -363,7 +365,7 @@ namespace FreeSql
             void LocalMapEntityValue(Type entityType, object entityFrom, object entityTo, bool cascade)
             {
                 if (entityFrom == null || entityTo == null) return;
-                if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
+                if (entityType == null) entityType = entityFrom.GetType();
                 var table = fsql.CodeFirst.GetTableByEntity(entityType);
                 if (table == null) return;
 
@@ -374,10 +376,11 @@ namespace FreeSql
 
                 foreach (var prop in table.Properties.Values)
                 {
-                    if (table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
-                    if (table.ColumnsByCs.ContainsKey(prop.Name))
+                    if (table.ColumnsByCs.ContainsKey(prop.Name) || table.ColumnsByCsIgnore.ContainsKey(prop.Name))
                     {
-                        table.SetPropertyValue(entityTo, prop.Name, table.GetPropertyValue(entityFrom, prop.Name));
+                        //与 EntityUtilExtensions.MapEntityValue 同步修改规则，Ignore 也需要 Map
+                        if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = table.GetPropertyValue(entityFrom, prop.Name);
+                        else if (prop.CanWrite) table.SetPropertyValue(entityTo, prop.Name, table.GetPropertyValue(entityFrom, prop.Name));
                         continue;
                     }
                     if (cascade == false) continue;
@@ -388,16 +391,18 @@ namespace FreeSql
                     var propvalFrom = EntityUtilExtensions.GetEntityValueWithPropertyName(fsql, entityType, entityFrom, prop.Name);
                     if (propvalFrom == null)
                     {
-                        EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, null);
+                        if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = null;
+                        else EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, null);
                         continue;
                     }
                     switch (tbref.RefType)
                     {
                         case TableRefType.OneToOne:
-                            var propvalTo = tbref.RefEntityType.CreateInstanceGetDefaultValue();
+                            var propvalTo = isDict ? new Dictionary<string, object>() : tbref.RefEntityType.CreateInstanceGetDefaultValue();
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
                             LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo, boundaryAttr?.BreakThen != true);
-                            EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
+                            if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = null;
+                            else EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
                             break;
                         case TableRefType.OneToMany:
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
@@ -414,22 +419,36 @@ namespace FreeSql
             }
             void LocalMapEntityValueCollection(Type entityType, object entityFrom, object entityTo, TableRef tbref, IEnumerable propvalFrom, PropertyInfo prop, bool cascade)
             {
-                var propvalTo = typeof(List<>).MakeGenericType(tbref.RefEntityType).CreateInstanceGetDefaultValue();
-                var propvalToIList = propvalTo as IList;
-                foreach (var fromItem in propvalFrom)
+                if (isDict)
                 {
-                    var toItem = tbref.RefEntityType.CreateInstanceGetDefaultValue();
-                    LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem, cascade);
-                    propvalToIList.Add(toItem);
+                    var propvalTo = new List<Dictionary<string,object>>();
+                    foreach (var fromItem in propvalFrom)
+                    {
+                        var toItem = new Dictionary<string, object>();
+                        LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem, cascade);
+                        propvalTo.Add(toItem);
+                    }
+                    (entityTo as Dictionary<string, object>)[prop.Name] = propvalTo;
                 }
-                var propvalType = prop.PropertyType.GetGenericTypeDefinition();
-                if (propvalType == typeof(List<>) || propvalType == typeof(ICollection<>))
-                    EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
-                else if (propvalType == typeof(ObservableCollection<>))
+                else
                 {
-                    //var propvalTypeOcCtor = typeof(ObservableCollection<>).MakeGenericType(tbref.RefEntityType).GetConstructor(new[] { typeof(List<>).MakeGenericType(tbref.RefEntityType) });
-                    var propvalTypeOc = Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(tbref.RefEntityType), new object[] { propvalTo });
-                    EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTypeOc);
+                    var propvalTo = typeof(List<>).MakeGenericType(tbref.RefEntityType).CreateInstanceGetDefaultValue();
+                    var propvalToIList = propvalTo as IList;
+                    foreach (var fromItem in propvalFrom)
+                    {
+                        var toItem = tbref.RefEntityType.CreateInstanceGetDefaultValue();
+                        LocalMapEntityValue(tbref.RefEntityType, fromItem, toItem, cascade);
+                        propvalToIList.Add(toItem);
+                    }
+                    var propvalType = prop.PropertyType.GetGenericTypeDefinition();
+                    if (propvalType == typeof(List<>) || propvalType == typeof(ICollection<>))
+                        EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
+                    else if (propvalType == typeof(ObservableCollection<>))
+                    {
+                        //var propvalTypeOcCtor = typeof(ObservableCollection<>).MakeGenericType(tbref.RefEntityType).GetConstructor(new[] { typeof(List<>).MakeGenericType(tbref.RefEntityType) });
+                        var propvalTypeOc = Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(tbref.RefEntityType), new object[] { propvalTo });
+                        EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTypeOc);
+                    }
                 }
             }
         }

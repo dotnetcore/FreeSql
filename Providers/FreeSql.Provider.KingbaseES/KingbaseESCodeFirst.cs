@@ -128,8 +128,14 @@ namespace FreeSql.KingbaseES
                         {
                             return;
                         }
+
                         try
                         {
+                            // v9 版本下面 pg_ sys_ 都支持，导致 v9 版本识别成 v8r3了，需要额外添加判断条件
+                            //SELECT (select 1 from sys_tables limit 1) a,(select 1 from pg_tables limit 1) b;
+                            //经过查看文档 v8r3有命令：show case_sensitive ，v8r6 和以后通过命令 show enable_ci 判断，
+                            //前一个命令不存在了
+                            _orm.Ado.ExecuteNonQuery(" show case_sensitive");
                             _orm.Ado.ExecuteNonQuery(" select 1 from sys_tables limit 1");
                             _isSysV8R3 = true;
                         }

@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
@@ -30,8 +31,8 @@ namespace FreeSql.MySql.Curd
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 		protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) => base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
 
-		protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
-		{
+        protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
+        {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
@@ -57,10 +58,10 @@ namespace FreeSql.MySql.Curd
 
                 Exception exception = null;
                 try
-				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)
@@ -120,8 +121,8 @@ namespace FreeSql.MySql.Curd
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
 		protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns, cancellationToken);
 
-		async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
-		{
+        async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
+        {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
@@ -147,10 +148,10 @@ namespace FreeSql.MySql.Curd
 
                 Exception exception = null;
                 try
-				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)

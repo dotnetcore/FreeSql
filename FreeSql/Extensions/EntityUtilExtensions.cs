@@ -330,9 +330,9 @@ namespace FreeSql.Extensions.EntityUtil
                 });
                 foreach (var prop in _table.Properties.Values)
                 {
-                    if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
-                    if (_table.ColumnsByCs.ContainsKey(prop.Name))
+                    if (_table.ColumnsByCs.ContainsKey(prop.Name) || _table.ColumnsByCsIgnore.ContainsKey(prop.Name) && prop.CanWrite)
                     {
+                        //Ignore 也需要 Map https://github.com/luoyunchong/FreeKit/blob/main/src/IGeekFan.FreeKit.Extras/FreeSql/UnitOfWorkAsyncInterceptor.cs
                         exps.Add(
                             Expression.Assign(
                                 Expression.MakeMemberAccess(var2Parm, prop),
@@ -340,15 +340,6 @@ namespace FreeSql.Extensions.EntityUtil
                             )
                         );
                     }
-
-                    //else if (prop.GetSetMethod() != null) {
-                    //	exps.Add(
-                    //		Expression.Assign(
-                    //			Expression.MakeMemberAccess(var2Parm, prop),
-                    //			Expression.Default(prop.PropertyType)
-                    //		)
-                    //	);
-                    //}
                 }
                 return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
             });

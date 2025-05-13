@@ -49,6 +49,8 @@ namespace FreeSql.Internal.CommonProvider
         public bool _is_AsTreeCte;
         public BaseDiyMemberExpression _diymemexpWithTempQuery;
         public Func<DbTransaction> _resolveHookTransaction;
+        public bool _groupBySelfFlag = false;
+        public bool _isIncluded = false;
 
         public bool IsDefaultSqlContent => _tables.Count == 1 && _tables[0].Table?.AsTableImpl == null &&
             _distinct == false && _is_AsTreeCte == false && _where.Length == 0 && _join.Length == 0 &&
@@ -157,6 +159,9 @@ namespace FreeSql.Internal.CommonProvider
             to._cancel = from._cancel;
             to._is_AsTreeCte = from._is_AsTreeCte;
             to._diymemexpWithTempQuery = from._diymemexpWithTempQuery;
+            to._resolveHookTransaction = from._resolveHookTransaction;
+            to._groupBySelfFlag = from._groupBySelfFlag;
+            to._isIncluded = from._isIncluded;
         }
 
         internal class WithTempQueryParser : BaseDiyMemberExpression
@@ -421,12 +426,17 @@ namespace FreeSql.Internal.CommonProvider
                 return exp;
             }
             callExp = callExpStack.Pop();
-            Expression newExp = Expression.Call(
-                Expression.Convert(callExp, typeof(Select0Provider)),
-                typeof(Select0Provider).GetMethod(nameof(SetSameSelectPendingShareData), BindingFlags.NonPublic | BindingFlags.Instance),
-                Expression.Constant(data, typeof(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>))
-            );
-            newExp = Expression.Convert(newExp, callExp.Type);
+            Expression newExp = callExp.Object.NodeType == ExpressionType.MemberAccess && typeof(ISelect0).IsAssignableFrom(callExp.Object.Type) ?
+                new ReplaceMemberExpressionVisitor().Replace(callExp, callExp.Object, Expression.Convert(Expression.Call(
+                    Expression.Convert(callExp.Object, typeof(Select0Provider)),
+                    typeof(Select0Provider).GetMethod(nameof(SetSameSelectPendingShareData), BindingFlags.NonPublic | BindingFlags.Instance), 
+                    Expression.Constant(data, typeof(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>))), callExp.Object.Type)
+                ) :
+                Expression.Convert(Expression.Call(
+                    Expression.Convert(callExp, typeof(Select0Provider)),
+                    typeof(Select0Provider).GetMethod(nameof(SetSameSelectPendingShareData), BindingFlags.NonPublic | BindingFlags.Instance),
+                    Expression.Constant(data, typeof(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>))
+                ), callExp.Type);
             while (callExpStack.Any())
             {
                 callExp = callExpStack.Pop();
@@ -1032,6 +1042,7 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect WhereIf(bool condition, string sql, object parms = null)
         {
             if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
+            if (_groupBySelfFlag) return this.Having(sql, parms);
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
@@ -1270,7 +1281,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return this as TSelect;
         }
-        public TSelect ForUpdate(bool noawait = false)
+        public TSelect ForUpdate(bool noawait = false, bool skipLocked = false)
         {
             if (_transaction == null && _orm.Ado.TransactionCurrentThread != null) this.WithTransaction(_orm.Ado.TransactionCurrentThread);
             if (_transaction == null && _resolveHookTransaction != null) this.WithTransaction(_resolveHookTransaction());
@@ -1280,25 +1291,25 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.MySql:
                 case DataType.OdbcMySql:
                 case DataType.CustomMySql:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.CustomSqlServer:
-                    _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")})";
+                    _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")}{(skipLocked ? ", ReadPast" : "")})";
                     break;
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.Xugu:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
                 case DataType.Dameng:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.Sqlite:
                     break;
@@ -1307,7 +1318,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
                 case DataType.Firebird:
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock{(skipLocked ? " skip locked" : "")}";
                     break;
             }
             return this as TSelect;
@@ -1379,17 +1390,13 @@ namespace FreeSql.Internal.CommonProvider
         public List<T1> ToList() => ToList(false);
         public virtual List<T1> ToList(bool includeNestedMembers)
         {
-            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
             {
                 if (withTempQueryParser._outsideTable[0] != _tables[0])
                 {
-                    var tps = _tables.Select(a =>
-                    {
-                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
-                        a.Parameter = tp;
-                        return tp;
-                    }).ToArray();
-                    return this.InternalToList<T1>(tps[0]);
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    return this.InternalToList<T1>(tp);
                 }
                 return this.ToListMapReaderPrivate<T1>(withTempQueryParser._insideSelectList[0].InsideAf, null);
             }
@@ -1437,19 +1444,15 @@ namespace FreeSql.Internal.CommonProvider
         public Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default) => ToListAsync(false, cancellationToken);
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
-            if (_diymemexpWithTempQuery != null && _diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser)
+            if (_diymemexpWithTempQuery is WithTempQueryParser withTempQueryParser && withTempQueryParser != null)
             {
                 if (withTempQueryParser._outsideTable[0] != _tables[0])
                 {
-                    var tps = _tables.Select(a =>
-                    {
-                        var tp = Expression.Parameter(a.Table.Type, a.Alias);
-                        a.Parameter = tp;
-                        return tp;
-                    }).ToArray();
-                    return this.InternalToListAsync<T1>(tps[0], cancellationToken);
+                    var tp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+                    _tables[0].Parameter = tp;
+                    return this.InternalToListAsync<T1>(tp, cancellationToken);
                 }
-                return this.ToListMapReaderPrivateAsync<T1>((_diymemexpWithTempQuery as WithTempQueryParser)._insideSelectList[0].InsideAf, null, cancellationToken);
+                return this.ToListMapReaderPrivateAsync<T1>(withTempQueryParser._insideSelectList[0].InsideAf, null, cancellationToken);
             }
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);
             return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);

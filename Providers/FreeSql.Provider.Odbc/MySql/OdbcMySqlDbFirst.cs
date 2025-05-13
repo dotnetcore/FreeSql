@@ -245,7 +245,9 @@ case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
 case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity',
 a.column_comment 'comment',
 a.column_default 'default_value',
-a.ordinal_position
+a.ordinal_position,
+a.numeric_precision,
+a.numeric_scale
 from information_schema.columns a
 where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseIn}) and {loc8}
 ";
@@ -266,6 +268,8 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                 string comment = string.Concat(row[7]);
                 string defaultValue = string.Concat(row[8]);
                 var position = int.Parse(string.Concat(row[9]));
+                int.TryParse(string.Concat(row[10]), out var numeric_precision);
+                int.TryParse(string.Concat(row[11]), out var numeric_scale);
 
                 if (max_length == 0) max_length = -1;
                 if (database.Length == 1)
@@ -284,7 +288,9 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     Table = loc2[table_id],
                     Comment = comment,
                     DefaultValue = defaultValue,
-                    Position = position
+                    Position = position,
+                    Precision = numeric_precision,
+                    Scale = numeric_scale,
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);
@@ -431,7 +437,7 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
                         bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
                         compare = b2.CompareTo(b1);
                     }
-                    if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
+                    if (compare == 0) compare = c1.Position.CompareTo(c2.Position);
                     return compare;
                 });
                 loc1.Add(loc4);

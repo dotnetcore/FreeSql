@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
@@ -11,19 +11,23 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
-		<PackageReference Include="xunit" Version="2.4.1" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj" />
+		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.EFModel\FreeSql.Extensions.EFModel.csproj" />
 		<ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -13,6 +13,7 @@ using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
+using Org.BouncyCastle.Tls;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -615,10 +616,106 @@ namespace base_entity
                     //if (cmd.CommandText.StartsWith(""))
                 })
                 .UseLazyLoading(true)
-                .UseGenerateCommandParameterWithLambda(true)
+                //.UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunk(10, e =>
+            {
+                foreach (var item in e.Object)
+                    Console.WriteLine(item.Nickname);
+            });
+            Task.Run(async () =>
+            {
+                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunkAsyncEnumerable(10))
+                {
+                    foreach (var item in xxs1)
+                        Console.WriteLine(item.Nickname);
+                }
+            }).Wait();
+
+            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
+            usergroupRepository.Delete(a => true);
+            usergroupRepository.Insert(new[]{
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group1",
+                    UpdateTime = DateTime.Now,
+                    Sort = 1,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
+                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
+                    }
+                },
+                new UserGroup
+                {
+                    CreateTime = DateTime.Now,
+                    GroupName = "group2",
+                    UpdateTime = DateTime.Now,
+                    Sort = 2,
+                    User1s = new List<User1>
+                    {
+                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
+                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
+                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                    }
+                },
+            });
+            var ugroupFirst = usergroupRepository.Select.First();
+            ugroupFirst.Sort++;
+            usergroupRepository.Update(ugroupFirst);
+            var userRepository = fsql.GetAggregateRootRepository<User1>();
+
+            var testsublist1 = fsql.Select<UserGroup>()
+                .ToList(a => new
+                {
+                    a.Id,
+                    list = userRepository.Select.Where(b => a.Id == 1).Where(b => b.GroupId == a.Id).ToList(),
+                    list2 = fsql.Select<User1>().Where(b => a.Id == 2).Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
+                });
+
+            Utils.IsStrict = false;
+            var user1Tb = fsql.CodeFirst.GetTableByEntity(typeof(User11));
+
+            fsql.Delete<User1>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new List<User1>
+            {
+                new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
+                new User1 { Nickname = "n2", Username = "u2", Description = "d2" },
+                new User1 { Nickname = "n3", Username = "u3", Description = "d3" },
+            }).ExecuteAffrows();
+
+            fsql.Insert(new User1()).ExecuteInserted();
+            fsql.Update<User1>().SetSource(new User1()).ExecuteUpdated();
+
+            fsql.InsertOrUpdate<AppInfoEntity>().SetSource(new AppInfoEntity { AppID = "03DN8CW8", AppName = "app_01" }).ExecuteAffrows();
+            var repo2211 = fsql.GetRepository<AppInfoEntity>();
+
+            var appInfo = repo2211.Where(info => info.AppID == "03DN8CW8").First();
+            appInfo = repo2211.Where(info => info.AppID == "03DN8CW8").First();
+            var compareDic = new Dictionary<string, object[]>();
+            var updateInfo = "";
+
+            repo2211.Attach(appInfo);
+            appInfo.AppName = "测试";
+            compareDic = repo2211.CompareState(appInfo);
+            Console.WriteLine(appInfo.AppName);
+
+            var sql20250205 = fsql.Select<OrderLine, Product>()
+                .InnerJoin((l, p) => l.ProductId == p.ID)
+                .GroupBy((l, p) => new { p.ID, ShopType = l.ShopType ?? 0 })
+                .ToSql(x => new
+                {
+                    TradeId = x.Key.ID,
+                    ShopType = x.Key.ShopType,
+                    FieldCount = x.CountDistinct(x.Value.Item2.ID),
+                    Count = x.Count(x.Value.Item1.Id),
+                    Kb = (long)x.Sum(x.Value.Item1.Amount)
+                });
 
             var res = fsql.Select<MemberActionDayCountModel>()
                 .Where(x => x.Date >= 20230101 && x.Date < 20240101 && x.ScanCode > 0)
@@ -765,48 +862,7 @@ namespace base_entity
 
             fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
 
-            var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
-            usergroupRepository.Delete(a => true);
-            usergroupRepository.Insert(new[]{
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group1",
-                    UpdateTime = DateTime.Now,
-                    Sort = 1,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" },
-                        new User1 { Nickname = "nickname12", Username = "username12", Description = "desc12" },
-                        new User1 { Nickname = "nickname13", Username = "username13", Description = "desc13" },
-                    }
-                },
-                new UserGroup
-                {
-                    CreateTime = DateTime.Now,
-                    GroupName = "group2",
-                    UpdateTime = DateTime.Now,
-                    Sort = 2,
-                    User1s = new List<User1>
-                    {
-                        new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
-                        new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
-                        new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
-                    }
-                },
-            });
-            var ugroupFirst = usergroupRepository.Select.First();
-            ugroupFirst.Sort++;
-            usergroupRepository.Update(ugroupFirst);
-            var userRepository = fsql.GetAggregateRootRepository<User1>();
-
-            var testsublist1 = fsql.Select<UserGroup>()
-                .First(a => new
-                {
-                    a.Id,
-                    list = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(),
-                    list2 = userRepository.Select.Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
-                });
+            
 
 
 
@@ -2984,6 +3040,13 @@ class String_TestIdAndIdentity : TypeHandler<TestIdAndIdentity>
     }
 }
 }
+        public class AppInfoEntity
+        {
+            [Column(IsPrimary = true, Name = "APP_ID")]
+            public string AppID { get; set; }
+            [Column(Name = "APP_NAME")]
+            public string AppName { get; set; }
+        }
 public partial class OrderLine22x
 {
 
@@ -3510,4 +3573,38 @@ public sealed class MemberActionDayCountModel
     /// </summary>
     public decimal ScanCodeAmount { get; set; }
     #endregion
+}
+[ExpressionCall]
+public static class ExpressionCallExtesions
+{
+    static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+    public static int CountDistinct<TKey, TValue>(this ISelectGroupingAggregate<TKey, TValue> that, object column)
+    {
+        context.Value.Result = $"count(distinct {context.Value.ParsedContent["column"]})";
+        return 0;
+    }
+}
+
+class User11
+{
+    public int Id { get; set; } //Id、UserId、User_id
+
+    public List<Role11> Role11s { get; set; }
+}
+class Role11
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public List<User11> User11s { get; set; }
+}
+class User11Role11
+{
+    public int Id { get; set; }
+
+    public int User11Id { get; set; }
+    public User11 User11 { get; set; }
+
+    public int Role11Id { get; set; }
+    public Role11 Role11 { get; set; }
 }

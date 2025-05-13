@@ -77,7 +77,7 @@ public static class FreeSqlGlobalExpressionCallExtensions
     /// </summary>
     public static bool In<T>(this T field, T value1)
     {
-        if (expContext.Value == null) return field.Equals(value1);
+        if (expContext.Value == null) return object.Equals(field, value1);
         expContext.Value.Result = $"{pc["field"]} = {pc["value1"]}";
         return true;
     }
@@ -86,7 +86,7 @@ public static class FreeSqlGlobalExpressionCallExtensions
     /// </summary>
     public static bool In<T>(this T field, T value1, T value2)
     {
-        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2);
+        if (expContext.Value == null) return object.Equals(field, value1) || object.Equals(field, value2);
         expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]})";
         return true;
     }
@@ -95,7 +95,7 @@ public static class FreeSqlGlobalExpressionCallExtensions
     /// </summary>
     public static bool In<T>(this T field, T value1, T value2, T value3)
     {
-        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3);
+        if (expContext.Value == null) return object.Equals(field, value1) || object.Equals(field, value2) || object.Equals(field, value3);
         expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]})";
         return true;
     }
@@ -104,7 +104,7 @@ public static class FreeSqlGlobalExpressionCallExtensions
     /// </summary>
     public static bool In<T>(this T field, T value1, T value2, T value3, T value4)
     {
-        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3) || field.Equals(value4);
+        if (expContext.Value == null) return object.Equals(field, value1) || object.Equals(field, value2) || object.Equals(field, value3) || object.Equals(field, value4);
         expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]},{pc["value4"]})";
         return true;
     }
@@ -113,7 +113,7 @@ public static class FreeSqlGlobalExpressionCallExtensions
     /// </summary>
     public static bool In<T>(this T field, T value1, T value2, T value3, T value4, T value5)
     {
-        if (expContext.Value == null) return field.Equals(value1) || field.Equals(value2) || field.Equals(value3) || field.Equals(value4) || field.Equals(value5);
+        if (expContext.Value == null) return object.Equals(field, value1) || object.Equals(field, value2) || object.Equals(field, value3) || object.Equals(field, value4) || object.Equals(field, value5);
         expContext.Value.Result = $"{pc["field"]} IN ({pc["value1"]},{pc["value2"]},{pc["value3"]},{pc["value4"]},{pc["value5"]})";
         return true;
     }
@@ -222,17 +222,17 @@ namespace FreeSql
         /// rank() over(order by ...)
         /// </summary>
         /// <returns></returns>
-        public static ISqlOver<long> Rank() => Over<long>("rank()");
+        public static ISqlOver<int> Rank() => Over<int>("rank()");
 		/// <summary>
 		/// dense_rank() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> DenseRank() => Over<long>("dense_rank()");
+		public static ISqlOver<int> DenseRank() => Over<int>("dense_rank()");
 		/// <summary>
 		/// count() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> Count(object column) => Over<long>($"count({expContext.Value.ParsedContent["column"]})");
+		public static ISqlOver<int> Count(object column) => Over<int>($"count({expContext.Value.ParsedContent["column"]})");
 		/// <summary>
 		/// sum(..) over(order by ...)
 		/// </summary>
@@ -262,7 +262,7 @@ namespace FreeSql
 		/// SqlServer row_number() over(order by ...)
 		/// </summary>
 		/// <returns></returns>
-		public static ISqlOver<long> RowNumber() => Over<long>("row_number()");
+		public static ISqlOver<int> RowNumber() => Over<int>("row_number()");
 		#endregion
 
 		/// <summary>
@@ -284,7 +284,7 @@ namespace FreeSql
 		/// <typeparam name="T"></typeparam>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public static long DistinctCount<T>(T column)
+		public static int DistinctCount<T>(T column)
 		{
 			expContext.Value.Result = $"count(distinct {expContext.Value.ParsedContent["column"]})";
 			return 0;

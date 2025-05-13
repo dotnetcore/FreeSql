@@ -31,6 +31,9 @@ namespace FreeSql
         Task<bool> AnyAsync(CancellationToken cancellationToken = default);
         Task<long> CountAsync(CancellationToken cancellationToken = default);
 #endif
+#if ns21
+        IAsyncEnumerable<List<T1>> ToChunkAsyncEnumerable(int size);
+#endif
 
         /// <summary>
         /// 控制取消本次查询<para></para>
@@ -117,8 +120,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="size">数据块的大小</param>
         /// <param name="done">处理数据块</param>
-        /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
-        void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false);
+        void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done);
         /// <summary>
         /// 执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
         /// </summary>
@@ -333,8 +335,9 @@ namespace FreeSql
         /// 神通: for update
         /// </summary>
         /// <param name="nowait">noawait</param>
+        /// <param name="skipLocked">skip locked</param>
         /// <returns></returns>
-        TSelect ForUpdate(bool nowait = false);
+        TSelect ForUpdate(bool nowait = false, bool skipLocked = false);
 
         /// <summary>
         /// 按原生sql语法分组，GroupBy("concat(name, @cc)", new { cc = 1 })<para></para>

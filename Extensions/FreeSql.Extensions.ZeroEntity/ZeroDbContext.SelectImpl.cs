@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using T = System.Collections.Generic.Dictionary<string, object>;
 
 namespace FreeSql.Extensions.ZeroEntity
@@ -295,12 +296,12 @@ namespace FreeSql.Extensions.ZeroEntity
 			{
 				if (list?.Any() != true) return;
 				if (flagIndexs == null) flagIndexs = new List<string>();
-				flagIndexs.Add(alias.Table.CsName);
 
 				var nav = alias.Table.Navigates[navMany.Item1];
-				if (_includeAll && flagIndexs.Contains(nav.RefTable.CsName)) return;
+                if (_includeAll && flagIndexs.Contains(nav.RefTable.CsName)) return;
+                flagIndexs.Add(nav.RefTable.CsName);
 
-				if (nav.RefType == TableRefType.OneToMany)
+                if (nav.RefType == TableRefType.OneToMany)
 				{
 					var subTable = nav.RefTable;
 					var subSelect = new SelectImpl(_dbcontext, subTable.CsName);
@@ -533,7 +534,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				return this;
 			}
 
-			NativeTuple<string, ColumnInfo> ParseField(ZeroTableInfo firstTable, string firstTableAlias, string property)
+			NativeTuple<string, ColumnInfo, string> ParseField(ZeroTableInfo firstTable, string firstTableAlias, string property)
 			{
 				if (string.IsNullOrEmpty(property)) return null;
 				var field = property.Split('.').Select(a => a.Trim()).ToArray();
@@ -541,43 +542,43 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (field.Length == 1)
 				{
 					if (firstTable != null && firstTable.ColumnsByCs.TryGetValue(field[0], out var col2) == true)
-						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
 
 					foreach (var ta2 in _tableAlias)
 					{
 						if (ta2.Table.ColumnsByCs.TryGetValue(field[0], out col2))
-							return NativeTuple.Create($"{ta2.Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+							return NativeTuple.Create($"{ta2.Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2.Alias);
 					}
 				}
 				else if (field.Length == 2)
 				{
 					if (firstTable != null && firstTable.CsName.ToLower() == field[0].ToLower() && firstTable.ColumnsByCs.TryGetValue(field[1], out var col2) == true)
-						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
 
 					var ta2s = _tableAlias.Where(a => a.Table.CsName.ToLower() == field[0].ToLower()).ToArray();
 					if (ta2s.Length == 1 && ta2s[0].Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-						return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2s[0].Alias);
 					if (ta2s.Length > 1)
 					{
 						ta2s = _tableAlias.Where(a => a.Table.CsName == field[0]).ToArray();
 						if (ta2s.Length == 1 && ta2s[0].Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-							return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+							return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2s[0].Alias);
 					}
 					if (_tableAlias.Where(a => a.Alias == field[0]).FirstOrDefault()?.Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
-						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2);
+						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, field[0]);
 				}
 
 				var navPath = string.Join(".", field.Skip(1).Take(field.Length - 1));
 				var ta = _tableAlias.Where(a => string.Join(".", a.NavPath) == navPath).FirstOrDefault();
 				if (ta?.Table.ColumnsByCs.TryGetValue(field.Last(), out var col) == true)
-					return NativeTuple.Create($"{ta.Alias}.{_common.QuoteSqlName(col.Attribute.Name)}", col);
+					return NativeTuple.Create($"{ta.Alias}.{_common.QuoteSqlName(col.Attribute.Name)}", col, ta.Alias);
 				throw new Exception(CoreErrorStrings.Cannot_Match_Property(property));
 			}
 
-			/// <summary>
-			/// WHERE [Id] IN (...)
-			/// </summary>
-			public SelectImpl Where(IEnumerable<T> items)
+            /// <summary>
+            /// WHERE [Id] IN (1,2,3)
+            /// </summary>
+            public SelectImpl Where(IEnumerable<T> items)
 			{
 				var alias = _tableAlias.Where(a => a.Table == _tables[_mainTableIndex]).FirstOrDefault()?.Alias;
 				if (!string.IsNullOrWhiteSpace(alias)) alias = $"{alias}.";
@@ -586,21 +587,50 @@ namespace FreeSql.Extensions.ZeroEntity
 				return this;
 			}
 			/// <summary>
-			/// Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
-			/// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1
+			/// WHERE [field] IN (1,2,3)
 			/// </summary>
-			public SelectImpl Where(object multipleFields)
+			public SelectImpl WhereIn(string field, object value) => Where(field, "in", value);
+			public SelectImpl WhereInIf(bool condition, string field, object value) => condition ? Where(field, "in", value) : this;
+            /// <summary>
+            /// WHERE [field] NOT IN (1,2,3)
+            /// </summary>
+            public SelectImpl WhereNotIn(string field, object value) => Where(field, "!in", value);
+            public SelectImpl WhereNotInIf(bool condition, string field, object value) => condition ? Where(field, "!in", value) : this;
+            /// <summary>
+            /// 匿名对象：Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            /// 字典对象：Where(new Dictionary&lt;string, object&gt; { ["Year"] = 2017, ["CategoryId"] = 198, ["IsPublished"] = true })<para></para>
+            /// WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1<para></para>
+            /// </summary>
+            public SelectImpl WhereDynamic(object dywhere)
 			{
-				if (multipleFields == null) return this;
-				foreach (var prop in multipleFields.GetType().GetProperties())
-					WhereDynamicFilter(new DynamicFilterInfo { Field = prop.Name, Operator = DynamicFilterOperator.Eq, Value = prop.GetValue(multipleFields, null) });
+				if (dywhere == null) return this;
+				if (dywhere is IDictionary<string, object> dict)
+				{
+					foreach(var kv in dict)
+                        WhereDynamicFilter(new DynamicFilterInfo { Field = kv.Key, Operator = DynamicFilterOperator.Eq, Value = kv.Value });
+					return this;
+                }
+				foreach (var prop in dywhere.GetType().GetProperties())
+					WhereDynamicFilter(new DynamicFilterInfo { Field = prop.Name, Operator = DynamicFilterOperator.Eq, Value = prop.GetValue(dywhere, null) });
 				return this;
 			}
-			/// <summary>
-			/// WHERE [field] = ..
-			/// </summary>
-			public SelectImpl Where(string field, object value) => WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Eq, Value = value });
-			public SelectImpl Where(string field, string @operator, object value)
+            public SelectImpl WhereDynamicIf(bool condition, object dywhere) => condition ? WhereDynamic(dywhere) : this;
+            /// <summary>
+            /// WHERE [field] = ..<para></para>
+            /// 更全请看重载 Where(string field, string @operator, object value)
+            /// </summary>
+            public SelectImpl Where(string field, object value) => WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Eq, Value = value });
+            public SelectImpl WhereIf(bool condition, string field, object value) => condition ? Where(field, value) : this;
+            /// <summary>
+            /// WHERE [field] <para></para>
+			/// !=、&gt;、&gt;=、&lt;、&lt;=、like、!like、in、!in<para></para>
+            /// </summary>
+            /// <param name="field"></param>
+            /// <param name="operator"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception"></exception>
+            public SelectImpl Where(string field, string @operator, object value)
 			{
 				switch (@operator?.ToLower().Trim())
 				{
@@ -631,11 +661,21 @@ namespace FreeSql.Extensions.ZeroEntity
 					case "!in":
 					case "notin":
 					case "not in":
-						return WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.Any, Value = value });
+						return WhereDynamicFilter(new DynamicFilterInfo { Field = field, Operator = DynamicFilterOperator.NotAny, Value = value });
 				}
 				throw new Exception($"未实现 {@operator}");
-			}
-			public SelectImpl WhereColumns(string field1, string @operator, string field2)
+            }
+            public SelectImpl WhereIf(bool condition, string field, string @operator, object value) => condition ? Where(field, @operator, value) : this;
+
+			/// <summary>
+			/// WHERE 字段与字段
+			/// </summary>
+			/// <param name="field1"></param>
+			/// <param name="operator"></param>
+			/// <param name="field2"></param>
+			/// <returns></returns>
+			/// <exception cref="Exception"></exception>
+            public SelectImpl WhereColumns(string field1, string @operator, string field2)
 			{
 				var field1Result = ParseField(null, null, field1);
 				if (field1Result == null) throw new Exception($"未匹配字段名 {field1}");
@@ -667,7 +707,8 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				throw new Exception($"未实现 {@operator}");
 			}
-			public SelectImpl WhereDynamicFilter(DynamicFilterInfo filter)
+            public SelectImpl WhereColumnsIf(bool condition, string field, string @operator, string field2) => condition ? WhereColumns(field, @operator, field2) : this;
+            public SelectImpl WhereDynamicFilter(DynamicFilterInfo filter)
 			{
 				var sql = ParseDynamicFilter(filter);
 				_selectProvider._where.Append(sql);
@@ -676,7 +717,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			string ParseDynamicFilter(DynamicFilterInfo filter)
 			{
 				var replacedFilter = new DynamicFilterInfo();
-				var replacedMap = new List<NativeTuple<string, string>>();
+				var replacedMap = new List<NativeTuple<string, string, string>>();
 				LocalCloneFilter(filter, replacedFilter);
 				var oldWhere = _selectProvider._where.ToString();
 				var newWhere = "";
@@ -692,9 +733,9 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				foreach (var rm in replacedMap)
 				{
-					var find = $"a.{_common.QuoteSqlName(rm.Item1)}";
+					var find = $"{rm.Item3}.{_common.QuoteSqlName(rm.Item1)}";
 					var idx = newWhere.IndexOf(find);
-					if (idx != -1) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
+					if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]")) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
 				}
 				return newWhere;
 
@@ -713,7 +754,7 @@ namespace FreeSql.Extensions.ZeroEntity
 								target.Field = pname;
 							else
 								target.Field = TestDynamicFilterInfo._dictTypeToPropertyname[typeof(string)];
-							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1));
+							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3));
 						}
 					}
 					if (source.Filters?.Any() == true)
@@ -741,26 +782,35 @@ namespace FreeSql.Extensions.ZeroEntity
 					return query;
 				}
 			}
-			public SelectImpl WhereExists(Func<SubQuery, SelectImpl> q)
-			{
-				var query = q?.Invoke(new SubQuery { _parentQuery = this });
-				switch (_orm.Ado.DataType)
-				{
-					case DataType.Oracle:
-					case DataType.OdbcOracle:
-					case DataType.CustomOracle:
-					case DataType.Dameng:
-					case DataType.GBase:
-						query.Limit(-1);
-						break;
-					default:
-						query.Limit(1); //#462 ORACLE rownum <= 2 会影响索引变慢
-						break;
-				}
-				_selectProvider._where.Append($" AND EXISTS({query.ToSql("1").Replace(" \r\n", " \r\n    ")})");
-				return this;
-			}
-			public SelectImpl GroupByRaw(string sql)
+            SelectImpl WhereExists(Func<SubQuery, SelectImpl> q, bool notExists)
+            {
+                var query = q?.Invoke(new SubQuery { _parentQuery = this });
+                switch (_orm.Ado.DataType)
+                {
+                    case DataType.Oracle:
+                    case DataType.OdbcOracle:
+                    case DataType.CustomOracle:
+                    case DataType.Dameng:
+                    case DataType.GBase:
+                        query.Limit(-1);
+                        break;
+                    default:
+                        query.Limit(1); //#462 ORACLE rownum <= 2 会影响索引变慢
+                        break;
+                }
+                _selectProvider._where.Append($" AND {(notExists ? "NOT " : "")}EXISTS({query.ToSql("1").Replace(" \r\n", " \r\n    ")})");
+                return this;
+            }
+			/// <summary>
+			/// WHERE exists(select ...)
+			/// </summary>
+			/// <param name="q"></param>
+			/// <returns></returns>
+			public SelectImpl WhereExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, false);
+            public SelectImpl WhereExistsIf(bool condition, Func<SubQuery, SelectImpl> q) => condition ? WhereExists(q, false) : this;
+            public SelectImpl WhereNotExists(Func<SubQuery, SelectImpl> q) => WhereExists(q, true);
+            public SelectImpl WhereNotExistsIf(bool condition, Func<SubQuery, SelectImpl> q) => condition ? WhereExists(q, true) : this;
+            public SelectImpl GroupByRaw(string sql)
 			{
 				if (string.IsNullOrWhiteSpace(sql)) return this;
 				_useStates = false;

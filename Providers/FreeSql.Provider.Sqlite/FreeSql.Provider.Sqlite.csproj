@@ -18,7 +18,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.5.105</Version>
+		<Version>3.5.205</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 	</ItemGroup>
 
 	<ItemGroup>

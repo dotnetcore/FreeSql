@@ -583,6 +583,16 @@
             最大长度
             </summary>
         </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Precision">
+            <summary>
+            暂支持 SqlServer/MySql（其他数据库待补充）
+            </summary>
+        </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Scale">
+            <summary>
+            暂支持 SqlServer/MySql（其他数据库待补充）
+            </summary>
+        </member>
         <member name="P:FreeSql.DatabaseModel.DbColumnInfo.IsPrimary">
             <summary>
             主键
@@ -1553,7 +1563,7 @@
             <param name="slaveConnectionString">从数据库连接串</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionFactory(FreeSql.DataType,System.Func{System.Data.Common.DbConnection},System.Type)">
+        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionFactory(FreeSql.DataType,System.Func{System.String,System.Data.Common.DbConnection},System.Type)">
             <summary>
             使用自定义数据库连接对象（放弃内置对象连接池技术）
             </summary>
@@ -1788,6 +1798,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDelete`1.ExecuteDeletedAsync(System.Threading.CancellationToken)">
+            <summary>
+            执行SQL语句，返回被删除的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsert`1.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
             指定事务对象
@@ -1955,6 +1972,13 @@
             此方法会处理：<para></para>
             类型、表名、字段名映射<para></para>
             IgnoreColumns、InsertColumns
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.ExecuteInsertedAsync(System.Threading.CancellationToken)">
+            <summary>
+            执行SQL语句，返回插入后的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
             </summary>
             <returns></returns>
         </member>
@@ -2195,13 +2219,12 @@
             <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}},System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}})">
             <summary>
             执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
             </summary>
             <param name="size">数据块的大小</param>
             <param name="done">处理数据块</param>
-            <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         </member>
         <member name="M:FreeSql.ISelect0`2.ToList``1(System.String)">
             <summary>
@@ -2420,7 +2443,7 @@
             <param name="name">零个或多个过滤器名字</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ForUpdate(System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.ForUpdate(System.Boolean,System.Boolean)">
             <summary>
             排他更新锁<para></para>
             注意：务必在开启事务后使用该功能<para></para>
@@ -2434,6 +2457,7 @@
             神通: for update
             </summary>
             <param name="nowait">noawait</param>
+            <param name="skipLocked">skip locked</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.GroupBy(System.String,System.Object)">
@@ -2788,6 +2812,16 @@
             按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})
             </summary>
             <param name="exp"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect`1.GroupBySelf``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})<para></para>
+            * GroupBy 返回 ISelectGrouping&lt;T&gt;<para></para>
+            * GroupBySelf 返回 ISelect&lt;T&gt;（限制少）
+            </summary>
+            <typeparam name="TMember"></typeparam>
+            <param name="column"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
@@ -3427,7 +3461,7 @@
         <member name="M:FreeSql.IUpdate`1.ExecuteUpdatedAsync(System.Threading.CancellationToken)">
             <summary>
             执行SQL语句，返回更新后的记录<para></para>
-            注意：此方法只有 Postgresql/SqlServer 有效果
+            注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
             </summary>
             <returns></returns>
         </member>
@@ -4391,7 +4425,7 @@
             <summary>
             获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
             </summary>
-            <param name="database"></param>
+            <param name="database">可选-默认查询当前数据库</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
@@ -5450,6 +5484,11 @@
             【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】
             </summary>
         </member>
+        <member name="M:FreeSql.CoreErrorStrings.ManyToMany_ParsingError_InconsistentClass_PrimaryKeyError(System.Object,System.Object,System.Object,FreeSql.Internal.Model.ColumnInfo[])">
+            <summary>
+            导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类主键错误：{tbmidCsName}({string.Join(",", tbmidPrimarys.Select(a => a.CsName))}) 与两边不匹配
+            </summary>
+        </member>
         <member name="M:FreeSql.CoreErrorStrings.Mapping_Exception_HasNo_SamePropertyName(System.Object)">
             <summary>
             映射异常：{name} 没有一个属性名相同
@@ -6047,6 +6086,21 @@
             多表查询
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``1(FreeSql.ISelect{``0})">
+            <summary>
+            克隆 ISelect
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``2(FreeSql.ISelect{``0,``1})">
+            <summary>
+            克隆 ISelect
+            </summary>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Clone``3(FreeSql.ISelect{``0,``1,``2})">
+            <summary>
+            克隆 ISelect
+            </summary>
         </member>
         <member name="M:FreeSqlGlobalExtensions.IncludeMany``2(System.Collections.Generic.List{``0},IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Collections.Generic.IEnumerable{``1}}},System.Action{FreeSql.ISelect{``1}})">
             <summary>

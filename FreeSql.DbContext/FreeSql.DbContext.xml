@@ -651,6 +651,12 @@
             </summary>
             <param name="repository"></param>
         </member>
+        <member name="M:FreeSql.UnitOfWorkManager.Binding(FreeSql.DbContext)">
+            <summary>
+            将DbContext的事务交给我管理
+            </summary>
+            <param name="dbContext"></param>
+        </member>
         <member name="M:FreeSql.UnitOfWorkManager.Begin(FreeSql.Propagation,System.Nullable{System.Data.IsolationLevel})">
             <summary>
             创建工作单元

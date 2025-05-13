@@ -44,6 +44,7 @@ namespace FreeSql
             if (string.IsNullOrEmpty(this.Id) == false && DebugBeingUsed.TryRemove(this.Id, out var old))
                 this.Id = null;
 
+            _tran?.Dispose();
             _fsql.Ado.MasterPool.Return(_conn);
             _tran = null;
             _conn = null;

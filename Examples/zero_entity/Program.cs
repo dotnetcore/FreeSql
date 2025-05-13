@@ -10,12 +10,20 @@ using System.Text.Json;
 
 using (var fsql = new FreeSqlBuilder()
 	.UseConnectionString(DataType.Sqlite, "data source=111.db")
-	.UseAutoSyncStructure(true)
+	.UseConnectionString(DataType.MySql, "Server=47.108.219.26;Port=3306;Database=sample;Uid=root;Pwd=xdhl123Qwe;")
+    .UseAutoSyncStructure(true)
 	.UseNoneCommandParameter(true)
 	.UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText + "\r\n"))
 	.Build())
 {
-	var json = JsonConvert.SerializeObject(Helper.GetTestDesc());
+
+    var schemas = JsonConvert.DeserializeObject<TableDescriptor[]>(File.ReadAllText(@"C:\Users\28810\Downloads\schema.json"));
+    var context = new ZeroDbContext(fsql);
+    context.LoadSchemasAndNavigates("Student", tableName => schemas.First(c => c.Name == tableName));
+	//context.SyncStructure();
+	var stu = context.Select.Where("id", 38).First();
+
+    var json = JsonConvert.SerializeObject(Helper.GetTestDesc());
 
 	var dyctx = new ZeroDbContext(fsql, JsonConvert.DeserializeObject<TableDescriptor[]>(@"
 [

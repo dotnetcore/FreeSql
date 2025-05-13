@@ -54,13 +54,12 @@ namespace FreeSql.TDengine
                         {
                             if (e.DataReader.IsDBNull(e.Index)) e.Value = null;
                             else e.Value = e.DataReader.GetDateTime(e.Index);
-                            return;
                         }
                         catch
                         {
                             e.Value = DateTime.MinValue;
-                            return;
                         }
+                        return;
                 }
             };
 

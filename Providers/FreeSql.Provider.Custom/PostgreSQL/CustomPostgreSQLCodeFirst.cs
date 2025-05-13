@@ -32,7 +32,7 @@ namespace FreeSql.Custom.PostgreSQL
                 { typeof(decimal).FullName, CsToDb.New(DbType.Decimal, "numeric", "numeric(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(DbType.Decimal, "numeric", "numeric(10,2)", false, true, null) },
 
                 { typeof(string).FullName, CsToDb.New(DbType.String, "varchar", "varchar(255)", false, null, "") },
-                { typeof(char).FullName, CsToDb.New(DbType.AnsiString, "char", "char(1) NULL", false, null, '\0') },
+                { typeof(char).FullName, CsToDb.New(DbType.AnsiString, "bpchar", "bpchar(1) NULL", false, null, '\0') },
 
                 { typeof(TimeSpan).FullName, CsToDb.New(DbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(DbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(DbType.DateTime, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(DbType.DateTime, "timestamp", "timestamp", false, true, null) },

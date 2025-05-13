@@ -281,8 +281,8 @@ namespace FreeSql
 
             return _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, oldState.Value, newdata, false).ToDictionary(a => a, a => new object[]
             {
-                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, newdata, a),
-                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, oldState.Value, a)
+                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, newdata, _table.Columns[a].CsName),
+                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, oldState.Value, _table.Columns[a].CsName)
             });
         }
 

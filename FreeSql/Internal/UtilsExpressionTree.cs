@@ -21,6 +21,7 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
+        public static bool IsStrict = true;
         /// <summary>
         /// 用于解决多实例情况下的静态集合缓存问题
         /// </summary>
@@ -1003,6 +1004,7 @@ namespace FreeSql.Internal
                     var midTypePropsTrytb = tbmid.Properties.Where(a => a.Value.PropertyType == trytb.Type).FirstOrDefault().Value;
                     //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
                     var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var minPkCols = new List<ColumnInfo>();
 
                     if (pnvAttr?.ManyToMany != null)
                     {
@@ -1039,6 +1041,8 @@ namespace FreeSql.Internal
                                 if (tbmid.Primarys.Any() == false)
                                     foreach (var c in trytbTf.Columns)
                                         tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.AddRange(trytbTf.Columns);
 
                                 if (isLazy)
                                 {
@@ -1086,6 +1090,8 @@ namespace FreeSql.Internal
                                     if (tbmid.Primarys.Any() == false)
                                         foreach (var c in tbrefTf.Columns)
                                             tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                    else
+                                        minPkCols.AddRange(tbrefTf.Columns);
 
                                     if (isLazy)
                                     {
@@ -1129,6 +1135,8 @@ namespace FreeSql.Internal
                             nvref.MiddleColumns.Add(trycol);
                             if (tbmid.Primarys.Any() == false)
                                 trycol.Attribute.IsPrimary = true;
+                            else
+                                minPkCols.Add(trycol);
 
                             if (isLazy)
                             {
@@ -1169,6 +1177,8 @@ namespace FreeSql.Internal
                                 nvref.MiddleColumns.Add(trycol);
                                 if (tbmid.Primarys.Any() == false)
                                     trycol.Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.Add(trycol);
 
                                 if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
                             }
@@ -1196,6 +1206,11 @@ namespace FreeSql.Internal
                                         break;
                                 }
                             }
+                        }
+                        else if(IsStrict && minPkCols.Any(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary == false)) 
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_InconsistentClass_PrimaryKeyError(trytbTypeName, pnv.Name, midType.Name, tbmid.Primarys));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         }
                     }
 
@@ -1738,6 +1753,8 @@ namespace FreeSql.Internal
             }
             return dr.GetValue(index);
         }
+        public static object ExecuteReaderToClass(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils) =>
+            ExecuteArrayRowReadClassOrTuple(flagStr, typeOrg, indexes, row, dataIndex, _commonUtils)?.Value;
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)
         {
             if (string.IsNullOrEmpty(flagStr)) flagStr = "all";
