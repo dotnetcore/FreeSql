@@ -41,12 +41,12 @@ namespace FreeSql.Tests.Provider.TDengine.TDengine.TDengineIssue
             var insertAffrows = _fsql.Insert(new TDengineProcessMetrics1977()
                 {
                     Timestamp = DateTime.Now,
-                    HostName = "host6"
+                    HostName = "host1",
+                    StartTime = DateTime.Now
                 }
             ).ExecuteAffrows();
             Assert.Equal(1, insertAffrows);
         }
-
     }
 
     public class TDengineProcessMetrics1977
@@ -67,6 +67,6 @@ namespace FreeSql.Tests.Provider.TDengine.TDengine.TDengineIssue
         /// 进程启动时间
         /// </summary>
         [Column(Name = "start_time")]
-        public DateTime StartTime { get; set; }
+        public DateTime? StartTime { get; set; }
     }
 }

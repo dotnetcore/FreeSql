@@ -21,6 +21,7 @@ namespace FreeSql.Tests.Duckdb
         public void CompositeTypeCrud()
         {
         }
+
         public class test_CompositeTypeCrud
         {
             public Dictionary<string, object> testFieldStruct { get; set; }
@@ -50,33 +51,40 @@ namespace FreeSql.Tests.Duckdb
 
             var sqlPar = fsql.Insert(item2).ToSql();
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_dateonlytimeonly01\"(\"testfieldtimespan\", \"testfieldtimeonly\", \"testfielddatetime\", \"testfielddateonly\", \"testfieldtimespannullable\", \"testfieldtimeonlynullable\", \"testfielddatetimenullable\", \"testfielddateonlynullable\") VALUES(time '16:0:0.0', time '11:0:0', current_timestamp, date '2024-08-20', time '0:1:30.0', time '0:1:30', current_timestamp, date '2024-08-19')", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_dateonlytimeonly01\"(\"testfieldtimespan\", \"testfieldtimeonly\", \"testfielddatetime\", \"testfielddateonly\", \"testfieldtimespannullable\", \"testfieldtimeonlynullable\", \"testfielddatetimenullable\", \"testfielddateonlynullable\") VALUES(time '16:0:0.0', time '11:0:0', current_timestamp, date '2024-08-20', time '0:1:30.0', time '0:1:30', current_timestamp, date '2024-08-19')",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
             Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
             Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
-            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value
+                .TotalSeconds) < 1);
 
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
             Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
             Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
-            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value
+                .TotalSeconds) < 1);
 
             var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
             var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();
         }
+
         class test_DateOnlyTimeOnly01
         {
             [Column(IsIdentity = true, IsPrimary = true)]
             public int Id { get; set; }
+
             public TimeSpan testFieldTimeSpan { get; set; }
             public TimeOnly testFieldTimeOnly { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+
             public DateOnly testFieldDateOnly { get; set; }
 
             public TimeSpan? testFieldTimeSpanNullable { get; set; }
@@ -84,6 +92,7 @@ namespace FreeSql.Tests.Duckdb
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+
             public DateOnly? testFieldDateOnlyNullable { get; set; }
         }
 
@@ -101,48 +110,98 @@ namespace FreeSql.Tests.Duckdb
                 testFieldDateTimeArray = new[] { now, now.AddHours(2) },
                 testFieldDateTimeArrayNullable = new DateTime?[] { now, null, now.AddHours(2) },
                 testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(now), DateOnly.FromDateTime(now.AddHours(2)) },
-                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(now), null, DateOnly.FromDateTime(now.AddHours(2)) },
-                
-                testFieldTimeSpanArray = new[] { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
-                testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
-                testFieldTimeOnlyArray = new[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
-                testFieldTimeOnlyArrayNullable = new TimeOnly?[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldDateOnlyArrayNullable = new DateOnly?[]
+                    { DateOnly.FromDateTime(now), null, DateOnly.FromDateTime(now.AddHours(2)) },
+
+                testFieldTimeSpanArray = new[]
+                    { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanArrayNullable = new TimeSpan?[]
+                    { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
+                testFieldTimeOnlyArray = new[]
+                {
+                    TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)),
+                    TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60))
+                },
+                testFieldTimeOnlyArrayNullable = new TimeOnly?[]
+                {
+                    TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)),
+                    null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60))
+                },
             };
 
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_dateonlytimeonlyarraytypecrud\"(\"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',time '0:0:0.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:0:0',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '0001-01-01 00:00:00.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '0001-01-01',date '2024-08-21'])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_dateonlytimeonlyarraytypecrud\"(\"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',time '0:0:0.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:0:0',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '0001-01-01 00:00:00.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '0001-01-01',date '2024-08-21'])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_DateOnlyTimeOnlyArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
-            Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
-            Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
-            Assert.Equal("2024-08-20, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
-            Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
+            Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11",
+                string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
+            Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11",
+                string.Join(", ",
+                    item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
+            Assert.Equal("2024-08-20, 2024-08-21",
+                string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
+            Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21",
+                string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
 
-            Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArray.Select(a => $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArrayNullable.Select(a => $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArray.Select(a => $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArrayNullable.Select(a => $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeSpanArray.Select(a =>
+                        $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeSpanArrayNullable.Select(a =>
+                        $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeOnlyArray.Select(a =>
+                        $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeOnlyArrayNullable.Select(a =>
+                        $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
 
             sqlText = fsql.Insert(item2).ToSql();
-            Assert.Equal("INSERT INTO \"test_dateonlytimeonlyarraytypecrud\"(\"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',time '0:0:0.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:0:0',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '0001-01-01 00:00:00.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '0001-01-01',date '2024-08-21'])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_dateonlytimeonlyarraytypecrud\"(\"testfieldtimespanarray\", \"testfieldtimeonlyarray\", \"testfielddatetimearray\", \"testfielddateonlyarray\", \"testfieldtimespanarraynullable\", \"testfieldtimeonlyarraynullable\", \"testfielddatetimearraynullable\", \"testfielddateonlyarraynullable\") VALUES([time '11:0:0.0',time '0:0:10.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '2024-08-21'], [time '11:0:0.0',time '0:0:10.0',time '0:0:0.0',time '0:1:0.0'], [time '11:0:0',time '0:0:10',time '0:0:0',time '0:1:0'], [timestamp '2024-08-20 23:00:11.000000',timestamp '0001-01-01 00:00:00.000000',timestamp '2024-08-21 01:00:11.000000'], [date '2024-08-20',date '0001-01-01',date '2024-08-21'])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_DateOnlyTimeOnlyArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
-            Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
-            Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11", string.Join(", ", item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
-            Assert.Equal("2024-08-20, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
-            Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21", string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
+            Assert.Equal("2024-08-20 23:00:11, 2024-08-21 01:00:11",
+                string.Join(", ", item3NP.testFieldDateTimeArray.Select(a => a.ToString("yyyy-MM-dd HH:mm:ss"))));
+            Assert.Equal("2024-08-20 23:00:11, 0001-01-01 00:00:00, 2024-08-21 01:00:11",
+                string.Join(", ",
+                    item3NP.testFieldDateTimeArrayNullable.Select(a => a?.ToString("yyyy-MM-dd HH:mm:ss"))));
+            Assert.Equal("2024-08-20, 2024-08-21",
+                string.Join(", ", item3NP.testFieldDateOnlyArray.Select(a => a.ToString("yyyy-MM-dd"))));
+            Assert.Equal("2024-08-20, 0001-01-01, 2024-08-21",
+                string.Join(", ", item3NP.testFieldDateOnlyArrayNullable.Select(a => a?.ToString("yyyy-MM-dd"))));
 
-            
-            Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArray.Select(a => $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeSpanArrayNullable.Select(a => $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArray.Select(a => $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
-            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00", string.Join(", ", item3NP.testFieldTimeOnlyArrayNullable.Select(a => $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
-            
+
+            Assert.Equal("11:00:00, 00:00:10, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeSpanArray.Select(a =>
+                        $"{a.Hours.ToString().PadLeft(2, '0')}:{a.Minutes.ToString().PadLeft(2, '0')}:{a.Seconds.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeSpanArrayNullable.Select(a =>
+                        $"{a?.Hours.ToString().PadLeft(2, '0')}:{a?.Minutes.ToString().PadLeft(2, '0')}:{a?.Seconds.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeOnlyArray.Select(a =>
+                        $"{a.Hour.ToString().PadLeft(2, '0')}:{a.Minute.ToString().PadLeft(2, '0')}:{a.Second.ToString().PadLeft(2, '0')}")));
+            Assert.Equal("11:00:00, 00:00:10, 00:00:00, 00:01:00",
+                string.Join(", ",
+                    item3NP.testFieldTimeOnlyArrayNullable.Select(a =>
+                        $"{a?.Hour.ToString().PadLeft(2, '0')}:{a?.Minute.ToString().PadLeft(2, '0')}:{a?.Second.ToString().PadLeft(2, '0')}")));
+
             var items = fsql.Select<test_DateOnlyTimeOnlyArrayTypeCrud>().ToList();
             var itemstb = fsql.Select<test_DateOnlyTimeOnlyArrayTypeCrud>().ToDataTable();
         }
+
         class test_DateOnlyTimeOnlyArrayTypeCrud
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -152,7 +211,7 @@ namespace FreeSql.Tests.Duckdb
             public TimeOnly[] testFieldTimeOnlyArray { get; set; }
             public DateTime[] testFieldDateTimeArray { get; set; }
             public DateOnly[] testFieldDateOnlyArray { get; set; }
-           
+
             public TimeSpan?[] testFieldTimeSpanArrayNullable { get; set; }
             public TimeOnly?[] testFieldTimeOnlyArrayNullable { get; set; }
             public DateTime?[] testFieldDateTimeArrayNullable { get; set; }
@@ -198,6 +257,7 @@ namespace FreeSql.Tests.Duckdb
             Assert.Single(find);
             Assert.Equal("170141183460469231731687303715884105726", find[0].Number.ToString());
         }
+
         class tuint256tb_01
         {
             public Guid Id { get; set; }
@@ -207,7 +267,7 @@ namespace FreeSql.Tests.Duckdb
         [Fact]
         public void NumberTypeCrud()
         {
-            var item = new test_NumberTypeCrud {  };
+            var item = new test_NumberTypeCrud { };
             item.Id = (int)fsql.Insert(item).ExecuteIdentity();
 
             var newitem = fsql.Select<test_NumberTypeCrud>().Where(a => a.Id == item.Id).ToOne();
@@ -241,7 +301,9 @@ namespace FreeSql.Tests.Duckdb
             };
 
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_numbertypecrud\"(\"testfieldsbyte\", \"testfieldshort\", \"testfieldint\", \"testfieldlong\", \"testfieldbyte\", \"testfieldushort\", \"testfielduint\", \"testfieldulong\", \"testfielddouble\", \"testfieldfloat\", \"testfielddecimal\", \"testfieldsbytenullable\", \"testfieldshortnullable\", \"testfieldintnullable\", \"testfieldlongnullable\", \"testfieldbytenullable\", \"testfieldushortnullable\", \"testfielduintnullable\", \"testfieldulongnullable\", \"testfielddoublenullable\", \"testfieldfloatnullable\", \"testfielddecimalnullable\") VALUES(127, 32767, 2147483647, 9223372036854775807, 255, 65535, 4294967295, 18446744073709551615, 888.88, 777.77, 999.99, -128, -32768, -2147483648, -9223372036854775808, 0, 0, 0, 0, 222.22, 333.33, 111.11)", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_numbertypecrud\"(\"testfieldsbyte\", \"testfieldshort\", \"testfieldint\", \"testfieldlong\", \"testfieldbyte\", \"testfieldushort\", \"testfielduint\", \"testfieldulong\", \"testfielddouble\", \"testfieldfloat\", \"testfielddecimal\", \"testfieldsbytenullable\", \"testfieldshortnullable\", \"testfieldintnullable\", \"testfieldlongnullable\", \"testfieldbytenullable\", \"testfieldushortnullable\", \"testfielduintnullable\", \"testfieldulongnullable\", \"testfielddoublenullable\", \"testfieldfloatnullable\", \"testfielddecimalnullable\") VALUES(127, 32767, 2147483647, 9223372036854775807, 255, 65535, 4294967295, 18446744073709551615, 888.88, 777.77, 999.99, -128, -32768, -2147483648, -9223372036854775808, 0, 0, 0, 0, 222.22, 333.33, 111.11)",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_NumberTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -270,7 +332,9 @@ namespace FreeSql.Tests.Duckdb
             Assert.Equal(item3NP.testFieldDecimalNullable, item2.testFieldDecimalNullable);
 
             sqlText = fsql.Insert(item2).ToSql();
-            Assert.Equal("INSERT INTO \"test_numbertypecrud\"(\"testfieldsbyte\", \"testfieldshort\", \"testfieldint\", \"testfieldlong\", \"testfieldbyte\", \"testfieldushort\", \"testfielduint\", \"testfieldulong\", \"testfielddouble\", \"testfieldfloat\", \"testfielddecimal\", \"testfieldsbytenullable\", \"testfieldshortnullable\", \"testfieldintnullable\", \"testfieldlongnullable\", \"testfieldbytenullable\", \"testfieldushortnullable\", \"testfielduintnullable\", \"testfieldulongnullable\", \"testfielddoublenullable\", \"testfieldfloatnullable\", \"testfielddecimalnullable\") VALUES(127, 32767, 2147483647, 9223372036854775807, 255, 65535, 4294967295, 18446744073709551615, 888.88, 777.77, 999.99, -128, -32768, -2147483648, -9223372036854775808, 0, 0, 0, 0, 222.22, 333.33, 111.11)", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_numbertypecrud\"(\"testfieldsbyte\", \"testfieldshort\", \"testfieldint\", \"testfieldlong\", \"testfieldbyte\", \"testfieldushort\", \"testfielduint\", \"testfieldulong\", \"testfielddouble\", \"testfieldfloat\", \"testfielddecimal\", \"testfieldsbytenullable\", \"testfieldshortnullable\", \"testfieldintnullable\", \"testfieldlongnullable\", \"testfieldbytenullable\", \"testfieldushortnullable\", \"testfielduintnullable\", \"testfieldulongnullable\", \"testfielddoublenullable\", \"testfieldfloatnullable\", \"testfielddecimalnullable\") VALUES(127, 32767, 2147483647, 9223372036854775807, 255, 65535, 4294967295, 18446744073709551615, 888.88, 777.77, 999.99, -128, -32768, -2147483648, -9223372036854775808, 0, 0, 0, 0, 222.22, 333.33, 111.11)",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_NumberTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -301,6 +365,7 @@ namespace FreeSql.Tests.Duckdb
             var items = fsql.Select<test_NumberTypeCrud>().ToList();
             var itemstb = fsql.Select<test_NumberTypeCrud>().ToDataTable();
         }
+
         class test_NumberTypeCrud
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -367,7 +432,9 @@ namespace FreeSql.Tests.Duckdb
             };
 
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_numberarraytypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,0,4,5], [1,2,3,0,4,5], [1,2,3,0,4,5], [500,600,700,0,999,1000], [0,1,2,3,0,4,5,6], [11,12,13,0,14,15], [1,2,3,0,4,5], [10,20,30,0,40,50], [888.11,888.12,0,888.13], [777.71,777.72,0,777.73], [998.11,998.12,0,998.13])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_numberarraytypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,0,4,5], [1,2,3,0,4,5], [1,2,3,0,4,5], [500,600,700,0,999,1000], [0,1,2,3,0,4,5,6], [11,12,13,0,14,15], [1,2,3,0,4,5], [10,20,30,0,40,50], [888.11,888.12,0,888.13], [777.71,777.72,0,777.73], [998.11,998.12,0,998.13])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_NumberArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -395,7 +462,9 @@ namespace FreeSql.Tests.Duckdb
             Assert.Equal("998.11, 998.12, 0, 998.13", string.Join(", ", item3NP.testFieldDecimalArrayNullable));
 
             sqlText = fsql.Insert(item2).ToSql();
-            Assert.Equal("INSERT INTO \"test_numberarraytypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,0,4,5], [1,2,3,0,4,5], [1,2,3,0,4,5], [500,600,700,0,999,1000], [0,1,2,3,0,4,5,6], [11,12,13,0,14,15], [1,2,3,0,4,5], [10,20,30,0,40,50], [888.11,888.12,0,888.13], [777.71,777.72,0,777.73], [998.11,998.12,0,998.13])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_numberarraytypecrud\"(\"testfieldsbytearray\", \"testfieldshortarray\", \"testfieldintarray\", \"testfieldlongarray\", \"testfieldushortarray\", \"testfielduintarray\", \"testfieldulongarray\", \"testfielddoublearray\", \"testfieldfloatarray\", \"testfielddecimalarray\", \"testfieldsbytearraynullable\", \"testfieldshortarraynullable\", \"testfieldintarraynullable\", \"testfieldlongarraynullable\", \"testfieldbytearraynullable\", \"testfieldushortarraynullable\", \"testfielduintarraynullable\", \"testfieldulongarraynullable\", \"testfielddoublearraynullable\", \"testfieldfloatarraynullable\", \"testfielddecimalarraynullable\") VALUES([1,2,3,4,5], [1,2,3,4,5], [1,2,3,4,5], [10,20,30,40,50], [11,12,13,14,15], [1,2,3,4,5], [10,20,30,40,50], [888.81,888.82,888.83], [777.71,777.72,777.73], [999.91,999.92,999.93], [1,2,3,0,4,5], [1,2,3,0,4,5], [1,2,3,0,4,5], [500,600,700,0,999,1000], [0,1,2,3,0,4,5,6], [11,12,13,0,14,15], [1,2,3,0,4,5], [10,20,30,0,40,50], [888.11,888.12,0,888.13], [777.71,777.72,0,777.73], [998.11,998.12,0,998.13])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_NumberArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -425,6 +494,7 @@ namespace FreeSql.Tests.Duckdb
             var items = fsql.Select<test_NumberArrayTypeCrud>().ToList();
             var itemstb = fsql.Select<test_NumberArrayTypeCrud>().ToDataTable();
         }
+
         class test_NumberArrayTypeCrud
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -481,7 +551,9 @@ namespace FreeSql.Tests.Duckdb
             };
 
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_othertypecrud\"(\"testfieldbool\", \"testfieldguid\", \"testfieldbytes\", \"testfieldstring\", \"testfieldchar\", \"testfieldbitarray\", \"testfieldboolnullable\", \"testfieldguidnullable\", \"testfieldenum1\", \"testfieldenum1nullable\", \"testfieldenum2\", \"testfieldenum2nullable\") VALUES(true, '9e461804-7ed6-4a66-a609-408b2c195abf', '\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob, '我是中国人string''\\?!@#$%^&*()_+{}}{~?><<>', 'X', bit '011001110001000110001001011001110001100111110101', true, '9e461804-7ed6-4a66-a609-408b2c195abf', 2, 1, 1, 2)", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_othertypecrud\"(\"testfieldbool\", \"testfieldguid\", \"testfieldbytes\", \"testfieldstring\", \"testfieldchar\", \"testfieldbitarray\", \"testfieldboolnullable\", \"testfieldguidnullable\", \"testfieldenum1\", \"testfieldenum1nullable\", \"testfieldenum2\", \"testfieldenum2nullable\") VALUES(true, '9e461804-7ed6-4a66-a609-408b2c195abf', '\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob, '我是中国人string''\\?!@#$%^&*()_+{}}{~?><<>', 'X', bit '011001110001000110001001011001110001100111110101', true, '9e461804-7ed6-4a66-a609-408b2c195abf', 2, 1, 1, 2)",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_OtherTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -501,7 +573,9 @@ namespace FreeSql.Tests.Duckdb
             Assert.Equal(item3NP.testFieldEnum2Nullable, item2.testFieldEnum2Nullable);
 
             sqlText = fsql.Insert(item2).ToSql();
-            Assert.Equal("INSERT INTO \"test_othertypecrud\"(\"testfieldbool\", \"testfieldguid\", \"testfieldbytes\", \"testfieldstring\", \"testfieldchar\", \"testfieldbitarray\", \"testfieldboolnullable\", \"testfieldguidnullable\", \"testfieldenum1\", \"testfieldenum1nullable\", \"testfieldenum2\", \"testfieldenum2nullable\") VALUES(true, '9e461804-7ed6-4a66-a609-408b2c195abf', '\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob, '我是中国人string''\\?!@#$%^&*()_+{}}{~?><<>', 'X', bit '011001110001000110001001011001110001100111110101', true, '9e461804-7ed6-4a66-a609-408b2c195abf', 2, 1, 1, 2)", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_othertypecrud\"(\"testfieldbool\", \"testfieldguid\", \"testfieldbytes\", \"testfieldstring\", \"testfieldchar\", \"testfieldbitarray\", \"testfieldboolnullable\", \"testfieldguidnullable\", \"testfieldenum1\", \"testfieldenum1nullable\", \"testfieldenum2\", \"testfieldenum2nullable\") VALUES(true, '9e461804-7ed6-4a66-a609-408b2c195abf', '\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob, '我是中国人string''\\?!@#$%^&*()_+{}}{~?><<>', 'X', bit '011001110001000110001001011001110001100111110101', true, '9e461804-7ed6-4a66-a609-408b2c195abf', 2, 1, 1, 2)",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_OtherTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
@@ -523,12 +597,14 @@ namespace FreeSql.Tests.Duckdb
             var items = fsql.Select<test_OtherTypeCrud>().ToList();
             var itemstb = fsql.Select<test_OtherTypeCrud>().ToDataTable();
         }
+
         string Get1010(BitArray ba)
         {
             char[] ba1010 = new char[ba.Length];
             for (int a = 0; a < ba.Length; a++) ba1010[a] = ba[a] ? '1' : '0';
             return new string(ba1010);
         }
+
         class test_OtherTypeCrud
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -567,26 +643,38 @@ namespace FreeSql.Tests.Duckdb
                 testFieldGuidArray = new[] { newGuid, newGuid },
                 testFieldGuidArrayNullable = new Guid?[] { newGuid, null, newGuid },
                 testFieldStringArray = new[] { "我是中国人String1", "我是中国人String2", null, "我是中国人String3" },
-                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("中国")), new BitArray(Encoding.UTF8.GetBytes("公民")) },
+                testFieldBitArrayArray = new[]
+                    { new BitArray(Encoding.UTF8.GetBytes("中国")), new BitArray(Encoding.UTF8.GetBytes("公民")) },
 
-                testFieldEnum1Array = new[] { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, TableAllTypeEnumType1.e1 },
-                testFieldEnum1ArrayNullable = new TableAllTypeEnumType1?[] { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, null, TableAllTypeEnumType1.e1 },
+                testFieldEnum1Array = new[]
+                    { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, TableAllTypeEnumType1.e1 },
+                testFieldEnum1ArrayNullable = new TableAllTypeEnumType1?[]
+                    { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, null, TableAllTypeEnumType1.e1 },
                 testFieldEnum2Array = new[] { TableAllTypeEnumType2.f3, TableAllTypeEnumType2.f1 },
-                testFieldEnum2ArrayNullable = new TableAllTypeEnumType2?[] { TableAllTypeEnumType2.f3, null, TableAllTypeEnumType2.f1 },
+                testFieldEnum2ArrayNullable = new TableAllTypeEnumType2?[]
+                    { TableAllTypeEnumType2.f3, null, TableAllTypeEnumType2.f1 },
             };
 
             var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
-            Assert.Equal("INSERT INTO \"test_otherarraytypecrud\"(\"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldbitarrayarray\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\") VALUES([true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,false,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf','00000000-0000-0000-0000-000000000000','9e461804-7ed6-4a66-a609-408b2c195abf'], [bit '001001110001110110110101101001111101100110111101',bit '101001111010000100110101011001110000110110001001'], [3,1,0], [3,1,0,0], [2,0], [2,0,0])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_otherarraytypecrud\"(\"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldbitarrayarray\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\") VALUES([true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,false,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf','00000000-0000-0000-0000-000000000000','9e461804-7ed6-4a66-a609-408b2c195abf'], [bit '001001110001110110110101101001111101100110111101',bit '101001111010000100110101011001110000110110001001'], [3,1,0], [3,1,0,0], [2,0], [2,0,0])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
             var item3NP = fsql.Select<test_OtherArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
             Assert.Equal("True, True, False, False", string.Join(", ", item3NP.testFieldBoolArray));
             Assert.Equal("True, True, False, False, False", string.Join(", ", item3NP.testFieldBoolArrayNullable));
-            Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6", string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
-            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArray));
-            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArrayNullable));
+            Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6",
+                string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
+            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf",
+                string.Join(", ", item3NP.testFieldGuidArray));
+            Assert.Equal(
+                "9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf",
+                string.Join(", ", item3NP.testFieldGuidArrayNullable));
             Assert.Equal("我是中国人String1, 我是中国人String2, , 我是中国人String3", string.Join(", ", item3NP.testFieldStringArray));
-            Assert.Equal("001001110001110110110101101001111101100110111101, 101001111010000100110101011001110000110110001001", string.Join(", ", item3NP.testFieldBitArrayArray.Select(a => Get1010(a))));
+            Assert.Equal(
+                "001001110001110110110101101001111101100110111101, 101001111010000100110101011001110000110110001001",
+                string.Join(", ", item3NP.testFieldBitArrayArray.Select(a => Get1010(a))));
 
             Assert.Equal("e5, e2, e1", string.Join(", ", item3NP.testFieldEnum1Array));
             Assert.Equal("e5, e2, e1, e1", string.Join(", ", item3NP.testFieldEnum1ArrayNullable));
@@ -594,17 +682,25 @@ namespace FreeSql.Tests.Duckdb
             Assert.Equal("f3, f1, f1", string.Join(", ", item3NP.testFieldEnum2ArrayNullable));
 
             sqlText = fsql.Insert(item2).ToSql();
-            Assert.Equal("INSERT INTO \"test_otherarraytypecrud\"(\"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldbitarrayarray\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\") VALUES([true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,false,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf','00000000-0000-0000-0000-000000000000','9e461804-7ed6-4a66-a609-408b2c195abf'], [bit '001001110001110110110101101001111101100110111101',bit '101001111010000100110101011001110000110110001001'], [3,1,0], [3,1,0,0], [2,0], [2,0,0])", sqlText);
+            Assert.Equal(
+                "INSERT INTO \"test_otherarraytypecrud\"(\"testfieldboolarray\", \"testfieldbytesarray\", \"testfieldstringarray\", \"testfieldguidarray\", \"testfieldboolarraynullable\", \"testfieldguidarraynullable\", \"testfieldbitarrayarray\", \"testfieldenum1array\", \"testfieldenum1arraynullable\", \"testfieldenum2array\", \"testfieldenum2arraynullable\") VALUES([true,true,false,false], ['\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob,'\\xE6\\x88\\x91\\xE6\\x98\\xAF\\xE4\\xB8\\xAD\\xE5\\x9B\\xBD\\xE4\\xBA\\xBA'::blob], ['我是中国人String1','我是中国人String2',NULL,'我是中国人String3'], ['9e461804-7ed6-4a66-a609-408b2c195abf','9e461804-7ed6-4a66-a609-408b2c195abf'], [true,true,false,false,false], ['9e461804-7ed6-4a66-a609-408b2c195abf','00000000-0000-0000-0000-000000000000','9e461804-7ed6-4a66-a609-408b2c195abf'], [bit '001001110001110110110101101001111101100110111101',bit '101001111010000100110101011001110000110110001001'], [3,1,0], [3,1,0,0], [2,0], [2,0,0])",
+                sqlText);
             item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
             item3NP = fsql.Select<test_OtherArrayTypeCrud>().Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item3NP.Id, item2.Id);
             Assert.Equal("True, True, False, False", string.Join(", ", item3NP.testFieldBoolArray));
             Assert.Equal("True, True, False, False, False", string.Join(", ", item3NP.testFieldBoolArrayNullable));
-            Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6", string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
-            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArray));
-            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf", string.Join(", ", item3NP.testFieldGuidArrayNullable));
+            Assert.Equal("5oiR5piv5Lit5Zu95Lq6, 5oiR5piv5Lit5Zu95Lq6",
+                string.Join(", ", item3NP.testFieldBytesArray.Select(a => Convert.ToBase64String(a))));
+            Assert.Equal("9e461804-7ed6-4a66-a609-408b2c195abf, 9e461804-7ed6-4a66-a609-408b2c195abf",
+                string.Join(", ", item3NP.testFieldGuidArray));
+            Assert.Equal(
+                "9e461804-7ed6-4a66-a609-408b2c195abf, 00000000-0000-0000-0000-000000000000, 9e461804-7ed6-4a66-a609-408b2c195abf",
+                string.Join(", ", item3NP.testFieldGuidArrayNullable));
             Assert.Equal("我是中国人String1, 我是中国人String2, , 我是中国人String3", string.Join(", ", item3NP.testFieldStringArray));
-            Assert.Equal("001001110001110110110101101001111101100110111101, 101001111010000100110101011001110000110110001001", string.Join(", ", item3NP.testFieldBitArrayArray.Select(a => Get1010(a))));
+            Assert.Equal(
+                "001001110001110110110101101001111101100110111101, 101001111010000100110101011001110000110110001001",
+                string.Join(", ", item3NP.testFieldBitArrayArray.Select(a => Get1010(a))));
 
             Assert.Equal("e5, e2, e1", string.Join(", ", item3NP.testFieldEnum1Array));
             Assert.Equal("e5, e2, e1, e1", string.Join(", ", item3NP.testFieldEnum1ArrayNullable));
@@ -614,6 +710,7 @@ namespace FreeSql.Tests.Duckdb
             var items = fsql.Select<test_OtherArrayTypeCrud>().ToList();
             var itemstb = fsql.Select<test_OtherArrayTypeCrud>().ToDataTable();
         }
+
         class test_OtherArrayTypeCrud
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -636,6 +733,7 @@ namespace FreeSql.Tests.Duckdb
         }
 
         #region List<T> 测试代码，暂时不提供该功能，建议使用 T[]
+
         //[Fact]
         //public void BasicListTypeCrud()
         //{
@@ -851,6 +949,7 @@ namespace FreeSql.Tests.Duckdb
         //    public List<DateOnly?> testFieldDateOnlyArrayNullable { get; set; }
 
         //}
+
         #endregion
 
         IInsert<TableAllType> insert => fsql.Insert<TableAllType>();
@@ -871,7 +970,8 @@ namespace FreeSql.Tests.Duckdb
             var item2 = new TableAllType
             {
                 testFieldBitArray = new BitArray(Encoding.UTF8.GetBytes("我是")),
-                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("中国")), new BitArray(Encoding.UTF8.GetBytes("公民")) },
+                testFieldBitArrayArray = new[]
+                    { new BitArray(Encoding.UTF8.GetBytes("中国")), new BitArray(Encoding.UTF8.GetBytes("公民")) },
                 testFieldBool = true,
                 testFieldBoolArray = new[] { true, true, false, false },
                 testFieldBoolArrayNullable = new bool?[] { true, true, null, false, false },
@@ -886,8 +986,10 @@ namespace FreeSql.Tests.Duckdb
                 testFieldDateTimeArrayNullable = new DateTime?[] { DateTime.Now, null, DateTime.Now.AddHours(2) },
                 testFieldDateTimeNullable = DateTime.Now.AddDays(-1),
                 testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now),
-                testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(DateTime.Now), DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
-                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(DateTime.Now), null, DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
+                testFieldDateOnlyArray = new[]
+                    { DateOnly.FromDateTime(DateTime.Now), DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
+                testFieldDateOnlyArrayNullable = new DateOnly?[]
+                    { DateOnly.FromDateTime(DateTime.Now), null, DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
                 testFieldDateOnlyNullable = DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
                 testFieldDecimal = 999.99M,
                 testFieldDecimalArray = new[] { 999.91M, 999.92M, 999.93M },
@@ -898,12 +1000,15 @@ namespace FreeSql.Tests.Duckdb
                 testFieldDoubleArrayNullable = new double?[] { 888.11, 888.12, null, 888.13 },
                 testFieldDoubleNullable = 222.22,
                 testFieldEnum1 = TableAllTypeEnumType1.e3,
-                testFieldEnum1Array = new[] { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, TableAllTypeEnumType1.e1 },
-                testFieldEnum1ArrayNullable = new TableAllTypeEnumType1?[] { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, null, TableAllTypeEnumType1.e1 },
+                testFieldEnum1Array = new[]
+                    { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, TableAllTypeEnumType1.e1 },
+                testFieldEnum1ArrayNullable = new TableAllTypeEnumType1?[]
+                    { TableAllTypeEnumType1.e5, TableAllTypeEnumType1.e2, null, TableAllTypeEnumType1.e1 },
                 testFieldEnum1Nullable = TableAllTypeEnumType1.e2,
                 testFieldEnum2 = TableAllTypeEnumType2.f2,
                 testFieldEnum2Array = new[] { TableAllTypeEnumType2.f3, TableAllTypeEnumType2.f1 },
-                testFieldEnum2ArrayNullable = new TableAllTypeEnumType2?[] { TableAllTypeEnumType2.f3, null, TableAllTypeEnumType2.f1 },
+                testFieldEnum2ArrayNullable = new TableAllTypeEnumType2?[]
+                    { TableAllTypeEnumType2.f3, null, TableAllTypeEnumType2.f1 },
                 testFieldEnum2Nullable = TableAllTypeEnumType2.f3,
                 testFieldFloat = 777.77F,
                 testFieldFloatArray = new[] { 777.71F, 777.72F, 777.73F },
@@ -913,15 +1018,20 @@ namespace FreeSql.Tests.Duckdb
                 testFieldGuidArray = new[] { Guid.NewGuid(), Guid.NewGuid() },
                 testFieldGuidArrayNullable = new Guid?[] { Guid.NewGuid(), null, Guid.NewGuid() },
                 testFieldGuidNullable = Guid.NewGuid(),
-                testFieldStruct = new Dictionary<string, object> { { "111", "value111" }, { "222", 222 }, { "333", "value333" } },
-                testFieldStructArray = new[] { new Dictionary<string, object> { { "111", "value111" }, { "222", 222 }, { "333", "value333" } }, new Dictionary<string, object> { { "444", "value444" }, { "555", 555 }, { "666", "value666" } } },
+                testFieldStruct = new Dictionary<string, object>
+                    { { "111", "value111" }, { "222", 222 }, { "333", "value333" } },
+                testFieldStructArray = new[]
+                {
+                    new Dictionary<string, object> { { "111", "value111" }, { "222", 222 }, { "333", "value333" } },
+                    new Dictionary<string, object> { { "444", "value444" }, { "555", 555 }, { "666", "value666" } }
+                },
                 testFieldInt = int.MaxValue,
                 testFieldIntArray = new[] { 1, 2, 3, 4, 5 },
                 testFieldIntArrayNullable = new int?[] { 1, 2, 3, null, 4, 5 },
                 testFieldIntNullable = int.MinValue,
                 testFieldLong = long.MaxValue,
                 testFieldLongArray = new long[] { 10, 20, 30, 40, 50 },
-                
+
                 testFieldSByte = sbyte.MaxValue,
                 testFieldSByteArray = new sbyte[] { 1, 2, 3, 4, 5 },
                 testFieldSByteArrayNullable = new sbyte?[] { 1, 2, 3, null, 4, 5 },
@@ -934,12 +1044,22 @@ namespace FreeSql.Tests.Duckdb
                 testFieldChar = 'X',
                 testFieldStringArray = new[] { "我是中国人String1", "我是中国人String2", null, "我是中国人String3" },
                 testFieldTimeSpan = TimeSpan.FromHours(11),
-                testFieldTimeSpanArray = new[] { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
-                testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanArray = new[]
+                    { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanArrayNullable = new TimeSpan?[]
+                    { TimeSpan.FromHours(11), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
                 testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
-                testFieldTimeOnlyArray = new[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
-                testFieldTimeOnlyArrayNullable = new TimeOnly?[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldTimeOnlyArray = new[]
+                {
+                    TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)),
+                    TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60))
+                },
+                testFieldTimeOnlyArrayNullable = new TimeOnly?[]
+                {
+                    TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)),
+                    null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60))
+                },
                 testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
                 testFieldUInt = uint.MaxValue,
                 testFieldUIntArray = new uint[] { 1, 2, 3, 4, 5 },
@@ -993,10 +1113,11 @@ namespace FreeSql.Tests.Duckdb
             public float testFieldFloat { get; set; }
             public decimal testFieldDecimal { get; set; }
             public TimeSpan testFieldTimeSpan { get; set; }
-            public TimeOnly testFieldTimeOnly{ get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+
             public DateOnly testFieldDateOnly { get; set; }
 
             public byte[] testFieldBytes { get; set; }
@@ -1021,6 +1142,7 @@ namespace FreeSql.Tests.Duckdb
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+
             public DateOnly? testFieldDateOnlyNullable { get; set; }
 
             public Guid? testFieldGuidNullable { get; set; }
@@ -1080,7 +1202,85 @@ namespace FreeSql.Tests.Duckdb
             public TableAllTypeEnumType2?[] testFieldEnum2ArrayNullable { get; set; }
         }
 
-        public enum TableAllTypeEnumType1 { e1, e2, e3, e5 }
-        [Flags] public enum TableAllTypeEnumType2 { f1, f2, f3 }
+        [Fact]
+        public void TestNormalIndex()
+        {
+            fsql.CodeFirst.SyncStructure<TableNormalIndexTest>();
+        }
+
+        [Fact]
+        public void TestCompoundIndex()
+        {
+            fsql.CodeFirst.SyncStructure<TableCompoundIndexTest>();
+        }
+
+        [Fact]
+        public void TestIsIdentity()
+        {
+            fsql.CodeFirst.SyncStructure<TableIsIdentityTest>();
+        }
+
+
+        [Table(Name = "index_normal_test")]
+        class TableIsIdentityTest
+        {
+            [Column(Name = "id")]
+            public int Id { get; set; }
+
+            [Column(Name = "name")]
+            public string Name { get; set; }
+
+            [Column(Name = "number")]
+            public string Number { get; set; }
+        }
+
+        [Table(Name = "index_normal_test")]
+        [Index("name_index", "name", false)]
+        [Index("number_index", "number", true)]
+        class TableNormalIndexTest
+        {
+            [Column(Name = "id",IsIdentity = true)]
+            public int Id { get; set; }
+
+            [Column(Name = "name")]
+            public string Name { get; set; }
+
+            [Column(Name = "number")]
+            public string Number { get; set; }
+        }
+
+        [Table(Name = "index_compound_test")]
+        [Index("c_name_index", "name", false)]
+        [Index("c_number_age_index", "number,age", false)]
+        class TableCompoundIndexTest
+        {
+            [Column( Name = "id")]
+            public int Id { get; set; }
+
+            [Column(Name = "name")]
+            public string Name { get; set; }
+
+            [Column(Name = "number")]
+            public string Number { get; set; }
+
+            [Column(Name = "age")]
+            public string Age { get; set; }
+        }
+
+        public enum TableAllTypeEnumType1
+        {
+            e1,
+            e2,
+            e3,
+            e5
+        }
+
+        [Flags]
+        public enum TableAllTypeEnumType2
+        {
+            f1,
+            f2,
+            f3
+        }
     }
 }

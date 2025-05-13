@@ -14,7 +14,7 @@ public class g
             .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
             .UseMonitorCommand(
                 cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
-                //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                , (cmd, traceLog) => Console.WriteLine(traceLog)
                 )
             .Build();
     });
