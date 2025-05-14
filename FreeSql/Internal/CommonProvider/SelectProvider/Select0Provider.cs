@@ -426,7 +426,7 @@ namespace FreeSql.Internal.CommonProvider
                 return exp;
             }
             callExp = callExpStack.Pop();
-            Expression newExp = callExp.Object.NodeType == ExpressionType.MemberAccess && typeof(ISelect0).IsAssignableFrom(callExp.Object.Type) ?
+            Expression newExp = callExp.Object != null && callExp.Object.NodeType == ExpressionType.MemberAccess && typeof(ISelect0).IsAssignableFrom(callExp.Object.Type) ?
                 new ReplaceMemberExpressionVisitor().Replace(callExp, callExp.Object, Expression.Convert(Expression.Call(
                     Expression.Convert(callExp.Object, typeof(Select0Provider)),
                     typeof(Select0Provider).GetMethod(nameof(SetSameSelectPendingShareData), BindingFlags.NonPublic | BindingFlags.Instance), 

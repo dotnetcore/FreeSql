@@ -616,24 +616,11 @@ namespace base_entity
                     //if (cmd.CommandText.StartsWith(""))
                 })
                 .UseLazyLoading(true)
-                //.UseGenerateCommandParameterWithLambda(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunk(10, e =>
-            {
-                foreach (var item in e.Object)
-                    Console.WriteLine(item.Nickname);
-            });
-            Task.Run(async () =>
-            {
-                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunkAsyncEnumerable(10))
-                {
-                    foreach (var item in xxs1)
-                        Console.WriteLine(item.Nickname);
-                }
-            }).Wait();
 
             var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
             usergroupRepository.Delete(a => true);
@@ -669,7 +656,6 @@ namespace base_entity
             ugroupFirst.Sort++;
             usergroupRepository.Update(ugroupFirst);
             var userRepository = fsql.GetAggregateRootRepository<User1>();
-
             var testsublist1 = fsql.Select<UserGroup>()
                 .ToList(a => new
                 {
@@ -677,6 +663,29 @@ namespace base_entity
                     list = userRepository.Select.Where(b => a.Id == 1).Where(b => b.GroupId == a.Id).ToList(),
                     list2 = fsql.Select<User1>().Where(b => a.Id == 2).Where(b => b.GroupId == a.Id).ToList(b => b.Nickname),
                 });
+            var testsublist2 = fsql.Select<UserGroup, User1>()
+                .ToList(a => new
+                {
+                    a.t1.Id,
+                    list = userRepository.Select.Where(b => a.t1.Id == 1).Where(b => b.GroupId == a.t1.Id).ToList(),
+                    list2 = fsql.Select<User1, UserGroup>().Where(b => a.t1.Id == 2).Where(b => b.t1.GroupId == a.t1.Id).ToList(b => b.t1.Nickname),
+                });
+
+
+            fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunk(10, e =>
+            {
+                foreach (var item in e.Object)
+                    Console.WriteLine(item.Nickname);
+            });
+            Task.Run(async () =>
+            {
+                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunkAsyncEnumerable(10))
+                {
+                    foreach (var item in xxs1)
+                        Console.WriteLine(item.Nickname);
+                }
+            }).Wait();
+
 
             Utils.IsStrict = false;
             var user1Tb = fsql.CodeFirst.GetTableByEntity(typeof(User11));
@@ -1770,7 +1779,7 @@ var sql11111 = fsql.Select<Class1111>()
                 Math.PI
             });
 
-            var testsublist2 = fsql.Select<UserGroup>()
+            var testsublist21 = fsql.Select<UserGroup>()
                 .GroupBy(a => new { a.Id })
                 .WithTempQuery(a => a.Key)
                 .First(a => new
