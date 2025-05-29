@@ -354,7 +354,7 @@ namespace FreeSql.Duckdb
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"{leftLike} IS NULL";
                         if (exp.Method.Name == "StartsWith") return $"{left} ^@ ({args0Value})";
-                        if (args0Value.Contains("%"))
+                        if (new[] { '%', '_', '[', ']', '*' }.Any(wildcard => args0Value.Contains(wildcard)))
                         {
                             if (exp.Method.Name == "EndsWith") return $"strpos({left}, {args0Value}) = length({left})-length({args0Value})+1";
                             return $"strpos({left}, {args0Value}) > 0";

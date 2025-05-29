@@ -1,5 +1,7 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
+using System.Diagnostics;
+using System.Threading;
 using Xunit;
 
 namespace FreeSql.Tests.Duckdb
@@ -20,9 +22,21 @@ namespace FreeSql.Tests.Duckdb
             Assert.True(fsql.Ado.ExecuteConnectTest());
         }
         [Fact]
-        public void ExecuteReader()
+        public void ExecuteDataTable()
         {
+            var dataTable = fsql.Ado.ExecuteDataTable("select * from tbiou04");
 
+            using (var duck = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.DuckDB, "DataSource=D:\\WeChat Files\\WeChat Files\\q2881099\\FileStorage\\File\\2025-05")
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    , (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+                var dataTable2 = fsql.Ado.ExecuteDataTable("select * from db_db");
+            }
         }
         [Fact]
         public void ExecuteArray()

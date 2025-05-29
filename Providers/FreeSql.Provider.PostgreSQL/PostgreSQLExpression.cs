@@ -408,7 +408,7 @@ namespace FreeSql.PostgreSQL
                         var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"{leftLike} IS NULL";
-                        if (args0Value.Contains("%"))
+                        if (new[] { '%', '_', '[', ']', '*' }.Any(wildcard => args0Value.Contains(wildcard)))
                         {
                             if (exp.Method.Name == "StartsWith") return $"strpos({left}, {args0Value}) = 1";
                             if (exp.Method.Name == "EndsWith") return $"strpos({left}, {args0Value}) = char_length({left})-char_length({args0Value})+1";

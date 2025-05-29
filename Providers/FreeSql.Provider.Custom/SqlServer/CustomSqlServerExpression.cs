@@ -308,7 +308,7 @@ namespace FreeSql.Custom.SqlServer
                         var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"{leftLike} IS NULL";
-                        if (args0Value.Contains("%"))
+                        if (new[] { '%', '_', '[', ']' }.Any(wildcard => args0Value.Contains(wildcard)))
                         {
                             if (exp.Method.Name == "StartsWith") return $"charindex({args0Value}, {left}) = 1";
                             if (exp.Method.Name == "EndsWith") return $"charindex({args0Value}, {left}) = len({left})-len({args0Value})+1";
