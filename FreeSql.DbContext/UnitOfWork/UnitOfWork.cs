@@ -165,10 +165,11 @@ namespace FreeSql
         int _disposeCounter;
         public void Dispose()
         {
+        
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
-                this.Rollback();
+                if(_tranBefore is not null) this.Rollback();                
             }
             finally
             {
