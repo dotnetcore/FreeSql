@@ -1103,7 +1103,7 @@ namespace FreeSql.Internal
                         return conditionalSql;
                     }
                 case ExpressionType.Call:
-                    tsc.mapType = null;
+                    if (!tsc.isNotSetMapColumnTmp) tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
                     if (exp3.IsExpressionCall())
                     {
