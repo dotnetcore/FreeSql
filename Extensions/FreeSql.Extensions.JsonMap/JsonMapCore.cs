@@ -1,5 +1,6 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -121,10 +122,97 @@ public static class FreeSqlJsonMapCoreExtensions
                     //        }
                     //    }
                     //}
-                    //解析 POCO Json   a.Customer.Name
-                    if (e.Expression is MemberExpression memExp)
+                    //处理 mysql enum -> int
+                    switch (fsql.Ado.DataType)
                     {
-                        if (e.Expression.IsParameter() == false) return;
+                        case DataType.MySql:
+                        case DataType.OdbcMySql:
+                        case DataType.CustomMySql:
+                            if (e.Expression.NodeType == ExpressionType.Equal &&
+                                e.Expression is BinaryExpression binaryExpression)
+                            {
+                                var comonExp = (fsql.Select<object>() as Select0Provider)._commonExpression;
+                                var leftExp = binaryExpression.Left;
+                                var rightExp = binaryExpression.Right;
+                                if (
+                                   leftExp.NodeType == ExpressionType.Convert &&
+                                   leftExp is UnaryExpression leftExpUexp &&
+                                   leftExpUexp.Operand?.Type.NullableTypeOrThis().IsEnum == true &&
+
+                                   rightExp.NodeType == ExpressionType.Convert &&
+                                   rightExp is UnaryExpression rightExpUexp &&
+                                   rightExpUexp.Operand?.Type.NullableTypeOrThis().IsEnum == true)
+                                {
+                                    string leftSql = null, rightSql = null;
+                                    if (leftExpUexp.Operand.NodeType == ExpressionType.MemberAccess &&
+                                        LocalParseMemberExp(leftExpUexp.Operand as MemberExpression))
+                                        leftSql = e.Result;
+
+                                    if (rightExpUexp.Operand.NodeType == ExpressionType.MemberAccess &&
+                                        LocalParseMemberExp(rightExpUexp.Operand as MemberExpression))
+                                        rightSql = e.Result;
+
+                                    if (!string.IsNullOrEmpty(leftSql) && string.IsNullOrEmpty(rightSql) && !rightExpUexp.Operand.IsParameter())
+                                        rightSql = comonExp.formatSql(Expression.Lambda(rightExpUexp.Operand).Compile().DynamicInvoke(), typeof(int), null, null);
+                                    if (string.IsNullOrEmpty(leftSql) && !string.IsNullOrEmpty(rightSql) && !leftExpUexp.Operand.IsParameter())
+                                        leftSql = comonExp.formatSql(Expression.Lambda(leftExpUexp.Operand).Compile().DynamicInvoke(), typeof(int), null, null);
+
+                                    if (!string.IsNullOrEmpty(leftSql) && !string.IsNullOrEmpty(rightSql))
+                                    {
+                                        e.Result = $"{leftSql} = {rightSql}";
+                                        return;
+                                    }
+                                    e.Result = null;
+                                    return;
+                                }
+                            }
+                            if (e.Expression.NodeType == ExpressionType.Call &&
+                                e.Expression is MethodCallExpression callExp &&
+                                callExp.Method.Name == "Contains")
+                            {
+                                var objExp = callExp.Object;
+                                var objType = objExp?.Type;
+                                if (objType?.FullName == "System.Byte[]") return;
+
+                                var argIndex = 0;
+                                if (objType == null && callExp.Method.DeclaringType == typeof(Enumerable))
+                                {
+                                    objExp = callExp.Arguments.FirstOrDefault();
+                                    objType = objExp?.Type;
+                                    argIndex++;
+
+                                    if (objType == typeof(string)) return;
+                                }
+                                if (objType == null) objType = callExp.Method.DeclaringType;
+                                if (objType != null || objType.IsArrayOrList())
+                                {
+                                    var memExp = callExp.Arguments[argIndex];
+                                    if (memExp.NodeType == ExpressionType.MemberAccess &&
+                                        memExp.Type.NullableTypeOrThis().IsEnum &&
+                                        LocalParseMemberExp(memExp as MemberExpression))
+                                    {
+                                        if (!objExp.IsParameter())
+                                        {
+                                            var comonExp = (fsql.Select<object>() as Select0Provider)._commonExpression;
+                                            var rightSql = comonExp.formatSql(Expression.Lambda(objExp).Compile().DynamicInvoke(), typeof(int), null, null);
+                                            e.Result = $"{e.Result} in {rightSql.Replace(",   \r\n    \r\n", $") \r\n OR {e.Result} in (")}";
+                                            return;
+                                        }
+                                        e.Result = null;
+                                        return;
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                    //解析 POCO Json   a.Customer.Name
+                    if (e.Expression.NodeType == ExpressionType.MemberAccess)
+                        LocalParseMemberExp(e.Expression as MemberExpression);
+
+                    bool LocalParseMemberExp(MemberExpression memExp)
+                    {
+                        if (memExp == null) return false;
+                        if (e.Expression.IsParameter() == false) return false;
                         var parentMemExps = new Stack<MemberExpression>();
                         parentMemExps.Push(memExp);
                         while (true)
@@ -133,25 +221,25 @@ public static class FreeSqlJsonMapCoreExtensions
                             {
                                 case ExpressionType.MemberAccess:
                                 case ExpressionType.Parameter: break;
-                                default: return;
+                                default: return false;
                             }
                             switch (memExp.Expression.NodeType)
                             {
                                 case ExpressionType.MemberAccess:
                                     memExp = memExp.Expression as MemberExpression;
-                                    if (memExp == null) return;
+                                    if (memExp == null) return false;
                                     parentMemExps.Push(memExp);
                                     break;
                                 case ExpressionType.Parameter:
                                     var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
-                                    if (tb == null) return;
-                                    if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
-                                    if (_dicTypes.ContainsKey(trycol.CsType) == false) return;
+                                    if (tb == null) return false;
+                                    if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return false;
+                                    if (_dicTypes.ContainsKey(trycol.CsType) == false) return false;
                                     var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[trycol.CsName]));
                                     if (parentMemExps.Any() == false)
                                     {
                                         e.Result = result;
-                                        return;
+                                        return true;
                                     }
                                     var jsonPath = "";
                                     switch (fsql.Ado.DataType)
@@ -161,7 +249,7 @@ public static class FreeSqlJsonMapCoreExtensions
                                         case DataType.OdbcMySql:
                                         case DataType.CustomMySql:
                                             StyleJsonExtract();
-                                            return;
+                                            return true;
                                         case DataType.SqlServer:
                                         case DataType.OdbcSqlServer:
                                         case DataType.CustomSqlServer:
@@ -170,13 +258,13 @@ public static class FreeSqlJsonMapCoreExtensions
                                         case DataType.CustomOracle:
                                         case DataType.Dameng:
                                             StyleJsonValue();
-                                            return;
+                                            return true;
                                         case DataType.DuckDB:
                                             StyleDotAccess();
-                                            return;
+                                            return true;
                                     }
                                     StylePgJson();
-                                    return;
+                                    return true;
 
                                     void StyleJsonExtract()
                                     {
