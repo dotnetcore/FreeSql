@@ -295,7 +295,32 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         object val = col.GetDbValue(d);
-                        sb.Append(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val)));
+                        var valsql = _commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
+                        if (didx == 0 && valsql == "NULL")
+                        {
+                            var dbtype = _orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
+                            if (!string.IsNullOrWhiteSpace(dbtype))
+                            {
+                                switch (_orm.Ado.DataType)
+                                {
+                                    case DataType.MsAccess:
+                                    case DataType.Odbc:
+                                    case DataType.Custom:
+                                        break; // MsAccess 不支持 cast(null as xxx)，直接用 NULL
+                                    case DataType.PostgreSQL:
+                                    case DataType.OdbcPostgreSQL:
+                                    case DataType.CustomPostgreSQL:
+                                    case DataType.KingbaseES:
+                                    case DataType.ShenTong:
+                                        valsql = $"NULL::{_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype}";
+                                        break;
+                                    default:
+                                        valsql = $"cast(NULL as {_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype})";
+                                        break;
+                                }
+                            }
+                        }
+                        sb.Append(valsql);
                     }
                     if (didx == 0) sb.Append(" as ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                     ++colidx2;
