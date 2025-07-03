@@ -13,14 +13,14 @@ namespace FreeSql
 {
     partial class DbContext
     {
-        async public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await FlushCommandAsync(cancellationToken);
             return SaveChangesSuccess();
         }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>> _dicFlushCommandDbSetBatchAsync = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>>();
-        async internal Task FlushCommandAsync(CancellationToken cancellationToken)
+        internal async Task FlushCommandAsync(CancellationToken cancellationToken)
         {
             if (isFlushCommanding) return;
             if (_prevCommands.Any() == false) return;
@@ -98,54 +98,64 @@ namespace FreeSql
                 }
             };
 
-            while (_prevCommands.Any() || states.Any())
+            try
             {
-                var info = _prevCommands.Any() ? _prevCommands.Dequeue() : null;
-                if (oldinfo == null) oldinfo = info;
-                var isLiveUpdate = false;
-                flagFuncUpdateLaststate = false;
-
-                if (_prevCommands.Any() == false && states.Any() ||
-                    info != null && oldinfo.changeType != info.changeType ||
-                    info != null && oldinfo.stateType != info.stateType ||
-                    info != null && oldinfo.entityType != info.entityType)
+                while (_prevCommands.Any() || states.Any())
                 {
+                    var info = _prevCommands.Any() ? _prevCommands.Dequeue() : null;
+                    if (oldinfo == null) oldinfo = info;
+                    var isLiveUpdate = false;
+                    flagFuncUpdateLaststate = false;
 
-                    if (info != null && oldinfo.changeType == info.changeType && oldinfo.stateType == info.stateType && oldinfo.entityType == info.entityType)
+                    if (_prevCommands.Any() == false && states.Any() ||
+                        info != null && oldinfo.changeType != info.changeType ||
+                        info != null && oldinfo.stateType != info.stateType ||
+                        info != null && oldinfo.entityType != info.entityType)
                     {
-                        //最后一个，合起来发送
+
+                        if (info != null && oldinfo.changeType == info.changeType && oldinfo.stateType == info.stateType && oldinfo.entityType == info.entityType)
+                        {
+                            //最后一个，合起来发送
+                            states.Add(info.state);
+                            info = null;
+                        }
+
+                        switch (oldinfo.changeType)
+                        {
+                            case EntityChangeType.Insert:
+                                await funcInsert();
+                                break;
+                            case EntityChangeType.Delete:
+                                await funcDelete();
+                                break;
+                        }
+                        isLiveUpdate = true;
+                    }
+
+                    if (isLiveUpdate || oldinfo.changeType == EntityChangeType.Update)
+                    {
+                        if (states.Any())
+                        {
+                            await funcUpdate(isLiveUpdate);
+                            if (info?.changeType == EntityChangeType.Update)
+                                flagFuncUpdateLaststate = true;
+                        }
+                    }
+
+                    if (info != null)
+                    {
                         states.Add(info.state);
-                        info = null;
+                        oldinfo = info;
+
+                        if (flagFuncUpdateLaststate && oldinfo.changeType == EntityChangeType.Update) //马上与上个元素比较
+                            await funcUpdate(isLiveUpdate);
                     }
-
-                    switch (oldinfo.changeType)
-                    {
-                        case EntityChangeType.Insert:
-                            await funcInsert();
-                            break;
-                        case EntityChangeType.Delete:
-                            await funcDelete();
-                            break;
-                    }
-                    isLiveUpdate = true;
-                }
-
-                if (isLiveUpdate || oldinfo.changeType == EntityChangeType.Update)
-                {
-                    if (states.Any())
-                        await funcUpdate(isLiveUpdate);
-                }
-
-                if (info != null)
-                {
-                    states.Add(info.state);
-                    oldinfo = info;
-
-                    if (flagFuncUpdateLaststate && oldinfo.changeType == EntityChangeType.Update) //马上与上个元素比较
-                        await funcUpdate(isLiveUpdate);
                 }
             }
-            isFlushCommanding = false;
+            finally
+            {
+                isFlushCommanding = false;
+            }
         }
     }
 }

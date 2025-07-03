@@ -16,17 +16,11 @@ namespace FreeSql.Sqlite.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted()
-        {
-            throw new NotImplementedException();
-        }
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException($"FreeSql.Provider.Sqlite {CoreErrorStrings.S_Not_Implemented_Feature}");
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.Sqlite {CoreErrorStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

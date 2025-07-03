@@ -60,7 +60,20 @@ namespace FreeSql.MsAccess
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rnd";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? MsAccessUtils.GetCastSql(getExp(callExp.Object), typeof(string)) : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+								}
+								var value = ExpressionGetValue(callExp.Object, out var success);
+								if (success) return formatSql(value, typeof(string), null, null);
+								return callExp.Arguments.Count == 0 ? MsAccessUtils.GetCastSql(getExp(callExp.Object), typeof(string)) : null;
+                            }
                             return null;
                     }
 
@@ -92,10 +105,12 @@ namespace FreeSql.MsAccess
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
+                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                        tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
+                        tsc.isNotSetMapColumnTmp = false;
                         tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        tsc.SetDbParamsReturnOld(oldDbParams);
+                        if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
@@ -111,6 +126,7 @@ namespace FreeSql.MsAccess
                     for (var a = 0; a < arrExp.Expressions.Count; a++)
                     {
                         if (a > 0) arrSb.Append(",");
+                        if (a % 500 == 499) arrSb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                         arrSb.Append(getExp(arrExp.Expressions[a]));
                     }
                     if (arrSb.Length == 1) arrSb.Append("NULL");
@@ -189,35 +205,6 @@ namespace FreeSql.MsAccess
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"clng(({left})/{60 * 60 * 24}+1)";
-                case "Hours": return $"clng(({left})/{60 * 60} mod 24+1)";
-                case "Milliseconds": return $"({MsAccessUtils.GetCastSql(left, typeof(long))}*1000)";
-                case "Minutes": return $"clng(({left})/60 mod 60+1)";
-                case "Seconds": return $"(({left}) mod 60)";
-                case "Ticks": return $"({MsAccessUtils.GetCastSql(left, typeof(long))}*10000000)";
-                case "TotalDays": return $"(({left})/{60 * 60 * 24})";
-                case "TotalHours": return $"(({left})/{60 * 60})";
-                case "TotalMilliseconds": return $"({MsAccessUtils.GetCastSql(left, typeof(long))}*1000)";
-                case "TotalMinutes": return $"(({left})/60)";
-                case "TotalSeconds": return $"({left})";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -233,9 +220,11 @@ namespace FreeSql.MsAccess
                         var arg2 = getExp(exp.Arguments[0]);
                         return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
+                        if (exp.Arguments.Count == 1 && exp.Arguments[0].NodeType == ExpressionType.NewArrayInit && exp.Arguments[0] is NewArrayExpression concatNewArrExp)
+                            return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), concatNewArrExp.Expressions.Select(a => a.Type).ToArray());
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
@@ -257,12 +246,19 @@ namespace FreeSql.MsAccess
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value}+'%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+{args0Value})")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE ('%'+{args0Value}+'%')";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
+                        if (new[] { '%', '_', '[', ']', '*' }.Any(wildcard => args0Value.Contains(wildcard)))
+                        {
+                            if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}) = len({left})-len({args0Value})+1";
+                            return $"instr({left}, {args0Value}) > 0";
+                        }
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"({args0Value}+'%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+{args0Value})")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE ('%'+{args0Value}+'%')";
                     case "ToLower": return $"lcase({left})";
                     case "ToUpper": return $"ucase({left})";
                     case "Substring":
@@ -325,6 +321,18 @@ namespace FreeSql.MsAccess
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"datediff('d',{getExp(date2)},{getExp(date1)})";
+                case "TotalHours": return $"datediff('h',{getExp(date2)},{getExp(date1)})";
+                case "TotalMinutes": return $"datediff('n',{getExp(date2)},{getExp(date1)})";
+                case "TotalSeconds": return $"datediff('s',{getExp(date2)},{getExp(date1)})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -352,7 +360,6 @@ namespace FreeSql.MsAccess
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"dateadd('s', {args1}, {left})";
                     case "AddDays": return $"dateadd('d', {args1}, {left})";
                     case "AddHours": return $"dateadd('h', {args1}, {left})";
                     case "AddMilliseconds": return $"dateadd('s', ({args1})/1000, {left})";
@@ -365,48 +372,11 @@ namespace FreeSql.MsAccess
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff('s', {args1}, {left})";
-                            case "System.TimeSpan": return $"dateadd('s', ({args1})*-1, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff('s',{args1},{left})";
                     case "ToString": return exp.Arguments.Count == 0 ? $"format({left},'yyyy-mm-dd HH:mm:ss')" : $"format({left},{args1})";
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})/1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*60)";
-                    case "FromSeconds": return $"({getExp(exp.Arguments[0])})";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10000000)";
-                    case "Parse": return MsAccessUtils.GetCastSql(getExp(exp.Arguments[0]), typeof(long));
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return MsAccessUtils.GetCastSql(getExp(exp.Arguments[0]), typeof(long));
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return MsAccessUtils.GetCastSql(left, typeof(string));
                 }
             }
             return null;

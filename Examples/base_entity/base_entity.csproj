@@ -2,7 +2,8 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
+		<PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,21 +13,36 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="Confluent.Kafka" Version="2.2.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="MessagePack" Version="3.1.1" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.5" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.AggregateRoot\FreeSql.Extensions.AggregateRoot.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.BaseEntity\FreeSql.Extensions.BaseEntity.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.JsonMap\FreeSql.Extensions.JsonMap.csproj" />
 		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
+		<ProjectReference Include="..\..\Extensions\FreeSql.Extensions.Linq\FreeSql.Extensions.Linq.csproj" />
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.ClickHouse\FreeSql.Provider.ClickHouse.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
-		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.QuestDb\FreeSql.Provider.QuestDb.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqliteCore\FreeSql.Provider.SqliteCore.csproj" />
 		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Xugu\FreeSql.Provider.Xugu.csproj" />
 	</ItemGroup>
-
+	
+    <ItemGroup>
+      <Reference Include="XuguClient">
+        <HintPath>..\..\Providers\FreeSql.Provider.Xugu\lib\XuguClient\netstandard2.0\XuguClient.dll</HintPath>
+      </Reference>
+    </ItemGroup>
 </Project>

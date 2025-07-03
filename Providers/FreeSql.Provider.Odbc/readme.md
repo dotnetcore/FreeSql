@@ -1,12 +1,14 @@
 FreeSql.Provider.Odbc 实现 ODBC 访问数据库，ODBC 属于比较原始的技术，更新慢，各大数据库厂支持得标准不一，不到万不得已最好别用 odbc，坑比较多。
 
-FreeSql.Provider.Odbc 做了四种数据库的专用实现：SqlServer、PostgreSQL、Oracle、MySql、达梦、人大金仓，和一种通用实现。
+FreeSql.Provider.Odbc 做了多种数据库的专用实现：SqlServer、PostgreSQL、Oracle、MySql、达梦、人大金仓，和一种通用实现。
 
-专用实现比较有针对性，和原来的 FreeSql.Provider.SqlServer ado.net 相比，只支持较少的基础类型，其他功能几乎都有，包括 CodeFirst 自动迁移。
+和原来的 FreeSql.Provider.SqlServer 等 ado.net 相比，只支持较少的基础类型，其他功能几乎都有，包括 CodeFirst 自动迁移。
 
-# 通用实现
+国产数据库大多数都兼容 SqlServer、PostgreSQL、Oracle、MySql 这四种数据库，所以它们也可以用来访问国产数据库。
 
-通用实现为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
+# 自定义适配
+
+为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
 
 - 不支持 CodeFirst 自动迁移
 - 不支持 DbFirst 接口方法的实现

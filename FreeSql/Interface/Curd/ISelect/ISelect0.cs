@@ -18,9 +18,11 @@ namespace FreeSql
 #if net40
 #else
         Task<DataTable> ToDataTableAsync(string field = null, CancellationToken cancellationToken = default);
+        Task<DataTable> ToDataTableByPropertyNameAsync(string[] properties, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector, CancellationToken cancellationToken = default);
-        Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default);
+        Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default);
+        Task<List<T1>> ToListAsync(bool includeNestedMembers, CancellationToken cancellationToken = default);
         Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken = default);
 
         Task<T1> ToOneAsync(CancellationToken cancellationToken = default);
@@ -28,6 +30,9 @@ namespace FreeSql
 
         Task<bool> AnyAsync(CancellationToken cancellationToken = default);
         Task<long> CountAsync(CancellationToken cancellationToken = default);
+#endif
+#if ns21
+        IAsyncEnumerable<List<T1>> ToChunkAsyncEnumerable(int size);
 #endif
 
         /// <summary>
@@ -54,6 +59,12 @@ namespace FreeSql
         /// <returns></returns>
         TSelect WithConnection(DbConnection connection);
         /// <summary>
+        /// 使用自定义参数化，UnionALL 或者 ToSql 可能有需要
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        TSelect WithParameters(List<DbParameter> parameters);
+        /// <summary>
         /// 命令超时设置(秒)
         /// </summary>
         /// <param name="timeout"></param>
@@ -72,6 +83,12 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         DataTable ToDataTable(string field = null);
+        /// <summary>
+        /// 执行SQL查询，返回 properties 指定的实体类属性，并以 DataTable 接收
+        /// </summary>
+        /// <param name="properties">属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name</param>
+        /// <returns></returns>
+        DataTable ToDataTableByPropertyName(string[] properties);
 
         /// <summary>
         /// 以字典的形式返回查询结果<para></para>
@@ -90,16 +107,20 @@ namespace FreeSql
         /// 3、ToList((a, b, c) => new { a, b, c }) 这样也可以<para></para>
         /// 4、abc 怎么来的？请试试 fsql.Select&lt;T1, T2, T3&gt;()
         /// </summary>
+        /// <returns></returns>
+        List<T1> ToList(); //因为 LambdaExpression 不支持默认参数方法，所以与 ToList(includeNestedMembers) 单独定义
+        /// <summary>
+        /// 执行SQL查询，返回 T1 实体、以及 LeftJoin/InnerJoin/RightJoin 对象
+        /// </summary>
         /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         /// <returns></returns>
-        List<T1> ToList(bool includeNestedMembers = false);
+        List<T1> ToList(bool includeNestedMembers);
         /// <summary>
         /// 执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
         /// </summary>
         /// <param name="size">数据块的大小</param>
         /// <param name="done">处理数据块</param>
-        /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
-        void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false);
+        void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done);
         /// <summary>
         /// 执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
         /// </summary>
@@ -314,8 +335,9 @@ namespace FreeSql
         /// 神通: for update
         /// </summary>
         /// <param name="nowait">noawait</param>
+        /// <param name="skipLocked">skip locked</param>
         /// <returns></returns>
-        TSelect ForUpdate(bool nowait = false);
+        TSelect ForUpdate(bool nowait = false, bool skipLocked = false);
 
         /// <summary>
         /// 按原生sql语法分组，GroupBy("concat(name, @cc)", new { cc = 1 })<para></para>

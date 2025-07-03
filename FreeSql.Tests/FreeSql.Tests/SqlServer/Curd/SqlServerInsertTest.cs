@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using SaleIDO.Entity.Storeage;
 using System;
@@ -30,6 +30,61 @@ namespace FreeSql.Tests.SqlServer
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
+        }
+
+        [Fact]
+        public void InsertDictionary()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<object>().AsTable("table1dict").Where("1=1").ExecuteAffrows();
+
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(@id_0, @name_0)", sql1);
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(@id_0, @name_0), (@id_1, @name_1)", sql2);
+            var sql3 = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx')", sql3);
+            var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx'), (2, N'yyyy')", sql4);
+
+            Assert.Equal(1, fsql.InsertDict(dic).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(1, fsql.DeleteDict(dic).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(1, fsql.InsertDict(dic).AsTable("table1dict").NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, fsql.DeleteDict(dic).AsTable("table1dict").ExecuteAffrows());
+
+            Assert.Equal(2, fsql.InsertDict(diclist).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(2, fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(2, fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteAffrows());
+            Assert.Equal(2, fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteAffrows());
+
+
+            var dicRet = fsql.InsertDict(dic).AsTable("table1dict").ExecuteInserted();
+            dicRet = fsql.DeleteDict(dic).AsTable("table1dict").ExecuteDeleted();
+            dicRet = fsql.InsertDict(dic).AsTable("table1dict").NoneParameter().ExecuteInserted();
+            dicRet = fsql.DeleteDict(dic).AsTable("table1dict").ExecuteDeleted();
+
+            dicRet = fsql.InsertDict(diclist).AsTable("table1dict").ExecuteInserted();
+            dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
+            dicRet = fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteInserted();
+            dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
+
+            var sss = fsql.InsertOrUpdateDict(dic).AsTable("table1");
+            sql1 = fsql.InsertOrUpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            sql2 = fsql.InsertOrUpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+
+            sql1 = fsql.InsertOrUpdateDict(dic).AsTable("table1").WherePrimary("name").ToSql();
+            sql2 = fsql.InsertOrUpdateDict(diclist).AsTable("table1").WherePrimary("name").ToSql();
         }
 
         [Fact]
@@ -172,12 +227,19 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteSqlBulkCopy()
         {
+            var maxId = g.pgsql.Select<Topic>().Max(a => a.Id);
             var items = new List<Topic>();
-            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = maxId + a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
             insert.AppendData(items).InsertIdentity().ExecuteSqlBulkCopy();
             //insert.AppendData(items).IgnoreColumns(a => new { a.CreateTime, a.Clicks }).ExecuteSqlBulkCopy();
             // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
+
+            items = g.sqlserver.Select<Topic>().OrderByDescending(a => a.Id).Limit(1000).ToList();
+            g.sqlserver.Update<Topic>().SetSource(items).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items, a => new { a.Id, a.TypeGuid }).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items).UpdateColumns(a => new { a.Title }).ExecuteSqlBulkCopy();
+            g.sqlserver.Update<Topic>().SetSource(items, a => new { a.Id, a.TypeGuid }).UpdateColumns(a => new { a.Title }).ExecuteSqlBulkCopy();
         }
 
         [Fact]

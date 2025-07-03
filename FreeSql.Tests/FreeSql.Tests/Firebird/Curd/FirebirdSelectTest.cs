@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,35 +83,150 @@ namespace FreeSql.Tests.Firebird
         [Fact]
         public void AsSelect()
         {
+            var fsql = g.firebird;
+
             //OneToOne、ManyToOne
-            var t0 = g.firebird.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
-            //SELECT a.`Id`, a.`Parent_id`, a__Parent.`Id` as3, a__Parent.`Parent_id` as4, a__Parent.`Ddd`, a__Parent.`Name`, a.`Ddd` as7, a.`Name` as8 
-            //FROM `Tag` a 
-            //LEFT JOIN `Tag` a__Parent ON a__Parent.`Id` = a.`Parent_id` 
-            //LEFT JOIN `Tag` a__Parent__Parent ON a__Parent__Parent.`Id` = a__Parent.`Parent_id` 
-            //WHERE (a__Parent__Parent.`Name` = '粤语')
+            var t0 = fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+LEFT JOIN ""TAG"" a__Parent__Parent ON a__Parent__Parent.""ID"" = a__Parent.""PARENT_ID"" 
+WHERE (a__Parent__Parent.""NAME"" = '粤语')", t0);
 
             //OneToMany
-            var t1 = g.firebird.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
-            //SELECT a.`Id`, a.`Parent_id`, a.`Ddd`, a.`Name` 
-            //FROM `Tag` a 
-            //WHERE (exists(SELECT 1 
-            //	FROM `Tag` t 
-            //	LEFT JOIN `Tag` t__Parent ON t__Parent.`Id` = t.`Parent_id` 
-            //	WHERE (t__Parent.`Id` = 10) AND (t.`Parent_id` = a.`Id`) 
-            //	limit 0,1))
+            var t1 = fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a.""DDD"", a.""NAME"" 
+FROM ""TAG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t__Parent.""ID"" = 10) AND (t.""PARENT_ID"" = a.""ID"")))", t1);
+            var t11 = fsql.Select<Tag>().Where(a => a.Tags.Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a.""DDD"", a.""NAME"" 
+FROM ""TAG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t.""PARENT_ID"" = a.""ID"") AND (t__Parent.""ID"" = 10)))", t11);
+            var t12 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t.""PARENT_ID"" = a__Parent.""ID"") AND (t__Parent.""ID"" = 10)))", t12);
+            var t13 = fsql.Select<Tag>().Where(a => a.Tags.Where(t => t.Parent.Id == 10).Any()).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.Where(t => t.Parent.Id == 10).Any()).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a.""DDD"", a.""NAME"" 
+FROM ""TAG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t.""PARENT_ID"" = a.""ID"") AND (t__Parent.""ID"" = 10)))", t13);
+            var t14 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Any()).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Any()).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t.""PARENT_ID"" = a__Parent.""ID"") AND (t__Parent.""ID"" = 10)))", t14);
+            var t15 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Select(t => t.Name).ToList().Contains(a.Name)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Select(t => t.Name).ToList().Contains(a.Name)).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (((a.""NAME"") in (SELECT t.""NAME"" as1 
+    FROM ""TAG"" t 
+    LEFT JOIN ""TAG"" t__Parent ON t__Parent.""ID"" = t.""PARENT_ID"" 
+    WHERE (t.""PARENT_ID"" = a__Parent.""ID"") AND (t__Parent.""ID"" = 10))))", t15);
+
 
             //ManyToMany
-            var t2 = g.firebird.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
-            //SELECT a.`Id`, a.`Create_time`, a.`Is_deleted`, a.`Title`, a.`Url` 
-            //FROM `Song` a
-            //WHERE(exists(SELECT 1
-            //	FROM `Song_tag` Mt_Ms
-            //	WHERE(Mt_Ms.`Song_id` = a.`Id`) AND(exists(SELECT 1
-            //		FROM `Tag` t
-            //		WHERE(t.`Name` = '国语') AND(t.`Id` = Mt_Ms.`Tag_id`)
-            //		limit 0, 1))
-            //	limit 0, 1))
+            var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""CREATE_TIME"", a.""IS_DELETED"", a.""TITLE"", a.""URL"" 
+FROM ""SONG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""SONG_TAG"" Mt_Ms 
+    WHERE (Mt_Ms.""SONG_ID"" = a.""ID"") AND (exists(SELECT FIRST 1 1 
+        FROM ""TAG"" t 
+        WHERE (t.""NAME"" = '国语') AND (t.""ID"" = Mt_Ms.""TAG_ID"")))))", t2);
+            var t21 = fsql.Select<Song>().Where(s => s.Tags.Any(t => t.Name == "国语")).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.Any(t => t.Name == "国语")).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""CREATE_TIME"", a.""IS_DELETED"", a.""TITLE"", a.""URL"" 
+FROM ""SONG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    WHERE (exists(SELECT FIRST 1 1 
+        FROM ""SONG_TAG"" Mt_Ma 
+        WHERE (Mt_Ma.""TAG_ID"" = t.""ID"") AND (Mt_Ma.""SONG_ID"" = a.""ID""))) AND (t.""NAME"" = '国语')))", t21);
+            var t22 = fsql.Select<Song>().Where(s => s.Tags.Where(t => t.Name == "国语").Any()).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.Where(t => t.Name == "国语").Any()).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""CREATE_TIME"", a.""IS_DELETED"", a.""TITLE"", a.""URL"" 
+FROM ""SONG"" a 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""TAG"" t 
+    WHERE (exists(SELECT FIRST 1 1 
+        FROM ""SONG_TAG"" Mt_Ma 
+        WHERE (Mt_Ma.""TAG_ID"" = t.""ID"") AND (Mt_Ma.""SONG_ID"" = a.""ID""))) AND (t.""NAME"" = '国语')))", t22);
+            var t23 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Any(s => s.Title == "中国人")).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Any(s => s.Title == "中国人")).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""SONG"" s 
+    WHERE (exists(SELECT FIRST 1 1 
+        FROM ""SONG_TAG"" Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.""SONG_ID"" = s.""ID"") AND (Ms_Ma__Parent.""TAG_ID"" = a__Parent.""ID""))) AND (s.""TITLE"" = '中国人')))", t23);
+            var t24 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Any()).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Any()).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (exists(SELECT FIRST 1 1 
+    FROM ""SONG"" s 
+    WHERE (exists(SELECT FIRST 1 1 
+        FROM ""SONG_TAG"" Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.""SONG_ID"" = s.""ID"") AND (Ms_Ma__Parent.""TAG_ID"" = a__Parent.""ID""))) AND (s.""TITLE"" = '中国人')))", t24);
+            var t25 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Select(s => s.Title).ToList().Contains(t.Name)).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Select(s => s.Title).ToList().Contains(t.Name)).First();
+            Assert.Equal(@"SELECT a.""ID"", a.""PARENT_ID"", a__Parent.""ID"" as3, a__Parent.""PARENT_ID"" as4, a__Parent.""DDD"", a__Parent.""NAME"", a.""DDD"" as7, a.""NAME"" as8 
+FROM ""TAG"" a 
+LEFT JOIN ""TAG"" a__Parent ON a__Parent.""ID"" = a.""PARENT_ID"" 
+WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1 
+    FROM ""SONG"" s 
+    WHERE (exists(SELECT FIRST 1 1 
+        FROM ""SONG_TAG"" Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.""SONG_ID"" = s.""ID"") AND (Ms_Ma__Parent.""TAG_ID"" = a__Parent.""ID""))) AND (s.""TITLE"" = '中国人'))))", t25);
+
+
+            var t3 = fsql.Select<Song>().ToList(r => new
+            {
+                r.Title,
+                c2 = r.Tags.Count,
+                c3 = r.Tags.Count(),
+                c4 = r.Tags.Count(tag => tag.Id > 0),
+                s1 = r.Tags.Sum(b => b.Id + 0),
+                a1 = r.Tags.Average(b => b.Id + 1),
+                m1 = r.Tags.Max(b => b.Id + 2),
+                m2 = r.Tags.Min(b => b.Id + 3),
+                f1 = r.Tags.Select(b => b.Name).First(),
+
+                count = r.Tags.AsSelect().Count(),
+                sum = r.Tags.AsSelect().Sum(b => b.Id + 0),
+                avg = r.Tags.AsSelect().Avg(b => b.Id + 1),
+                max = r.Tags.AsSelect().Max(b => b.Id + 2),
+                min = r.Tags.AsSelect().Min(b => b.Id + 3),
+                first = r.Tags.AsSelect().First(b => b.Name)
+            });
         }
 
         [Fact]
@@ -194,7 +309,7 @@ namespace FreeSql.Tests.Firebird
 
             g.firebird.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.firebird.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -865,8 +980,8 @@ ORDER BY rand()", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT sum(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, coalesce((SELECT sum(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -880,15 +995,19 @@ FROM ""TB_TOPIC22"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT min(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, coalesce((SELECT min(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6, coalesce((SELECT min(b.""CREATETIME"") 
+    FROM ""TB_TOPIC22"" b), timestamp '0001-01-01 00:00:00.000') as7 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime),
+                min3 = select.As("b").Where(b => b.Id < 0).Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -897,15 +1016,18 @@ FROM ""TB_TOPIC22"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                min = select.As("b").Max(b => b.Id),
+                min2 = select.As("b").Max(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT max(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, coalesce((SELECT max(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6, coalesce((SELECT max(b.""CREATETIME"") 
+    FROM ""TB_TOPIC22"" b), timestamp '0001-01-01 00:00:00.000') as7 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                min = select.As("b").Max(b => b.Id),
+                min2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]
@@ -916,8 +1038,8 @@ FROM ""TB_TOPIC22"" a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT avg(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, coalesce((SELECT avg(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -934,6 +1056,13 @@ FROM ""TB_TOPIC22"" a
 WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE"" 
     FROM ""TB_TOPIC22"" b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
+FROM ""TB_TOPIC22"" a 
+WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT FIRST 10 b.""TITLE"" 
+    FROM ""TB_TOPIC22"" b)))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()
@@ -1712,7 +1841,7 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE""
             var fsql = g.firebird;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {
@@ -1791,9 +1920,9 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE""
             Assert.Equal("110100", t4[2].item.Code);
             Assert.Equal("110101", t4[3].item.Code);
             Assert.Equal("中国", t4[0].path);
-            Assert.Equal("中国 -> 北京", t4[1].path);
-            Assert.Equal("中国 -> 北京 -> 北京市", t4[2].path);
-            Assert.Equal("中国 -> 北京 -> 东城区", t4[3].path);
+            Assert.Equal("中国 -> 北京 ", t4[1].path);
+            Assert.Equal("中国 -> 北京  -> 北京市", t4[2].path);
+            Assert.Equal("中国 -> 北京  -> 东城区", t4[3].path);
 
             t4 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsTreeCte(a => a.Name + "[" + a.Code + "]").OrderBy(a => a.Code)
                 .ToList(a => new { item = a, level = Convert.ToInt32("a.cte_level"), path = "a.cte_path" });
@@ -1803,9 +1932,9 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE""
             Assert.Equal("110100", t4[2].item.Code);
             Assert.Equal("110101", t4[3].item.Code);
             Assert.Equal("中国[100000]", t4[0].path);
-            Assert.Equal("中国[100000] -> 北京[110000]", t4[1].path);
-            Assert.Equal("中国[100000] -> 北京[110000] -> 北京市[110100]", t4[2].path);
-            Assert.Equal("中国[100000] -> 北京[110000] -> 东城区[110101]", t4[3].path);
+            Assert.Equal("中国[100000] -> 北京 [110000]", t4[1].path);
+            Assert.Equal("中国[100000] -> 北京 [110000] -> 北京市[110100]", t4[2].path);
+            Assert.Equal("中国[100000] -> 北京 [110000] -> 东城区[110101]", t4[3].path);
 
             var select = fsql.Select<VM_District_Child>()
                 .Where(a => a.Name == "中国")

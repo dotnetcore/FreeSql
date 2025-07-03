@@ -2,7 +2,11 @@
 using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
+#if oledb
+using System.Data.OleDb;
+#else
 using Oracle.ManagedDataAccess.Client;
+#endif
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,37 +25,67 @@ namespace FreeSql.Oracle
         public OracleCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, CsToDb<OracleDbType>> _dicCsToDb = new Dictionary<string, CsToDb<OracleDbType>>() {
-                { typeof(bool).FullName, CsToDb.New(OracleDbType.Boolean, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(OracleDbType.Boolean, "number","number(1) NULL", null, true, null) },
+#if oledb
+        static Dictionary<Type, CsToDb<OleDbType>> _dicCsToDb = new Dictionary<Type, CsToDb<OleDbType>>() {
+                { typeof(bool), CsToDb.New(OleDbType.Boolean, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?), CsToDb.New(OleDbType.Boolean, "number","number(1) NULL", null, true, null) },
 
-                { typeof(sbyte).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(4) NULL", false, true, null) },
-                { typeof(short).FullName, CsToDb.New(OracleDbType.Int16, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(OracleDbType.Int16, "number", "number(6) NULL", false, true, null) },
-                { typeof(int).FullName, CsToDb.New(OracleDbType.Int32, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(OracleDbType.Int32, "number", "number(11) NULL", false, true, null) },
-                { typeof(long).FullName, CsToDb.New(OracleDbType.Int64, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(OracleDbType.Int64, "number","number(21) NULL", false, true, null) },
+                { typeof(sbyte), CsToDb.New(OleDbType.TinyInt, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?), CsToDb.New(OleDbType.TinyInt, "number", "number(4) NULL", false, true, null) },
+                { typeof(short), CsToDb.New(OleDbType.SmallInt, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?), CsToDb.New(OleDbType.SmallInt, "number", "number(6) NULL", false, true, null) },
+                { typeof(int), CsToDb.New(OleDbType.Integer, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?), CsToDb.New(OleDbType.Integer, "number", "number(11) NULL", false, true, null) },
+                { typeof(long), CsToDb.New(OleDbType.BigInt, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?), CsToDb.New(OleDbType.BigInt, "number","number(21) NULL", false, true, null) },
 
-                { typeof(byte).FullName, CsToDb.New(OracleDbType.Byte, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?).FullName, CsToDb.New(OracleDbType.Byte, "number","number(3) NULL", true, true, null) },
-                { typeof(ushort).FullName, CsToDb.New(OracleDbType.Decimal, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(5) NULL", true, true, null) },
-                { typeof(uint).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(10) NULL", true, true, null) },
-                { typeof(ulong).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(20) NULL", true, true, null) },
+                { typeof(byte), CsToDb.New(OleDbType.SmallInt, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?), CsToDb.New(OleDbType.SmallInt, "number","number(3) NULL", true, true, null) },
+                { typeof(ushort), CsToDb.New(OleDbType.Decimal, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?), CsToDb.New(OleDbType.Decimal, "number", "number(5) NULL", true, true, null) },
+                { typeof(uint), CsToDb.New(OleDbType.Decimal, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?), CsToDb.New(OleDbType.Decimal, "number", "number(10) NULL", true, true, null) },
+                { typeof(ulong), CsToDb.New(OleDbType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?), CsToDb.New(OleDbType.Decimal, "number", "number(20) NULL", true, true, null) },
 
-                { typeof(double).FullName, CsToDb.New(OracleDbType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(OracleDbType.Double, "float", "float(126) NULL", false, true, null) },
-                { typeof(float).FullName, CsToDb.New(OracleDbType.Single, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(OracleDbType.Single, "float","float(63) NULL", false, true, null) },
-                { typeof(decimal).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(OracleDbType.Decimal, "number", "number(10,2) NULL", false, true, null) },
+                { typeof(double), CsToDb.New(OleDbType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?), CsToDb.New(OleDbType.Double, "float", "float(126) NULL", false, true, null) },
+                { typeof(float), CsToDb.New(OleDbType.Single, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?), CsToDb.New(OleDbType.Single, "float","float(63) NULL", false, true, null) },
+                { typeof(decimal), CsToDb.New(OleDbType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?), CsToDb.New(OleDbType.Decimal, "number", "number(10,2) NULL", false, true, null) },
 
-                { typeof(TimeSpan).FullName, CsToDb.New(OracleDbType.IntervalDS, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(OracleDbType.IntervalDS, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
-                { typeof(DateTime).FullName, CsToDb.New(OracleDbType.TimeStamp, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(OracleDbType.TimeStamp, "timestamp", "timestamp(6) NULL", false, true, null) },
-                { typeof(DateTimeOffset).FullName, CsToDb.New(OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?).FullName, CsToDb.New(OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
+                { typeof(TimeSpan), CsToDb.New(OleDbType.DBTime, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?), CsToDb.New(OleDbType.DBTime, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
+                { typeof(DateTime), CsToDb.New(OleDbType.DBTimeStamp, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?), CsToDb.New(OleDbType.DBTimeStamp, "timestamp", "timestamp(6) NULL", false, true, null) },
+                { typeof(DateTimeOffset), CsToDb.New(OleDbType.DBTimeStamp, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?), CsToDb.New(OleDbType.DBTimeStamp, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
 
-                { typeof(byte[]).FullName, CsToDb.New(OracleDbType.Blob, "blob", "blob NULL", false, null, new byte[0]) },
-                { typeof(string).FullName, CsToDb.New(OracleDbType.NVarchar2, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
-                { typeof(char).FullName, CsToDb.New(OracleDbType.Char, "char", "char(1 CHAR) NULL", false, null, '\0') },
+                { typeof(byte[]), CsToDb.New(OleDbType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
+                { typeof(string), CsToDb.New(OleDbType.VarChar, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
+                { typeof(char), CsToDb.New(OleDbType.Char, "char", "char(1 CHAR) NULL", false, null, '\0') },
 
-                { typeof(Guid).FullName, CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
+                { typeof(Guid), CsToDb.New(OleDbType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?), CsToDb.New(OleDbType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
             };
+#else
+        static Dictionary<Type, CsToDb<OracleDbType>> _dicCsToDb = new Dictionary<Type, CsToDb<OracleDbType>>() {
+                { typeof(bool), CsToDb.New(OracleDbType.Boolean, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?), CsToDb.New(OracleDbType.Boolean, "number","number(1) NULL", null, true, null) },
+
+                { typeof(sbyte), CsToDb.New(OracleDbType.Decimal, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?), CsToDb.New(OracleDbType.Decimal, "number", "number(4) NULL", false, true, null) },
+                { typeof(short), CsToDb.New(OracleDbType.Int16, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?), CsToDb.New(OracleDbType.Int16, "number", "number(6) NULL", false, true, null) },
+                { typeof(int), CsToDb.New(OracleDbType.Int32, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?), CsToDb.New(OracleDbType.Int32, "number", "number(11) NULL", false, true, null) },
+                { typeof(long), CsToDb.New(OracleDbType.Int64, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?), CsToDb.New(OracleDbType.Int64, "number","number(21) NULL", false, true, null) },
+
+                { typeof(byte), CsToDb.New(OracleDbType.Byte, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?), CsToDb.New(OracleDbType.Byte, "number","number(3) NULL", true, true, null) },
+                { typeof(ushort), CsToDb.New(OracleDbType.Decimal, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?), CsToDb.New(OracleDbType.Decimal, "number", "number(5) NULL", true, true, null) },
+                { typeof(uint), CsToDb.New(OracleDbType.Decimal, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?), CsToDb.New(OracleDbType.Decimal, "number", "number(10) NULL", true, true, null) },
+                { typeof(ulong), CsToDb.New(OracleDbType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?), CsToDb.New(OracleDbType.Decimal, "number", "number(20) NULL", true, true, null) },
+
+                { typeof(double), CsToDb.New(OracleDbType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?), CsToDb.New(OracleDbType.Double, "float", "float(126) NULL", false, true, null) },
+                { typeof(float), CsToDb.New(OracleDbType.Single, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?), CsToDb.New(OracleDbType.Single, "float","float(63) NULL", false, true, null) },
+                { typeof(decimal), CsToDb.New(OracleDbType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?), CsToDb.New(OracleDbType.Decimal, "number", "number(10,2) NULL", false, true, null) },
+
+                { typeof(TimeSpan), CsToDb.New(OracleDbType.IntervalDS, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?), CsToDb.New(OracleDbType.IntervalDS, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
+                { typeof(DateTime), CsToDb.New(OracleDbType.TimeStamp, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?), CsToDb.New(OracleDbType.TimeStamp, "timestamp", "timestamp(6) NULL", false, true, null) },
+                { typeof(DateTimeOffset), CsToDb.New(OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?), CsToDb.New(OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
+
+                { typeof(byte[]), CsToDb.New(OracleDbType.Blob, "blob", "blob NULL", false, null, new byte[0]) },
+                { typeof(string), CsToDb.New(OracleDbType.NVarchar2, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
+                { typeof(char), CsToDb.New(OracleDbType.Char, "char", "char(1 CHAR) NULL", false, null, '\0') },
+
+                { typeof(Guid), CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?), CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
+            };
+#endif
 
         public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
+            if (_dicCsToDb.TryGetValue(type, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType())
@@ -62,14 +96,14 @@ namespace FreeSql.Oracle
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    CsToDb.New(OracleDbType.Int32, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
-                    CsToDb.New(OracleDbType.Int64, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
-                if (_dicCsToDb.ContainsKey(type.FullName) == false)
+                    CsToDb.New(_dicCsToDb[typeof(int)].type, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(_dicCsToDb[typeof(long)].type, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                if (_dicCsToDb.ContainsKey(type) == false)
                 {
                     lock (_dicCsToDbLock)
                     {
-                        if (_dicCsToDb.ContainsKey(type.FullName) == false)
-                            _dicCsToDb.Add(type.FullName, newItem);
+                        if (_dicCsToDb.ContainsKey(type) == false)
+                            _dicCsToDb.Add(type, newItem);
                     }
                 }
                 return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
@@ -77,7 +111,7 @@ namespace FreeSql.Oracle
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             var userId = (_orm.Ado.MasterPool as OracleConnectionPool)?.UserId;
             if (string.IsNullOrEmpty(userId))
@@ -93,15 +127,15 @@ namespace FreeSql.Oracle
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
-                var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                var tb = obj.tableSchema;
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = _commonUtils.SplitTableName(tb.DbName);
                 if (tbname?.Length == 1) tbname = new[] { userId, tbname[0] };
 
                 var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { userId, tboldname[0] };
-                var primaryKeyName = (obj.entityType.GetCustomAttributes(typeof(OraclePrimaryKeyNameAttribute), false)?.FirstOrDefault() as OraclePrimaryKeyNameAttribute)?.Name;
+                var primaryKeyName = (obj.tableSchema.Type.GetCustomAttributes(typeof(OraclePrimaryKeyNameAttribute), false)?.FirstOrDefault() as OraclePrimaryKeyNameAttribute)?.Name;
                 if (string.IsNullOrEmpty(obj.tableName) == false)
                 {
                     var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
@@ -116,7 +150,7 @@ namespace FreeSql.Oracle
                 //codefirst 不支持表名中带 .
 
                 if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
-                    throw new NotImplementedException($"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
+                    throw new NotImplementedException(CoreErrorStrings.S_Oracle_NotSupport_TablespaceSchemas(tbname[0]));
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
@@ -315,7 +349,8 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                     sb.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(_commonUtils.QuoteSqlName(oldpk)).Append("';\r\n");
 
                 //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
-                var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
+                var newtablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                var tablename = tboldname == null ? newtablename : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}");
                 //创建临时表
                 sb.Append("execute immediate 'CREATE TABLE ").Append(tmptablename).Append(" ( ");
@@ -355,8 +390,9 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
                         if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
                         {
-                            var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
-                            insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
+                            var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "").Trim();
+                            if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "NCLOB" && dbtypeNoneNotNull != "BLOB")
+                                insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
                         }
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"nvl({insertvalue},{tbcol.DbDefaultValue})";
@@ -373,7 +409,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 {
                     sb.Append("execute immediate 'CREATE ");
                     if (uk.IsUnique) sb.Append("UNIQUE ");
-                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename).Append("(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -464,6 +500,12 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             {
             }
             else if (sqlType.StartsWith("NCLOB"))
+            {
+            }
+            else if (sqlType.StartsWith("RAW"))
+            {
+            }
+            else if (sqlType.StartsWith("LONG RAW"))
             {
             }
             else if (char_used.ToLower() == "c")

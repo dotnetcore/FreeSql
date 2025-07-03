@@ -1,10 +1,15 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
+using FreeSql.Internal.Model.Interface;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Data.Common;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -16,8 +21,13 @@ namespace FreeSql.Internal
 {
     public class Utils
     {
-
-        static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        public static bool IsStrict = true;
+        /// <summary>
+        /// 用于解决多实例情况下的静态集合缓存问题
+        /// </summary>
+        public static Func<ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>> ChacheTableEntityFactory = null;
+        private static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> __cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
+        public static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity => ChacheTableEntityFactory?.Invoke() ?? __cacheGetTableByEntity;
         internal static void RemoveTableByEntity(Type entity, CommonUtils common)
         {
             if (entity.IsAnonymousType() ||
@@ -27,6 +37,9 @@ namespace FreeSql.Internal
                 ) return;
             var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
             if (tbc.TryRemove(entity, out var trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
+            var reltypes = tbc.Keys.Where(a => entity.IsAssignableFrom(a)).ToArray();
+            foreach (var reltype in reltypes)
+                if (tbc.TryRemove(reltype, out trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
         }
         internal static TableInfo GetTableByEntity(Type entity, CommonUtils common)
         {
@@ -37,9 +50,25 @@ namespace FreeSql.Internal
                 ) return null;
             var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
             if (tbc.TryGetValue(entity, out var trytb)) return trytb;
+            if (entity == typeof(object))
+            {
+                var columnsEmpty = new ColumnInfo[0];
+                return new TableInfo
+                {
+                    Type = entity,
+                    CsName = entity.Name,
+                    DbName = entity.Name,
+                    DisableSyncStructure = true,
+                    ColumnsByPosition = columnsEmpty,
+                    ColumnsByCanUpdateDbUpdateValue = columnsEmpty,
+                    Primarys = columnsEmpty,
+                    Indexes = new IndexInfo[0],
+                };
+            };
             if (common.CodeFirst.GetDbInfo(entity) != null) return null;
             if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericType == true) return null;
             if (entity.IsArray) return null;
+            if (entity.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) return null;
 
             object entityDefault = null;
             try
@@ -85,7 +114,7 @@ namespace FreeSql.Internal
                     else colattr.IsIgnore = true;
                     //Navigate 错误提示
                     var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, p);
-                    if (pnvAttr != null) throw new Exception($"【导航属性】{trytb.Type.DisplayCsharp()}.{p.Name} 缺少 set 属性");
+                    if (pnvAttr != null) throw new Exception(CoreErrorStrings.Navigation_Missing_SetProperty(trytb.Type.DisplayCsharp(), p.Name));
                 }
                 if (tp == null && colattr?.IsIgnore != true)
                 {
@@ -101,403 +130,22 @@ namespace FreeSql.Internal
                     continue;
                 }
                 if (tp == null && colattr != null) colattr.IsIgnore = true; //无法匹配的属性，认定是导航属性，且自动过滤
-                var colattrIsNullable = colattr?._IsNullable;
-                var colattrIsNull = colattr == null;
-                if (colattr == null)
-                    colattr = new ColumnAttribute
-                    {
-                        Name = p.Name,
-                        DbType = tp.dbtypeFull,
-                        IsNullable = tp.isnullable ?? true,
-                        MapType = p.PropertyType
-                    };
-                if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
-                if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
-                if (colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum("))
-                {
-                    var leftBt = colattr.DbType.IndexOf('(');
-                    colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
-                }
-                else
-                    colattr.DbType = colattr.DbType.ToUpper();
 
-                if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-                if (colattrIsNull == false && colattrIsNullable == false && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
-                if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
-                if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
-                if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
-                if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-                if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
+                var col = ColumnAttributeToInfo(trytb, entityDefault, p.Name, p.PropertyType, setMethod == null, ref colattr, tp, common);
+				if (col == null) continue;
 
-                if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false)
-                {
-                    colattr.IsNullable = false;
-                    colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
-                }
-                if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-                colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
-                {
-                    var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
-                    if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
-                    if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
-                    return tmpLt;
-                });
-                if (colattr.IsIdentity == true && colattr.MapType.IsNumberType() == false)
-                    colattr.IsIdentity = false;
-                if (setMethod == null) colattr.IsIgnore = true;
+				if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
+					col.Comment = trycomment;
+				if (string.IsNullOrEmpty(col.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue(p.Name, out trycomment))
+					col.Comment = trycomment;
 
-                var col = new ColumnInfo
-                {
-                    Table = trytb,
-                    CsName = p.Name,
-                    CsType = p.PropertyType,
-                    Attribute = colattr
-                };
-                if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
-                    col.Comment = trycomment;
-                if (string.IsNullOrEmpty(col.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue(p.Name, out trycomment))
-                    col.Comment = trycomment;
-
-                if (colattr.IsIgnore)
-                {
-                    trytb.ColumnsByCsIgnore.Add(p.Name, col);
-                    continue;
-                }
-                object defaultValue = null;
-                if (entityDefault != null) defaultValue = trytb.Properties[p.Name].GetValue(entityDefault, null);
-                if (p.PropertyType.IsEnum)
-                {
-                    var isEqualsEnumValue = false;
-                    var enumValues = Enum.GetValues(p.PropertyType);
-                    for (var a = 0; a < enumValues.Length; a++)
-                        if (object.Equals(defaultValue, enumValues.GetValue(a)))
-                        {
-                            isEqualsEnumValue = true;
-                            break;
-                        }
-                    if (isEqualsEnumValue == false && enumValues.Length > 0)
-                        defaultValue = enumValues.GetValue(0);
-                }
-                if (defaultValue != null && p.PropertyType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
-                if (defaultValue == null) defaultValue = tp?.defaultValue;
-                if (colattr.IsNullable == false && defaultValue == null)
-                {
-                    var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
-                    defaultValue = citype.CreateInstanceGetDefaultValue();
-                }
-                try
-                {
-                    var initParms = new List<DbParameter>();
-                    col.DbDefaultValue = common.GetNoneParamaterSqlValue(initParms, "init", col, colattr.MapType, defaultValue);
-                    if (initParms.Any()) col.DbDefaultValue = "NULL";
-                }
-                catch
-                {
-                    col.DbDefaultValue = "NULL";
-                }
-                //if (defaultValue != null && colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
-                //{
-                //    var dt = (DateTime)defaultValue;
-                //    if (Math.Abs(dt.Subtract(DateTime.Now).TotalSeconds) < 60)
-                //        col.DbDefaultValue = common.Now;
-                //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
-                //        col.DbDefaultValue = common.NowUtc;
-                //}
-                if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
-                {
-                    var commonNow = common.Now;
-                    var commonNowUtc = common.NowUtc;
-                    switch (common._orm.Ado.DataType)
-                    {
-                        case DataType.MySql:
-                        case DataType.OdbcMySql: //处理毫秒
-                            var timeLength = 0;
-                            var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
-                            if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
-                            if (timeLength > 0 && timeLength < 7)
-                            {
-                                commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
-                                commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
-                            }
-                            break;
-                    }
-                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-                    col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-                    col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
-                }
-                if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
-                {
-                    col.DbDefaultValue = colattr.InsertValueSql;
-                    col.DbInsertValue = colattr.InsertValueSql;
-                }
-                if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
-                {
-                    int strlen = colattr.StringLength;
-                    var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
-                    switch (common._orm.Ado.DataType)
-                    {
-                        case DataType.MySql:
-                        case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGTEXT";
-                            else if (strlen < 0) colattr.DbType = "TEXT";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.SqlServer:
-                        case DataType.OdbcSqlServer:
-                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(MAX)");
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.PostgreSQL:
-                        case DataType.OdbcPostgreSQL:
-                        case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
-                        case DataType.ShenTong:
-                            if (strlen < 0) colattr.DbType = "TEXT";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.Oracle:
-                            if (strlen < 0) colattr.DbType = "NCLOB"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.Dameng:
-                            if (strlen < 0) colattr.DbType = "TEXT";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.OdbcOracle:
-                        case DataType.OdbcDameng:
-                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(4000)"); //ODBC 不支持 NCLOB
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.Sqlite:
-                            if (strlen < 0) colattr.DbType = "TEXT";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.MsAccess:
-                            charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "LONGTEXT";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                        case DataType.Firebird:
-                            charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "BLOB SUB_TYPE 1";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
-                            break;
-                    }
-                }
-                if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16;
-                if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
-                {
-                    int strlen = colattr.StringLength;
-                    var bytePatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
-                    switch (common._orm.Ado.DataType)
-                    {
-                        case DataType.MySql:
-                        case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGBLOB";
-                            else if (strlen < 0) colattr.DbType = "BLOB";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
-                            break;
-                        case DataType.SqlServer:
-                        case DataType.OdbcSqlServer:
-                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1(MAX)");
-                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
-                            break;
-                        case DataType.PostgreSQL:
-                        case DataType.OdbcPostgreSQL:
-                        case DataType.KingbaseES:
-                        case DataType.OdbcKingbaseES:
-                        case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-                            colattr.DbType = "BYTEA"; //变长二进制串
-                            break;
-                        case DataType.Oracle:
-                            colattr.DbType = "BLOB";
-                            break;
-                        case DataType.Dameng:
-                            colattr.DbType = "BLOB";
-                            break;
-                        case DataType.OdbcOracle:
-                        case DataType.OdbcDameng:
-                            colattr.DbType = "BLOB";
-                            break;
-                        case DataType.Sqlite:
-                            colattr.DbType = "BLOB";
-                            break;
-                        case DataType.MsAccess:
-                            if (strlen < 0) colattr.DbType = "BLOB";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
-                            break;
-                        case DataType.Firebird:
-                            colattr.DbType = "BLOB";
-                            break;
-                    }
-                }
-                if (colattr.MapType.NullableTypeOrThis() == typeof(decimal) && (colattr.Precision > 0 || colattr.Scale > 0))
-                {
-                    if (colattr.Precision <= 0) colattr.Precision = 10;
-                    if (colattr.Scale <= 0) colattr.Scale = 0;
-                    var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
-                    colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
-                }
-
-                if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception($"ColumnAttribute.Name {colattr.Name} 重复存在，请检查（注意：不区分大小写）");
-                if (trytb.ColumnsByCs.ContainsKey(p.Name)) throw new Exception($"属性名 {p.Name} 重复存在，请检查（注意：不区分大小写）");
-
-                trytb.Columns.Add(colattr.Name, col);
+				trytb.Columns.Add(colattr.Name, col);
                 trytb.ColumnsByCs.Add(p.Name, col);
                 columnsList.Add(col);
             }
-            trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
-            if (trytb.VersionColumn != null)
-            {
-                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && trytb.VersionColumn.Attribute.MapType != typeof(byte[]))
-                    throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable");
-            }
 
-            var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
-            //从数据库查找主键、自增、索引
-            if (common.CodeFirst.IsConfigEntityFromDbFirst)
-            {
-                try
-                {
-                    if (common._orm.DbFirst != null)
-                    {
-                        if (common.dbTables == null)
-                            lock (common.dbTablesLock)
-                                if (common.dbTables == null)
-                                    common.dbTables = common._orm.DbFirst.GetTablesByDatabase();
-
-                        var finddbtbs = common.dbTables.Where(a => string.Compare(a.Name, trytb.CsName, true) == 0 || string.Compare(a.Name, trytb.DbName, true) == 0);
-                        foreach (var dbtb in finddbtbs)
-                        {
-                            foreach (var dbident in dbtb.Identitys)
-                            {
-                                if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis() ||
-                                    trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis())
-                                    trycol.Attribute.IsIdentity = true;
-                            }
-                            foreach (var dbpk in dbtb.Primarys)
-                            {
-                                if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis() ||
-                                    trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis())
-                                    trycol.Attribute.IsPrimary = true;
-                            }
-                            foreach (var dbidx in dbtb.IndexesDict)
-                            {
-                                var indexColumns = new List<IndexColumnInfo>();
-                                foreach (var dbcol in dbidx.Value.Columns)
-                                {
-                                    if (trytb.Columns.TryGetValue(dbcol.Column.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis() ||
-                                        trytb.ColumnsByCs.TryGetValue(dbcol.Column.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis())
-                                        indexColumns.Add(new IndexColumnInfo
-                                        {
-                                            Column = trycol,
-                                            IsDesc = dbcol.IsDesc
-                                        });
-                                }
-                                if (indexColumns.Any() == false) continue;
-                                if (indexesDict.ContainsKey(dbidx.Key)) indexesDict.Remove(dbidx.Key);
-                                indexesDict.Add(dbidx.Key, new IndexInfo
-                                {
-                                    Name = dbidx.Key,
-                                    Columns = indexColumns.ToArray(),
-                                    IsUnique = dbidx.Value.IsUnique
-                                });
-                            }
-                        }
-                    }
-                }
-                catch { }
-            }
-            //索引和唯一键
             var indexes = common.GetEntityIndexAttribute(trytb.Type);
-            foreach (var index in indexes)
-            {
-                var val = index.Fields?.Trim(' ', '\t', ',');
-                if (string.IsNullOrEmpty(val)) continue;
-                var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
-                if (arr.Any() == false) continue;
-                var indexColumns = new List<IndexColumnInfo>();
-                foreach (var field in arr)
-                {
-                    var idxcol = new IndexColumnInfo();
-                    if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
-                    var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
-                    if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
-                    {
-                        idxcol.Column = trycol;
-                        indexColumns.Add(idxcol);
-                    }
-                }
-                if (indexColumns.Any() == false) continue;
-                var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
-                if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
-                indexesDict.Add(indexName, new IndexInfo
-                {
-                    Name = indexName,
-                    Columns = indexColumns.ToArray(),
-                    IsUnique = index.IsUnique
-                });
-            }
-            trytb.Indexes = indexesDict.Values.ToArray();
-            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
-                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
-                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
-
-            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
-            if (trytb.Primarys.Any() == false)
-            {
-                trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
-                if (trytb.Primarys.Any() == false)
-                {
-                    var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
-                    if (identcol != null) trytb.Primarys = new[] { identcol };
-                    if (trytb.Primarys.Any() == false)
-                    {
-                        trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
-                        if (trytb.Primarys.Any() == false)
-                        {
-                            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
-                        }
-                    }
-                }
-                foreach (var col in trytb.Primarys)
-                    col.Attribute.IsPrimary = true;
-            }
-            foreach (var col in trytb.Primarys)
-            {
-                col.Attribute.IsNullable = false;
-                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
-            }
-            foreach (var col in trytb.Columns.Values)
-            {
-                var ltp = @"\(([^\)]+)\)";
-                col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
-                var m = Regex.Match(col.Attribute.DbType, ltp);
-                if (m.Success == false) continue;
-                var sizeStr = m.Groups[1].Value.Trim();
-                if (sizeStr.EndsWith(" BYTE") || sizeStr.EndsWith(" CHAR")) sizeStr = sizeStr.Remove(sizeStr.Length - 5); //ORACLE
-                if (string.Compare(sizeStr, "max", true) == 0)
-                {
-                    col.DbSize = -1;
-                    continue;
-                }
-                var sizeArr = sizeStr.Split(',');
-                if (int.TryParse(sizeArr[0].Trim(), out var size) == false) continue;
-                if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
-                {
-                    col.DbScale = (byte)size;
-                    continue;
-                }
-                if (sizeArr.Length == 1)
-                {
-                    col.DbSize = size;
-                    continue;
-                }
-                if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
-                col.DbPrecision = (byte)size;
-                col.DbScale = scale;
-            }
-            trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
+			AuditTableInfo(trytb, tbattr, indexes, columnsList, common);
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
@@ -506,7 +154,7 @@ namespace FreeSql.Internal
             StringBuilder cscode = null;
             if (common.CodeFirst.IsLazyLoading && propsLazy.Any())
             {
-                if (trytb.Type.IsPublic == false && trytb.Type.IsNestedPublic == false) throw new Exception($"【延时加载】实体类型 {trytbTypeName} 必须声明为 public");
+                if (trytb.Type.IsPublic == false && trytb.Type.IsNestedPublic == false) throw new Exception(CoreErrorStrings.LazyLoading_EntityMustDeclarePublic(trytbTypeName));
 
                 trytbTypeLazyName = $"FreeSqlLazyEntity__{Regex.Replace(trytbTypeName, @"[^\w\d]", "_")}";
 
@@ -532,14 +180,14 @@ namespace FreeSql.Internal
             {
                 cscode.AppendLine("}");
                 Assembly assembly = null;
-                if (MethodLazyLoadingComplier.Value == null) throw new Exception("【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载");
+                if (MethodLazyLoadingComplier.Value == null) throw new Exception(CoreErrorStrings.Install_FreeSql_Extensions_LazyLoading);
                 try
                 {
                     assembly = MethodLazyLoadingComplier.Value.Invoke(null, new object[] { cscode.ToString() }) as Assembly;
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"【延时加载】{trytbTypeName} 编译错误：{ex.Message}\r\n\r\n{cscode}");
+                    throw new Exception(CoreErrorStrings.LazyLoading_CompilationError(trytbTypeName, ex.Message, cscode));
                 }
                 var type = assembly.GetExportedTypes()/*.DefinedTypes*/.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
                 trytb.TypeLazy = type;
@@ -550,6 +198,499 @@ namespace FreeSql.Internal
 
             return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
         }
+        public static ColumnInfo ColumnAttributeToInfo(TableInfo trytb, object entityDefault, string csName, Type mapType, bool isIgnore, ref ColumnAttribute colattr, DbInfoResult tp, CommonUtils common)
+        {
+			var colattrIsNullable = colattr?._IsNullable;
+			var colattrIsNull = colattr == null;
+			if (colattr == null)
+				colattr = new ColumnAttribute
+				{
+					Name = csName,
+					DbType = tp.dbtypeFull,
+					IsNullable = tp.isnullable ?? true,
+					MapType = mapType
+				};
+			if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
+			if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
+            var isMySqlEnum = colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum(");
+            if (isMySqlEnum)
+			{
+				var leftBt = colattr.DbType.IndexOf('(');
+				colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
+			}
+			else if (common._orm.Ado.DataType != DataType.ClickHouse)
+				colattr.DbType = colattr.DbType.ToUpper();
+
+			if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+			if (colattrIsNull == false && colattrIsNullable == false && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
+			if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
+			if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
+			if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = csName;
+			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
+			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
+
+			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && 
+                common._orm.Ado.DataType != DataType.ClickHouse && 
+                common._orm.Ado.DataType != DataType.TDengine)
+			{
+				colattr.IsNullable = false;
+				colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
+			}
+			if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+			else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse) colattr.DbType = $"Nullable({colattr.DbType})";
+            if (isMySqlEnum == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
+			{
+				var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
+				if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
+				if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
+				return tmpLt;
+			});
+			if (colattr.IsIdentity == true && colattr.MapType.IsNumberType() == false)
+				colattr.IsIdentity = false;
+			if (isIgnore) colattr.IsIgnore = true;
+
+			var col = new ColumnInfo
+			{
+				Table = trytb,
+				CsName = csName,
+				CsType = mapType,
+				Attribute = colattr
+			};
+
+			if (colattr.IsIgnore)
+			{
+				trytb.ColumnsByCsIgnore.Add(csName, col);
+                return null;
+			}
+			object defaultValue = null;
+			if (entityDefault != null) defaultValue = trytb.Properties[csName].GetValue(entityDefault, null);
+			if (defaultValue != null && mapType.IsEnum)
+			{
+                Array enumValues = null;
+                try { enumValues = Enum.GetValues(mapType); } //AOT error
+                catch { }
+                if (enumValues != null)
+                {
+                    var isEqualsEnumValue = false;
+                    for (var a = 0; a < enumValues.Length; a++)
+                        if (object.Equals(defaultValue, enumValues.GetValue(a)))
+                        {
+                            isEqualsEnumValue = true;
+                            break;
+                        }
+                    if (isEqualsEnumValue == false && enumValues.Length > 0)
+                        defaultValue = enumValues.GetValue(0);
+                }
+			}
+			if (defaultValue != null && mapType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
+			if (defaultValue == null) defaultValue = tp?.defaultValue;
+			if (colattr.IsNullable == false && defaultValue == null)
+			{
+				var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
+				defaultValue = citype.CreateInstanceGetDefaultValue();
+			}
+			try
+			{
+				var initParms = new List<DbParameter>();
+				col.DbDefaultValue = common.GetNoneParamaterSqlValue(initParms, "init", col, colattr.MapType, defaultValue);
+				if (initParms.Any()) col.DbDefaultValue = "NULL";
+			}
+			catch
+			{
+				col.DbDefaultValue = "NULL";
+			}
+			//if (defaultValue != null && colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+			//{
+			//    var dt = (DateTime)defaultValue;
+			//    if (Math.Abs(dt.Subtract(DateTime.Now).TotalSeconds) < 60)
+			//        col.DbDefaultValue = common.Now;
+			//    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
+			//        col.DbDefaultValue = common.NowUtc;
+			//}
+
+			if (common._orm.Ado.DataType == DataType.GBase)
+			{
+				if (colattr.IsIdentity == true)
+				{
+					var colType = col.CsType.NullableTypeOrThis();
+					if (colType == typeof(int) || colType == typeof(uint))
+						colattr.DbType = "SERIAL";
+					else if (colType == typeof(long) || colType == typeof(ulong))
+						colattr.DbType = colattr.DbType.IndexOf("BIGSERIAL", StringComparison.OrdinalIgnoreCase) != -1 ? 
+                            "BIGSERIAL" : "SERIAL8"; //#1919
+				}
+				if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+				{
+					if (colattr._Precision == null)
+					{
+						colattr.DbType = "DATETIME YEAR TO FRACTION(3)";
+						colattr.Precision = 3;
+						col.DbPrecision = 3;
+					}
+					else if (colattr._Precision == 0)
+					{
+						colattr.DbType = "DATETIME YEAR TO SECOND";
+					}
+					else if (colattr._Precision > 0)
+					{
+						colattr.DbType = $"DATETIME YEAR TO FRACTION({colattr.Precision})";
+						col.DbPrecision = (byte)colattr.Precision;
+					}
+				}
+			}
+			if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
+			{
+				var commonNow = common.Now;
+				var commonNowUtc = common.NowUtc;
+				switch (common._orm.Ado.DataType)
+				{
+					case DataType.MySql:
+					case DataType.OdbcMySql: //处理毫秒
+					case DataType.CustomMySql:
+						var timeLength = 0;
+						var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
+						if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
+						if (timeLength > 0 && timeLength < 7)
+						{
+							commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
+							commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
+						}
+						//https://github.com/dotnetcore/FreeSql/issues/1604 mysql 不支持默认值 utc_timestamp DDL
+						if (colattr.ServerTime == DateTimeKind.Local)
+							col.DbDefaultValue = commonNow;
+						break;
+					default:
+						col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+						break;
+				}
+				col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+				col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+			}
+			if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
+			{
+				col.DbDefaultValue = colattr.InsertValueSql;
+				col.DbInsertValue = colattr.InsertValueSql;
+			}
+			if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
+			{
+				int strlen = colattr.StringLength;
+				var charPattern = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+                var replaceCounter = 0;
+				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
+				switch (common._orm.Ado.DataType)
+				{
+					case DataType.MySql:
+					case DataType.OdbcMySql:
+					case DataType.CustomMySql:
+                        if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
+                        else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+                        else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.SqlServer:
+					case DataType.OdbcSqlServer:
+					case DataType.CustomSqlServer:
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(MAX)" : m.Groups[0].Value);
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.PostgreSQL:
+					case DataType.OdbcPostgreSQL:
+					case DataType.CustomPostgreSQL:
+					case DataType.KingbaseES:
+					case DataType.ShenTong:
+                    case DataType.Xugu:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.Oracle:
+					case DataType.CustomOracle:
+						if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.Dameng:
+						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.OdbcOracle:
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}(4000)" : m.Groups[0].Value); //ODBC 不支持 NCLOB
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.Sqlite:
+                    case DataType.DuckDB:
+                        if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+                    case DataType.TDengine:
+                        colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+                            replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+                        break;
+					case DataType.MsAccess:
+						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+						if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.Firebird:
+						charPattern = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+						if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+					case DataType.GBase:
+						if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, charPattern, m =>
+							replaceCounter++ == 0 ? $"{m.Groups[1].Value}({strlen})" : m.Groups[0].Value);
+						break;
+				}
+			}
+			if (colattr.MapType == typeof(string) && colattr.IsVersion == true) colattr.StringLength = 40;
+			if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16; // 8=sqlserver timestamp, 16=GuidToBytes
+			if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
+			{
+				int strlen = colattr.StringLength;
+				var bytePattern = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+				var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
+				switch (common._orm.Ado.DataType)
+				{
+					case DataType.MySql:
+					case DataType.OdbcMySql:
+					case DataType.CustomMySql:
+						if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
+						else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+						break;
+					case DataType.SqlServer:
+					case DataType.OdbcSqlServer:
+					case DataType.CustomSqlServer:
+						if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1(MAX)");
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+						break;
+					case DataType.PostgreSQL:
+					case DataType.OdbcPostgreSQL:
+					case DataType.CustomPostgreSQL:
+					case DataType.KingbaseES:
+					case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
+                    case DataType.Xugu:
+                        colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
+						break;
+					case DataType.Oracle:
+					case DataType.OdbcOracle:
+					case DataType.CustomOracle:
+                        colattr.DbType = $"BLOB{strNotNull}";
+                        break;
+                    case DataType.Dameng:
+						colattr.DbType = $"BLOB{strNotNull}";
+						break;
+					case DataType.Sqlite:
+                    case DataType.DuckDB:
+                        colattr.DbType = $"BLOB{strNotNull}";
+						break;
+					case DataType.MsAccess:
+						if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
+						else colattr.DbType = Regex.Replace(colattr.DbType, bytePattern, $"$1({strlen})");
+						break;
+					case DataType.Firebird:
+						colattr.DbType = $"BLOB{strNotNull}";
+						break;
+					case DataType.GBase:
+						colattr.DbType = $"BYTE{strNotNull}";
+						break;
+				}
+			}
+			if (colattr.MapType.NullableTypeOrThis() == typeof(decimal) && (colattr.Precision > 0 || colattr.Scale > 0))
+			{
+				if (colattr.Precision <= 0) colattr.Precision = 10;
+				if (colattr.Scale <= 0) colattr.Scale = 0;
+				var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
+				colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
+			}
+
+			if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception(CoreErrorStrings.Duplicate_ColumnAttribute(colattr.Name));
+			if (trytb.ColumnsByCs.ContainsKey(csName)) throw new Exception(CoreErrorStrings.Duplicate_PropertyName(csName));
+
+            return col;
+		}
+        public static void AuditTableInfo(TableInfo trytb, TableAttribute tbattr, IEnumerable<IndexAttribute> indexes, List<ColumnInfo> columnsList, CommonUtils common)
+        {
+			trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
+			if (trytb.VersionColumn != null)
+			{
+				if (trytb.VersionColumn.Attribute.MapType.IsNullableType() ||
+					trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && !new[] { typeof(byte[]), typeof(string) }.Contains(trytb.VersionColumn.Attribute.MapType))
+					throw new Exception(CoreErrorStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
+			}
+			tbattr?.ParseAsTable(trytb);
+
+			var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
+			//从数据库查找主键、自增、索引
+			if (common.CodeFirst.IsConfigEntityFromDbFirst)
+			{
+				try
+				{
+					if (common._orm.DbFirst != null)
+					{
+						if (common.dbTables == null)
+							lock (common.dbTablesLock)
+								if (common.dbTables == null)
+									common.dbTables = common._orm.DbFirst.GetTablesByDatabase();
+
+						var finddbtbs = common.dbTables.Where(a => string.Compare(a.Name, trytb.CsName, true) == 0 || string.Compare(a.Name, trytb.DbName, true) == 0);
+						foreach (var dbtb in finddbtbs)
+						{
+							foreach (var dbident in dbtb.Identitys)
+							{
+								if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis() ||
+									trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis())
+									trycol.Attribute.IsIdentity = true;
+							}
+							foreach (var dbpk in dbtb.Primarys)
+							{
+								if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis() ||
+									trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis())
+									trycol.Attribute.IsPrimary = true;
+							}
+							foreach (var dbidx in dbtb.IndexesDict)
+							{
+								var indexColumns = new List<IndexColumnInfo>();
+								foreach (var dbcol in dbidx.Value.Columns)
+								{
+									if (trytb.Columns.TryGetValue(dbcol.Column.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis() ||
+										trytb.ColumnsByCs.TryGetValue(dbcol.Column.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis())
+										indexColumns.Add(new IndexColumnInfo
+										{
+											Column = trycol,
+											IsDesc = dbcol.IsDesc
+										});
+								}
+								if (indexColumns.Any() == false) continue;
+								if (indexesDict.ContainsKey(dbidx.Key)) indexesDict.Remove(dbidx.Key);
+								indexesDict.Add(dbidx.Key, new IndexInfo
+								{
+									Name = dbidx.Key,
+									Columns = indexColumns.ToArray(),
+									IsUnique = dbidx.Value.IsUnique,
+									IndexMethod = IndexMethod.B_Tree
+								});
+							}
+						}
+					}
+				}
+				catch { }
+			}
+			//索引和唯一键
+			foreach (var index in indexes)
+			{
+				var val = index.Fields?.Trim(' ', '\t', ',');
+				if (string.IsNullOrEmpty(val)) continue;
+				var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+				if (arr.Any() == false) continue;
+				var indexColumns = new List<IndexColumnInfo>();
+				foreach (var field in arr)
+				{
+					var idxcol = new IndexColumnInfo();
+					if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
+					var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
+					if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
+					{
+						idxcol.Column = trycol;
+						indexColumns.Add(idxcol);
+					}
+				}
+				if (indexColumns.Any() == false) continue;
+				var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
+				if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
+				indexesDict.Add(indexName, new IndexInfo
+				{
+					Name = indexName,
+					Columns = indexColumns.ToArray(),
+					IsUnique = index.IsUnique,
+					IndexMethod = index.IndexMethod
+				});
+			}
+			trytb.Indexes = indexesDict.Values.ToArray();
+
+			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+			if (trytb.Primarys.Any() == false)
+			{
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
+				if (trytb.Primarys.Any() == false)
+				{
+					var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
+					if (identcol != null) trytb.Primarys = new[] { identcol };
+					if (trytb.Primarys.Any() == false)
+					{
+						trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
+						if (trytb.Primarys.Any() == false)
+						{
+							trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute._IsPrimary == null && string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
+						}
+					}
+				}
+				foreach (var col in trytb.Primarys)
+					col.Attribute.IsPrimary = true;
+			}
+			foreach (var col in trytb.Primarys)
+			{
+				col.Attribute.IsNullable = false;
+				col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
+				switch (common._orm.Ado.DataType)
+				{
+					case DataType.Sqlite:
+						col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
+						break;
+				}
+			}
+			foreach (var col in trytb.Columns.Values)
+			{
+				if (col.Attribute.IsPrimary == false && col.Attribute.IsIdentity) col.Attribute.CanUpdate = false;
+				var ltp = @"\(([^\)]+)\)";
+				col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
+				var m = Regex.Match(col.Attribute.DbType, ltp);
+				if (m.Success == false) continue;
+				var sizeStr = m.Groups[1].Value.Trim();
+				if (sizeStr.EndsWith(" BYTE") || sizeStr.EndsWith(" CHAR")) sizeStr = sizeStr.Remove(sizeStr.Length - 5); //ORACLE
+				if (string.Compare(sizeStr, "max", true) == 0)
+				{
+					col.DbSize = -1;
+					continue;
+				}
+				var sizeArr = sizeStr.Split(',');
+				if (int.TryParse(sizeArr[0].Trim(), out var size) == false) continue;
+				if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
+				{
+					col.DbScale = (byte)size;
+					if (col.Attribute.Scale <= 0) col.Attribute.Scale = col.DbScale;
+					continue;
+				}
+				if (sizeArr.Length == 1)
+				{
+					col.DbSize = size;
+					if (col.Attribute.StringLength <= 0) col.Attribute.StringLength = col.DbSize;
+					continue;
+				}
+				if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
+				col.DbPrecision = (byte)size;
+				col.DbScale = scale;
+				if (col.Attribute.Precision <= 0)
+				{
+					col.Attribute.Precision = col.DbPrecision;
+					col.Attribute.Scale = col.DbScale;
+				}
+			}
+			trytb.IsRereadSql = trytb.Columns.Where(a => string.IsNullOrWhiteSpace(a.Value.Attribute.RereadSql) == false).Any();
+			trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
+				.Concat(columnsList.Where(a => a.Attribute.Position == 0))
+				.Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+			trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
+		}
         public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NativeTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo> vp, StringBuilder cscode)
         {
             var getMethod = vp?.Item4;
@@ -564,17 +705,195 @@ namespace FreeSql.Internal
 
             var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
             var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+            var pnvBindTempPrimary = pnvAttr?.TempPrimary?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
             var nvref = new TableRef();
             nvref.Property = pnv;
 
             //List 或 ICollection，一对多、多对多
             var propElementType = pnv.PropertyType.GetGenericArguments().FirstOrDefault() ?? pnv.PropertyType.GetElementType();
+            var propTypeIsObservableCollection = propElementType != null && pnv.PropertyType == typeof(ObservableCollection<>).MakeGenericType(propElementType);
+
+            #region islazy
+            void LocalOneToManyLazyLoadingCode(PropertyInfo refprop, string cscodeExtLogic1, string cscodeExtLogic2, string lmbdWhere)
+            {
+                cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                            .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                if (vp?.Item2 == true)
+                { //get 重写
+                    cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                        .Append(cscodeExtLogic1)
+                        .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                    if (nvref.Exception == null)
+                    {
+                        cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere).AppendLine(").ToList();")
+                            .Append(cscodeExtLogic2)
+                            .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;");
+                        if (refprop != null)
+                        {
+                            cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
+                                .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
+                        }
+                        cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                    }
+                    else
+                        cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                    cscode
+                        .Append("			}\r\n")
+                        .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                        .Append("		}\r\n");
+                }
+                if (vp?.Item3 == true)
+                { //set 重写
+                    cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
+                        .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                        .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("		}\r\n");
+                }
+                cscode.AppendLine("	}");
+            }
+            void LocalLazyLoadingCode(string lmbdWhere)
+            {
+                cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                        .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                if (vp?.Item2 == true)
+                { //get 重写
+                    cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
+                        .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                    if (nvref.Exception == null)
+                        cscode.Append("				var loc3 = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere).AppendLine(").ToOne();")
+                            .Append("				base.").Append(pnv.Name).AppendLine(" = loc3;")
+                            .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                    else
+                        cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                    cscode
+                        .Append("			}\r\n")
+                        .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                        .Append("		}\r\n");
+                }
+                if (vp?.Item3 == true)
+                { //set 重写
+                    cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
+                        .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                        .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
+                        .Append("		}\r\n");
+                }
+                cscode.AppendLine("	}");
+            }
+            #endregion
+
+            #region [Navigate("xx", Ref = "...")]
+            if (pnvBind != null && pnvBindTempPrimary != null && pnvBind.Length > 0 && pnvBindTempPrimary.Length == pnvBind.Length)
+            {
+                nvref.IsTempPrimary = true;
+                TableInfo tbref = null;
+                //OneToMany
+                if (propElementType != null)
+                {
+                    if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
+                    tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
+                }
+                else
+                {
+                    tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
+                }
+
+                if (tbref == null) return;
+                var tbrefTypeName = tbref.Type.DisplayCsharp();
+                Func<TableInfo, string[], string, List<ColumnInfo>> getBindColumns = (locTb, locBind, locFindTypeName) =>
+                {
+                    var locRet = new List<ColumnInfo>();
+                    foreach (var bi in locBind)
+                    {
+                        if (locTb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, locFindTypeName, bi));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        locRet.Add(trybindcol);
+                    }
+                    return locRet;
+                };
+
+                if (propElementType != null)
+                {
+                    var bindColumns = getBindColumns(tbref, pnvBind, tbrefTypeName);
+                    var bindColumnsTempPrimary = getBindColumns(trytb, pnvBindTempPrimary, trytbTypeName);
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    for (var a = 0; nvref.Exception == null && a < bindColumnsTempPrimary.Count; a++)
+                    {
+                        if (bindColumnsTempPrimary[a].CsType.NullableTypeOrThis() != bindColumns[a].CsType.NullableTypeOrThis())
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, bindColumnsTempPrimary[a].CsName, tbref.CsName, bindColumns[a].CsName));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        nvref.Columns.Add(bindColumnsTempPrimary[a]);
+                        nvref.RefColumns.Add(bindColumns[a]);
+
+                        if (isLazy && nvref.Exception == null)
+                        {
+                            if (a > 0) lmbdWhere.Append(" && ");
+                            lmbdWhere.Append("a.").Append(bindColumns[a].CsName).Append(" == this.").Append(bindColumnsTempPrimary[a].CsName);
+                        }
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.OneToMany;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    }
+                    if (isLazy) LocalOneToManyLazyLoadingCode(null, null, null, lmbdWhere.ToString());
+                }
+                else
+                {
+                    var bindColumns = getBindColumns(trytb, pnvBind, trytbTypeName);
+                    var bindColumnsTempPrimary = getBindColumns(tbref, pnvBindTempPrimary, tbrefTypeName);
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    for (var a = 0; nvref.Exception == null && a < bindColumnsTempPrimary.Count; a++)
+                    {
+                        if (bindColumns[a].CsType.NullableTypeOrThis() != bindColumnsTempPrimary[a].CsType.NullableTypeOrThis())
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, bindColumns[a].CsName, tbref.CsName, bindColumnsTempPrimary[a].CsName));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        nvref.Columns.Add(bindColumns[a]);
+                        nvref.RefColumns.Add(bindColumnsTempPrimary[a]);
+
+                        if (isLazy && nvref.Exception == null)
+                        {
+                            if (a > 0) lmbdWhere.Append(" && ");
+                            lmbdWhere.Append("a.").Append(bindColumnsTempPrimary[a].CsName).Append(" == this.").Append(bindColumns[a].CsName);
+                        }
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.ManyToOne;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    }
+                    if (isLazy) LocalLazyLoadingCode(lmbdWhere.ToString());
+                }
+                return;
+            }
+            #endregion
+
             if (propElementType != null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
                 if (trytb.Primarys.Any() == false)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_EntityMissingPrimaryKey(trytbTypeName, pnv.Name, trytbTypeName));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                     return;
@@ -607,7 +926,7 @@ namespace FreeSql.Internal
 
                     if (isManyToMany == false)
                     {
-                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性");
+                        nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_EntityMustHas_NavigateCollection(trytbTypeName, pnv.Name, tbrefTypeName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         return;
@@ -630,7 +949,7 @@ namespace FreeSql.Internal
                 {
                     if (tbref.Primarys.Any() == false)
                     {
-                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                        nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_EntityMissing_PrimaryKey(trytbTypeName, pnv.Name, tbrefTypeName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         return;
@@ -642,67 +961,39 @@ namespace FreeSql.Internal
                         if (pnv.Name.Length >= tbref.CsName.Length - 1)
                             midFlagStr = pnv.Name.Remove(pnv.Name.Length - tbref.CsName.Length - 1);
 
-                        #region 在 trytb 命名空间下查找中间类
-                        if (midType == null)
+                        void midTypeFind(TableInfo maintb, string findTypeName)
                         {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
+                            if (midType == null)
+                            {
+                                midType = maintb.Type.IsNested ?
+                                    maintb.Type.Assembly.GetType($"{maintb.Type.Namespace?.NotNullAndConcat(".")}{maintb.Type.DeclaringType.Name}+{findTypeName}", false, true) : //Song.SongTag
+                                    maintb.Type.Assembly.GetType($"{maintb.Type.Namespace?.NotNullAndConcat(".")}{findTypeName}", false, true);
+                                valiManyToMany();
+                            }
                         }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = trytb.Type.IsNested ?
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        #endregion
+                        midTypeFind(trytb, $"{trytb.CsName}{tbref.CsName}{midFlagStr}"); //SongTag
+                        midTypeFind(trytb, $"{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song_Tag
+                        midTypeFind(trytb, $"{tbref.CsName}{trytb.CsName}{midFlagStr}"); //TagSong
+                        midTypeFind(trytb, $"{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag_Song
 
-                        #region 在 tbref 命名空间下查找中间类
-                        if (midType == null)
+                        if (trytb.Type.Namespace != tbref.Type.Name)
                         {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
+                            midTypeFind(tbref, $"{trytb.CsName}{tbref.CsName}{midFlagStr}"); //SongTag
+                            midTypeFind(tbref, $"{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song_Tag
+                            midTypeFind(tbref, $"{tbref.CsName}{trytb.CsName}{midFlagStr}"); //TagSong
+                            midTypeFind(tbref, $"{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag_Song
                         }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        if (midType == null)
-                        {
-                            midType = tbref.Type.IsNested ?
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                            valiManyToMany();
-                        }
-                        #endregion
+
+                        //嵌套子类中查找
+                        midTypeFind(trytb, $"{trytb.CsName}+{trytb.CsName}{tbref.CsName}{midFlagStr}"); //Song.SongTag
+                        midTypeFind(trytb, $"{trytb.CsName}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song.Song_Tag
+                        midTypeFind(trytb, $"{trytb.CsName}+{tbref.CsName}{trytb.CsName}{midFlagStr}"); //Song.TagSong
+                        midTypeFind(trytb, $"{trytb.CsName}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Song.Tag_Song
+
+                        midTypeFind(tbref, $"{tbref.CsName}+{trytb.CsName}{tbref.CsName}{midFlagStr}"); //Tag.SongTag
+                        midTypeFind(tbref, $"{tbref.CsName}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag.Song_Tag
+                        midTypeFind(tbref, $"{tbref.CsName}+{tbref.CsName}{trytb.CsName}{midFlagStr}"); //Tag.TagSong
+                        midTypeFind(tbref, $"{tbref.CsName}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}"); //Tag.Tag_Song
                     }
 
                     isManyToMany = midType != null;
@@ -713,6 +1004,7 @@ namespace FreeSql.Internal
                     var midTypePropsTrytb = tbmid.Properties.Where(a => a.Value.PropertyType == trytb.Type).FirstOrDefault().Value;
                     //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
                     var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var minPkCols = new List<ColumnInfo>();
 
                     if (pnvAttr?.ManyToMany != null)
                     {
@@ -720,16 +1012,16 @@ namespace FreeSql.Internal
                         TableRef trytbTf = null;
                         try
                         {
-                            trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                            trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true, false);
                             if (trytbTf == null)
                             {
                                 AddTableRef(common, tbmid, midTypePropsTrytb, false, null, null);
-                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true, false);
                             }
                         }
                         catch (Exception ex)
                         {
-                            nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 错误：{ex.Message}");
+                            nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, ex.Message));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                         }
@@ -737,7 +1029,7 @@ namespace FreeSql.Internal
                         {
                             if (trytbTf.RefType != TableRefType.ManyToOne && trytbTf.RefType != TableRefType.OneToOne)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                             }
@@ -749,6 +1041,8 @@ namespace FreeSql.Internal
                                 if (tbmid.Primarys.Any() == false)
                                     foreach (var c in trytbTf.Columns)
                                         tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.AddRange(trytbTf.Columns);
 
                                 if (isLazy)
                                 {
@@ -767,16 +1061,16 @@ namespace FreeSql.Internal
                             TableRef tbrefTf = null;
                             try
                             {
-                                tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true, false);
                                 if (tbrefTf == null)
                                 {
                                     AddTableRef(common, tbmid, midTypePropsTbref, false, null, null);
-                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true, false);
                                 }
                             }
                             catch (Exception ex)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 错误：{ex.Message}");
+                                nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTbref.Name, ex.Message));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                             }
@@ -784,7 +1078,7 @@ namespace FreeSql.Internal
                             {
                                 if (tbrefTf.RefType != TableRefType.ManyToOne && tbrefTf.RefType != TableRefType.OneToOne)
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                    nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTbref.Name));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                 }
@@ -796,6 +1090,8 @@ namespace FreeSql.Internal
                                     if (tbmid.Primarys.Any() == false)
                                         foreach (var c in tbrefTf.Columns)
                                             tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+                                    else
+                                        minPkCols.AddRange(tbrefTf.Columns);
 
                                     if (isLazy)
                                     {
@@ -822,14 +1118,14 @@ namespace FreeSql.Internal
                             }
                             if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
+                                nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, tbmid.CsName, trycol.CsName, trytb.CsName, trytb.Primarys[a].CsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
                             }
                             if (trycol == null)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
+                                nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, findtrytbPkCsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
@@ -839,6 +1135,8 @@ namespace FreeSql.Internal
                             nvref.MiddleColumns.Add(trycol);
                             if (tbmid.Primarys.Any() == false)
                                 trycol.Attribute.IsPrimary = true;
+                            else
+                                minPkCols.Add(trycol);
 
                             if (isLazy)
                             {
@@ -862,14 +1160,14 @@ namespace FreeSql.Internal
                                 }
                                 if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                                    nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, tbmid.CsName, trycol.CsName, trytb.CsName, trytb.Primarys[a].CsName));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                     break;
                                 }
                                 if (trycol == null)
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
+                                    nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, findtbrefPkCsName));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                     break;
@@ -879,6 +1177,8 @@ namespace FreeSql.Internal
                                 nvref.MiddleColumns.Add(trycol);
                                 if (tbmid.Primarys.Any() == false)
                                     trycol.Attribute.IsPrimary = true;
+                                else
+                                    minPkCols.Add(trycol);
 
                                 if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
                             }
@@ -899,7 +1199,18 @@ namespace FreeSql.Internal
                             {
                                 col.Attribute.IsNullable = false;
                                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
+                                switch (common._orm.Ado.DataType)
+                                {
+                                    case DataType.Sqlite:
+                                        col.Attribute.DbType += " NOT NULL"; //sqlite 主键也可以插入 null
+                                        break;
+                                }
                             }
+                        }
+                        else if(IsStrict && minPkCols.Any(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary == false)) 
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.ManyToMany_ParsingError_InconsistentClass_PrimaryKeyError(trytbTypeName, pnv.Name, midType.Name, tbmid.Primarys));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         }
                     }
 
@@ -913,9 +1224,10 @@ namespace FreeSql.Internal
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
+                                cscode.Append("				var loc2 = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
                                     .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.DisplayCsharp())
                                     .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
+                                    .Append("				base.").Append(pnv.Name).Append(" = ").AppendLine(propTypeIsObservableCollection ? $"new ObservableCollection<{propElementType.DisplayCsharp()}>(loc2);" : "loc2;")
                                     .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                             else
                                 cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
@@ -928,162 +1240,253 @@ namespace FreeSql.Internal
                         { //set 重写
                             cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                                 .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                                .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                                .Append("			if (value != null) __lazy__").Append(pnv.Name).AppendLine(" = true;")
                                 .Append("		}\r\n");
                         }
                         cscode.AppendLine("	}");
                     }
                 }
                 else
-                { //One To Many
-                    List<ColumnInfo> bindColumns = new List<ColumnInfo>();
-                    if (pnvBind != null)
+                {
+                    var isArrayToMany = false;
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+                    var cscodeExtLogic1 = "";
+                    var cscodeExtLogic2 = "";
+                    //Pgsql Array[] To Many
+                    if (common._orm.Ado.DataType == DataType.PostgreSQL)
                     {
-                        foreach (var bi in pnvBind)
+                        //class User {
+                        //  public int[] RoleIds { get; set; }
+                        //  [Navigate(nameof(RoleIds))]
+                        //  public List<Role> Roles { get; set; }
+                        //}
+                        //class Role {
+                        //  [Navigate(nameof(User.RoleIds))]
+                        //  public List<User> Users { get; set; }
+                        //}
+                        ColumnInfo trycol = null;
+                        if (tbref.Primarys.Length == 1)
                         {
-                            if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                            if (pnvBind?.Length == 1)
                             {
-                                nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}");
+                                if (trytb.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
+                                {
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trycol != null && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    {
+                                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trycol.CsName} 数组元素 与 {tbrefTypeName}.{tbref.Primarys[0].CsName} 类型不符");
+                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                        //if (isLazy) throw nvref.Exception;
+                                    }
+                                }
+                            }
+                            if (pnvBind == null && trycol == null)
+                            {
+                                var findtbrefPkCsName = tbref.Primarys[0].CsName.TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                var findtrytb = pnv.Name;
+                                if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                                findtrytb += tbref.CsName;
+                                if (
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}{findtbrefPkCsName}s", out trycol) == false && //骆峰命名
+                                    trytb.ColumnsByCs.TryGetValue($"{findtrytb}_{findtbrefPkCsName}s", out trycol) == false //下划线命名
+                                    )
+                                {
+                                }
+                                if (trycol != null && tbref.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    trycol = null;
+                            }
+                            isArrayToMany = trycol != null;
+                            if (isArrayToMany)
+                            {
+                                if (isLazy)
+                                {
+                                    cscodeExtLogic1 = $"			if (this.{trycol.CsName} == null) return null;			\r\nif (this.{trycol.CsName}.Any() == false) return new {(propTypeIsObservableCollection ? "ObservableCollection" : "List")}<{propElementType.DisplayCsharp()}>();\r\n";
+                                    cscodeExtLogic2 = $"			loc2 = this.{trycol.CsName}.Select(a => loc2.FirstOrDefault(b => b.{tbref.Primarys[0].CsName} == a)).ToList();";
+                                    lmbdWhere.Append("this.").Append(trycol.CsName).Append(".Contains(a.").Append(tbref.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && tbref.Primarys[0].CsType.IsNullableType()) lmbdWhere.Append(".Value");
+                                    lmbdWhere.Append(")");
+                                }
+                                nvref.Columns.Add(trycol);
+                                nvref.RefColumns.Add(tbref.Primarys[0]);
+                                nvref.RefEntityType = tbref.Type;
+                                nvref.RefType = TableRefType.PgArrayToMany;
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            }
+                        }
+
+                        if (nvref.Exception == null && trytb.Primarys.Length == 1 && isArrayToMany == false)
+                        {
+                            if (pnvBind?.Length == 1)
+                            {
+                                if (tbref.ColumnsByCs.TryGetValue(pnvBind[0], out trycol))
+                                {
+                                    if (trycol.CsType.IsArray == false) trycol = null;
+                                    else if (trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    {
+                                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，{trytbTypeName}.{trytb.Primarys[0].CsName} 与 {tbrefTypeName}.{trycol.CsName} 数组元素类型不符");
+                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                        //if (isLazy) throw nvref.Exception;
+                                    }
+                                }
+                            }
+                            if (pnvBind != null && trycol == null)
+                            {
+                                var findtrytbPkCsName = trytb.Primarys[0].CsName.TrimStart('_');
+                                if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                var findtrytb = pnv.Name;
+                                if (findtrytb.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - trytb.CsName.Length - 1);
+                                findtrytb += trytb.CsName;
+                                if (
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}s", out trycol) == false && //骆峰命名
+                                    tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}s", out trycol) == false //下划线命名
+                                    )
+                                {
+                                }
+                                if (trycol != null && trytb.Primarys[0].CsType.NullableTypeOrThis() != trycol.CsType.GetElementType().NullableTypeOrThis())
+                                    trycol = null;
+                            }
+                            isArrayToMany = trycol != null;
+                            if (isArrayToMany)
+                            {
+                                if (isLazy)
+                                {
+                                    lmbdWhere.Append("a.").Append(trycol.CsName).Append(".Contains(this.").Append(trytb.Primarys[0].CsName);
+                                    if (trycol.CsType.GetElementType().IsNullableType() == false && trytb.Primarys[0].CsType.IsNullableType())
+                                    {
+                                        lmbdWhere.Append(".Value");
+                                        cscodeExtLogic1 = $"			if (this.{trytb.Primarys[0].CsName} == null) return null;\r\n";
+                                    }
+                                    lmbdWhere.Append(")");
+                                }
+                                nvref.Columns.Add(trytb.Primarys[0]);
+                                nvref.RefColumns.Add(trycol);
+                                nvref.RefEntityType = tbref.Type;
+                                nvref.RefType = TableRefType.PgArrayToMany;
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            }
+                        }
+
+                    }
+
+                    PropertyInfo refprop = null;
+                    if (isArrayToMany == false)
+                    {
+                        List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+                        //One To Many
+                        if (pnvBind != null)
+                        {
+                            foreach (var bi in pnvBind)
+                            {
+                                if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                                {
+                                    nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, tbrefTypeName, bi));
+                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                    //if (isLazy) throw nvref.Exception;
+                                    break;
+                                }
+                                bindColumns.Add(trybindcol);
+                            }
+                        }
+
+                        var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
+                        refprop = refcols.Count() == 1 ? refcols.First().Value : null;
+
+                        if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
+                        {
+                            nvref.Exception = new Exception(CoreErrorStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, trytb.Primarys.Length));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                        }
+                        if (trytb.Primarys.Length > 1)
+                        {
+                            if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
+                            }
+                            else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                            }
+                        }
+                        for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
+                        {
+                            var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
+                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                            var findtrytb = pnv.Name;
+                            if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                            findtrytb += trytb.CsName;
+
+                            var trycol = bindColumns.Any() ? bindColumns[a] : null;
+                            if (trycol == null &&
+                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
+                                )
+                            {
+                                if (refprop != null &&
+                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+                                {
+
+                                }
+                            }
+                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
+                            {
+                                nvref.Exception = new Exception(CoreErrorStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trytb.Primarys[a].CsName, tbref.CsName, trycol.CsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
                             }
-                            bindColumns.Add(trybindcol);
-                        }
-                    }
-
-                    PropertyInfo refprop = null;
-                    var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
-                    refprop = refcols.Count() == 1 ? refcols.First().Value : null;
-                    var lmbdWhere = isLazy ? new StringBuilder() : null;
-
-                    if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
-                    {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 内部主键数目({trytb.Primarys.Length}) 不相同");
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        //if (isLazy) throw nvref.Exception;
-                    }
-                    if (trytb.Primarys.Length > 1)
-                    {
-                        if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
-                        {
-                            var pkList = trytb.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
-                        }
-                        else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
-                        {
-                            var pkList = trytb.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
-                        }
-                    }
-                    for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
-                    {
-                        var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                        if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
-                        var findtrytb = pnv.Name;
-                        if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
-                        findtrytb += trytb.CsName;
-
-                        var trycol = bindColumns.Any() ? bindColumns[a] : null;
-                        if (trycol == null &&
-                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
-                            )
-                        {
-                            if (refprop != null &&
-                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+                            if (trycol == null)
                             {
-
+                                nvref.Exception = new Exception(CoreErrorStrings.OneToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbref.CsName, findtrytb, findtrytbPkCsName)
+                                    + (refprop == null ? "" : CoreErrorStrings.OneToMany_UseNavigate(refprop.Name, findtrytbPkCsName)));
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                                break;
                             }
-                        }
-                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
-                        {
-                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
-                        if (trycol == null)
-                        {
-                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。"));
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
 
-                        nvref.Columns.Add(trytb.Primarys[a]);
-                        nvref.RefColumns.Add(trycol);
+                            nvref.Columns.Add(trytb.Primarys[a]);
+                            nvref.RefColumns.Add(trycol);
 
-                        if (isLazy && nvref.Exception == null)
-                        {
-                            if (a > 0) lmbdWhere.Append(" && ");
-                            lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
+                            if (isLazy && nvref.Exception == null)
+                            {
+                                if (a > 0) lmbdWhere.Append(" && ");
+                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
 
-                            if (refprop == null)
-                            { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
-                                var findtrytbName = trycol.CsName;
-                                if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
-                                {
-                                    findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
-                                    if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
-                                        refprop = null;
+                                if (refprop == null)
+                                { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
+                                    var findtrytbName = trycol.CsName;
+                                    if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
+                                    {
+                                        findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
+                                        if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
+                                            refprop = null;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
-                    {
-                        nvref.RefEntityType = tbref.Type;
-                        nvref.RefType = TableRefType.OneToMany;
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                    }
-
-                    if (isLazy)
-                    {
-                        cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                            .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                        if (vp?.Item2 == true)
-                        { //get 重写
-                            cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
-                                .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                            if (nvref.Exception == null)
-                            {
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
-                                if (refprop != null)
-                                {
-                                    cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
-                                        .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
-                                }
-                                cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                            }
-                            else
-                                cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                            cscode
-                                .Append("			}\r\n")
-                                .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                                .Append("		}\r\n");
+                        if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                        {
+                            nvref.RefEntityType = tbref.Type;
+                            nvref.RefType = TableRefType.OneToMany;
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         }
-                        if (vp?.Item3 == true)
-                        { //set 重写
-                            cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
-                                .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                                .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
-                                .Append("		}\r\n");
-                        }
-                        cscode.AppendLine("	}");
+
                     }
+                    if (isLazy) LocalOneToManyLazyLoadingCode(refprop, cscodeExtLogic1, cscodeExtLogic2, lmbdWhere.ToString());
                 }
             }
             else
-            { //一对一、多对一
+            {
+                //一对一、多对一
                 var tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
                 if (tbref == null) return;
                 if (tbref.Primarys.Any() == false)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_EntityMissingPrimaryKey(trytbTypeName, pnv.Name, propTypeName));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                 }
@@ -1100,7 +1503,7 @@ namespace FreeSql.Internal
                     {
                         if (trytb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
                         {
-                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {trytbTypeName} 未找到属性：{bi}");
+                            nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, trytbTypeName, bi));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                             break;
@@ -1112,7 +1515,7 @@ namespace FreeSql.Internal
 
                 if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != tbref.Primarys.Length)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
+                    nvref.Exception = new Exception(CoreErrorStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, tbref.Primarys.Length));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                 }
@@ -1167,14 +1570,14 @@ namespace FreeSql.Internal
                     }
                     if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                     {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                        nvref.Exception = new Exception(CoreErrorStrings.Navigation_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trycol.CsName, tbref.CsName, tbref.Primarys[a].CsName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         break;
                     }
                     if (trycol == null)
                     {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。");
+                        nvref.Exception = new Exception(CoreErrorStrings.Navigation_NotFound_CorrespondingField(trytbTypeName, pnv.Name, findtbrefPkCsName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         break;
@@ -1195,36 +1598,7 @@ namespace FreeSql.Internal
                     nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.ManyToOne;
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                 }
-
-                if (isLazy)
-                {
-                    cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                        .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                    if (vp?.Item2 == true)
-                    { //get 重写
-                        cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
-                            .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                        if (nvref.Exception == null)
-                            cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
-                                .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                        else
-                            cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                        cscode
-                            .Append("			}\r\n")
-                            .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                            .Append("		}\r\n");
-                    }
-                    if (vp?.Item3 == true)
-                    { //set 重写
-                        cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
-                            .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                            .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
-                            .Append("		}\r\n");
-                    }
-                    cscode.AppendLine("	}");
-                }
+                if (isLazy) LocalLazyLoadingCode(lmbdWhere.ToString());
             }
         }
         static Lazy<MethodInfo> MethodLazyLoadingComplier = new Lazy<MethodInfo>(() =>
@@ -1234,23 +1608,35 @@ namespace FreeSql.Internal
         });
 
         public static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter)
+            where T : IDataParameter
         {
             if (string.IsNullOrEmpty(sql) || obj == null) return new T[0];
             var isCheckSql = sql != "*";
             var ttype = typeof(T);
             var type = obj.GetType();
-            if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
+            if (ttype.IsAssignableFrom(type)) return new[] { (T)obj };
             var ret = new List<T>();
-            var dic = obj as IDictionary;
-            if (dic != null)
+            if (obj is IDictionary<string, object> dic1)
             {
-                foreach (var key in dic.Keys)
+                foreach (var key in dic1.Keys)
+                {
+                    var dbkey = key.TrimStart('@', '?', ':');
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var val = dic1[key];
+                    var valType = val == null ? typeof(string) : val.GetType();
+                    if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
+                    else ret.Add(constructorParamter(dbkey, valType, val));
+                }
+            }
+            else if (obj is IDictionary dic2)
+            {
+                foreach (var key in dic2.Keys)
                 {
                     var dbkey = key.ToString().TrimStart('@', '?', ':');
                     if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
-                    var val = dic[key];
+                    var val = dic2[key];
                     var valType = val == null ? typeof(string) : val.GetType();
-                    if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
+                    if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
                     else ret.Add(constructorParamter(dbkey, valType, val));
                 }
             }
@@ -1261,7 +1647,7 @@ namespace FreeSql.Internal
                 {
                     if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var pvalue = p.GetValue(obj, null);
-                    if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
+                    if (ttype.IsAssignableFrom(p.PropertyType)) ret.Add((T)pvalue);
                     else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
                 }
             }
@@ -1333,24 +1719,42 @@ namespace FreeSql.Internal
                 this.Value = value;
                 this.DataIndex = dataIndex;
             }
-            public static ConstructorInfo Constructor = typeof(RowInfo). GetConstructor(new[] { typeof(object), typeof(int) });
+            public static ConstructorInfo Constructor = typeof(RowInfo).GetConstructor(new[] { typeof(object), typeof(int) });
             public static PropertyInfo PropertyValue = typeof(RowInfo).GetProperty("Value");
             public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
         }
         internal static MethodInfo MethodDataReaderGetValue = typeof(Utils).GetMethod("InternalDataReaderGetValue", BindingFlags.Static | BindingFlags.NonPublic);
         internal static PropertyInfo PropertyDataReaderFieldCount = typeof(DbDataReader).GetProperty("FieldCount");
-        internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index)
+        internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index, PropertyInfo property)
         {
             var orm = commonUtil._orm;
             if (orm.Aop.AuditDataReaderHandler != null)
             {
-                var args = new Aop.AuditDataReaderEventArgs(dr, index);
+                var args = new Aop.AuditDataReaderEventArgs(dr, index, property);
                 orm.Aop.AuditDataReaderHandler(orm, args);
                 return args.Value;
             }
-            if (orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null; //OdbcDameng 不会报错
+            switch (orm.Ado.DataType)
+            {
+                case DataType.Dameng: //OdbcDameng 不会报错
+                case DataType.GBase:
+                    if (dr.IsDBNull(index)) return null;
+                    break;
+                case DataType.MySql:
+                case DataType.CustomMySql:
+                    switch (dr.GetFieldType(index).FullName)
+                    {
+                        case "MySql.Data.Types.MySqlDateTime": //Allow Zero Datetime=True;
+                        case "MySqlConnector.MySqlDateTime":
+                            if (dr.IsDBNull(index)) return null;
+                            return dr.GetDateTime(index);
+                    }
+                    break;
+            }
             return dr.GetValue(index);
         }
+        public static object ExecuteReaderToClass(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils) =>
+            ExecuteArrayRowReadClassOrTuple(flagStr, typeOrg, indexes, row, dataIndex, _commonUtils)?.Value;
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)
         {
             if (string.IsNullOrEmpty(flagStr)) flagStr = "all";
@@ -1367,8 +1771,7 @@ namespace FreeSql.Internal
 
                     if (type.IsArray) return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1378,8 +1781,7 @@ namespace FreeSql.Internal
                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
                         return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1399,8 +1801,7 @@ namespace FreeSql.Internal
                             {
                                 Expression read2ExpAssign = null; //加速缓存
                                 if (field.FieldType.IsArray) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                    //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                     Expression.Add(dataIndexExp, Expression.Constant(1))
                                 );
                                 else
@@ -1409,8 +1810,7 @@ namespace FreeSql.Internal
                                     if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GetGenericArguments().First();
                                     if (fieldtypeGeneric.IsEnum ||
                                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(fieldtypeGeneric)) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                             Expression.Add(dataIndexExp, Expression.Constant(1))
                                     );
                                     else
@@ -1427,16 +1827,16 @@ namespace FreeSql.Internal
                                         Expression.IfThenElse(Expression.Equal(read2ExpValue, Expression.Constant(null)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Default(field.FieldType)),
                                             Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Convert(read2ExpValue, field.FieldType)))
-								    //), 
-								    //Expression.Catch(typeof(Exception), Expression.Block(
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
-								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
-								    //	)
-								    //))
-							    });
+                                    //), 
+                                    //Expression.Catch(typeof(Exception), Expression.Block(
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
+                                    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
+                                    //	)
+                                    //))
+                                });
                             }
                             block2Exp.AddRange(new Expression[] {
                                 Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, Expression.Convert(ret2Exp, typeof(object)), dataIndexExp)),
@@ -1451,15 +1851,14 @@ namespace FreeSql.Internal
                                 Expression.IfThen(
                                     Expression.LessThan(dataIndexExp, rowLenExp),
                                     Expression.Return(returnTarget, Expression.New(RowInfo.Constructor,
-                                        GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                        //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                        GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Default(typeof(PropertyInfo)) })),
                                         Expression.Add(dataIndexExp, Expression.Constant(1))))
                                 ),
                                 Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
                             ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                     }
 
-                    if (type == typeof(object) && indexes != null)
+                    if (type == typeof(object) && indexes != null || type == typeof(Dictionary<string, object>))
                     {
                         Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo> dynamicFunc = (type2, indexes2, row2, dataindex2, commonUtils2) =>
                         {
@@ -1471,7 +1870,7 @@ namespace FreeSql.Internal
                                 var name = row2.GetName(a);
                                 //expando[name] = row2.GetValue(a);
                                 if (expandodic.ContainsKey(name)) continue;
-                                expandodic.Add(name, Utils.InternalDataReaderGetValue(commonUtils2, row2, a));
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(commonUtils2, row2, a, null));
                             }
                             //expando = expandodic;
                             return new RowInfo(expandodic, fc);
@@ -1506,9 +1905,10 @@ namespace FreeSql.Internal
                         {
                             if (typetb.ColumnsByCsIgnore.ContainsKey(ctorParm.Name)) continue;
                             var readType = typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) ? trycol.Attribute.MapType : ctorParm.ParameterType;
+                            var colprop = trycol != null ? typetb.Table.Properties[trycol.CsName] : null;
 
                             var ispkExp = new List<Expression>();
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(colprop) }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1524,7 +1924,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(colprop) })));
                                     if (trycol?.Attribute.IsPrimary == true)
                                     {
                                         ispkExp.Add(
@@ -1618,9 +2018,16 @@ namespace FreeSql.Internal
                                 continue;
                             }
                             var readType = trycol?.Attribute.MapType ?? prop.PropertyType;
+                            if (trycol != null && trycol.Attribute.MapType != trycol.CsType) //#1549
+                            {
+                                var returnTarget86 = Expression.Label(typeof(object));
+                                var valueExp86 = Expression.Constant("", typeof(string));
+                                if (GetDataReaderValueBlockExpressionSwitchTypeFullName.Any(a => a(returnTarget86, valueExp86, trycol.CsType) != null))
+                                    readType = trycol.CsType;
+                            }
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp }));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp, Expression.Constant(prop) }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1636,7 +2043,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp, Expression.Constant(prop) })));
                                     if (flagStr.StartsWith("adoQuery") == false && //Ado.Query 的时候不作此判断
                                         trycol?.Attribute.IsPrimary == true) //若主键值为 null，则整行读取出来的对象为 null
                                     {
@@ -1671,7 +2078,7 @@ namespace FreeSql.Internal
                                 }
                             }
 
-                            if (trycol != null && trycol.Attribute.MapType != prop.PropertyType)
+                            if (trycol != null && readType != prop.PropertyType)
                                 ispkExp.Add(Expression.Assign(readExpValue, GetDataReaderValueBlockExpression(prop.PropertyType, readExpValue)));
 
                             ispkExp.Add(
@@ -1723,12 +2130,12 @@ namespace FreeSql.Internal
                 indexes2 = ctor.GetParameters().Select(c => row2.GetOrdinal(c.Name)).ToArray();
 
             for (var c = 0; c < ctorParms.Length; c++)
-                ctorParms[c] = Utils.InternalDataReaderGetValue(commonUtils2, row2, indexes2[c]);
+                ctorParms[c] = Utils.InternalDataReaderGetValue(commonUtils2, row2, indexes2[c], null);
             return new RowInfo(ctor.Invoke(ctorParms), ctorParms.Length);
         }
 
         internal static MethodInfo MethodExecuteArrayRowReadClassOrTuple = typeof(Utils).GetMethod("ExecuteArrayRowReadClassOrTuple", BindingFlags.Static | BindingFlags.NonPublic);
-        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static MethodInfo MethodGetDataReaderValue = typeof(Utils).GetMethod("GetDataReaderValue", BindingFlags.Static | BindingFlags.Public);
 
         static ConcurrentDictionary<string, Action<object, object>> _dicFillPropertyValue = new ConcurrentDictionary<string, Action<object, object>>();
         internal static void FillPropertyValue(object info, string memberAccessPath, object value)
@@ -1742,7 +2149,7 @@ namespace FreeSql.Internal
                 var parmValue = Expression.Parameter(typeof(object), "value");
                 Expression exp = Expression.Convert(parmInfo, typeObj);
                 foreach (var pro in memberAccessPath.Split('.'))
-                    exp = Expression.PropertyOrField(exp, pro) ?? throw new Exception(string.Concat(exp.Type.FullName, " 没有定义属性 ", pro));
+                    exp = Expression.PropertyOrField(exp, pro) ?? throw new Exception(string.Concat(exp.Type.FullName, CoreErrorStrings.NoProperty_Defined, pro));
 
                 var value2 = Expression.Call(MethodGetDataReaderValue, Expression.Constant(exp.Type), parmValue);
                 var value3 = Expression.Convert(parmValue, typeValue);
@@ -1761,7 +2168,13 @@ namespace FreeSql.Internal
         public static string ToStringConcat(object obj)
         {
             if (obj == null) return null;
-            return string.Concat(obj);
+            if (obj is bool || obj is bool?) return (bool)obj == true ? "1" : "0";
+            return string.Format(CultureInfo.InvariantCulture, "{0}", obj);
+        }
+        public static bool ValueIsEnumAndTargetIsNumber(object value, Type targetType)
+        {
+            if (value == null || targetType == null) return false;
+            return value.GetType().IsEnum && targetType.IsNumberType();
         }
         public static byte[] GuidToBytes(Guid guid)
         {
@@ -1781,54 +2194,161 @@ namespace FreeSql.Internal
             if (string.IsNullOrEmpty(str)) return default(char);
             return str.ToCharArray(0, 1)[0];
         }
+        public static BitArray StringToBitArray(string str1010)
+        {
+            if (str1010 == null) return null;
+            BitArray ret = new BitArray(str1010.Length);
+            for (int a = 0; a < str1010.Length; a++) ret[a] = str1010[a] == '1';
+            return ret;
+        }
+        public static byte[] StreamToBytes(Stream stream)
+        {
+            var ms = new MemoryStream();
+            try
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+            finally
+            {
+                ms.Close();
+                ms.Dispose();
+            }
+        }
+        public static TElement[] ListOrArrayToArray<TElement>(object listOrArray)
+        {
+            if (listOrArray is TElement[] arr2) return arr2;
+            if (listOrArray is Array arr)
+            {
+                var len = arr.GetLength(0);
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), arr.GetValue(a));
+                return arr2;
+            }
+            if (listOrArray is IList list)
+            {
+                var len = list.Count;
+                arr2 = new TElement[len];
+                for (var a = 0; a < len; a++)
+                    arr2[a] = (TElement)Utils.GetDataReaderValue(typeof(TElement), list[a]);
+                return arr2;
+            }
+            return null;
+        }
+        public static List<TElement> ListOrArrayToList<TElement>(object listOrArray) => ListOrArrayToArray<TElement>(listOrArray)?.ToList();
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
-        static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
-        static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
-        static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
-        static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
-        static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
-        static MethodInfo MethodTimeSpanFromSeconds = typeof(TimeSpan).GetMethod("FromSeconds");
-        static MethodInfo MethodSByteTryParse = typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() });
-        static MethodInfo MethodShortTryParse = typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(short).MakeByRefType() });
-        static MethodInfo MethodIntTryParse = typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(int).MakeByRefType() });
-        static MethodInfo MethodLongTryParse = typeof(long).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(long).MakeByRefType() });
-        static MethodInfo MethodByteTryParse = typeof(byte).GetMethod("TryParse", new[] { typeof(string), typeof(byte).MakeByRefType() });
-        static MethodInfo MethodUShortTryParse = typeof(ushort).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ushort).MakeByRefType() });
-        static MethodInfo MethodUIntTryParse = typeof(uint).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(uint).MakeByRefType() });
-        static MethodInfo MethodULongTryParse = typeof(ulong).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ulong).MakeByRefType() });
-        static MethodInfo MethodDoubleTryParse = typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(double).MakeByRefType() });
-        static MethodInfo MethodFloatTryParse = typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(float).MakeByRefType() });
-        static MethodInfo MethodDecimalTryParse = typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(decimal).MakeByRefType() });
-        static MethodInfo MethodTimeSpanTryParse = typeof(TimeSpan).GetMethod("TryParse", new[] { typeof(string), typeof(TimeSpan).MakeByRefType() });
-        static MethodInfo MethodDateTimeTryParse = typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() });
-        static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
-        static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
-        static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
-        static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
-        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset). GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
+        static MethodInfo MethodGuidTryParse => LazyManager.MethodGuidTryParse.Value;
+        static MethodInfo MethodEnumParse => LazyManager.MethodEnumParse.Value;
+        static MethodInfo MethodConvertChangeType => LazyManager.MethodConvertChangeType.Value;
+        static MethodInfo MethodTimeSpanFromSeconds => LazyManager.MethodTimeSpanFromSeconds.Value;
+        static MethodInfo MethodSByteTryParse => LazyManager.MethodSByteTryParse.Value;
+        static MethodInfo MethodShortTryParse => LazyManager.MethodShortTryParse.Value;
+        static MethodInfo MethodIntTryParse => LazyManager.MethodIntTryParse.Value;
+        static MethodInfo MethodLongTryParse => LazyManager.MethodLongTryParse.Value;
+        static MethodInfo MethodByteTryParse => LazyManager.MethodByteTryParse.Value;
+        static MethodInfo MethodUShortTryParse => LazyManager.MethodUShortTryParse.Value;
+        static MethodInfo MethodUIntTryParse => LazyManager.MethodUIntTryParse.Value;
+        static MethodInfo MethodULongTryParse => LazyManager.MethodULongTryParse.Value;
+        static MethodInfo MethodDoubleTryParse => LazyManager.MethodDoubleTryParse.Value;
+        static MethodInfo MethodFloatTryParse => LazyManager.MethodFloatTryParse.Value;
+        static MethodInfo MethodDecimalTryParse => LazyManager.MethodDecimalTryParse.Value;
+        static MethodInfo MethodTimeSpanTryParse => LazyManager.MethodTimeSpanTryParse.Value;
+        static MethodInfo MethodDateTimeTryParse => LazyManager.MethodDateTimeTryParse.Value;
+        static MethodInfo MethodDateTimeOffsetTryParse => LazyManager.MethodDateTimeOffsetTryParse.Value;
+        static MethodInfo MethodToString => LazyManager.MethodToString.Value;
+        static MethodInfo MethodBigIntegerParse => LazyManager.MethodBigIntegerParse.Value;
+        static PropertyInfo PropertyDateTimeOffsetDateTime => LazyManager.PropertyDateTimeOffsetDateTime.Value;
+        static PropertyInfo PropertyDateTimeTicks => LazyManager.PropertyDateTimeTicks.Value;
+        static ConstructorInfo CtorDateTimeOffsetArgsTicks => LazyManager.CtorDateTimeOffsetArgsTicks.Value;
         static Encoding DefaultEncoding = Encoding.UTF8;
-        static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
-        static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
-        static MethodInfo MethodStringToCharArray = typeof(string).GetMethod("ToCharArray", new Type[0]);
-        static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
-        static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
+        static class LazyManager
+        {
+            internal static Lazy<MethodInfo> MethodGuidTryParse = new Lazy<MethodInfo>(() => typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodEnumParse = new Lazy<MethodInfo>(() => typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) }));
+            internal static Lazy<MethodInfo> MethodConvertChangeType = new Lazy<MethodInfo>(() => typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) }));
+            internal static Lazy<MethodInfo> MethodTimeSpanFromSeconds = new Lazy<MethodInfo>(() => typeof(TimeSpan).GetMethod("FromSeconds", new[] { typeof(double) }));
+            internal static Lazy<MethodInfo> MethodSByteTryParse = new Lazy<MethodInfo>(() => typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodShortTryParse = new Lazy<MethodInfo>(() => typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(short).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodIntTryParse = new Lazy<MethodInfo>(() => typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(int).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodLongTryParse = new Lazy<MethodInfo>(() => typeof(long).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(long).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodByteTryParse = new Lazy<MethodInfo>(() => typeof(byte).GetMethod("TryParse", new[] { typeof(string), typeof(byte).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodUShortTryParse = new Lazy<MethodInfo>(() => typeof(ushort).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ushort).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodUIntTryParse = new Lazy<MethodInfo>(() => typeof(uint).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(uint).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodULongTryParse = new Lazy<MethodInfo>(() => typeof(ulong).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(ulong).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDoubleTryParse = new Lazy<MethodInfo>(() => typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(double).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodFloatTryParse = new Lazy<MethodInfo>(() => typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(float).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDecimalTryParse = new Lazy<MethodInfo>(() => typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider), typeof(decimal).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodTimeSpanTryParse = new Lazy<MethodInfo>(() => typeof(TimeSpan).GetMethod("TryParse", new[] { typeof(string), typeof(TimeSpan).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDateTimeTryParse = new Lazy<MethodInfo>(() => typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodDateTimeOffsetTryParse = new Lazy<MethodInfo>(() => typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() }));
+            internal static Lazy<MethodInfo> MethodToString = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null));
+            internal static Lazy<MethodInfo> MethodBigIntegerParse = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<PropertyInfo> PropertyDateTimeOffsetDateTime = new Lazy<PropertyInfo>(() => typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public));
+            internal static Lazy<PropertyInfo> PropertyDateTimeTicks = new Lazy<PropertyInfo>(() => typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public));
+            internal static Lazy<ConstructorInfo> CtorDateTimeOffsetArgsTicks = new Lazy<ConstructorInfo>(() => typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) }));
+
+            internal static Lazy<MethodInfo> MethodValueIsEnumAndTargetIsNumber = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("ValueIsEnumAndTargetIsNumber", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object), typeof(Type) }, null));
+            internal static Lazy<MethodInfo> MethodEncodingGetBytes = new Lazy<MethodInfo>(() => typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) }));
+            internal static Lazy<MethodInfo> MethodEncodingGetString = new Lazy<MethodInfo>(() => typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) }));
+            internal static Lazy<MethodInfo> MethodStringToCharArray = new Lazy<MethodInfo>(() => typeof(string).GetMethod("ToCharArray", new Type[0]));
+            internal static Lazy<MethodInfo> MethodStringToChar = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<MethodInfo> MethodStringToBitArray = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StringToBitArray", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null));
+            internal static Lazy<MethodInfo> MethodGuidToBytes = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null));
+            internal static Lazy<MethodInfo> MethodBytesToGuid = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null));
+            internal static Lazy<MethodInfo> MethodStreamToBytes = new Lazy<MethodInfo>(() => typeof(Utils).GetMethod("StreamToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Stream) }, null));
+            internal static Lazy<MethodInfo> MethodListOrArrayToArray = new Lazy<MethodInfo>(() => typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToArray").FirstOrDefault());
+            internal static Lazy<MethodInfo> MethodListOrArrayToList = new Lazy<MethodInfo>(() => typeof(Utils).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(a => a.Name == "ListOrArrayToList").FirstOrDefault());
+            internal static Lazy<Type> TypeTimeOnly = new Lazy<Type>(() => Type.GetType("System.TimeOnly"));
+            internal static Lazy<MethodInfo> MethodTimeOnlyToTimeSpan = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("ToTimeSpan"));
+            internal static Lazy<MethodInfo> MethodTimeOnlyFromTimeSpan = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("FromTimeSpan", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(TimeSpan) }, null));
+            internal static Lazy<MethodInfo> MethodTimeOnlyParse = new Lazy<MethodInfo>(() => TypeTimeOnly.Value.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null));
+            internal static Lazy<Type> TypeDateOnly = new Lazy<Type>(() => Type.GetType("System.DateOnly"));
+            internal static Lazy<MethodInfo> MethodDateOnlyToDateTime = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("ToDateTime", BindingFlags.Instance | BindingFlags.Public, null, new[] { TypeTimeOnly.Value }, null));
+            internal static Lazy<MethodInfo> MethodDateOnlyFromDateTime = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("FromDateTime", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(DateTime) }, null));
+            internal static Lazy<MethodInfo> MethodDateOnlyParse = new Lazy<MethodInfo>(() => TypeDateOnly.Value.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null));
+        }
+        static MethodInfo MethodValueIsEnumAndTargetIsNumber => LazyManager.MethodValueIsEnumAndTargetIsNumber.Value;
+        static MethodInfo MethodEncodingGetBytes => LazyManager.MethodEncodingGetBytes.Value;
+        static MethodInfo MethodEncodingGetString => LazyManager.MethodEncodingGetString.Value;
+        static MethodInfo MethodStringToCharArray => LazyManager.MethodStringToCharArray.Value;
+        static MethodInfo MethodStringToChar => LazyManager.MethodStringToChar.Value;
+        static MethodInfo MethodStringToBitArray => LazyManager.MethodStringToBitArray.Value;
+        static MethodInfo MethodGuidToBytes => LazyManager.MethodGuidToBytes.Value;
+        static MethodInfo MethodBytesToGuid => LazyManager.MethodBytesToGuid.Value;
+        static MethodInfo MethodStreamToBytes => LazyManager.MethodStreamToBytes.Value;
+        static MethodInfo MethodListOrArrayToArray=> LazyManager.MethodListOrArrayToArray.Value;
+        static MethodInfo MethodListOrArrayToList => LazyManager.MethodListOrArrayToList.Value;
+        static Type TypeTimeOnly => LazyManager.TypeTimeOnly.Value;
+        static MethodInfo MethodTimeOnlyToTimeSpan => LazyManager.MethodTimeOnlyToTimeSpan.Value;
+        static MethodInfo MethodTimeOnlyFromTimeSpan => LazyManager.MethodTimeOnlyFromTimeSpan.Value;
+        static MethodInfo MethodTimeOnlyParse => LazyManager.MethodTimeOnlyParse.Value;
+        static Type TypeDateOnly => LazyManager.TypeDateOnly.Value;
+        static MethodInfo MethodDateOnlyToDateTime => LazyManager.MethodDateOnlyToDateTime.Value;
+        static MethodInfo MethodDateOnlyFromDateTime => LazyManager.MethodDateOnlyFromDateTime.Value;
+        static MethodInfo MethodDateOnlyParse => LazyManager.MethodDateOnlyParse.Value;
+
+
+        public static ConcurrentDictionary<Type, ITypeHandler> TypeHandlers { get; } = new ConcurrentDictionary<Type, ITypeHandler>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToBytesIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
         {
             var returnTarget = Expression.Label(typeof(object));
             var valueExp = Expression.Variable(typeof(object), "locvalue");
-            Func<Expression> funcGetExpression = () =>
+            Expression LocalFuncGetExpression(bool ignoreArray = false)
             {
-                if (type.IsArray)
+                if (!ignoreArray && type.IsArray)
                 {
-                    switch (type.FullName) 
+                    switch (type.FullName)
                     {
                         case "System.Byte[]":
+                            Expression callToBytesExp = Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)));
+                            foreach (var toBytesFunc in GetDataReaderValueBlockExpressionObjectToBytesIfThenElse)
+                                callToBytesExp = toBytesFunc(returnTarget, valueExp, callToBytesExp, type);
                             return Expression.IfThenElse(
                                 Expression.TypeEqual(valueExp, type),
                                 Expression.Return(returnTarget, valueExp),
@@ -1838,7 +2358,11 @@ namespace FreeSql.Internal
                                     Expression.IfThenElse(
                                         Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
                                         Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
-                                        Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
+                                        Expression.IfThenElse(
+                                            Expression.TypeIs(valueExp, typeof(Stream)),
+                                            Expression.Return(returnTarget, Expression.Call(MethodStreamToBytes, Expression.Convert(valueExp, typeof(Stream)))),
+                                            callToBytesExp
+                                        )
                                     )
                                 )
                             );
@@ -1853,43 +2377,25 @@ namespace FreeSql.Internal
                                 )
                             );
                     }
-                    var elementType = type.GetElementType();
-                    var arrNewExp = Expression.Variable(type, "arrNew");
-                    var arrExp = Expression.Variable(typeof(Array), "arr");
-                    var arrLenExp = Expression.Variable(typeof(int), "arrLen");
-                    var arrXExp = Expression.Variable(typeof(int), "arrX");
-                    var arrReadValExp = Expression.Variable(typeof(object), "arrReadVal");
-                    var label = Expression.Label(typeof(int));
                     return Expression.IfThenElse(
                         Expression.TypeEqual(valueExp, type),
                         Expression.Return(returnTarget, valueExp),
-                        Expression.Block(
-                            new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
-                            Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
-                            Expression.IfThenElse(
-                                Expression.Equal(arrExp, Expression.Constant(null)),
-                                Expression.Assign(arrLenExp, Expression.Constant(0)),
-                                Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
-                            ),
-                            Expression.Assign(arrXExp, Expression.Constant(0)),
-                            Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
-                            Expression.Loop(
-                                Expression.IfThenElse(
-                                    Expression.LessThan(arrXExp, arrLenExp),
-                                    Expression.Block(
-                                        Expression.Assign(arrReadValExp, GetDataReaderValueBlockExpression(elementType, Expression.Call(arrExp, MethodArrayGetValue, arrXExp))),
-                                        Expression.IfThenElse(
-                                            Expression.Equal(arrReadValExp, Expression.Constant(null)),
-                                            Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Default(elementType)),
-                                            Expression.Assign(Expression.ArrayAccess(arrNewExp, arrXExp), Expression.Convert(arrReadValExp, elementType))
-                                        ),
-                                        Expression.PostIncrementAssign(arrXExp)
-                                    ),
-                                    Expression.Break(label, arrXExp)
-                                ),
-                                label
-                            ),
-                            Expression.Return(returnTarget, arrNewExp)
+                        Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, typeof(string)), //JSON
+                            LocalFuncGetExpression(true),
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToArray.MakeGenericMethod(type.GetElementType()), valueExp))
+                        )
+                    );
+                }
+                if (!ignoreArray && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    return Expression.IfThenElse(
+                        Expression.TypeEqual(valueExp, type),
+                        Expression.Return(returnTarget, valueExp),
+                        Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, typeof(string)), //JSON
+                            LocalFuncGetExpression(true),
+                            Expression.Return(returnTarget, Expression.Call(MethodListOrArrayToList.MakeGenericMethod(type.GetGenericArguments().FirstOrDefault()), valueExp))
                         )
                     );
                 }
@@ -1898,38 +2404,129 @@ namespace FreeSql.Internal
                 Expression tryparseExp = null;
                 Expression tryparseBooleanExp = null;
                 ParameterExpression tryparseVarExp = null;
+                ParameterExpression tryparseVarExpDecimal = null;
                 switch (type.FullName)
                 {
                     case "System.Guid":
-                        tryparseExp = Expression.Block(
-                           new[] { tryparseVarExp = Expression.Variable(typeof(Guid)) },
-                           new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodGuidTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
-                    case "System.Numerics.BigInteger": return Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBigIntegerParse, Expression.Call(MethodToString, valueExp)), typeof(object)));
-                    case "System.TimeSpan":
-                        ParameterExpression tryparseVarTsExp, valueStrExp;
                         return Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(double)), tryparseVarTsExp = Expression.Variable(typeof(TimeSpan)), valueStrExp = Expression.Variable(typeof(string)) },
-                               new Expression[] {
-                                    Expression.Assign(valueStrExp, Expression.Call(MethodToString, valueExp)),
+                            new[] { tryparseVarExp = Expression.Variable(typeof(Guid)) },
+                            Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodGuidTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
-                                        Expression.IsTrue(Expression.Call(MethodDoubleTryParse, valueStrExp, Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, tryparseVarExp), typeof(object))),
-                                        Expression.IfThenElse(
-                                            Expression.IsTrue(Expression.Call(MethodTimeSpanTryParse, valueStrExp, tryparseVarTsExp)),
-                                            Expression.Return(returnTarget, Expression.Convert(tryparseVarTsExp, typeof(object))),
-                                            Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                        )
+                                        Expression.TypeEqual(valueExp, typeof(byte[])),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
-                               }
-                           );
+                                )
+                            )
+                        );
+                    case "System.Numerics.BigInteger": return Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBigIntegerParse, Expression.Call(MethodToString, valueExp)), typeof(object)));
+
+                    case "System.TimeOnly":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(TimeSpan)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyFromTimeSpan, Expression.Convert(valueExp, typeof(TimeSpan))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
+                    case "System.TimeSpan":
+                        var tryparseVarDblExp = Expression.Variable(typeof(double));
+                        var timeSpanExp = Expression.IfThenElse(
+                                Expression.AndAlso(
+                                    Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(Expression.OrElse(
+                                        Expression.TypeEqual(valueExp, typeof(decimal)), Expression.TypeEqual(valueExp, typeof(int))),
+                                        Expression.TypeEqual(valueExp, typeof(long))), Expression.TypeEqual(valueExp, typeof(short))),
+                                        Expression.TypeEqual(valueExp, typeof(uint))), Expression.TypeEqual(valueExp, typeof(ulong))), Expression.TypeEqual(valueExp, typeof(ushort))),
+                                        Expression.TypeEqual(valueExp, typeof(double))), Expression.TypeEqual(valueExp, typeof(float))),
+                                    Expression.Call(MethodDoubleTryParse, Expression.Call(MethodToString, valueExp), Expression.Constant(NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarDblExp)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, tryparseVarDblExp), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        if (TypeTimeOnly != null && MethodTimeOnlyToTimeSpan != null) timeSpanExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, TypeTimeOnly),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeTimeOnly), MethodTimeOnlyToTimeSpan), typeof(object))),
+                                timeSpanExp
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(TimeSpan)), tryparseVarDblExp }, 
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodTimeSpanTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        timeSpanExp
+                                    )
+                                )
+                            );
+
+                    case "System.DateOnly":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTime)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyFromDateTime, Expression.Convert(valueExp, typeof(DateTime))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodDateOnlyParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+                            )
+                        );
+                    case "System.DateTime":
+                        if (TypeHandlers.ContainsKey(type))
+                        {
+                            foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
+                            {
+                                var switchFuncRet = switchFunc(returnTarget, valueExp, type);
+                                if (switchFuncRet != null) return switchFuncRet;
+                            }
+                        }
+                        Expression dateTimeExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTimeOffset)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        if (TypeDateOnly != null && MethodDateOnlyToDateTime != null) dateTimeExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, TypeDateOnly),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Convert(valueExp, TypeDateOnly), MethodDateOnlyToDateTime, Expression.Constant(TypeTimeOnly.CreateInstanceGetDefaultValue(), TypeTimeOnly)), typeof(object))),
+                                dateTimeExp
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodDateTimeTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        dateTimeExp
+                                    )
+                                )
+                            );
+                    case "System.DateTimeOffset":
+                        Expression dateTimeOffsetExp = Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(DateTime)),
+                                Expression.Return(returnTarget, Expression.Convert(
+                                    Expression.New(CtorDateTimeOffsetArgsTicks, Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTime)), PropertyDateTimeTicks), Expression.Constant(TimeSpan.Zero)), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                            );
+                        return Expression.Block(
+                                new[] { tryparseVarExp = Expression.Variable(typeof(DateTimeOffset)) },
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, type),
+                                    Expression.Return(returnTarget, valueExp),
+                                    Expression.IfThenElse(
+                                        Expression.AndAlso(Expression.TypeEqual(valueExp, typeof(string)), Expression.Call(MethodDateTimeOffsetTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+                                        Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+                                        dateTimeOffsetExp
+                                    )
+                                )
+                            );
                     case "System.Char":
                         return Expression.IfThenElse(
                                 Expression.TypeEqual(valueExp, type),
@@ -1954,36 +2551,48 @@ namespace FreeSql.Internal
                         break;
                     case "System.Int16":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(short)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(short)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodShortTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.Int32":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(int)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(int)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodIntTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.Int64":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(long)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(long)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodLongTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
@@ -2002,36 +2611,48 @@ namespace FreeSql.Internal
                         break;
                     case "System.UInt16":
                         tryparseExp = Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(ushort)) },
+                               new[] { tryparseVarExp = Expression.Variable(typeof(ushort)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodUShortTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.UInt32":
                         tryparseExp = Expression.Block(
-                               new[] { tryparseVarExp = Expression.Variable(typeof(uint)) },
+                               new[] { tryparseVarExp = Expression.Variable(typeof(uint)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodUIntTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
                         break;
                     case "System.UInt64":
                         tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(ulong)) },
+                              new[] { tryparseVarExp = Expression.Variable(typeof(ulong)), tryparseVarExpDecimal = Expression.Variable(typeof(decimal)) },
                                new Expression[] {
                                 Expression.IfThenElse(
                                     Expression.IsTrue(Expression.Call(MethodULongTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    Expression.IfThenElse(
+                                        Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+                                    )
                                 )
                                }
                            );
@@ -2072,30 +2693,6 @@ namespace FreeSql.Internal
                                }
                            );
                         break;
-                    case "System.DateTime":
-                        tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
-                               new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodDateTimeTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
-                    case "System.DateTimeOffset":
-                        tryparseExp = Expression.Block(
-                              new[] { tryparseVarExp = Expression.Variable(typeof(DateTimeOffset)) },
-                               new Expression[] {
-                                Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodDateTimeOffsetTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
-                                    Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
-                                )
-                               }
-                           );
-                        break;
                     case "System.Boolean":
                         tryparseBooleanExp = Expression.Return(returnTarget,
                             Expression.Convert(
@@ -2104,18 +2701,28 @@ namespace FreeSql.Internal
                                         Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("False")),
                                         Expression.OrElse(
                                             Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("false")),
-                                            Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0"))))),
+                                            Expression.OrElse(
+                                                Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("f")),
+                                                Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0")))))),
                             typeof(object))
                         );
                         break;
+                    case "System.Collections.BitArray":
+                        return Expression.IfThenElse(
+                            Expression.TypeEqual(valueExp, type),
+                            Expression.Return(returnTarget, valueExp),
+                            Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Convert(valueExp, typeof(string))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToBitArray, Expression.Call(MethodToString, valueExp)), typeof(object)))
+                            )
+                        );
                     default:
-                        if (type.IsEnum)
-                            return Expression.Block(
-                                Expression.IfThenElse(
-                                    Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
-                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                                    Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
-                                )
+                        if (type.IsEnum && TypeHandlers.ContainsKey(type) == false)
+                            return Expression.IfThenElse(
+                                Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
                             );
                         foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
                         {
@@ -2130,6 +2737,7 @@ namespace FreeSql.Internal
                 Expression switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
                 Expression defaultRetExp = switchExp;
                 if (tryparseExp != null)
+                {
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
                         Expression.SwitchCase(tryparseExp,
@@ -2140,6 +2748,13 @@ namespace FreeSql.Internal
                             Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
                         )
                     );
+                    //BigInteger/bool/Enum -> int
+                    defaultRetExp = Expression.IfThenElse(
+                        Expression.Call(MethodValueIsEnumAndTargetIsNumber, valueExp, Expression.Constant(type)),
+                        defaultRetExp,
+                        Expression.Return(returnTarget, Expression.Call(MethodGetDataReaderValue, Expression.Constant(type), Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))))
+                    );
+                }
                 else if (tryparseBooleanExp != null)
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
@@ -2155,26 +2770,13 @@ namespace FreeSql.Internal
                         Expression.TypeEqual(valueExp, typeof(string)),
                         switchExp,
                         Expression.IfThenElse(
-                            Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTime))), Expression.TypeEqual(valueExp, typeof(DateTimeOffset))),
-                            Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
+                            Expression.TypeEqual(valueExp, typeof(byte[])),
                             Expression.IfThenElse(
-                                Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTimeOffset))), Expression.TypeEqual(valueExp, typeof(DateTime))),
-                                Expression.Return(returnTarget, Expression.Convert(
-                                    Expression.New(CtorDateTimeOffsetArgsTicks, Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTime)), PropertyDateTimeTicks), Expression.Constant(TimeSpan.Zero)), typeof(object))),
-                                Expression.IfThenElse(
-                                    Expression.TypeEqual(valueExp, typeof(byte[])),
-                                    Expression.IfThenElse(
-                                        Expression.OrElse(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))), Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid?)))),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
-                                        Expression.IfThenElse(
-                                            Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
-                                            Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetString, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
-                                            defaultRetExp
-                                        )
-                                    ),
-                                    defaultRetExp
-                                )
-                            )
+                                Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetString, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                defaultRetExp
+                            ),
+                            defaultRetExp
                         )
                     )
                 );
@@ -2189,7 +2791,7 @@ namespace FreeSql.Internal
                         Expression.Equal(valueExp, Expression.Constant(DBNull.Value))
                     ),
                     Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                    funcGetExpression()
+                    LocalFuncGetExpression()
                 ),
                 Expression.Label(returnTarget, Expression.Default(typeof(object)))
             );
@@ -2198,7 +2800,9 @@ namespace FreeSql.Internal
         {
             //if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
             if (type == null) return value;
-            var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value?.GetType() ?? type, valueType =>
+            var valueType = value?.GetType() ?? type;
+            if (TypeHandlers.TryGetValue(valueType, out var typeHandler)) return typeHandler.Serialize(value);
+            var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(valueType, valueType2 =>
             {
                 var parmExp = Expression.Parameter(typeof(object), "value");
                 var exp = GetDataReaderValueBlockExpression(type, parmExp);
@@ -2210,13 +2814,205 @@ namespace FreeSql.Internal
             }
             catch (Exception ex)
             {
-                throw new ArgumentException($"ExpressionTree 转换类型错误，值({string.Concat(value)})，类型({value.GetType().FullName})，目标类型({type.FullName})，{ex.Message}");
+                throw new ArgumentException(CoreErrorStrings.ExpressionTree_Convert_Type_Error(string.Concat(value), value.GetType().FullName, type.FullName, ex.Message));
             }
         }
         public static string GetCsName(string name)
         {
             name = Regex.Replace(name.TrimStart('@'), @"[^\w]", "_");
             return char.IsLetter(name, 0) ? name : string.Concat("_", name);
+        }
+
+        public static string ReplaceSqlConstString(string sql, Dictionary<string, string> parms, string paramPrefix = "@")
+        {
+            var nsb = new StringBuilder();
+            var sidx = 0;
+            var pidx = 0;
+            var ptmpPrefix = "";
+            while (true)
+            {
+                pidx++;
+                ptmpPrefix = $"{paramPrefix}p{pidx}";
+                if (sql.Contains(ptmpPrefix) == false) break;
+            }
+            pidx = 0;
+            while (sidx < sql.Length)
+            {
+                var chr = sql[sidx++];
+                if (chr != '\'')
+                {
+                    nsb.Append(chr);
+                    continue;
+                }
+                var startIdx = sidx;
+                var startLength = 0;
+                while (sidx < sql.Length)
+                {
+                    var chrb = sql[sidx++];
+                    if (chrb != '\'')
+                    {
+                        startLength++;
+                        continue;
+                    }
+                    if (sidx < sql.Length && sql[sidx] == '\'')
+                    {
+                        sidx++;
+                        startLength += 2;
+                        continue;
+                    }
+                    break;
+                }
+                if (startLength >= 0)
+                {
+                    var pvalue = startLength == 0 ? "" : sql.Substring(startIdx, startLength).Replace("''", "'");
+                    var pname = parms.Where(a => a.Value == pvalue).Select(a => a.Key).FirstOrDefault();
+                    if (string.IsNullOrEmpty(pname))
+                    {
+                        while (true)
+                        {
+                            pidx++;
+                            pname = $"{ptmpPrefix}{pidx}";
+                            if (parms.ContainsKey(pname) == false) break;
+                        }
+                    }
+                    nsb.Append(pname);
+                    if (parms.ContainsKey(pname) == false) parms.Add(pname, pvalue);
+                }
+            }
+            return nsb.ToString();
+        }
+
+        internal static string ParseSqlWhereLevel1(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms).Trim();
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            //sql = Regex.Replace(sql, @"\s*([@:\?][\w_]+)\s*(<|<=|>|>=|=)\s*((\w+)\s*\.)?([\w_]+)");
+            return LocalProcessBrackets(sql);
+
+
+            string LocalProcessBrackets(string locsql)
+            {
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < locsql.Length)
+                {
+                    var chr = locsql[sidx++];
+                    if (chr == '(')
+                    {
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
+                    }
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var ltidx2 = ltidx;
+                        var sidx2 = sidx;
+                        while (sidx < locsql.Length)
+                        {
+                            var chr2 = locsql[sidx];
+                            if (chr2 == ')')
+                            {
+                                if (ltidxStack.First() == ltidx - 1)
+                                {
+                                    ltidx = ltidxStack.Pop();
+                                    sidx++;
+                                }
+                            }
+                            break;
+                        }
+                        if (ltidx == 0 && sidx == locsql.Length)
+                        {
+                            locsql = locsql.Substring(1, sidx - 2);
+                            break;
+                        }
+                        var sqlLeft = ltidx == 0 ? "" : locsql.Remove(ltidx);
+                        var sqlMid = locsql.Substring(ltidx, sidx - ltidx);
+                        var sqlMidNew = sqlMid;
+                        var sqlRight = sidx == locsql.Length ? "" : locsql.Substring(sidx);
+                        var mLeft = Regex.Match(sqlLeft, @" (and|or|not)\s*$", RegexOptions.IgnoreCase);
+                        if (mLeft.Success)
+                        {
+                            switch (mLeft.Groups[1].Value)
+                            {
+                                case "and":
+                                    sqlMidNew = sqlMid.Substring(1, sqlMid.Length - 2).Trim();
+                                    break;
+                                case "or":
+                                    sqlMidNew = "";
+                                    break;
+                                case "not":
+                                    break;
+                            }
+                        }
+                        sidx -= sqlMid.Length - sqlMidNew.Length;
+                        locsql = $"{sqlLeft}{sqlMidNew}{sqlRight}";
+                    }
+                }
+                return locsql;
+            }
+        }
+
+        static string ParseSqlWhereLevel12(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms);
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            Dictionary<string, string> dicSqlParts = new Dictionary<string, string>();
+            var nsb = new StringBuilder();
+            var swliRoot = new SqlWhereLogicInfo();
+            var swliCurrent = swliRoot;
+
+            LocalParseSqlWhere(sql);
+            return nsb.ToString();
+
+            void LocalParseSqlWhere(string sqlPart)
+            {
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < sqlPart.Length)
+                {
+                    var chr = sqlPart[sidx++];
+                    if (chr == '(')
+                    {
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
+                        //swliCurrent.Filters.Add()
+                    }
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var pvalue = sqlPart.Substring(ltidx, sidx - ltidx);
+                        break;
+                        //var pname = $"@p_{Guid.NewGuid().ToString("N")}";
+                        //dicSqlParts.Add(pname, pvalue);
+                        //LocalParseSqlWhere(sqlPart);
+                        //var ltsql = sqlPart.Substring(Math.Max(0, ltidx - 5), ltidx);
+                        //if (Regex.IsMatch(ltsql, @"(and|or|not)$"))
+                        //    ltsb.Last().Append("1=1");
+                    }
+                }
+            }
+        }
+
+        class SqlWhereLogicInfo
+        {
+            public string Field { get; set; }
+            public string Operator { get; set; }
+            public object Value { get; set; }
+
+            public DynamicFilterLogic Logic { get; set; }
+            public List<SqlWhereLogicInfo> Filters { get; set; }
         }
     }
 }

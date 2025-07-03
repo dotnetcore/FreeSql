@@ -32,15 +32,6 @@ namespace FreeSql.MsAccess
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-            if (exception != null && exception is OleDbException)
-            {
-
-                if (obj.Value.Ping() == false)
-                {
-
-                    base.SetUnavailable(exception);
-                }
-            }
             base.Return(obj, isRecreate);
         }
     }
@@ -49,14 +40,15 @@ namespace FreeSql.MsAccess
     {
 
         internal MsAccessConnectionPool _pool;
-        public string Name { get; set; } = "Microsoft Access OleDbConnection 对象池";
+        public string Name { get; set; } = $"Microsoft Access OleDbConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
+        public int Weight { get; set; } = 1;
 
         private string _connectionString;
         public string ConnectionString
@@ -66,8 +58,17 @@ namespace FreeSql.MsAccess
             {
                 _connectionString = value ?? "";
 
-                var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var minPoolSize = 1;
+                var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    minPoolSize = int.Parse(m.Groups[1].Value);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                }
+
+                pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success)
                 {
                     if (int.TryParse(m.Groups[1].Value, out var poolsize) && poolsize > 0) 
@@ -83,21 +84,13 @@ namespace FreeSql.MsAccess
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
-                var minPoolSize = 0;
-                pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
-
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
             }
         }
 
         public bool OnCheckAvailable(Object<DbConnection> obj)
         {
+            if (obj.Value == null) return false;
             if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
             return obj.Value.Ping(true);
         }
@@ -121,25 +114,10 @@ namespace FreeSql.MsAccess
             {
 
                 if (obj.Value == null)
-                {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
-                }
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
-                {
-
-                    try
-                    {
-                        obj.Value.Open();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
-                    }
-                }
+                if (obj.Value.State != ConnectionState.Open)
+                    obj.Value.Open();
             }
         }
 
@@ -152,25 +130,10 @@ namespace FreeSql.MsAccess
             {
 
                 if (obj.Value == null)
-                {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
-                }
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
-                {
-
-                    try
-                    {
-                        await obj.Value.OpenAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
-                    }
-                }
+                if (obj.Value.State != ConnectionState.Open)
+                    await obj.Value.OpenAsync();
             }
         }
 #endif

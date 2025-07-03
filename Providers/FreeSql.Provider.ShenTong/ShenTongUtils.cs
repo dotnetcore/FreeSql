@@ -105,7 +105,7 @@ namespace FreeSql.ShenTong
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatShenTong(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {
@@ -144,14 +144,7 @@ namespace FreeSql.ShenTong
             value = getParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
-            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                var hh = Math.Min(24, (int)Math.Floor(ts.TotalHours));
-                if (hh >= 24) hh = 0;
-                value = $"{hh}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}";
-            }
-            else if (value is Array)
+            if (value is Array)
             {
                 var valueArr = value as Array;
                 var eleType = type2.GetElementType();

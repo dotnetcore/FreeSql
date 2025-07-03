@@ -27,7 +27,7 @@ namespace FreeSql.Dameng
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DmDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "number(1)": return DmDbType.Bit;
@@ -55,7 +55,12 @@ namespace FreeSql.Dameng
 
                 case "char(36)": return DmDbType.Char;
             }
-            switch (column.DbTypeText.ToLower())
+            if (dbfull?.StartsWith("datetime(") == true)
+            {
+				_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
+				return DmDbType.DateTime;
+            }
+			switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
@@ -157,10 +162,10 @@ namespace FreeSql.Dameng
                     return DmDbType.Double;
                 case "rowid":
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return DmDbType.VarChar;
             }
-            throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
+            throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
         static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
@@ -356,7 +361,7 @@ case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name) and rownum < 2), 0),
 b.comments,
 a.data_default
-from all_tab_cols a
+from all_tab_columns a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
 where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
 ";
@@ -406,7 +411,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });

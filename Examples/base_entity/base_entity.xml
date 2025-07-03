@@ -4,6 +4,77 @@
         <name>base_entity</name>
     </assembly>
     <members>
+        <member name="T:Densen.Models.ids.AspNetRoleClaims">
+            <summary>
+            角色声明
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetRoles">
+            <summary>
+            角色定义
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserClaims">
+            <summary>
+            用户声明
+            </summary>
+        </member>
+        <member name="P:Densen.Models.ids.AspNetUserClaims.AspNetUsers">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserLogins">
+            <summary>
+            用户登录
+            </summary>
+        </member>
+        <member name="P:Densen.Models.ids.AspNetUserLogins.AspNetUsers">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserRoles">
+            <summary>
+            角色表
+            <para>存储向哪些用户分配哪些角色</para>
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUsers">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.AspNetUserTokens">
+            <summary>
+            用户令牌
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.DeviceCodes">
+            <summary>
+            设备代码
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.Keys">
+            <summary>
+            密钥
+            </summary>
+        </member>
+        <member name="T:Densen.Models.ids.PersistedGrants">
+            <summary>
+            持久化保存
+            </summary>
+        </member>
+        <member name="P:Densen.Identity.Models.WebAppIdentityUser.Name">
+            <summary>
+            Full name
+            </summary>
+        </member>
+        <member name="P:Densen.Identity.Models.WebAppIdentityUser.DOB">
+            <summary>
+            Birth Date
+            </summary>
+        </member>
         <member name="P:UserGroup.GroupName">
             <summary>
             组名
@@ -27,6 +98,302 @@
         <member name="P:User1.Description">
             <summary>
             描述
+            </summary>
+        </member>
+        <member name="T:base_entity.Program.TUserImg">
+            <summary>
+            用户图片2
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.EnterpriseId">
+            <summary>
+            企业
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.UserId">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.Img">
+            <summary>
+            图片
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CId">
+            <summary>
+            创建人Id
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CName">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.TUserImg.CTime2">
+            <summary>
+            创建日期2
+            </summary>
+        </member>
+        <member name="P:base_entity.Program.IDeleteSoft.IsDeleted">
+            <summary>
+            软删除
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.ID">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.店铺名称">
+            <summary>
+            店铺名称
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.日期">
+            <summary>
+            日期
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.品牌名称">
+            <summary>
+            品牌名称
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.成交金额">
+            <summary>
+            成交金额
+            </summary>
+        </member>
+        <member name="P:base_entity.抖店实时销售金额表.更新时间">
+            <summary>
+            更新时间
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.Id">
+            <summary>
+            主键标识
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.MchtAppId">
+            <summary>
+            商户应用Id
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.Describe">
+            <summary>
+            描述
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.Status">
+            <summary>
+            状态：0、关闭 1、启用
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.IsLimitUsePoints">
+            <summary>
+            是否限制使用积分：0、否 1、是
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.StartTime">
+            <summary>
+            开始时间
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.EndTime">
+            <summary>
+            结束时间
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.CreatedBy">
+            <summary>
+            创建人Id
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.CreatedTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.UpdatedBy">
+            <summary>
+            最后编辑人Id
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.UpdatedTime">
+            <summary>
+            最后编辑时间
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.Deleted">
+            <summary>
+            是否删除：0、否 1、是
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.DeletedBy">
+            <summary>
+            删除人Id
+            </summary>
+        </member>
+        <member name="P:base_entity.MarketingRestrictions.DeletedTime">
+            <summary>
+            删除时间
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordDate">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordHour">
+            <summary>
+            创建小时
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordMinute">
+            <summary>
+            根据当前分钟数规整到10分钟的倍数
+            例如 21分=>20分
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RecordTime">
+            <summary>
+            记录时间
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.DeviceCode">
+            <summary>
+            设备Code
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.TerminalSequence">
+            <summary>
+            控制器序列号
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.AvgValue">
+            <summary>
+            平均值
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.RouteNum">
+            <summary>
+            路数
+            </summary>
+        </member>
+        <member name="P:base_entity.CurrentDetail.PhaseTypeId">
+            <summary>
+            相类型
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.Sender">
+            <summary>
+            这个可以
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.ID">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.IP">
+            <summary>
+            IP
+            </summary>
+        </member>
+        <member name="P:base_entity.ProducerModel_Kafka.PConfig">
+            <summary>
+            这个不行
+            </summary>
+        </member>
+        <member name="P:ProjectItem.Code">
+            <summary>
+            编码
+            </summary>
+        </member>
+        <member name="P:ProjectItem.MaxQuantity">
+            <summary>
+            实际最大用量
+            </summary>
+        </member>
+        <member name="P:ProjectItem.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="T:Account">
+            <summary>
+            账户
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.MemberId">
+            <summary>
+            MemberId
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Date">
+            <summary>
+            日期
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Activity">
+            <summary>
+            所有活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.OnlineActivity">
+            <summary>
+            线上活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.OfflineActivity">
+            <summary>
+            线下活动
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Pinjianhui">
+            <summary>
+            线下活动中的品鉴会
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Huichangyou">
+            <summary>
+            线下活动中的回场游
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.Form">
+            <summary>
+            所有订单
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.FormAmount">
+            <summary>
+            所有订单金额
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.IntegralForm">
+            <summary>
+            订单中的积分订单
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.ScanCode">
+            <summary>
+            所有扫码
+            </summary>
+        </member>
+        <member name="P:MemberActionDayCountModel.ScanCodeAmount">
+            <summary>
+            所有扫码金额
             </summary>
         </member>
         <member name="T:EMSServerModel.Model.Role">
@@ -193,6 +560,12 @@
             <summary>
             用户导航
             </summary>
+        </member>
+        <member name="T:MessagePack.GeneratedMessagePackResolver">
+            <summary>A MessagePack resolver that uses generated formatters for types in this assembly.</summary>
+        </member>
+        <member name="F:MessagePack.GeneratedMessagePackResolver.Instance">
+            <summary>An instance of this resolver that only returns formatters specifically generated for types in this assembly.</summary>
         </member>
     </members>
 </doc>

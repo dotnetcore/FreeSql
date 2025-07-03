@@ -1,18 +1,439 @@
-using FreeSql.DataAnnotations;
+Ôªøusing FreeSql.DataAnnotations;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests
 {
     public class RepositoryTests
     {
+        [Fact]
+        public void DeleteCascade()
+        {
+            using (var fsql = new FreeSqlBuilder()
+                .UseConnectionString(DataType.Sqlite, "data source=:memory:")
+                .UseAutoSyncStructure(true)
+                .UseNoneCommandParameter(true)
+                .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
+                .Build())
+            {
+                fsql.CodeFirst.GetTableByEntity(typeof(DeleteCascadeUserGroup)).ColumnsByCs
+                    .Where(a => !new[] { typeof(string), typeof(int), typeof(DateTime), typeof(long) }.Contains(a.Value.Attribute.MapType))
+                    .ToArray();
+
+                fsql.GlobalFilter.Apply<DeleteCascadeUserGroup>("soft_delete", a => a.IsDeleted == false);
+
+                fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserTag>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeTag>().Where("1=1").ExecuteAffrows();
+
+                var groupRepo = fsql.GetRepository<DeleteCascadeUserGroup>();
+                var userRepo = fsql.GetRepository<DeleteCascadeUser>();
+                var userextRepo = fsql.GetRepository<DeleteCascadeUserExt>();
+                var tagRepo = fsql.GetRepository<DeleteCascadeTag>();
+                groupRepo.DbContextOptions.EnableCascadeSave = true;
+                userRepo.DbContextOptions.EnableCascadeSave = true;
+                userextRepo.DbContextOptions.EnableCascadeSave = true;
+                tagRepo.DbContextOptions.EnableCascadeSave = true;
+                groupRepo.DbContextOptions.EnableGlobalFilter = false;
+                userRepo.DbContextOptions.EnableGlobalFilter = false;
+                userextRepo.DbContextOptions.EnableGlobalFilter = false;
+                tagRepo.DbContextOptions.EnableGlobalFilter = false;
+
+                //OneToOne InDatabase
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                var user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } };
+                userRepo.Insert(user);
+                var ret = userRepo.DeleteCascadeByDatabase(a => a.Id == user.Id);
+                Assert.Equal(2, ret.Count);
+                Assert.IsType<DeleteCascadeUserExt>(ret[0]);
+                Assert.Equal(user.UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(user.UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUser>(ret[1]);
+                Assert.Equal(user.Id, (ret[1] as DeleteCascadeUser).Id);
+                Assert.Equal(user.Username, (ret[1] as DeleteCascadeUser).Username);
+                Assert.Equal(user.Password, (ret[1] as DeleteCascadeUser).Password);
+                //OneToOne EnableCascadeSave InMemory
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } };
+                userRepo.Insert(user);
+                Assert.True(user.Id > 0);
+                Assert.True(user.UserExt.UserId > 0);
+                var affrows = userRepo.Delete(user);
+                Assert.Equal(2, affrows);
+                Assert.Equal(0, user.Id);
+                Assert.Equal("admin01", user.Username);
+                Assert.Equal("pwd01", user.Password);
+                Assert.True(user.UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®01", user.UserExt.Remark);
+                Assert.False(userRepo.Select.Any());
+                Assert.False(userextRepo.Select.Any());
+
+                //OneToOne InDatabase ÂÖàÂà†Èô§ UserExt
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } };
+                userRepo.Insert(user);
+                ret = userextRepo.DeleteCascadeByDatabase(a => a.UserId == user.UserExt.UserId);
+                Assert.Equal(2, ret.Count);
+                Assert.IsType<DeleteCascadeUserExt>(ret[1]);
+                Assert.Equal(user.UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(user.UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUser>(ret[0]);
+                Assert.Equal(user.Id, (ret[0] as DeleteCascadeUser).Id);
+                Assert.Equal(user.Username, (ret[0] as DeleteCascadeUser).Username);
+                Assert.Equal(user.Password, (ret[0] as DeleteCascadeUser).Password);
+                //OneToOne EnableCascadeSave InMemory ÂÖàÂà†Èô§ UserExt
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } };
+                userRepo.Insert(user);
+                Assert.True(user.Id > 0);
+                Assert.True(user.UserExt.UserId > 0);
+                var userext = userextRepo.Where(a => a.UserId == user.Id).Include(a => a.User).First();
+                Assert.NotNull(userext);
+                Assert.Equal(user.UserExt.UserId, userext.UserId);
+                Assert.Equal(user.Id, userext.User.Id);
+                affrows = userextRepo.Delete(userext);
+                Assert.Equal(2, affrows);
+                Assert.Equal(0, userext.User.Id);
+                Assert.Equal("admin01", userext.User.Username);
+                Assert.Equal("pwd01", userext.User.Password);
+                Assert.True(userext.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®01", userext.Remark);
+                Assert.False(userRepo.Select.Any());
+                Assert.False(userextRepo.Select.Any());
+
+                //OneToMany InDatabase
+                fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                var group = new DeleteCascadeUserGroup
+                {
+                    GroupName = "group01",
+                    Users = new List<DeleteCascadeUser>
+                {
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®02" } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®03" } },
+                }
+                };
+                groupRepo.Insert(group);
+                Assert.Equal(group.Id, group.Users[0].GroupId);
+                Assert.Equal(group.Id, group.Users[1].GroupId);
+                Assert.Equal(group.Id, group.Users[2].GroupId);
+                ret = groupRepo.DeleteCascadeByDatabase(a => a.Id == group.Id);
+                Assert.Equal(7, ret.Count);
+                Assert.IsType<DeleteCascadeUserExt>(ret[0]);
+                Assert.Equal(group.Users[0].UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[0].UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUserExt>(ret[1]);
+                Assert.Equal(group.Users[1].UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[1].UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUserExt>(ret[2]);
+                Assert.Equal(group.Users[2].UserExt.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[2].UserExt.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUser>(ret[3]);
+                Assert.Equal(group.Users[0].Id, (ret[3] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[0].Username, (ret[3] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[0].Password, (ret[3] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUser>(ret[4]);
+                Assert.Equal(group.Users[1].Id, (ret[4] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[1].Username, (ret[4] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[1].Password, (ret[4] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUser>(ret[5]);
+                Assert.Equal(group.Users[2].Id, (ret[5] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[2].Username, (ret[5] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[2].Password, (ret[5] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUserGroup>(ret[6]);
+                Assert.Equal(group.Id, (ret[6] as DeleteCascadeUserGroup).Id);
+                Assert.Equal(group.GroupName, (ret[6] as DeleteCascadeUserGroup).GroupName);
+                //OneToMany EnableCascadeSave InMemory
+                fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                group = new DeleteCascadeUserGroup
+                {
+                    GroupName = "group01",
+                    Users = new List<DeleteCascadeUser>
+                {
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®02" } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®03" } },
+                }
+                };
+                groupRepo.Insert(group);
+                Assert.Equal(group.Id, group.Users[0].GroupId);
+                Assert.Equal(group.Id, group.Users[1].GroupId);
+                Assert.Equal(group.Id, group.Users[2].GroupId);
+                affrows = groupRepo.Delete(group);
+                Assert.Equal(7, affrows);
+                Assert.Equal(0, group.Id);
+                Assert.Equal("group01", group.GroupName);
+                Assert.Equal(0, group.Users[0].Id);
+                Assert.Equal("admin01", group.Users[0].Username);
+                Assert.Equal("pwd01", group.Users[0].Password);
+                Assert.True(group.Users[0].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®01", group.Users[0].UserExt.Remark);
+                Assert.Equal(0, group.Users[1].Id);
+                Assert.Equal("admin02", group.Users[1].Username);
+                Assert.Equal("pwd02", group.Users[1].Password);
+                Assert.True(group.Users[1].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®02", group.Users[1].UserExt.Remark);
+                Assert.Equal(0, group.Users[2].Id);
+                Assert.Equal("admin03", group.Users[2].Username);
+                Assert.Equal("pwd03", group.Users[2].Password);
+                Assert.True(group.Users[2].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®03", group.Users[2].UserExt.Remark);
+                Assert.False(groupRepo.Select.Any());
+                Assert.False(userRepo.Select.Any());
+                Assert.False(userextRepo.Select.Any());
+
+                //ManyToMany InDatabase
+                fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeTag>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserTag>().Where("1=1").ExecuteAffrows();
+                var tags = new[] {
+                new DeleteCascadeTag { TagName = "tag01" },
+                new DeleteCascadeTag { TagName = "tag02" },
+                new DeleteCascadeTag { TagName = "tag03" },
+                new DeleteCascadeTag { TagName = "tag04" },
+                new DeleteCascadeTag { TagName = "tag05" },
+                new DeleteCascadeTag { TagName = "tag06" },
+                new DeleteCascadeTag { TagName = "tag07" },
+                new DeleteCascadeTag { TagName = "tag08" },
+            };
+                tagRepo.Insert(tags);
+                groupRepo.DbContextOptions.EnableCascadeSave = true;
+                group = new DeleteCascadeUserGroup
+                {
+                    GroupName = "group01",
+                    Users = new List<DeleteCascadeUser>
+                {
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" }, Tags = new List<DeleteCascadeTag> { tags[0], tags[2], tags[3], tags[6] } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®02" }, Tags = new List<DeleteCascadeTag> { tags[1], tags[2], tags[5] } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®03" }, Tags = new List<DeleteCascadeTag> { tags[3], tags[4], tags[6], tags[7] } },
+                }
+                };
+                groupRepo.Insert(group);
+                Assert.Equal(group.Id, group.Users[0].GroupId);
+                Assert.Equal(group.Id, group.Users[1].GroupId);
+                Assert.Equal(group.Id, group.Users[2].GroupId);
+                ret = groupRepo.DeleteCascadeByDatabase(a => a.Id == group.Id);
+                Assert.Equal(18, ret.Count);
+
+                Assert.IsType<DeleteCascadeUserExt>(ret[0]);
+                Assert.Equal(group.Users[0].UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[0].UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUserExt>(ret[1]);
+                Assert.Equal(group.Users[1].UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[1].UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+                Assert.IsType<DeleteCascadeUserExt>(ret[2]);
+                Assert.Equal(group.Users[2].UserExt.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
+                Assert.Equal(group.Users[2].UserExt.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
+
+                Assert.IsType<DeleteCascadeUserTag>(ret[3]);
+                Assert.Equal(group.Users[0].Id, (ret[3] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[0].Id, (ret[3] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[4]);
+                Assert.Equal(group.Users[0].Id, (ret[4] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[2].Id, (ret[4] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[5]);
+                Assert.Equal(group.Users[0].Id, (ret[5] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[3].Id, (ret[5] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[6]);
+                Assert.Equal(group.Users[0].Id, (ret[6] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[6].Id, (ret[6] as DeleteCascadeUserTag).TagId);
+
+                Assert.IsType<DeleteCascadeUserTag>(ret[7]);
+                Assert.Equal(group.Users[1].Id, (ret[7] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[1].Id, (ret[7] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[8]);
+                Assert.Equal(group.Users[1].Id, (ret[8] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[2].Id, (ret[8] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[9]);
+                Assert.Equal(group.Users[1].Id, (ret[9] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[5].Id, (ret[9] as DeleteCascadeUserTag).TagId);
+
+                Assert.IsType<DeleteCascadeUserTag>(ret[10]);
+                Assert.Equal(group.Users[2].Id, (ret[10] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[3].Id, (ret[10] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[11]);
+                Assert.Equal(group.Users[2].Id, (ret[11] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[4].Id, (ret[11] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[12]);
+                Assert.Equal(group.Users[2].Id, (ret[12] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[6].Id, (ret[12] as DeleteCascadeUserTag).TagId);
+                Assert.IsType<DeleteCascadeUserTag>(ret[13]);
+                Assert.Equal(group.Users[2].Id, (ret[13] as DeleteCascadeUserTag).UserId);
+                Assert.Equal(tags[7].Id, (ret[13] as DeleteCascadeUserTag).TagId);
+
+                Assert.IsType<DeleteCascadeUser>(ret[14]);
+                Assert.Equal(group.Users[0].Id, (ret[14] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[0].Username, (ret[14] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[0].Password, (ret[14] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUser>(ret[15]);
+                Assert.Equal(group.Users[1].Id, (ret[15] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[1].Username, (ret[15] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[1].Password, (ret[15] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUser>(ret[16]);
+                Assert.Equal(group.Users[2].Id, (ret[16] as DeleteCascadeUser).Id);
+                Assert.Equal(group.Users[2].Username, (ret[16] as DeleteCascadeUser).Username);
+                Assert.Equal(group.Users[2].Password, (ret[16] as DeleteCascadeUser).Password);
+                Assert.IsType<DeleteCascadeUserGroup>(ret[17]);
+                Assert.Equal(group.Id, (ret[17] as DeleteCascadeUserGroup).Id);
+                Assert.Equal(group.GroupName, (ret[17] as DeleteCascadeUserGroup).GroupName);
+
+                //ManyToMany EnableCascadeSave InMemory
+                fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeTag>().Where("1=1").ExecuteAffrows();
+                fsql.Delete<DeleteCascadeUserTag>().Where("1=1").ExecuteAffrows();
+                tags = new[] {
+                new DeleteCascadeTag { TagName = "tag01" },
+                new DeleteCascadeTag { TagName = "tag02" },
+                new DeleteCascadeTag { TagName = "tag03" },
+                new DeleteCascadeTag { TagName = "tag04" },
+                new DeleteCascadeTag { TagName = "tag05" },
+                new DeleteCascadeTag { TagName = "tag06" },
+                new DeleteCascadeTag { TagName = "tag07" },
+                new DeleteCascadeTag { TagName = "tag08" },
+            };
+                tagRepo.Insert(tags);
+                groupRepo.DbContextOptions.EnableCascadeSave = true;
+                group = new DeleteCascadeUserGroup
+                {
+                    GroupName = "group01",
+                    Users = new List<DeleteCascadeUser>
+                {
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®01" }, Tags = new List<DeleteCascadeTag> { tags[0], tags[2], tags[3], tags[6] } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®02" }, Tags = new List<DeleteCascadeTag> { tags[1], tags[2], tags[5] } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "Áî®Êà∑Â§áÊ≥®03" }, Tags = new List<DeleteCascadeTag> { tags[3], tags[4], tags[6], tags[7] } },
+                }
+                };
+                groupRepo.Insert(group);
+                Assert.Equal(group.Id, group.Users[0].GroupId);
+                Assert.Equal(group.Id, group.Users[1].GroupId);
+                Assert.Equal(group.Id, group.Users[2].GroupId);
+                affrows = groupRepo.Delete(group);
+                Assert.Equal(18, affrows);
+                Assert.Equal(0, group.Id);
+                Assert.Equal("group01", group.GroupName);
+                Assert.Equal(0, group.Users[0].Id);
+                Assert.Equal("admin01", group.Users[0].Username);
+                Assert.Equal("pwd01", group.Users[0].Password);
+                Assert.True(group.Users[0].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®01", group.Users[0].UserExt.Remark);
+                Assert.Equal(0, group.Users[1].Id);
+                Assert.Equal("admin02", group.Users[1].Username);
+                Assert.Equal("pwd02", group.Users[1].Password);
+                Assert.True(group.Users[1].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®02", group.Users[1].UserExt.Remark);
+                Assert.Equal(0, group.Users[2].Id);
+                Assert.Equal("admin03", group.Users[2].Username);
+                Assert.Equal("pwd03", group.Users[2].Password);
+                Assert.True(group.Users[2].UserExt.UserId > 0);
+                Assert.Equal("Áî®Êà∑Â§áÊ≥®03", group.Users[2].UserExt.Remark);
+                Assert.False(groupRepo.Select.Any());
+                Assert.False(userRepo.Select.Any());
+                Assert.False(userextRepo.Select.Any());
+                Assert.False(fsql.Select<DeleteCascadeUserTag>().Any());
+            }
+        }
+        public class DeleteCascadeUser
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string Username { get; set; }
+            public string Password { get; set; }
+            public int GroupId { get; set; }
+            public bool IsDeleted { get; set; }
+
+            [Navigate(nameof(Id))]
+            public DeleteCascadeUserExt UserExt { get; set; }
+            [Navigate(ManyToMany = typeof(DeleteCascadeUserTag))]
+            public List<DeleteCascadeTag> Tags { get; set; }
+        }
+        public class DeleteCascadeUserExt
+        {
+            [Column(IsPrimary = true)]
+            public int UserId { get; set; }
+            public string Remark { get; set; }
+            public bool IsDeleted { get; set; }
+
+            [Navigate(nameof(UserId))]
+            public DeleteCascadeUser User { get; set; }
+        }
+        public class DeleteCascadeUserGroup
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string GroupName { get; set; }
+            public bool IsDeleted { get; set; }
+
+            [Navigate(nameof(DeleteCascadeUser.GroupId))]
+            public List<DeleteCascadeUser> Users { get; set; }
+        }
+        public class DeleteCascadeTag
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string TagName { get; set; }
+            public bool IsDeleted { get; set; }
+
+            [Navigate(ManyToMany = typeof(DeleteCascadeUserTag))]
+            public List<DeleteCascadeUser> Users { get; set; }
+        }
+        public class DeleteCascadeUserTag
+        {
+            public int UserId { get; set; }
+            public int TagId { get; set; }
+            public bool IsDeleted { get; set; }
+
+            [Navigate(nameof(UserId))]
+            public DeleteCascadeUser User { get; set; }
+            [Navigate(nameof(TagId))]
+            public DeleteCascadeTag Tag { get; set; }
+        }
+
+        /// <summary>
+        /// Êõ¥‰∏ÄÊù°Êó†Ê≥ïÊõ¥Êñ∞„ÄÇ
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Updatemysql()
+        {
+            var item1 = new AddUpdateInfo();
+            g.mysql.Insert(item1).ExecuteAffrows();
+            var item2 = new AddUpdateInfo();
+            g.mysql.Insert(item2).ExecuteAffrows();
+            var item3 = new AddUpdateInfo();
+            g.mysql.Insert(item3).ExecuteAffrows();
+
+            var repos = g.mysql.GetRepository<AddUpdateInfo, Guid>();
+            var items = repos.Select.WhereDynamic(new[] { item1, item2, item3 }).ToList();
+            items[0].Title = "88";
+            //items[1].Title = "88";
+            items[2].Title = "88";
+            var changed = repos.CompareState(items[0]);
+            int x = await repos.UpdateAsync(items);
+        }
 
         [Fact]
         public void AddUpdate()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = repos.Insert(new AddUpdateInfo());
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
@@ -41,18 +462,18 @@ namespace FreeSql.Tests
         [Fact]
         public void UpdateAttach()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = Guid.NewGuid() };
             repos.Attach(item);
 
             item.Title = "xxx";
-            repos.Update(item); //’‚––÷¥–– UPDATE "AddUpdateInfo" SET "Title" = 'xxx' WHERE("Id" = '1942fb53-9700-411d-8895-ce4cecdf3257')
+            repos.Update(item); //ËøôË°åÊâßË°å UPDATE "AddUpdateInfo" SET "Title" = 'xxx' WHERE("Id" = '1942fb53-9700-411d-8895-ce4cecdf3257')
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
 
-            repos.Update(item); //’‚––≤ª÷¥–– SQL£¨Œ¥±‰ªØ
+            repos.Update(item); //ËøôË°å‰∏çÊâßË°å SQLÔºåÊú™ÂèòÂåñ
 
-            repos.AttachOnlyPrimary(item).Update(item); //’‚––∏¸–¬◊¥Ã¨÷µ£¨÷ª”–÷˜º¸÷µ¥Ê‘⁄£¨÷¥––∏¸–¬ set title = xxx
+            repos.AttachOnlyPrimary(item).Update(item); //ËøôË°åÊõ¥Êñ∞Áä∂ÊÄÅÂÄºÔºåÂè™Êúâ‰∏ªÈîÆÂÄºÂ≠òÂú®ÔºåÊâßË°åÊõ¥Êñ∞ set title = xxx
 
             Console.WriteLine(repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ToSql());
             repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ExecuteAffrows();
@@ -64,7 +485,7 @@ namespace FreeSql.Tests
         [Fact]
         public void UpdateWhenNotExists()
         {
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = Guid.NewGuid() };
             item.Title = "xxx";
@@ -76,7 +497,7 @@ namespace FreeSql.Tests
         {
             g.sqlite.Insert(new AddUpdateInfo()).ExecuteAffrows();
 
-            var repos = g.sqlite.GetGuidRepository<AddUpdateInfo>();
+            var repos = g.sqlite.GetRepository<AddUpdateInfo, Guid>();
 
             var item = new AddUpdateInfo { Id = g.sqlite.Select<AddUpdateInfo>().First().Id };
 
@@ -117,7 +538,7 @@ namespace FreeSql.Tests
                 var flowRepos = fsql.GetRepository<FlowModel>();
                 flowRepos.Insert(flow);
 
-                // ¬ŒÒÃÌº”
+                //‰∫ãÂä°Ê∑ªÂä†
                 flow = new FlowModel()
                 {
                     CreateTime = DateTime.Now,
@@ -169,7 +590,7 @@ namespace FreeSql.Tests
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
                     uowFlowRepos.Orm.Select<FlowModel>().ToList();
-                    //≤ªµ˜”√commitΩ´≤ªª·Ã·Ωª ˝æ›ø‚∏¸∏ƒ
+                    //‰∏çË∞ÉÁî®commitÂ∞Ü‰∏ç‰ºöÊèê‰∫§Êï∞ÊçÆÂ∫ìÊõ¥Êîπ
                     //uow.Commit();
                 }
                 Assert.False(flowRepos.Select.Any(a => a.UserId == 1 && a.Name == "aaa"));
@@ -193,7 +614,7 @@ namespace FreeSql.Tests
         {
             g.sqlite.Insert(new AddUpdateInfo()).ExecuteAffrows();
 
-            var repos = g.sqlite.GetGuidRepository<object>();
+            var repos = g.sqlite.GetRepository<object, Guid>();
             repos.AsType(typeof(AddUpdateInfo));
 
             var item = new AddUpdateInfo();
@@ -206,55 +627,53 @@ namespace FreeSql.Tests
             var item2 = repos.Find(item.Id) as AddUpdateInfo;
             Assert.Equal(item.Clicks, item2.Clicks);
 
-            repos.DataFilter.Apply("xxx", a => (a as AddUpdateInfo).Clicks == 2);
             Assert.Null(repos.Find(item.Id));
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany()
+        public void EnableCascadeSave_OneToMany()
         {
             var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             var cts = new[] {
                 new Cagetory
                 {
-                    Name = "∑÷¿‡1",
+                    Name = "ÂàÜÁ±ª1",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "…Ã∆∑1" },
-                        new Goods { Name = "…Ã∆∑2" },
-                        new Goods { Name = "…Ã∆∑3" }
+                        new Goods { Name = "ÂïÜÂìÅ1" },
+                        new Goods { Name = "ÂïÜÂìÅ2" },
+                        new Goods { Name = "ÂïÜÂìÅ3" }
                     })
                 },
                 new Cagetory
                 {
-                    Name = "∑÷¿‡2",
+                    Name = "ÂàÜÁ±ª2",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "…Ã∆∑4" },
-                        new Goods { Name = "…Ã∆∑5" }
+                        new Goods { Name = "ÂïÜÂìÅ4" },
+                        new Goods { Name = "ÂïÜÂìÅ5" }
                     })
                 }
             };
             repo.Insert(cts);
-            cts[0].Name = "∑÷¿‡11";
+            cts[0].Name = "ÂàÜÁ±ª11";
             cts[0].Goodss.Clear();
-            cts[1].Name = "∑÷¿‡22";
+            cts[1].Name = "ÂàÜÁ±ª22";
             cts[1].Goodss.Clear();
             repo.Update(cts);
-            cts[0].Name = "∑÷¿‡111";
+            cts[0].Name = "ÂàÜÁ±ª111";
             cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new Goods { Name = "…Ã∆∑33" });
-            cts[1].Name = "∑÷¿‡222";
+            cts[0].Goodss.Add(new Goods { Name = "ÂïÜÂìÅ33" });
+            cts[1].Name = "ÂàÜÁ±ª222";
             cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new Goods { Name = "…Ã∆∑55" });
+            cts[1].Goodss.Add(new Goods { Name = "ÂïÜÂìÅ55" });
             repo.Update(cts);
 
             var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -274,56 +693,54 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany_lazyloading()
+        public void EnableCascadeSave_OneToMany_lazyloading()
         {
             var repo = g.sqlite.GetRepository<CagetoryLD>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             var cts = new[] {
                 new CagetoryLD
                 {
-                    Name = "∑÷¿‡1",
+                    Name = "ÂàÜÁ±ª1",
                     Goodss = new List<GoodsLD>(new[]
                     {
-                        new GoodsLD { Name = "…Ã∆∑1" },
-                        new GoodsLD { Name = "…Ã∆∑2" },
-                        new GoodsLD { Name = "…Ã∆∑3" }
+                        new GoodsLD { Name = "ÂïÜÂìÅ1" },
+                        new GoodsLD { Name = "ÂïÜÂìÅ2" },
+                        new GoodsLD { Name = "ÂïÜÂìÅ3" }
                     })
                 },
                 new CagetoryLD
                 {
-                    Name = "∑÷¿‡2",
+                    Name = "ÂàÜÁ±ª2",
                     Goodss = new List<GoodsLD>(new[]
                     {
-                        new GoodsLD { Name = "…Ã∆∑4" },
-                        new GoodsLD { Name = "…Ã∆∑5" }
+                        new GoodsLD { Name = "ÂïÜÂìÅ4" },
+                        new GoodsLD { Name = "ÂïÜÂìÅ5" }
                     })
                 }
             };
             repo.Insert(cts);
-            cts[0].Name = "∑÷¿‡11";
+            cts[0].Name = "ÂàÜÁ±ª11";
             cts[0].Goodss.Clear();
-            cts[1].Name = "∑÷¿‡22";
+            cts[1].Name = "ÂàÜÁ±ª22";
             cts[1].Goodss.Clear();
             repo.Update(cts);
-            cts[0].Name = "∑÷¿‡111";
+            cts[0].Name = "ÂàÜÁ±ª111";
             cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new GoodsLD { Name = "…Ã∆∑33" });
-            cts[1].Name = "∑÷¿‡222";
+            cts[0].Goodss.Add(new GoodsLD { Name = "ÂïÜÂìÅ33" });
+            cts[1].Name = "ÂàÜÁ±ª222";
             cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new GoodsLD { Name = "…Ã∆∑55" });
+            cts[1].Goodss.Add(new GoodsLD { Name = "ÂïÜÂìÅ55" });
             repo.Update(cts);
 
             var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
 
             cts2 = repo.Select.WhereDynamic(cts).ToList();
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
             cts2[0].Goodss[0].Name += 333;
-            repo.SaveMany(cts2[0], "Goodss");
         }
         [Table(Name = "EAUNL_OTM_CTLD")]
         public class CagetoryLD
@@ -343,101 +760,49 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void SaveMany_OneToMany()
-        {
-            var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //πÿ±’º∂¡™±£¥Êπ¶ƒ‹
-            var cts = new[] {
-                new Cagetory
-                {
-                    Name = "∑÷¿‡1",
-                    Goodss = new List<Goods>(new[]
-                    {
-                        new Goods { Name = "…Ã∆∑1" },
-                        new Goods { Name = "…Ã∆∑2" },
-                        new Goods { Name = "…Ã∆∑3" }
-                    })
-                },
-                new Cagetory
-                {
-                    Name = "∑÷¿‡2",
-                    Goodss = new List<Goods>(new[]
-                    {
-                        new Goods { Name = "…Ã∆∑4" },
-                        new Goods { Name = "…Ã∆∑5" }
-                    })
-                }
-            };
-            repo.Insert(cts);
-            repo.SaveMany(cts[0], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            repo.SaveMany(cts[1], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            cts[0].Goodss.RemoveAt(1);
-            cts[1].Goodss.RemoveAt(1);
-            repo.SaveMany(cts[0], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            repo.SaveMany(cts[1], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-
-            cts[0].Name = "∑÷¿‡11";
-            cts[0].Goodss.Clear();
-            cts[1].Name = "∑÷¿‡22";
-            cts[1].Goodss.Clear();
-            repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            repo.SaveMany(cts[1], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            cts[0].Name = "∑÷¿‡111";
-            cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new Goods { Name = "…Ã∆∑33" });
-            cts[1].Name = "∑÷¿‡222";
-            cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new Goods { Name = "…Ã∆∑55" });
-            repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-            repo.SaveMany(cts[1], "Goodss"); //÷∏∂®±£¥Ê Goodss “ª∂‘∂‡ Ù–‘
-        }
-
-        [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
+        public void EnableCascadeSave_OneToMany_Parent()
         {
             g.sqlite.Delete<CagetoryParent>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<CagetoryParent>();
             var cts = new[] {
                 new CagetoryParent
                 {
-                    Name = "∑÷¿‡1",
+                    Name = "ÂàÜÁ±ª1",
                     Childs = new List<CagetoryParent>(new[]
                     {
-                        new CagetoryParent { Name = "∑÷¿‡1_1" },
-                        new CagetoryParent { Name = "∑÷¿‡1_2" },
-                        new CagetoryParent { Name = "∑÷¿‡1_3" }
+                        new CagetoryParent { Name = "ÂàÜÁ±ª1_1" },
+                        new CagetoryParent { Name = "ÂàÜÁ±ª1_2" },
+                        new CagetoryParent { Name = "ÂàÜÁ±ª1_3" }
                     })
                 },
                 new CagetoryParent
                 {
-                    Name = "∑÷¿‡2",
+                    Name = "ÂàÜÁ±ª2",
                     Childs = new List<CagetoryParent>(new[]
                     {
-                        new CagetoryParent { Name = "∑÷¿‡2_1" },
-                        new CagetoryParent { Name = "∑÷¿‡2_2" }
+                        new CagetoryParent { Name = "ÂàÜÁ±ª2_1" },
+                        new CagetoryParent { Name = "ÂàÜÁ±ª2_2" }
                     })
                 }
             };
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //¥Úø™º∂¡™±£¥Êπ¶ƒ‹
+            repo.DbContextOptions.EnableCascadeSave = true; //ÊâìÂºÄÁ∫ßËÅî‰øùÂ≠òÂäüËÉΩ
             repo.Insert(cts);
 
             var notreelist1 = repo.Select.ToList();
             var treelist1 = repo.Select.ToTreeList();
 
-            //repo.SaveMany(cts[0], "Childs"); //÷∏∂®±£¥Ê Childs “ª∂‘∂‡ Ù–‘
-            cts[0].Name = "∑÷¿‡11";
+            //repo.SaveMany(cts[0], "Childs"); //ÊåáÂÆö‰øùÂ≠ò Childs ‰∏ÄÂØπÂ§öÂ±ûÊÄß
+            cts[0].Name = "ÂàÜÁ±ª11";
             cts[0].Childs.Clear();
-            cts[1].Name = "∑÷¿‡22";
+            cts[1].Name = "ÂàÜÁ±ª22";
             cts[1].Childs.Clear();
             repo.Update(cts);
-            cts[0].Name = "∑÷¿‡111";
+            cts[0].Name = "ÂàÜÁ±ª111";
             cts[0].Childs.Clear();
-            cts[0].Childs.Add(new CagetoryParent { Name = "∑÷¿‡1_33" });
-            cts[1].Name = "∑÷¿‡222";
+            cts[0].Childs.Add(new CagetoryParent { Name = "ÂàÜÁ±ª1_33" });
+            cts[1].Name = "ÂàÜÁ±ª222";
             cts[1].Childs.Clear();
-            cts[1].Childs.Add(new CagetoryParent { Name = "∑÷¿‡2_22" });
+            cts[1].Childs.Add(new CagetoryParent { Name = "ÂàÜÁ±ª2_22" });
             repo.Update(cts);
             var treelist2 = repo.Select.ToTreeList();
         }
@@ -453,19 +818,19 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_ManyToMany()
+        public void EnableCascadeSave_ManyToMany()
         {
             var tags = new[] {
-                new Tag { TagName = "¡˜––" },
-                new Tag { TagName = "80∫Û" },
-                new Tag { TagName = "00∫Û" },
-                new Tag { TagName = "“°πˆ" }
+                new Tag { TagName = "ÊµÅË°å" },
+                new Tag { TagName = "80Âêé" },
+                new Tag { TagName = "00Âêé" },
+                new Tag { TagName = "ÊëáÊªö" }
             };
             var ss = new[]
             {
                 new Song
                 {
-                    Name = "∞Æƒ„“ªÕÚƒÍ.mp3",
+                    Name = "Áà±‰Ω†‰∏Ä‰∏áÂπ¥.mp3",
                     Tags = new List<Tag>(new[]
                     {
                         tags[0], tags[1]
@@ -473,7 +838,7 @@ namespace FreeSql.Tests
                 },
                 new Song
                 {
-                    Name = "¿Ó∞◊.mp3",
+                    Name = "ÊùéÁôΩ.mp3",
                     Tags = new List<Tag>(new[]
                     {
                         tags[0], tags[2]
@@ -481,23 +846,22 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //¥Úø™º∂¡™±£¥Êπ¶ƒ‹
+            repo.DbContextOptions.EnableCascadeSave = true; //ÊâìÂºÄÁ∫ßËÅî‰øùÂ≠òÂäüËÉΩ
             repo.Insert(ss);
 
-            ss[0].Tags[0].TagName = "¡˜––101";
-            repo.SaveMany(ss[0], "Tags"); //÷∏∂®±£¥Ê Tags ∂‡∂‘∂‡ Ù–‘
+            ss[0].Tags[0].TagName = "ÊµÅË°å101";
 
-            ss[0].Name = "∞Æƒ„“ªÕÚƒÍ.mp5";
+            ss[0].Name = "Áà±‰Ω†‰∏Ä‰∏áÂπ¥.mp5";
             ss[0].Tags.Clear();
             ss[0].Tags.Add(tags[0]);
-            ss[1].Name = "¿Ó∞◊.mp5";
+            ss[1].Name = "ÊùéÁôΩ.mp5";
             ss[1].Tags.Clear();
             ss[1].Tags.Add(tags[3]);
             repo.Update(ss);
 
-            ss[0].Name = "∞Æƒ„“ªÕÚƒÍ.mp4";
+            ss[0].Name = "Áà±‰Ω†‰∏Ä‰∏áÂπ¥.mp4";
             ss[0].Tags.Clear();
-            ss[1].Name = "¿Ó∞◊.mp4";
+            ss[1].Name = "ÊùéÁôΩ.mp4";
             ss[1].Tags.Clear();
             repo.Update(ss);
         }
@@ -530,19 +894,19 @@ namespace FreeSql.Tests
             g.sqlite.Delete<BeginEdit01>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<BeginEdit01>();
             var cts = new[] {
-                new BeginEdit01 { Name = "∑÷¿‡1" },
-                new BeginEdit01 { Name = "∑÷¿‡1_1" },
-                new BeginEdit01 { Name = "∑÷¿‡1_2" },
-                new BeginEdit01 { Name = "∑÷¿‡1_3" },
-                new BeginEdit01 { Name = "∑÷¿‡2" },
-                new BeginEdit01 { Name = "∑÷¿‡2_1" },
-                new BeginEdit01 { Name = "∑÷¿‡2_2" }
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_2" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_3" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2_1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2_2" }
             }.ToList();
             repo.Insert(cts);
 
             repo.BeginEdit(cts);
 
-            cts.Add(new BeginEdit01 { Name = "∑÷¿‡2_3" });
+            cts.Add(new BeginEdit01 { Name = "ÂàÜÁ±ª2_3" });
             cts[0].Name = "123123";
             cts.RemoveAt(1);
 
@@ -554,13 +918,13 @@ namespace FreeSql.Tests
             repo.BeginEdit(cts);
 
             cts.AddRange(new[] {
-                new BeginEdit01 { Name = "∑÷¿‡1" },
-                new BeginEdit01 { Name = "∑÷¿‡1_1" },
-                new BeginEdit01 { Name = "∑÷¿‡1_2" },
-                new BeginEdit01 { Name = "∑÷¿‡1_3" },
-                new BeginEdit01 { Name = "∑÷¿‡2" },
-                new BeginEdit01 { Name = "∑÷¿‡2_1" },
-                new BeginEdit01 { Name = "∑÷¿‡2_2" }
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_2" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª1_3" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2_1" },
+                new BeginEdit01 { Name = "ÂàÜÁ±ª2_2" }
             });
 
             Assert.Equal(7, repo.EndEdit());
@@ -569,6 +933,56 @@ namespace FreeSql.Tests
         {
             public Guid Id { get; set; }
             public string Name { get; set; }
+        }
+        [Fact]
+        public void BeginEditIdentity()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            var repo = fsql.GetRepository<BeginEdit02>();
+            var cts = new[] {
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_2" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_3" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2_1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2_2" }
+            }.ToList();
+            repo.Insert(cts);
+
+            repo.BeginEdit(cts);
+
+            cts.Add(new BeginEdit02 { Name = "ÂàÜÁ±ª2_3" });
+            cts[0].Name = "123123";
+            cts.RemoveAt(1);
+
+            Assert.Equal(3, repo.EndEdit());
+
+            fsql.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            repo = fsql.GetRepository<BeginEdit02>();
+            cts = repo.Select.ToList();
+            repo.BeginEdit(cts);
+
+            cts.AddRange(new[] {
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_2" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª1_3" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2_1" },
+                new BeginEdit02 { Name = "ÂàÜÁ±ª2_2" }
+            });
+
+            Assert.Equal(7, repo.EndEdit());
+        }
+        class BeginEdit02
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string Name { get; set; }
+            [Column(ServerTime = DateTimeKind.Utc)]
+            public DateTime UpdateTime { get; set; }
         }
 
         [Fact]
@@ -673,6 +1087,70 @@ namespace FreeSql.Tests
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public bool bool_val { get; set; }
+        }
+
+        [Fact]
+        public void InsertIdentity()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<TaskDetailTeam>().Where("1=1").ExecuteAffrows();
+
+            var repo = fsql.GetRepository<TaskDetailTeam>();
+            
+            var team = new TaskDetailTeam();
+            repo.Insert(team);
+
+            team = new TaskDetailTeam
+            {
+                TaskId = 1,
+                UserId = 11,
+                IsYanShou = 1,
+                AccessType = "xxxAccessType1"
+            };
+            repo.Insert(team);
+
+            var teams = new[]
+            {
+                new TaskDetailTeam
+                {
+                    TaskId = 2,
+                    UserId = 22,
+                    IsYanShou = 2,
+                    AccessType = "xxxAccessType2"
+                },new TaskDetailTeam
+                {
+                    TaskId = 3,
+                    UserId = 33,
+                    IsYanShou = 3,
+                    AccessType = "xxxAccessType3"
+                }
+            };
+            repo.Insert(teams);
+        }
+
+        [Table(Name = "task_detail_team")]
+        public class TaskDetailTeam
+        {
+            [Column(Name = "id", IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+
+            [Column(Name = "createdAt", DbType = "datetime", ServerTime = DateTimeKind.Local, CanUpdate = false)]
+            public DateTime CreatedAt { get; set; }
+
+            [Column(Name = "taskId")]
+            public int TaskId { get; set; }
+
+            [Column(Name = "updatedAt", DbType = "datetime", ServerTime = DateTimeKind.Local)]
+            public DateTime UpdatedAt { get; set; }
+
+            [Column(Name = "userId")]
+            public int UserId { get; set; }
+
+            [Column(Name = "is_yanshou")]
+            public int IsYanShou { get; set; }
+
+            [Column(IsIgnore = true)]
+            public string AccessType { get; set; }
         }
     }
 }

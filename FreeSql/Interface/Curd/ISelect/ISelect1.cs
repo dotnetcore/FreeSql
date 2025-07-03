@@ -11,7 +11,6 @@ namespace FreeSql
 {
     public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>
     {
-
 #if net40
 #else
         Task<bool> AnyAsync(Expression<Func<T1, bool>> exp, CancellationToken cancellationToken = default);
@@ -19,8 +18,9 @@ namespace FreeSql
         Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task ToChunkAsync<TReturn>(Expression<Func<T1, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken);
         Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
-        
+
         Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
         Task<TDto> ToOneAsync<TDto>(CancellationToken cancellationToken = default);
         Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
@@ -31,6 +31,9 @@ namespace FreeSql
         Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
         Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
         Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
+#endif
+#if ns21
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, TReturn>> select, int size);
 #endif
 
         /// <summary>
@@ -175,23 +178,41 @@ namespace FreeSql
         /// <typeparam name="T2"></typeparam>
         /// <param name="exp"></param>
         /// <returns></returns>
-        ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;
-        ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class;
-        ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class;
-        ISelect<T1, T2, T3, T4, T5> From<T2, T3, T4, T5>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
-        ISelect<T1, T2, T3, T4, T5, T6> From<T2, T3, T4, T5, T6>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7> From<T2, T3, T4, T5, T6, T7>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
+        ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp = null) where T2 : class;
+        ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class;
+        ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class;
+        ISelect<T1, T2, T3, T4, T5> From<T2, T3, T4, T5>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class;
+        ISelect<T1, T2, T3, T4, T5, T6> From<T2, T3, T4, T5, T6>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7> From<T2, T3, T4, T5, T6, T7>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
         
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class;
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp = null) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
 
+        ISelect<T1, T2> FromQuery<T2>(ISelect<T2> select2) where T2 : class;
+        ISelect<T1, T2, T3> FromQuery<T2, T3>(ISelect<T2> select2, ISelect<T3> select3) where T2 : class where T3 : class;
+        ISelect<T1, T2, T3, T4> FromQuery<T2, T3, T4>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4) where T2 : class where T3 : class where T4 : class;
+        ISelect<T1, T2, T3, T4, T5> FromQuery<T2, T3, T4, T5>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5) where T2 : class where T3 : class where T4 : class where T5 : class;
+        ISelect<T1, T2, T3, T4, T5, T6> FromQuery<T2, T3, T4, T5, T6>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7> FromQuery<T2, T3, T4, T5, T6, T7>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> FromQuery<T2, T3, T4, T5, T6, T7, T8>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
+        
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class;
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> FromQuery<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(ISelect<T2> select2, ISelect<T3> select3, ISelect<T4> select4, ISelect<T5> select5, ISelect<T6> select6, ISelect<T7> select7, ISelect<T8> select8, ISelect<T9> select9, ISelect<T10> select10, ISelect<T11> select11, ISelect<T12> select12, ISelect<T13> select13, ISelect<T14> select14, ISelect<T15> select15, ISelect<T16> select16) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class;
+        
+        ISelect<T1> UnionAll(params ISelect<T1>[] querys);
         /// <summary>
         /// 查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
         /// </summary>
@@ -275,6 +296,15 @@ namespace FreeSql
         /// <param name="exp"></param>
         /// <returns></returns>
         ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
+        /// <summary>
+        /// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})<para></para>
+        /// * GroupBy 返回 ISelectGrouping&lt;T&gt;<para></para>
+        /// * GroupBySelf 返回 ISelect&lt;T&gt;（限制少）
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        ISelect<T1> GroupBySelf<TMember>(Expression<Func<T1, TMember>> column);
 
         /// <summary>
         /// 按列排序，OrderBy(a => a.Time)
@@ -331,7 +361,7 @@ namespace FreeSql
         ISelect<T1> IncludeIf<TNavigate>(bool condition, Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class;
         /// <summary>
         /// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
-        /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+        /// 文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
         /// </summary>
         /// <typeparam name="TNavigate"></typeparam>
         /// <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
@@ -349,6 +379,7 @@ namespace FreeSql
         /// <param name="property"></param>
         /// <returns></returns>
         ISelect<T1> IncludeByPropertyName(string property);
+        ISelect<T1> IncludeByPropertyName(string property, Expression<Action<ISelect<object>>> then);
         /// <summary>
         /// 按属性名字符串进行 Include/IncludeMany 操作
         /// </summary>
@@ -356,6 +387,7 @@ namespace FreeSql
         /// <param name="property"></param>
         /// <returns></returns>
         ISelect<T1> IncludeByPropertyNameIf(bool condition, string property);
+        ISelect<T1> IncludeByPropertyNameIf(bool condition, string property, Expression<Action<ISelect<object>>> then);
 
         /// <summary>
         /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>
@@ -367,5 +399,19 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         ISelect<T1> WithSql(string sql, object parms = null);
+        /// <summary>
+        /// 实现 select .. from ( select .. UNION ALL select .. ) a 这样的功能（基于内存数据）
+        /// </summary>
+        /// <param name="source">内存数据</param>
+        /// <returns></returns>
+        ISelect<TDto> WithMemory<TDto>(IEnumerable<TDto> source);
+
+        /// <summary>
+        /// 嵌套查询 select * from ( select ... from table ... ) a
+        /// </summary>
+        /// <typeparam name="TDto"></typeparam>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<T1, TDto>> selector);
     }
 }

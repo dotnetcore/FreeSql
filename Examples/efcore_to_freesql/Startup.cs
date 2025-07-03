@@ -28,7 +28,7 @@ namespace efcore_to_freesql
                 .Build();
 
             //Fsql.CodeFirst.EfCoreFluentApiTestGeneric();
-            Fsql.CodeFirst.EfCoreFluentApiTestDynamic();
+            //Fsql.CodeFirst.EfCoreFluentApiTestDynamic();
 
             BaseDBContext.Fsql = Fsql;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -44,11 +45,23 @@ namespace FreeSql.DataAnnotations
             _table.DisableSyncStructure = value;
             return this;
         }
+		/// <summary>
+		/// 格式：属性名=开始时间(递增)<para></para>
+		/// 按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+		/// 按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+		/// 按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+		/// 按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+		/// </summary>
+		public TableFluent AsTable(string value)
+		{
+			_table.AsTable = value;
+			return this;
+		}
 
-        public ColumnFluent Property(string proto)
+		public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
-            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
+            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, _entityType);
         }
 
@@ -59,10 +72,12 @@ namespace FreeSql.DataAnnotations
         /// <param name="bind"></param>
         /// <param name="manyToMany">多对多关系的中间实体类型</param>
         /// <returns></returns>
-        public TableFluent Navigate(string proto, string bind, Type manyToMany = null)
+        public TableFluent Navigate(string proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
-            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_Property(proto));
+            var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
         }
@@ -122,20 +137,32 @@ namespace FreeSql.DataAnnotations
         {
             _table.DisableSyncStructure = value;
             return this;
-        }
+		}
+		/// <summary>
+		/// 格式：属性名=开始时间(递增)<para></para>
+		/// 按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+		/// 按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+		/// 按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+		/// 按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+		/// </summary>
+		public TableFluent<T> AsTable(string value)
+		{
+			_table.AsTable = value;
+			return this;
+		}
 
-        public ColumnFluent Property<TProto>(Expression<Func<T, TProto>> column)
+		public ColumnFluent Property<TProto>(Expression<Func<T, TProto>> column)
         {
             var exp = column?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var proto = (exp as MemberExpression)?.Member;
-            if (proto == null) throw new FormatException($"错误的表达式格式 {column}");
+            if (proto == null) throw new FormatException(CoreErrorStrings.Bad_Expression_Format(column));
             return Property(proto.Name);
         }
         public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
-            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
+            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { });
             return new ColumnFluent(col, tryProto, typeof(T));
         }
 
@@ -147,18 +174,22 @@ namespace FreeSql.DataAnnotations
         /// <param name="bind"></param>
         /// <param name="manyToMany">多对多关系的中间实体类型</param>
         /// <returns></returns>
-        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null)
+        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent<T> NavigateInternal<TProto>(Expression<Func<T, TProto>> proto, string bind, string tempPrimary, Type manyToMany = null)
         {
             var exp = proto?.Body;
             if (exp.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var member = (exp as MemberExpression)?.Member;
-            if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
-            return Navigate(member.Name, bind, manyToMany);
+            if (member == null) throw new FormatException(CoreErrorStrings.Bad_Expression_Format(proto));
+            return NavigateInternal(member.Name, bind, tempPrimary, manyToMany);
         }
-        public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null)
+        public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null) => NavigateInternal(proto, bind, null, manyToMany);
+        public TableFluent<T> Navigate(string proto, string bind, string tempPrimary) => NavigateInternal(proto, bind, tempPrimary, null);
+        TableFluent<T> NavigateInternal(string proto, string bind, string tempPrimary, Type manyToMany)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
-            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreErrorStrings.NotFound_PropertyName(proto));
+            var nav = new NavigateAttribute { Bind = bind, TempPrimary = tempPrimary, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
         }

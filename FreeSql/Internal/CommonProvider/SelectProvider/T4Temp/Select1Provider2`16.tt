@@ -6,7 +6,7 @@
 <#@ output extension=".cs" #>
 
 <#
-    if (1 == 2)
+    if (1 == 1)
     {
 #>
 using FreeSql.Internal.Model;
@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
     var whereStr = "";
     var ISelectGroupingAggregate = new List<string>();
     var WithSql = new List<string>();
+    var Alias = new List<string>();
 
     List<string> SyncStructure = new List<string>();
     StringBuilder _tables = new StringBuilder();
@@ -53,6 +54,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             ISelectGroupingAggregate.Add($"ISelectGroupingAggregate<T{i}>");
             WithSql.Add($"string sqlT{i}");
+            Alias.Add($"if (string.IsNullOrEmpty(aliasT" + i + ") == false) _tables[" + (i-1) + "].Alias = aliasT" + i + ";");
             GetToListDtoSelector.Add("Expression.Parameter(typeof(T" + i + "), \"" + (abc[i - 1]) + "\")");
             
             AsTable.Append("if (type == _tables[" + (i - 1) + "].Table?.Type && string.IsNullOrEmpty(sqlT" + i +
@@ -83,6 +85,18 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.As(<#=string.Join(",", WithSql).Replace("string sqlT", "string aliasT") #>)
+        {
+            <#=string.Join("\r\n            ", Alias) #>
+            return this;
+        }
+
+        ISelect<TDto> ISelect<<#=NewStr #>>.WithTempQuery<TDto>(Expression<Func<<#=NewStr #>, TDto>> selector)
+        {
+            for (var a = 0; a < selector.Parameters.Count; a++) _tables[a].Parameter = selector.Parameters[a];
+            return this.InternalWithTempQuery<TDto>(selector);
+        }
+
         double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
         {
             if (column == null) return default(double);
@@ -95,6 +109,13 @@ namespace FreeSql.Internal.CommonProvider
             if (exp == null) return this.InternalGroupBy<TKey, NativeTuple<<#=NewStr #>>>(exp?.Body);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.InternalGroupBy<TKey, NativeTuple<<#=NewStr #>>>(exp?.Body);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.GroupBySelf<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) this.InternalGroupBySelf(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalGroupBySelf(column?.Body);
         }
 
         TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
@@ -200,7 +221,8 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
-
+        
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Join(Expression<Func<<#=NewStr #>, bool>> exp) => (this as ISelect<<#=NewStr #>>).InnerJoin(exp);
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -219,14 +241,14 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this.Where(null);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params));
         }
 
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WhereIf(bool condition, Expression<Func<<#=NewStr #>, bool>> exp)
         {
             if (condition == false || exp == null) return this;
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params));
         }
 
         bool ISelect<<#=NewStr #>>.Any(Expression<Func<<#=NewStr #>, bool>> exp)
@@ -234,7 +256,7 @@ namespace FreeSql.Internal.CommonProvider
             if (exp == null) return this.Any();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             var oldwhere = _where.ToString();
-            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).Any();
+            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params)).Any();
             _where.Clear().Append(oldwhere);
             return ret;
         }
@@ -243,11 +265,13 @@ namespace FreeSql.Internal.CommonProvider
         TReturn ISelect<<#=NewStr #>>.First<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
         TDto ISelect<<#=NewStr #>>.First<TDto>() => (this as ISelect<<#=NewStr #>>).Limit(1).ToList<TDto>().FirstOrDefault();
 
-
-
-
-
         #region HzyTuple 元组
+
+        ISelect<TDto> ISelect<<#=NewStr #>>.WithTempQuery<TDto>(Expression<Func<HzyTuple<<#=NewStr #>>, TDto>> selector)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(selector, _tables);
+            return (this as ISelect<<#=NewStr #>>).WithTempQuery<TDto>((Expression<Func<<#=NewStr #>, TDto>>)expModify);
+        } 
 
         double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
         {
@@ -259,6 +283,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<<#=NewStr #>>).GroupBy((Expression<Func<<#=NewStr #>, TKey>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.GroupBySelf<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).GroupBySelf((Expression<Func<<#=NewStr #>, TMember>>)expModify);
         }
 
         TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
@@ -332,7 +362,8 @@ namespace FreeSql.Internal.CommonProvider
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
             return (this as ISelect<<#=NewStr #>>).LeftJoin((Expression<Func<<#=NewStr #>, bool>>)expModify);
         }
-
+        
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Join(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp) => (this as ISelect<<#=NewStr #>>).InnerJoin(exp);
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
@@ -369,8 +400,6 @@ namespace FreeSql.Internal.CommonProvider
             => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
 
         #endregion
-
-
 
 #if net40
 #else
@@ -417,6 +446,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         Task<List<TDto>> ISelect<<#=NewStr #>>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<<#=NewStr #>>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
+        async Task ISelect<<#=NewStr #>>.ToChunkAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            await this.InternalToChunkAsync<TReturn>(select.Body, size, done, cancellationToken);
+        }
+
         Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
@@ -436,7 +472,7 @@ namespace FreeSql.Internal.CommonProvider
             if (exp == null) return await this.AnyAsync();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             var oldwhere = _where.ToString();
-            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, _tableRule, exp?.Body, _diymemexpWithTempQuery, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
             _where.Clear().Append(oldwhere);
             return ret;
         }
@@ -444,9 +480,6 @@ namespace FreeSql.Internal.CommonProvider
         async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
         async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
         async Task<TDto> ISelect<<#=NewStr #>>.FirstAsync<TDto>(CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync<TDto>(cancellationToken)).FirstOrDefault();
-
-
-
 
         #region HzyTuple 元组
 
@@ -479,6 +512,12 @@ namespace FreeSql.Internal.CommonProvider
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
             return (this as ISelect<<#=NewStr #>>).ToListAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
         }
+        
+        Task ISelect<<#=NewStr #>>.ToChunkAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, int size, Func<FetchCallbackArgs<List<TReturn>>, Task> done, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToChunkAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, size, done, cancellationToken);
+        }
 
         Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
         {
@@ -503,9 +542,16 @@ namespace FreeSql.Internal.CommonProvider
         async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
             => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
 
-
         #endregion
 
+#endif
+
+#if ns21
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size)
+        {
+            for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
+        }
 #endif
     }
 

@@ -53,7 +53,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"数据库出错（开启事务）{ex.Message} \r\n{ex.StackTrace}");
+                //Trace.WriteLine($"数据库出错（开启事务）{ex.Message} \r\n{ex.StackTrace}");
                 MasterPool.Return(conn);
                 var after = new Aop.TraceAfterEventArgs(before, "", ex);
                 _util?._orm?.Aop.TraceAfterHandler?.Invoke(this, after);
@@ -78,12 +78,12 @@ namespace FreeSql.Internal.CommonProvider
             _trans.TryRemove(tran.Connection.LastGetThreadId, out var oldtran);
 
             Exception ex = null;
-            if (string.IsNullOrEmpty(remark)) remark = isCommit ? "提交" : "回滚";
+            if (string.IsNullOrEmpty(remark)) remark = isCommit ? CoreErrorStrings.Commit : CoreErrorStrings.RollBack;
             try
             {
                 if (tran.Transaction.Connection != null) //用户自行 Commit、Rollback
                 {
-                    Trace.WriteLine($"线程{tran.Connection.LastGetThreadId}事务{remark}");
+                    //Trace.WriteLine($"线程{tran.Connection.LastGetThreadId}事务{remark}");
                     if (isCommit) tran.Transaction.Commit();
                     else tran.Transaction.Rollback();
                 }
@@ -91,7 +91,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex2)
             {
                 ex = ex2;
-                Trace.WriteLine($"数据库出错（{remark}事务）：{ex.Message} {ex.StackTrace}");
+                //Trace.WriteLine($"数据库出错（{remark}事务）：{ex.Message} {ex.StackTrace}");
             }
             finally
             {

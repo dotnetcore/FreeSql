@@ -17,7 +17,7 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
@@ -55,7 +55,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreErrorStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -70,12 +70,12 @@ namespace FreeSql.Internal.CommonProvider
                                 ret += await this.RawExecuteAffrowsAsync(cancellationToken);
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -96,7 +96,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             long ret = 0;
@@ -135,7 +135,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreErrorStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -151,12 +151,12 @@ namespace FreeSql.Internal.CommonProvider
                                 else ret = await this.RawExecuteIdentityAsync(cancellationToken);
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -177,7 +177,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = new List<T1>();
@@ -189,7 +189,7 @@ namespace FreeSql.Internal.CommonProvider
             if (ss.Length == 1)
             {
                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteInsertedAsync(cancellationToken);
+                ret = await this.InternalExecuteInsertedAsync(cancellationToken);
                 ClearData();
                 return ret;
             }
@@ -210,12 +210,12 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         _source = ss[a]; 
                         _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(await this.RawExecuteInsertedAsync(cancellationToken));
+                        ret.AddRange(await this.InternalExecuteInsertedAsync(cancellationToken));
                     }
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreErrorStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -227,15 +227,15 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 _source = ss[a];
                                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(await this.RawExecuteInsertedAsync(cancellationToken));
+                                ret.AddRange(await this.InternalExecuteInsertedAsync(cancellationToken));
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -282,6 +282,12 @@ namespace FreeSql.Internal.CommonProvider
 
         protected abstract Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default);
         protected abstract Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default);
+        async private Task<List<T1>> InternalExecuteInsertedAsync(CancellationToken cancellationToken = default)
+        {
+            var ret = await RawExecuteInsertedAsync(cancellationToken);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
 
         public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
         public abstract Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default);

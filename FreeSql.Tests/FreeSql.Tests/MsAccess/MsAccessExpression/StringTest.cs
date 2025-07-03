@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,7 @@ namespace FreeSql.Tests.MsAccessExpression
         [Fact]
         public void Format()
         {
-            var item = g.msaccess.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.msaccess.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -89,9 +89,9 @@ WHERE (a.[Id] = {item.Id})", sql);
         [Fact]
         public void Format4()
         {
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.msaccess.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ä¸ª {} æ—¶ï¼ŒArguments è§£æå‡ºæ¥æ˜¯åˆ†å¼€çš„
+            //4ä¸ª {} æ—¶ï¼ŒArguments[1] åªèƒ½è§£æè¿™ä¸ªå‡ºæ¥ï¼Œç„¶åé‡Œé¢æ˜¯ NewArray []
+            var item = g.msaccess.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",
@@ -249,6 +249,28 @@ WHERE (a.[Id] = {item.Id})", sql);
             //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8
             //FROM `tb_topic` a, `TestTypeInfo` a__Type
             //WHERE((concat(a.`Title`, 'aaa')) LIKE concat('%', a__Type.`Name`, '%'))
+
+            var guid = Guid.NewGuid().ToString("N");
+            var fsql = g.msaccess;
+            fsql.Insert(new Topic
+            {
+                Title = $"Test{guid}Contains01"
+            }).ExecuteAffrows();
+
+            var ret = fsql.Select<Topic>().Where(a => a.Title.Contains(guid)).ToList();
+            Assert.NotEmpty(ret);
+            Assert.Equal($"Test{guid}Contains01", ret[0].Title);
+
+
+            list.Add(select.Where(a => a.Title.Contains("%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => a.Title.Contains(a.Type.Name + "%")).ToList());
+
+            list.Add(select.Where(a => (a.Title + "aaa").Contains("aaa" + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1 + "%")).ToList());
+            list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name + "%")).ToList());
         }
         [Fact]
         public void ToLower()
@@ -683,7 +705,7 @@ WHERE (a.[Id] = {item.Id})", sql);
         [Fact]
         public void Replace()
         {
-            //System.Data.OleDb.OleDbException : ±í´ïÊ½ÖĞ 'replace' º¯ÊıÎ´¶¨Òå¡£
+            //System.Data.OleDb.OleDbException : è¡¨è¾¾å¼ä¸­ 'replace' å‡½æ•°æœªå®šä¹‰ã€‚
             //var data = new List<object>();
             //data.Add(select.Where(a => a.Title.Replace("a", "b") == "aaa").ToList());
             //data.Add(select.Where(a => a.Title.Replace("a", "b").Replace("b", "c") == a.Title).ToList());

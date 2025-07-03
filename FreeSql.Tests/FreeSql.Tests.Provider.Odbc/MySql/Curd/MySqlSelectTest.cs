@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -294,7 +294,7 @@ namespace FreeSql.Tests.Odbc.MySql
 
             g.mysql.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.mysql.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -950,8 +950,8 @@ limit 0,10", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT sum(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT sum(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -965,15 +965,18 @@ FROM `tb_topic` a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT min(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT min(b.`Id`) 
+    FROM `tb_topic` b), 0) as6, ifnull((SELECT min(b.`CreateTime`) 
+    FROM `tb_topic` b), '0001-01-01 00:00:00.000') as7 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -982,15 +985,18 @@ FROM `tb_topic` a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT max(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT max(b.`Id`) 
+    FROM `tb_topic` b), 0) as6, ifnull((SELECT max(b.`CreateTime`) 
+    FROM `tb_topic` b), '0001-01-01 00:00:00.000') as7 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]
@@ -1001,8 +1007,8 @@ FROM `tb_topic` a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT avg(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT avg(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -1019,6 +1025,14 @@ FROM `tb_topic` a
 WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title` 
     FROM `tb_topic` b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
+FROM `tb_topic` a 
+WHERE (((cast(a.`Id` as char)) in ( SELECT * FROM (SELECT b.`Title` 
+    FROM `tb_topic` b 
+    limit 0,10) ftblmt50 )))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()
@@ -1158,7 +1172,7 @@ FROM ( SELECT max(a.`Id`) `TaskId`, max(a.`Type`) `TaskType`, a.`ProcessId`, a.`
     WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
     GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName` ) a 
 LEFT JOIN `WF_ProcessInstance` b ON b.`Id` = a.`ProcessId` 
-WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
+WHERE ((b.`IsFinished` = 1 OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
 
             var grouplist12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
                .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)
@@ -1873,7 +1887,7 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
             var fsql = g.mysql;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

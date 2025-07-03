@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,12 +11,156 @@ namespace FreeSql.Tests.MySql
 {
     public class MySqlCodeFirstTest
     {
+
+        [Fact]
+        public void DateOnlyTimeOnly()
+        {
+            var fsql = g.mysql;
+
+            var item = new test_DateOnlyTimeOnly01 { testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now) };
+            item.Id = (int)fsql.Insert(item).ExecuteIdentity();
+
+            var newitem = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item.Id).ToOne();
+
+            var now = DateTime.Parse("2024-8-20 23:00:11");
+            var item2 = new test_DateOnlyTimeOnly01
+            {
+                testFieldDateTime = now,
+                testFieldDateTimeNullable = now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(now),
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(now.AddDays(-1)),
+
+                testFieldTimeSpan = TimeSpan.FromHours(16),
+                testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
+                testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
+                testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
+            };
+
+            var sqlPar = fsql.Insert(item2).ToSql();
+            var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
+            Assert.Equal(sqlText, "INSERT INTO `test_DateOnlyTimeOnly01`(`testFieldTimeSpan`, `testFieldTimeOnly`, `testFieldDateTime`, `testFieldDateOnly`, `testFieldTimeSpanNullable`, `testFieldTimeOnlyNullable`, `testFieldDateTimeNullable`, `testFieldDateOnlyNullable`) VALUES('16:0:0', '11:0:0', now(3), '2024-08-20', '0:1:30', '0:1:30', now(3), '2024-08-19')");
+            item2.Id = (int)fsql.Insert(item2).NoneParameter().ExecuteIdentity();
+            var item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            item2.Id = (int)fsql.Insert(item2).ExecuteIdentity();
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
+            var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();
+        }
+        class test_DateOnlyTimeOnly01
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public TimeSpan testFieldTimeSpan { get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime testFieldDateTime { get; set; }
+            public DateOnly testFieldDateOnly { get; set; }
+
+            public TimeSpan? testFieldTimeSpanNullable { get; set; }
+            public TimeOnly? testFieldTimeOnlyNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime? testFieldDateTimeNullable { get; set; }
+            public DateOnly? testFieldDateOnlyNullable { get; set; }
+        }
+
+        [Fact]
+        public void Test_Bool01()
+        {
+            var fsql = g.mysql;
+            var dt = fsql.Insert(
+                new[] {
+                    new test_bool01 { id = Guid.NewGuid(), isdeleted = true},
+                    new test_bool01 { id = Guid.NewGuid(), isdeleted = false},
+                }).ToDataTable();
+        }
+
+        class test_bool01
+        {
+            public Guid id { get; set; }
+            public bool isdeleted { get; set; }
+        }
+
+        [Fact]
+        public void Test_0String()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<test_0string01>().Where("1=1").ExecuteAffrows();
+
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).ExecuteAffrows());
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).NoneParameter().ExecuteAffrows());
+
+            var list = fsql.Select<test_0string01>().ToList();
+            Assert.Equal(2, list.Count);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[0].name);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[1].name);
+        }
+        class test_0string01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+
+        public enum EnumTest009
+        {
+            A, B, C
+        }
+
+        [Flags]
+        public enum SetTest009
+        {
+            A = 1, B = 2, C = 4
+        }
+
+        public class TestTable009
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+
+            public EnumTest009 ColEnumTest { get; set; }
+
+            public SetTest009 ColSetTest { get; set; }
+        }
+
+        [Fact]
+        public void TestEnumToSet009()
+        {
+            var fsql = g.mysql;
+            //æ’å…¥
+            //insert into TestTable(ColEnumTest,ColSetTest) values('B','A,B');
+            //insert into TestTable(ColEnumTest,ColSetTest) values(1,3);
+            var sql1 = fsql.Insert<TestTable009>().NoneParameter().AppendData(new TestTable009
+            {
+                ColEnumTest = EnumTest009.B,
+                ColSetTest = SetTest009.A | SetTest009.B
+            }).ToSql();
+            Assert.Equal("INSERT INTO `TestTable009`(`ColEnumTest`, `ColSetTest`) VALUES('B', 'A,B')", sql1);
+
+            //æŸ¥è¯¢ æ‰©å±•æ–¹æ³• contains
+            //select * from TestTable t where FIND_IN_SET('A',t.ColSetTest)>0
+            //select * from TestTable t where t.ColSetTest&1
+            var sql2 = fsql.Select<TestTable009>().Where(i => (i.ColSetTest & SetTest009.A) == SetTest009.A).ToSql();
+            var sql3 = fsql.Select<TestTable009>().Where(i => (i.ColSetTest & SetTest009.C) == SetTest009.C).ToSql();
+        }
+
+
         [Fact]
         public void InsertUpdateParameter()
         {
             var fsql = g.mysql;
             fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
-            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "ÎÒÊÇÖĞ¹úÈË")) };
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº")) };
             Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
             var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -205,7 +349,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void Text_StringLength_1()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 1000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 1000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT02 { Data = str1 };
             Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
@@ -227,7 +371,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void Text()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 1000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 1000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT01 { Data = str1 };
             Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
@@ -249,7 +393,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void Text_StringLength_2()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT04 { Data = str1 };
             Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
@@ -271,7 +415,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void Text_MaxLength_2()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT041 { Data = str1 };
             Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
@@ -293,7 +437,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void LongText()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT03 { Data = str1 };
             Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
@@ -315,7 +459,7 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void Blob()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
             var data1 = Encoding.UTF8.GetBytes(str1);
 
             var item1 = new TS_BLB01 { Data = data1 };
@@ -361,7 +505,7 @@ namespace FreeSql.Tests.MySql
         }
 
         [Fact]
-        public void ±íÃûÖĞÓĞµã()
+        public void è¡¨åä¸­æœ‰ç‚¹()
         {
             var item = new tbdot01 { name = "insert" };
             g.mysql.Insert(item).ExecuteAffrows();
@@ -389,59 +533,59 @@ namespace FreeSql.Tests.MySql
         }
 
         [Fact]
-        public void ÖĞÎÄ±í_×Ö¶Î()
+        public void ä¸­æ–‡è¡¨_å­—æ®µ()
         {
-            var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<²âÊÔÖĞÎÄ±í2>();
-            g.mysql.CodeFirst.SyncStructure<²âÊÔÖĞÎÄ±í2>();
+            var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<æµ‹è¯•ä¸­æ–‡è¡¨2>();
+            g.mysql.CodeFirst.SyncStructure<æµ‹è¯•ä¸­æ–‡è¡¨2>();
 
-            var item = ²âÊÔÖĞÎÄ±í2.Create("²âÊÔ±êÌâ", DateTime.Now);
-            Assert.Equal(1, g.mysql.Insert<²âÊÔÖĞÎÄ±í2>().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±àºÅ);
-            var item2 = g.mysql.Select<²âÊÔÖĞÎÄ±í2>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            var item = æµ‹è¯•ä¸­æ–‡è¡¨2.Create("æµ‹è¯•æ ‡é¢˜", DateTime.Now);
+            Assert.Equal(1, g.mysql.Insert<æµ‹è¯•ä¸­æ–‡è¡¨2>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ç¼–å·);
+            var item2 = g.mysql.Select<æµ‹è¯•ä¸­æ–‡è¡¨2>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ22 = "²âÊÔ±êÌâ¸üĞÂ";
-            Assert.Equal(1, g.mysql.Update<²âÊÔÖĞÎÄ±í2>().SetSource(item).ExecuteAffrows());
-            item2 = g.mysql.Select<²âÊÔÖĞÎÄ±í2>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item.æ ‡é¢˜22 = "æµ‹è¯•æ ‡é¢˜æ›´æ–°";
+            Assert.Equal(1, g.mysql.Update<æµ‹è¯•ä¸­æ–‡è¡¨2>().SetSource(item).ExecuteAffrows());
+            item2 = g.mysql.Select<æµ‹è¯•ä¸­æ–‡è¡¨2>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ22, item2.±êÌâ22);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜22, item2.æ ‡é¢˜22);
 
-            item.±êÌâ22 = "²âÊÔ±êÌâ¸üĞÂ_repo";
-            var repo = g.mysql.GetRepository<²âÊÔÖĞÎÄ±í2>();
+            item.æ ‡é¢˜22 = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo";
+            var repo = g.mysql.GetRepository<æµ‹è¯•ä¸­æ–‡è¡¨2>();
             Assert.Equal(1, repo.Update(item));
-            item2 = g.mysql.Select<²âÊÔÖĞÎÄ±í2>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.mysql.Select<æµ‹è¯•ä¸­æ–‡è¡¨2>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ22, item2.±êÌâ22);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜22, item2.æ ‡é¢˜22);
 
-            item.±êÌâ22 = "²âÊÔ±êÌâ¸üĞÂ_repo22";
+            item.æ ‡é¢˜22 = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.mysql.Select<²âÊÔÖĞÎÄ±í2>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.mysql.Select<æµ‹è¯•ä¸­æ–‡è¡¨2>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ22, item2.±êÌâ22);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜22, item2.æ ‡é¢˜22);
         }
-        class ²âÊÔÖĞÎÄ±í2
+        class æµ‹è¯•ä¸­æ–‡è¡¨2
         {
             [Column(IsPrimary = true)]
-            public Guid ±àºÅ { get; protected set; }
+            public Guid ç¼–å· { get; protected set; }
 
-            public string ±êÌâ { get; protected set; }
+            public string æ ‡é¢˜ { get; protected set; }
 
-            public string ±êÌâ22 { get; set; }
+            public string æ ‡é¢˜22 { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
-            public DateTime ´´½¨Ê±¼ä { get; protected set; }
+            public DateTime åˆ›å»ºæ—¶é—´ { get; protected set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
-            public DateTime ¸üĞÂÊ±¼ä { get; set; }
+            public DateTime æ›´æ–°æ—¶é—´ { get; set; }
 
-            public static ²âÊÔÖĞÎÄ±í2 Create(string title, DateTime ctm)
+            public static æµ‹è¯•ä¸­æ–‡è¡¨2 Create(string title, DateTime ctm)
             {
-                return new ²âÊÔÖĞÎÄ±í2 { ±êÌâ = title, ±êÌâ22 = title, ´´½¨Ê±¼ä = ctm };
+                return new æµ‹è¯•ä¸­æ–‡è¡¨2 { æ ‡é¢˜ = title, æ ‡é¢˜22 = title, åˆ›å»ºæ—¶é—´ = ctm };
             }
         }
 
@@ -494,7 +638,7 @@ namespace FreeSql.Tests.MySql
         {
 
             var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            Assert.True(string.IsNullOrEmpty(sql)); //²âÊÔÔËĞĞÁ½´Îºó
+            Assert.True(string.IsNullOrEmpty(sql)); //æµ‹è¯•è¿è¡Œä¸¤æ¬¡å
             sql = g.mysql.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
         }
 
@@ -515,7 +659,7 @@ namespace FreeSql.Tests.MySql
                 testFieldBoolNullable = true,
                 testFieldByte = 255,
                 testFieldByteNullable = 127,
-                testFieldBytes = Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"),
+                testFieldBytes = Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"),
                 testFieldDateTime = DateTime.Now,
                 testFieldDateTimeNullable = DateTime.Now.AddHours(-1),
                 testFieldDecimal = 99.99M,
@@ -559,7 +703,7 @@ namespace FreeSql.Tests.MySql
                 testFieldSByteNullable = 99,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "ÎÒÊÇÖĞ¹úÈËstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldString = "æˆ‘æ˜¯ä¸­å›½äººstring'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldChar = 'X',
                 testFieldTimeSpan = TimeSpan.FromSeconds(999),
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(60),
@@ -788,7 +932,7 @@ namespace FreeSql.Tests.MySql
             }
 
             /// <summary>
-            /// ±£´æ»òÌí¼Ó£¬Èç¹ûÖ÷¼üÓĞÖµÔò³¢ÊÔ Update£¬Èç¹ûÓ°ÏìµÄĞĞÎª 0 Ôò³¢ÊÔ Insert
+            /// ä¿å­˜æˆ–æ·»åŠ ï¼Œå¦‚æœä¸»é”®æœ‰å€¼åˆ™å°è¯• Updateï¼Œå¦‚æœå½±å“çš„è¡Œä¸º 0 åˆ™å°è¯• Insert
             /// </summary>
             public void Save()
             {

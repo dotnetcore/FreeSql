@@ -1,5 +1,6 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
+using System.Data.OleDb;
 using Xunit;
 
 namespace FreeSql.Tests.MsAccess
@@ -10,6 +11,14 @@ namespace FreeSql.Tests.MsAccess
         public void Pool()
         {
             var t1 = g.msaccess.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=d:/accdb/2007.accdb;max pool size=51";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.MsAccess, () => new OleDbConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]

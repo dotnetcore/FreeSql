@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,119 @@ namespace FreeSql.Tests.MySqlExpression
         public OtherTest()
         {
 
+        }
+
+        [Fact]
+        public void BitEnum()
+        {
+            var fsql = g.mysql;
+            var sql1 = fsql.Select<BitEnum01>().Where(a => a.enum1 == TableAllTypeEnumType1.e5).ToSql();
+            var enum1 = TableAllTypeEnumType1.e5;
+            var sql2 = fsql.Select<BitEnum01>().Where(a => a.enum1 == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`enum1` = 'e5')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.enum2 == TableAllTypeEnumType1.e5).ToSql();
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.enum2 == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`enum2` = 3)", sql1);
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.enum1 & TableAllTypeEnumType1.e2) == TableAllTypeEnumType1.e2).ToSql();
+            enum1 = TableAllTypeEnumType1.e2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.enum1 & enum1) == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`enum1` & 'e2') = 'e2')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.enum2 & TableAllTypeEnumType1.e2) == TableAllTypeEnumType1.e2).ToSql();
+            enum1 = TableAllTypeEnumType1.e2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.enum2 & enum1) == enum1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`enum2` & 1) = 1)", sql1);
+
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.set1 == TableAllTypeEnumType2.f3).ToSql();
+            var set1 = TableAllTypeEnumType2.f3;
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.set1 == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`set1` = 'f3')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => a.set2 == TableAllTypeEnumType2.f3).ToSql();
+            sql2 = fsql.Select<BitEnum01>().Where(a => a.set2 == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE (a.`set2` = 2)", sql1);
+
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.set1 & TableAllTypeEnumType2.f2) == TableAllTypeEnumType2.f2).ToSql();
+            set1 = TableAllTypeEnumType2.f2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.set1 & set1) == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`set1` & 'f2') = 'f2')", sql1);
+            sql1 = fsql.Select<BitEnum01>().Where(a => (a.set2 & TableAllTypeEnumType2.f2) == TableAllTypeEnumType2.f2).ToSql();
+            set1 = TableAllTypeEnumType2.f2;
+            sql2 = fsql.Select<BitEnum01>().Where(a => (a.set2 & set1) == set1).ToSql();
+            Assert.Equal(sql1, sql2);
+            Assert.Equal(@"SELECT a.`id`, a.`enum1`, a.`enum2`, a.`set1`, a.`set2` 
+FROM `BitEnum01` a 
+WHERE ((a.`set2` & 1) = 1)", sql1);
+        }
+        class BitEnum01
+        {
+            public int id { get; set; }
+            public TableAllTypeEnumType1 enum1 { get; set; }
+            [Column(MapType = typeof(int))]
+            public TableAllTypeEnumType1 enum2 { get; set; }
+            public TableAllTypeEnumType2 set1 { get; set; }
+            [Column(MapType = typeof(long))]
+            public TableAllTypeEnumType2 set2 { get; set; }
+        }
+
+        [Fact]
+        public void ArrayAnyOr()
+        {
+            var arr = new int[] { 1, 3, 8 };
+            var t1 = select.Where(a => arr.Any(x => a.testFieldInt == x)).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE ((a.`testFieldInt` = 1 OR a.`testFieldInt` = 3 OR a.`testFieldInt` = 8))", t1);
+            var t2 = select.Where(a => a.Id == 100 && arr.Any(x => a.testFieldInt == x)).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE (a.`Id` = 100 AND (a.`testFieldInt` = 1 OR a.`testFieldInt` = 3 OR a.`testFieldInt` = 8))", t2);
+            var t3 = select.Where(a => arr.Any(x => a.testFieldInt == x) && a.Id == 101).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE ((a.`testFieldInt` = 1 OR a.`testFieldInt` = 3 OR a.`testFieldInt` = 8) AND a.`Id` = 101)", t3);
+            var t4 = select.Where(a => a.Id == 100 && arr.Any(x => a.testFieldInt == x) && a.Id == 101).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE (a.`Id` = 100 AND (a.`testFieldInt` = 1 OR a.`testFieldInt` = 3 OR a.`testFieldInt` = 8) AND a.`Id` = 101)", t4);
+
+            var t11 = select.Where(a => arr.Any(x => a.testFieldInt == x && a.testFieldLong > x)).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE ((a.`testFieldInt` = 1 AND a.`testFieldLong` > 1 OR a.`testFieldInt` = 3 AND a.`testFieldLong` > 3 OR a.`testFieldInt` = 8 AND a.`testFieldLong` > 8))", t11);
+            var t22 = select.Where(a => a.Id == 100 && arr.Any(x => a.testFieldInt == x && a.testFieldLong > x)).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE (a.`Id` = 100 AND (a.`testFieldInt` = 1 AND a.`testFieldLong` > 1 OR a.`testFieldInt` = 3 AND a.`testFieldLong` > 3 OR a.`testFieldInt` = 8 AND a.`testFieldLong` > 8))", t22);
+            var t33 = select.Where(a => arr.Any(x => a.testFieldInt == x && a.testFieldLong > x) && a.Id == 101).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE ((a.`testFieldInt` = 1 AND a.`testFieldLong` > 1 OR a.`testFieldInt` = 3 AND a.`testFieldLong` > 3 OR a.`testFieldInt` = 8 AND a.`testFieldLong` > 8) AND a.`Id` = 101)", t33);
+            var t44 = select.Where(a => a.Id == 100 && arr.Any(x => a.testFieldInt == x && a.testFieldLong > x) && a.Id == 101).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`testFieldBool`, a.`testFieldSByte`, a.`testFieldShort`, a.`testFieldInt`, a.`testFieldLong`, a.`testFieldByte`, a.`testFieldUShort`, a.`testFieldUInt`, a.`testFieldULong`, a.`testFieldDouble`, a.`testFieldFloat`, a.`testFieldDecimal`, a.`testFieldTimeSpan`, a.`testFieldDateTime`, a.`testFieldBytes`, a.`testFieldString`, a.`testFieldGuid`, a.`testFieldBoolNullable`, a.`testFieldSByteNullable`, a.`testFieldShortNullable`, a.`testFieldIntNullable`, a.`testFielLongNullable`, a.`testFieldByteNullable`, a.`testFieldUShortNullable`, a.`testFieldUIntNullable`, a.`testFieldULongNullable`, a.`testFieldDoubleNullable`, a.`testFieldFloatNullable`, a.`testFieldDecimalNullable`, a.`testFieldTimeSpanNullable`, a.`testFieldDateTimeNullable`, a.`testFieldGuidNullable`, ST_AsText(a.`testFieldPoint`) `testFieldPoint`, ST_AsText(a.`testFieldLineString`) `testFieldLineString`, ST_AsText(a.`testFieldPolygon`) `testFieldPolygon`, ST_AsText(a.`testFieldMultiPoint`) `testFieldMultiPoint`, ST_AsText(a.`testFieldMultiLineString`) `testFieldMultiLineString`, ST_AsText(a.`testFieldMultiPolygon`) `testFieldMultiPolygon`, a.`testFieldEnum1`, a.`testFieldEnum1Nullable`, a.`testFieldEnum2`, a.`testFieldEnum2Nullable` 
+FROM `tb_alltype` a 
+WHERE (a.`Id` = 100 AND (a.`testFieldInt` = 1 AND a.`testFieldLong` > 1 OR a.`testFieldInt` = 3 AND a.`testFieldLong` > 3 OR a.`testFieldInt` = 8 AND a.`testFieldLong` > 8) AND a.`Id` = 101)", t44);
         }
 
         [Fact]

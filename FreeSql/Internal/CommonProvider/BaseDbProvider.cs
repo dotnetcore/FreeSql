@@ -16,10 +16,27 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1> Select<T1>() where T1 : class => CreateSelectProvider<T1>(null);
         public ISelect<T1> Select<T1>(object dywhere) where T1 : class => CreateSelectProvider<T1>(dywhere);
         public IInsert<T1> Insert<T1>() where T1 : class => CreateInsertProvider<T1>();
-        public IInsert<T1> Insert<T1>(T1 source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
+        public IInsert<T1> Insert<T1>(T1 source) where T1 : class
+        {
+            if (typeof(T1) == typeof(Dictionary<string, object>)) throw new Exception(CoreErrorStrings.Use_InsertDict_Method);
+            return this.Insert<T1>().AppendData(source);
+        }
+        public IInsert<T1> Insert<T1>(T1[] source) where T1 : class
+        {
+            if (typeof(T1) == typeof(Dictionary<string, object>)) throw new Exception(CoreErrorStrings.Use_InsertDict_Method);
+            return this.Insert<T1>().AppendData(source);
+        }
+        public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class
+        {
+
+            if (typeof(T1) == typeof(Dictionary<string, object>)) throw new Exception(CoreErrorStrings.Use_InsertDict_Method);
+            return this.Insert<T1>().AppendData(source);
+        }
+        public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class
+        {
+            if (typeof(T1) == typeof(Dictionary<string, object>)) throw new Exception(CoreErrorStrings.Use_InsertDict_Method);
+            return this.Insert<T1>().AppendData(source);
+        }
         public IUpdate<T1> Update<T1>() where T1 : class => CreateUpdateProvider<T1>(null);
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => CreateUpdateProvider<T1>(dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => CreateDeleteProvider<T1>(null);

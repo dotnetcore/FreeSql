@@ -37,17 +37,6 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.DbContext.SaveMany``1(``0,System.String)">
-            <summary>
-            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-            </summary>
-            <param name="data">实体对象</param>
-            <param name="propertyName">属性名</param>
-        </member>
         <member name="M:FreeSql.DbContext.Attach``1(``0)">
             <summary>
             附加实体，可用于不查询就更新或删除
@@ -62,9 +51,21 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbContext.CompareState``1(``0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns>key: 属性名, value: [旧值, 新值]</returns>
+        </member>
         <member name="P:FreeSql.DbContext.EntityChangeReport.ChangeInfo.BeforeObject">
             <summary>
             Type = Update 的时候，获取更新之前的对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContext.EntityChangeReport.ChangeInfo.EntityType">
+            <summary>
+            实体类型
             </summary>
         </member>
         <member name="P:FreeSql.DbContext.EntityChangeReport.Report">
@@ -82,17 +83,229 @@
             刷新队列中的命令
             </summary>
         </member>
-        <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
+        <member name="M:FreeSql.DbContextErrorStrings.AddFreeDbContextError_CheckConstruction(System.Object)">
             <summary>
-            是否开启一对多，多对多级联保存功能<para></para>
+            AddFreeDbContext 发生错误，请检查 {dbContextTypeName} 的构造参数都已正确注入
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAdd_AlreadyExistsInStateManagement(System.Object)">
+            <summary>
+            不可添加，已存在于状态管理：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAdd_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可添加，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAdd_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            不可添加，未设置主键的值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAdd_SelfIncreasingHasValue(System.Object)">
+            <summary>
+            不可添加，自增属性有值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAttach_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可附加，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotAttach_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            不可附加，未设置主键的值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotDelete_DataNotTracked_ShouldQuery(System.Object)">
+            <summary>
+            不可删除，数据未被跟踪，应该先查询：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotDelete_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可删除，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotDelete_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            不可删除，未设置主键的值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotEdit_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可进行编辑，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotUpdate_DataShouldQueryOrAttach(System.Object)">
+            <summary>
+            不可更新，数据未被跟踪，应该先查询 或者 Attach：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotUpdate_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可更新，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotUpdate_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            不可更新，未设置主键的值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.CannotUpdate_RecordDoesNotExist(System.Object)">
+            <summary>
+            不可更新，数据库不存在该记录：{entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.ConfigureUseFreeSql">
+            <summary>
+            请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.DbSetAsType_NotSupport_Object">
+            <summary>
+            DbSet.AsType 参数错误，请传入正确的实体类型
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.EntityType_CannotConvert(System.Object,System.Object)">
+            <summary>
+            实体类型 {EntityTypeName} 无法转换为 {name}，无法使用该方法
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.EntityType_PrimaryKeyError(System.Object,System.Object)">
+            <summary>
+            实体类型 {EntityTypeName} 主键类型不为 {fullName}，无法使用该方法
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.EntityType_PrimaryKeyIsNotOne(System.Object)">
+            <summary>
+            实体类型 {EntityTypeName} 主键数量不为 1，无法使用该方法
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.FailedSetFilter_NotBelongIRpository">
+            <summary>
+            FreeSql.Repository 设置过滤器失败，原因是对象不属于 IRepository
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.Incomparable_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            不可比较，实体没有主键：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.Incomparable_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            不可比较，未设置主键的值：{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.InsertError_Filter(System.Object,System.Object,System.Object)">
+            <summary>
+            FreeSql.Repository Insert 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，插入的数据不符合 {entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.ISelectAsType_ParameterError">
+            <summary>
+            ISelect.AsType 参数不支持指定为 object
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.NotFound_Property(System.Object,System.Object)">
+            <summary>
+            {tableTypeFullName} 不存在属性 {propertyName}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.NotFoundMethod_StatesRemoveByObjects">
+            <summary>
+            找不到方法 DbSet&amp;lt;&amp;gt;.StatesRemoveByObjects
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterDataTypeError(System.Object)">
+            <summary>
+            参数 data 类型错误 {entityTypeFullName} 
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterError(System.Object)">
+            <summary>
+            参数错误 {param}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterError_CannotBeNull(System.Object)">
+            <summary>
+            参数错误 {param} 不能为 null
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterError_IsNot_CollectionProperties(System.Object)">
+            <summary>
+            参数错误 {many} 不是集合属性
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterError_NotFound_CollectionProperties(System.Object)">
+            <summary>
+            参数错误 {many} 集合属性不存在
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.ParameterError_NotFound_Property(System.Object)">
+            <summary>
+            参数错误 {one} 属性不存在
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.Propagation_Mandatory">
+            <summary>
+            Propagation_Mandatory: 使用当前事务，如果没有当前事务，就抛出异常
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.Propagation_Never">
+            <summary>
+            Propagation_Never: 以非事务方式执行操作，如果当前事务存在则抛出异常
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(System.Object,System.Object)">
+            <summary>
+            {tableTypeFullName} 类型的属性 {propertyName} 不是 OneToMany 或 ManyToMany 特性
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.SpecialError_BatchAdditionFailed(System.Object)">
+            <summary>
+            特别错误：批量添加失败，{dataType} 的返回数据，与添加的数目不匹配
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.SpecialError_UpdateFailedDataNotTracked(System.Object)">
+            <summary>
+            特别错误：更新失败，数据未被跟踪：{entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextErrorStrings.TransactionHasBeenStarted">
+            <summary>
+            已开启事务，不能禁用工作单元
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.TypeHasSetProperty_IgnoreAttribute(System.Object,System.Object)">
+            <summary>
+            {tableTypeFullName} 类型已设置属性 {propertyName} 忽略特性
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.UnitOfWorkManager_Construction_CannotBeNull(System.Object,System.Object)">
+            <summary>
+            {unitOfWorkManager} 构造参数 {fsql} 不能为 null
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextErrorStrings.UpdateError_Filter(System.Object,System.Object,System.Object)">
+            <summary>
+            FreeSql.Repository Update 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，更新的数据不符合{entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextOptions.EnableCascadeSave">
+            <summary>
+            是否开启 一对一(OneToOne)、一对多(OneToMany)、多对多(ManyToMany) 级联保存功能<para></para>
             <para></para>
-            【一对多】模型下， 保存时可级联保存实体的属性集合。出于使用安全考虑我们没做完整对比，只实现实体属性集合的添加或更新操作，所以不会删除实体属性集合的数据。<para></para>
+            【一对一】模型下，保存时级联保存 OneToOne 属性。
+            <para></para>
+            【一对多】模型下，保存时级联保存 OneToMany 集合属性。出于安全考虑我们没做完整对比，只针对实体属性集合的添加或更新操作，因此不会删除数据库表已有的数据。<para></para>
             完整对比的功能使用起来太危险，试想下面的场景：<para></para>
-            - 保存的时候，实体的属性集合是空的，如何操作？记录全部删除？<para></para>
-            - 保存的时候，由于数据库中记录非常之多，那么只想保存子表的部分数据，或者只需要添加，如何操作？<para></para>
+            - 保存的时候，实体的属性集合为空时(!=null)，表记录全部删除？<para></para>
+            - 保存的时候，由于数据库子表的记录很多，只想保存子表的部分数据，又或者只需要添加，如何操作？
             <para></para>
-            【多对多】模型下，我们对中间表的保存是完整对比操作，对外部实体的操作只作新增（*注意不会更新）<para></para>
-            - 属性集合为空时，删除他们的所有关联数据（中间表）<para></para>
+            【多对多】模型下，对中间表的保存是完整对比操作，对外部实体的只作新增操作（*注意不会更新）<para></para>
+            - 属性集合为空时(!=null)，删除他们的所有关联数据（中间表）<para></para>
             - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
             </summary>
         </member>
@@ -109,6 +322,26 @@
         <member name="P:FreeSql.DbContextOptions.OnEntityChange">
             <summary>
             实体变化事件
+            </summary>
+        </member>
+        <member name="F:FreeSql.DbContextOptions.AuditValue">
+            <summary>
+            DbContext/Repository 审计值，适合 Scoped IOC 中获取登陆信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.AuditValueType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.EntityType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextAuditValueEventArgs.Object">
+            <summary>
+            实体对象
             </summary>
         </member>
         <member name="M:FreeSql.DbSet`1.AsType(System.Type)">
@@ -130,6 +363,13 @@
             </summary>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbSet`1.CompareState(`0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns>key: 属性名, value: [旧值, 新值]</returns>
+        </member>
         <member name="M:FreeSql.DbSet`1.FlushState">
             <summary>
             清空状态数据
@@ -140,17 +380,6 @@
             添加
             </summary>
             <param name="data"></param>
-        </member>
-        <member name="M:FreeSql.DbSet`1.SaveMany(`0,System.String)">
-            <summary>
-            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-            </summary>
-            <param name="item">实体对象</param>
-            <param name="propertyName">属性名</param>
         </member>
         <member name="M:FreeSql.DbSet`1.Update(`0)">
             <summary>
@@ -195,6 +424,24 @@
             <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.DbSet`1.RemoveCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DbSet`1.SaveMany(`0,System.String)">
+            <summary>
+            保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
+            场景：在关闭级联保存功能之后，手工使用本方法<para></para>
+            例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
+            当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
+            当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
+            </summary>
+            <param name="item">实体对象</param>
+            <param name="propertyName">属性名</param>
+        </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreColumnFluent.Help">
             <summary>
             使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
@@ -209,7 +456,7 @@
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent.HasData(System.Collections.Generic.IEnumerable{System.Object})">
             <summary>
-            使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
+            使用 Repository + EnableCascadeSave + NoneParameter 方式插入种子数据
             </summary>
             <param name="data"></param>
             <returns></returns>
@@ -222,58 +469,39 @@
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent`1.HasData(System.Collections.Generic.IEnumerable{`0})">
             <summary>
-            使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
+            使用 Repository + EnableCascadeSave + NoneParameter 方式插入种子数据
             </summary>
             <param name="data"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``2(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
-            <summary>
-            在工作单元内创建默认仓库类，工作单元下的仓储操作具有事务特点
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="TKey"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1">
             <summary>
             在工作单元内创建联合主键的仓储类，工作单元下的仓储操作具有事务特点
             </summary>
             <typeparam name="TEntity"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IRepositoryUnitOfWork.GetGuidRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
-            <summary>
-            在工作单元内创建仓库类，工作单元下的仓储操作具有事务特点
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="filter">数据过滤 + 验证</param>
-            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDataFilter`1.Enable(System.String[])">
+        <member name="M:FreeSql.RepositoryDataFilter.Disable(System.String[])">
             <summary>
             开启过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <param name="filterName">过滤器名称</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.EnableAll">
+        <member name="M:FreeSql.RepositoryDataFilter.DisableAll">
             <summary>
             开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.Disable(System.String[])">
+        <member name="M:FreeSql.RepositoryDataFilter.Enable(System.String[])">
             <summary>
             禁用过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
             <param name="filterName"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDataFilter`1.DisableAll">
+        <member name="M:FreeSql.RepositoryDataFilter.EnableAll">
             <summary>
             禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
             </summary>
@@ -292,9 +520,20 @@
             </summary>
             <param name="rule"></param>
         </member>
+        <member name="M:FreeSql.IBaseRepository.AsTable(System.Func{System.Type,System.String,System.String})">
+            <summary>
+            分表规则，参数：实体类型、旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository
+            </summary>
+            <param name="rule"></param>
+        </member>
         <member name="P:FreeSql.IBaseRepository.DbContextOptions">
             <summary>
             设置 DbContext 选项
+            </summary>
+        </member>
+        <member name="P:FreeSql.IBaseRepository.DataFilter">
+            <summary>
+            GlobalFilter 禁用/启用控制
             </summary>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.FlushState">
@@ -313,6 +552,20 @@
             附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.CompareState(`0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns>key: 属性名, value: [旧值, 新值]</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.DeleteCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.SaveMany(`0,System.String)">
             <summary>
@@ -365,6 +618,11 @@
             工作单元内的实体变化跟踪
             </summary>
         </member>
+        <member name="P:FreeSql.IUnitOfWork.States">
+            <summary>
+            用户自定义的状态数据，便于扩展
+            </summary>
+        </member>
         <member name="P:FreeSql.UnitOfWork.DebugBeingUsed">
             <summary>
             正在使用中的工作单元（调试）
@@ -392,6 +650,12 @@
             将仓储的事务交给我管理
             </summary>
             <param name="repository"></param>
+        </member>
+        <member name="M:FreeSql.UnitOfWorkManager.Binding(FreeSql.DbContext)">
+            <summary>
+            将DbContext的事务交给我管理
+            </summary>
+            <param name="dbContext"></param>
         </member>
         <member name="M:FreeSql.UnitOfWorkManager.Begin(FreeSql.Propagation,System.Nullable{System.Data.IsolationLevel})">
             <summary>
@@ -454,6 +718,15 @@
             <param name="modelBuilder"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlDbContextExtensions.ApplyConfigurationsFromAssembly(FreeSql.ICodeFirst,System.Reflection.Assembly,System.Func{System.Type,System.Boolean})">
+            <summary>
+            根据Assembly扫描所有继承IEntityTypeConfiguration&lt;T&gt;的配置类
+            </summary>
+            <param name="codeFirst"></param>
+            <param name="assembly"></param>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">
             <summary>
             创建普通数据上下文档对象
@@ -476,40 +749,27 @@
             <param name="that"></param>
             <param name="options"></param>
         </member>
-        <member name="M:FreeSqlDbContextExtensions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
-            <summary>
-            返回默认仓库类
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="TKey"></typeparam>
-            <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlDbContextExtensions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlDbContextExtensions.GetRepository``1(IFreeSql)">
             <summary>
             返回默认仓库类，适用联合主键的仓储类
             </summary>
             <typeparam name="TEntity"></typeparam>
             <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlDbContextExtensions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
-            <summary>
-            返回仓库类
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="that"></param>
-            <param name="filter">数据过滤 + 验证</param>
-            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
-            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            创建基于工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

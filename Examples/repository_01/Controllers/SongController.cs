@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace restful.Controllers
 {
 
-    public class SongRepository : GuidRepository<Song>
+    public class SongRepository : BaseRepository<Song>
     {
         public SongRepository(IFreeSql fsql) : base(fsql)
         {
@@ -43,11 +43,11 @@ namespace restful.Controllers
             Console.Write(reposTest.Select.ToSql());
 
             _songRepository = repos4;
+
             //test code
             var curd1 = fsql.GetRepository<Song, int>();
             var curd2 = fsql.GetRepository<Song, string>();
             var curd3 = fsql.GetRepository<Song, Guid>();
-            var curd4 = fsql.GetGuidRepository<Song>();
 
             Console.WriteLine(reposSong.Select.ToSql());
 

@@ -14,13 +14,14 @@ namespace FreeSql.Extensions.EntityUtil
 
         static readonly MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
         static readonly MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
+        static readonly MethodInfo MethodDecimalToString = typeof(decimal).GetMethod("ToString", new[] { typeof(string) });
         static readonly PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
         static readonly MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
         static readonly MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
 
         static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>>();
         /// <summary>
-        /// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
+        /// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
         /// </summary>
         /// <param name="orm"></param>
         /// <param name="entityType"></param>
@@ -44,6 +45,10 @@ namespace FreeSql.Extensions.EntityUtil
                 var var3IsNull = Expression.Variable(typeof(bool));
                 var exps = new List<Expression>(new Expression[] {
                     Expression.Assign(var1Parm, Expression.TypeAs(parm1, t)),
+                    Expression.IfThen(
+                        Expression.Equal(var1Parm, Expression.Constant(null, t)),
+                        Expression.Return(returnTarget, Expression.Default(typeof(string)))
+                    ),
                     Expression.Assign(var2Sb, Expression.New(typeof(StringBuilder))),
                     Expression.Assign(var3IsNull, Expression.Constant(false))
                 });
@@ -59,11 +64,11 @@ namespace FreeSql.Extensions.EntityUtil
                         if (pks[a].CsType == typeof(Guid?)) newguid = Expression.Convert(newguid, typeof(Guid?));
                         expthen = Expression.Block(
                             new Expression[]{
-                            Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), newguid),
-                            a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                            Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                            )
+                                Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), newguid),
+                                a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+                                Expression.Call(var2Sb, MethodStringBuilderAppend,
+                                    Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+                                )
                             }.Where(c => c != null).ToArray()
                         );
                     }
@@ -82,6 +87,34 @@ namespace FreeSql.Extensions.EntityUtil
                     {
                         expthen = Expression.Assign(var3IsNull, Expression.Constant(true));
                     }
+                    Expression propExp = Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]);
+                    var blockExps = new List<Expression>();
+                    if (a > 0) blockExps.Add(Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)));
+                    if (pks[a].CsType == typeof(decimal))
+                    {
+                        blockExps.Add(
+                            Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(
+                                Expression.Call(propExp, MethodDecimalToString, Expression.Constant("g0", typeof(string)))
+                            , typeof(object)))
+                        );
+                    }
+                    else if (pks[a].CsType == typeof(decimal?))
+                    {
+                        blockExps.Add(
+                            Expression.IfThen(
+                                Expression.NotEqual(propExp, Expression.Default(pks[a].CsType)),
+                                Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(
+                                    Expression.Call(Expression.Convert(propExp, typeof(decimal)), MethodDecimalToString, Expression.Constant("g0", typeof(string)))
+                                , typeof(object)))
+                            )
+                        );
+                    }
+                    else
+                    {
+                        blockExps.Add(
+                            Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Convert(propExp, typeof(object)))
+                        );
+                    }
                     if (pks[a].Attribute.IsIdentity || isguid || pks[a].CsType == typeof(string) || pks[a].CsType.IsNullableType())
                     {
                         exps.Add(
@@ -93,14 +126,7 @@ namespace FreeSql.Extensions.EntityUtil
                                         Expression.IsTrue(parm2),
                                         expthen
                                     ),
-                                    Expression.Block(
-                                        new Expression[]{
-                                            a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                            Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                                Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                            )
-                                        }.Where(c => c != null).ToArray()
-                                    )
+                                    Expression.Block(blockExps.ToArray())
                                 )
                             )
                         );
@@ -110,14 +136,7 @@ namespace FreeSql.Extensions.EntityUtil
                         exps.Add(
                             Expression.IfThen(
                                 Expression.IsFalse(var3IsNull),
-                                Expression.Block(
-                                    new Expression[]{
-                                        a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                        Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                        )
-                                    }.Where(c => c != null).ToArray()
-                                )
+                                Expression.Block(blockExps.ToArray())
                             )
                         );
                     }
@@ -199,12 +218,12 @@ namespace FreeSql.Extensions.EntityUtil
                     var var1Parm = Expression.Variable(entityType);
                     var var2Ret = Expression.Variable(typeof(object));
                     var exps = new List<Expression>(new Expression[] {
-                    Expression.Assign(var1Parm, Expression.TypeAs(parm1, entityType)),
-                    Expression.Assign(
-                        var2Ret,
-                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
-                    )
-                });
+                        Expression.Assign(var1Parm, Expression.TypeAs(parm1, entityType)),
+                        Expression.Assign(
+                            var2Ret,
+                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
+                        )
+                    });
                     exps.AddRange(new Expression[] {
                     Expression.Return(returnTarget, var2Ret),
                     Expression.Label(returnTarget, Expression.Default(typeof(object)))
@@ -227,16 +246,16 @@ namespace FreeSql.Extensions.EntityUtil
                     var var1Parm = Expression.Variable(table.Type);
                     var var2Ret = Expression.Variable(typeof(object));
                     var exps = new List<Expression>(new Expression[] {
-                    Expression.Assign(var1Parm, Expression.TypeAs(parm1, table.Type)),
-                    Expression.Assign(
-                        var2Ret,
-                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
-                    )
-                });
+                        Expression.Assign(var1Parm, Expression.TypeAs(parm1, table.Type)),
+                        Expression.Assign(
+                            var2Ret,
+                            Expression.Convert(Expression.MakeMemberAccess(var1Parm, table.Properties[pn]), typeof(object))
+                        )
+                    });
                     exps.AddRange(new Expression[] {
-                    Expression.Return(returnTarget, var2Ret),
-                    Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                });
+                        Expression.Return(returnTarget, var2Ret),
+                        Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                    });
                     return Expression.Lambda<Func<object, object>>(Expression.Block(new[] { var1Parm, var2Ret }, exps), new[] { parm1 }).Compile();
                 });
             return func(entity);
@@ -311,9 +330,9 @@ namespace FreeSql.Extensions.EntityUtil
                 });
                 foreach (var prop in _table.Properties.Values)
                 {
-                    if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
-                    if (_table.ColumnsByCs.ContainsKey(prop.Name))
+                    if (_table.ColumnsByCs.ContainsKey(prop.Name) || _table.ColumnsByCsIgnore.ContainsKey(prop.Name) && prop.CanWrite)
                     {
+                        //Ignore 也需要 Map https://github.com/luoyunchong/FreeKit/blob/main/src/IGeekFan.FreeKit.Extras/FreeSql/UnitOfWorkAsyncInterceptor.cs
                         exps.Add(
                             Expression.Assign(
                                 Expression.MakeMemberAccess(var2Parm, prop),
@@ -321,15 +340,6 @@ namespace FreeSql.Extensions.EntityUtil
                             )
                         );
                     }
-
-                    //else if (prop.GetSetMethod() != null) {
-                    //	exps.Add(
-                    //		Expression.Assign(
-                    //			Expression.MakeMemberAccess(var2Parm, prop),
-                    //			Expression.Default(prop.PropertyType)
-                    //		)
-                    //	);
-                    //}
                 }
                 return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
             });
@@ -604,7 +614,15 @@ namespace FreeSql.Extensions.EntityUtil
                 exps.Add(Expression.Label(returnTarget, Expression.Constant(new string[0])));
                 return Expression.Lambda<Func<object, object, bool, string[]>>(Expression.Block(new[] { var1Ret, var1Parm, var2Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
             });
-            return func(entity1, entity2, isEqual);
+            var result = func(entity1, entity2, isEqual);
+            var tmptb = orm.CodeFirst.GetTableByEntity(entityType);
+            if (tmptb.ColumnsByCanUpdateDbUpdateValue.Length > 0) {
+                if (isEqual && result.Length + tmptb.ColumnsByCanUpdateDbUpdateValue.Length == tmptb.ColumnsByCs.Count)
+                    return result.Concat(tmptb.ColumnsByCanUpdateDbUpdateValue.Select(a => a.Attribute.Name)).ToArray();
+                if (!isEqual && result.Length == tmptb.ColumnsByCanUpdateDbUpdateValue.Length)
+                    return new string[0];
+            }
+            return result;
         }
 
         static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>();

@@ -1,4 +1,4 @@
-using Npgsql;
+﻿using Npgsql;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -6,7 +6,7 @@ using Xunit;
 namespace FreeSql.Tests.AdoNetExtensions.NpgsqlConnectionExtensions {
 	public class Methods {
 
-		string _connectString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=5";
+		string _connectString = "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=5";
 
 		public Methods() {
 			g.pgsql.CodeFirst.SyncStructure<TestConnectionExt>();

@@ -7,12 +7,24 @@ using System.Threading;
 
 public class g
 {
+    static Lazy<IFreeSql> clickHouseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.ClickHouse, "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=192.168.0.121;Port=8125;Database=PersonnelLocation;Username=root;Password=+riQ8V9D")
+        .UseConnectionString(FreeSql.DataType.ClickHouse, "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=139.9.189.145;Port=1386;Database=default;Username=default;Password=Z2C2B4wR")
+        //.UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
+        .UseMonitorCommand(
+            cmd => Debug.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                                                                                                             //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
+    .UseLazyLoading(true)
+    .Build());
+    public static IFreeSql clickHouse => clickHouseLazy.Value;
 
     static Lazy<IFreeSql> mysqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5;Allow User Variables=True")
-        //.UseConnectionFactory(FreeSql.DataType.MySql, () => new MySql.Data.MySqlClient.MySqlConnection("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;"))
-        //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=192.168.164.10;Port=33061;User ID=root;Password=root;Initial Catalog=cccddd_mysqlconnector;Charset=utf8;SslMode=none;Max pool size=10")
-        .UseAutoSyncStructure(true)
+		//.UseConnectionFactory(FreeSql.DataType.MySql, () => new MySql.Data.MySqlClient.MySqlConnection("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;"))
+		//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=33061;User ID=root;Password=root;Initial Catalog=cccddd_mysqlconnector;Charset=utf8;SslMode=none;Max pool size=10")
+		.UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
@@ -26,9 +38,9 @@ public class g
     {
         NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
         return new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;ArrayNullabilityMode=Always;Pooling=true;Maximum Pool Size=2")
-        //.UseConnectionFactory(FreeSql.DataType.PostgreSQL, () => new Npgsql.NpgsqlConnection("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;"))
-        .UseAutoSyncStructure(true)
+        .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;ArrayNullabilityMode=Always;Pooling=true;Maximum Pool Size=2")
+		//.UseConnectionFactory(FreeSql.DataType.PostgreSQL, () => new Npgsql.NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;"))
+		.UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseLazyLoading(true)
@@ -41,7 +53,7 @@ public class g
     public static IFreeSql pgsql => pgsqlLazy.Value;
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3")
+        .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
@@ -69,6 +81,7 @@ public class g
 
     static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;")
+        //.UseConnectionFactory(FreeSql.DataType.Sqlite, () => new Microsoft.Data.Sqlite.SqliteConnection(@"Data Source=documentCore.db"))
         //.UseConnectionFactory(FreeSql.DataType.Sqlite, () =>
         //{
         //    var conn = new System.Data.SQLite.SQLiteConnection(@"Data Source=|DataDirectory|\document.db;Pooling=true;");
@@ -145,11 +158,11 @@ public class g
     public static IFreeSql shentong => shentongLazy.Value;
 
     static Lazy<IFreeSql> kingbaseESLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.KingbaseES, "Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TDB2")
+        .UseConnectionString(FreeSql.DataType.KingbaseES, "Server=123.57.239.39;Port=54322;UID=system;PWD=123456;database=test;max pool size=4")
         //.UseConnectionFactory(FreeSql.DataType.KingbaseES, () => new Kdbndp.KdbndpConnection("Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TDB2"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
-        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseNoneCommandParameter(true)
 
         .UseMonitorCommand(

@@ -33,7 +33,7 @@ namespace FreeSql.Firebird
                 { typeof(double).FullName, CsToDb.New(FbDbType.Double, "double precision","double precision NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(FbDbType.Double, "double precision", "double precision", false, true, null) },
                 { typeof(decimal).FullName, CsToDb.New(FbDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(FbDbType.Numeric, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(string).FullName, CsToDb.New(FbDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(string).FullName, CsToDb.New(FbDbType.VarChar, "varchar", "varchar(200)", false, null, "") },
 
                 { typeof(TimeSpan).FullName, CsToDb.New(FbDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(FbDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(FbDbType.TimeStamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(FbDbType.TimeStamp, "timestamp", "timestamp", false, true, null) },
@@ -81,16 +81,16 @@ namespace FreeSql.Firebird
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             var sb = new StringBuilder();
 
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
-                var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                var tb = obj.tableSchema;
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = tb.DbName;
                 var tboldname = tb.DbOldName; //旧表名
                 if (string.IsNullOrEmpty(obj.tableName) == false)
@@ -136,7 +136,8 @@ namespace FreeSql.Firebird
                         {
                             sb.Append("CREATE ");
                             if (uk.IsUnique) sb.Append("UNIQUE ");
-                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(createTableName).Append("(");
+                            if (uk.Columns.Any(a => a.IsDesc)) sb.Append("DESC ");
+                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname))).Append(" ON ").Append(createTableName).Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
                                 sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -237,37 +238,54 @@ order by a.rdb$relation_name, a.rdb$field_position", tboldname ?? tbname);
 select
 trim(c.rdb$field_name),
 trim(d.rdb$index_name),
-0,
+coalesce(d.rdb$index_type, 0),
 case when d.rdb$unique_flag = 1 then 1 else 0 end
 from rdb$indices d
 inner join rdb$index_segments c on c.rdb$index_name = d.rdb$index_name
-where d.rdb$index_type = 0 and trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
+where trim(d.rdb$relation_name) = {0}", tboldname ?? tbname);
                 var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                 foreach (var uk in tb.Indexes)
                 {
                     if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                     var ukname = ReplaceIndexName(uk.Name, tbname);
                     var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                    if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                    if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || 
+                        dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Columns.Length ||
+                        dsukfind1.Any(a => a[2] == "1") && !uk.Columns.Any(a => a.IsDesc))
                     {
-                        if (dsukfind1.Any()) sb.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname)).Append(";\r\n");
+                        if (dsukfind1.Any()) sb.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname))
+                                //.Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname))
+                                .Append(";\r\n");
                         sb.Append("CREATE ");
                         if (uk.IsUnique) sb.Append("UNIQUE ");
+                        if (uk.Columns.Any(a => a.IsDesc)) sb.Append("DESC ");
                         sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname)).Append("(");
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                            if (tbcol.IsDesc) sb.Append(" DESC");
                             sb.Append(", ");
                         }
                         sb.Remove(sb.Length - 2, 2).Append(");\r\n");
                     }
                 }
-                var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select trim(rdb$external_description) from rdb$relations where rdb$system_flag=0 and trim(rdb$relation_name) = {0}", tbname)));
+                var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select trim(rdb$description) from rdb$relations where rdb$system_flag=0 and trim(rdb$relation_name) = {0}", tbname)));
                 if (dbcomment != (tb.Comment ?? ""))
-                    sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" COMMENT ").Append(" ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
+                    sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
             }
             return sb.Length == 0 ? null : sb.ToString();
+        }
+
+        public override int ExecuteDDLStatements(string ddl)
+        {
+            if (string.IsNullOrEmpty(ddl)) return 0;
+            var scripts = ddl.Split(new string[] { ";\r\n" }, StringSplitOptions.None).Where(a => string.IsNullOrEmpty(a.Trim()) == false).ToArray();
+
+            if (scripts.Any() == false) return 0;
+
+            var affrows = 0;
+            foreach (var script in scripts)
+                affrows += base.ExecuteDDLStatements(script);
+            return affrows;
         }
     }
 }

@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +14,16 @@ namespace FreeSql.Tests.PostgreSQL
         public void InsertOrUpdate_OnlyPrimary()
         {
             fsql.Delete<tbiou01>().Where("1=1").ExecuteAffrows();
-            var iou = fsql.InsertOrUpdate<tbiou01>().SetSource(new tbiou01 { id = 1 });
+
+            var iou = fsql.InsertOrUpdate<tbiou01>().SetSource(fsql.Select<tbiou022>().ToSql(a => new { id = a.id + 1 }, FieldAliasOptions.AsProperty));
             var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou01""(""id"") 
+SELECT (a.""id"" + 1) ""id"" 
+FROM ""tbiou022"" a
+ON CONFLICT(""id"") DO NOTHING", sql);
+
+            iou = fsql.InsertOrUpdate<tbiou01>().SetSource(new tbiou01 { id = 1 });
+            sql = iou.ToSql();
             Assert.Equal(@"INSERT INTO ""tbiou01""(""id"") VALUES(1)
 ON CONFLICT(""id"") DO NOTHING", sql);
             Assert.Equal(1, iou.ExecuteAffrows());

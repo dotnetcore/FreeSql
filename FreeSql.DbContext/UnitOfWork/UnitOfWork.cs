@@ -44,6 +44,7 @@ namespace FreeSql
             if (string.IsNullOrEmpty(this.Id) == false && DebugBeingUsed.TryRemove(this.Id, out var old))
                 this.Id = null;
 
+            _tran?.Dispose();
             _fsql.Ado.MasterPool.Return(_conn);
             _tran = null;
             _conn = null;
@@ -55,7 +56,7 @@ namespace FreeSql
         public void Close()
         {
             if (_tran != null)
-                throw new Exception("已开启事务，不能禁用工作单元");
+                throw new Exception(DbContextErrorStrings.TransactionHasBeenStarted);
 
             Enable = false;
         }
@@ -99,9 +100,7 @@ namespace FreeSql
             catch (Exception ex)
             {
                 _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             return _tran;
         }
@@ -125,9 +124,7 @@ namespace FreeSql
             {
                 if (isCommited == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             finally
             {
@@ -151,9 +148,7 @@ namespace FreeSql
             {
                 if (isRollbacked == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚失败", ex));
-#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
-                throw ex;
-#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
+                throw;
             }
             finally
             {
@@ -163,6 +158,8 @@ namespace FreeSql
         }
 
         public DbContext.EntityChangeReport EntityChangeReport { get; } = new DbContext.EntityChangeReport();
+
+        public Dictionary<string, object> States { get; } = new Dictionary<string, object>();
 
         ~UnitOfWork() => this.Dispose();
         int _disposeCounter;

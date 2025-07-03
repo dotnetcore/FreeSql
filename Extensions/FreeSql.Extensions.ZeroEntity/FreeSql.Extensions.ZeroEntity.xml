@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.ZeroEntity</name>
+    </assembly>
+    <members>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.#ctor(IFreeSql,FreeSql.Extensions.ZeroEntity.TableDescriptor[],System.Boolean)">
+            <summary>
+            创建新的ZeroDbCotext实例
+            </summary>
+            <param name="orm">IfreeSql 对象</param>
+            <param name="schemas">动态表结构描述</param>
+            <param name="syncStructure">是否强制同步表结构</param>
+            <exception cref="T:FreeSql.Extensions.ZeroEntity.Models.SchemaValidationResult"> Schema 未验证通过时抛出验证异常</exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.#ctor(IFreeSql)">
+            <summary>
+            初始化一个 ZeroDbContext 对象，暂不指定任何Schema
+            </summary>
+            <param name="orm"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SyncTableStructure(System.String)">
+            <summary>
+            同步指定表结构
+            </summary>
+            <param name="name"></param>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.LoadSchemasAndNavigates(System.String,System.Func{System.String,FreeSql.Extensions.ZeroEntity.TableDescriptor})">
+            <summary>
+            从自定义中加载（多表）<para></para>
+            - tableName 以及 Navigates 所依赖表 Schema
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.LoadSchemaFromDatabase(System.String)">
+            <summary>
+            从数据库中加载（单表）<para></para>
+            - 不支持 Navigates<para></para>
+            - 不支持 Indexes IndexMethod<para></para>
+            - 暂支持 SqlServer/MySql decimal(10,2)（其他数据库需实现对应 IDbFirst）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.Select">
+            <summary>
+            【有状态管理】自动 Include 查询
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectNoTracking(System.String)">
+            <summary>
+            【无状态管理】指定表查询
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.ChangeReport.ChangeInfo.BeforeObject">
+            <summary>
+            Type = Update 的时候，获取更新之前的对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.ChangeReport.Report">
+            <summary>
+            实体变化记录
+            </summary>
+        </member>
+        <member name="P:FreeSql.Extensions.ZeroEntity.ZeroDbContext.ChangeReport.OnChange">
+            <summary>
+            实体变化事件
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.LeftJoin(System.String,System.String[])">
+            <summary>
+            举例1：LeftJoin("table1", "id", "user.id") -> LEFT JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：LeftJoin("table1", "id", "user.id", "xid", "user.xid") -> LEFT JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.InnerJoin(System.String,System.String[])">
+            <summary>
+            举例1：InnerJoin("table1", "id", "user.id") -> INNER JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：InnerJoin("table1", "id", "user.id", "xid", "user.xid") -> INNER JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.RightJoin(System.String,System.String[])">
+            <summary>
+            举例1：RightJoin("table1", "id", "user.id") -> RIGTH JOIN [table1] b ON b.[id] = a.[id]<para></para>
+            举例2：RightJoin("table1", "id", "user.id", "xid", "user.xid") -> RIGTH JOIN [table1] b ON b.[id] = [a].id] AND b.[xid] = a.[xid]
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            WHERE [Id] IN (1,2,3)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereIn(System.String,System.Object)">
+            <summary>
+            WHERE [field] IN (1,2,3)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereNotIn(System.String,System.Object)">
+            <summary>
+            WHERE [field] NOT IN (1,2,3)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereDynamic(System.Object)">
+            <summary>
+            匿名对象：Where(new { Year = 2017, CategoryId = 198, IsPublished = true })<para></para>
+            字典对象：Where(new Dictionary&lt;string, object&gt; { ["Year"] = 2017, ["CategoryId"] = 198, ["IsPublished"] = true })<para></para>
+            WHERE [Year] = 2017 AND [CategoryId] = 198 AND [IsPublished] = 1<para></para>
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.String,System.Object)">
+            <summary>
+            WHERE [field] = ..<para></para>
+            更全请看重载 Where(string field, string @operator, object value)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.Where(System.String,System.String,System.Object)">
+            <summary>
+            WHERE [field] <para></para>
+            !=、&gt;、&gt;=、&lt;、&lt;=、like、!like、in、!in<para></para>
+            </summary>
+            <param name="field"></param>
+            <param name="operator"></param>
+            <param name="value"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereColumns(System.String,System.String,System.String)">
+            <summary>
+            WHERE 字段与字段
+            </summary>
+            <param name="field1"></param>
+            <param name="operator"></param>
+            <param name="field2"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.WhereExists(System.Func{FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl.SubQuery,FreeSql.Extensions.ZeroEntity.ZeroDbContext.SelectImpl})">
+            <summary>
+            WHERE exists(select ...)
+            </summary>
+            <param name="q"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

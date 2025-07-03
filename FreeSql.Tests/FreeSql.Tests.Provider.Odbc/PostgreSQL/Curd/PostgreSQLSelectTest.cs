@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -270,7 +270,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             g.pgsql.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.pgsql.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -926,8 +926,8 @@ limit 10", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT sum(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT sum(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -941,15 +941,18 @@ FROM ""tb_topic"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT min(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT min(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6, coalesce((SELECT min(b.""createtime"") 
+    FROM ""tb_topic"" b), '0001-01-01 00:00:00.000000') as7 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -958,15 +961,18 @@ FROM ""tb_topic"" a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT max(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT max(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6, coalesce((SELECT max(b.""createtime"") 
+    FROM ""tb_topic"" b), '0001-01-01 00:00:00.000000') as7 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]
@@ -977,8 +983,8 @@ FROM ""tb_topic"" a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT avg(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT avg(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -995,6 +1001,14 @@ FROM ""tb_topic"" a
 WHERE ((((a.""id"")::text) in (SELECT b.""title"" 
     FROM ""tb_topic"" b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.""id"", a.""clicks"", a.""typeguid"", a.""title"", a.""createtime"" 
+FROM ""tb_topic"" a 
+WHERE ((((a.""id"")::text) in (SELECT b.""title"" 
+    FROM ""tb_topic"" b 
+    limit 10)))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()
@@ -1772,7 +1786,7 @@ WHERE ((((a.""id"")::text) in (SELECT b.""title""
             var fsql = g.pgsql;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

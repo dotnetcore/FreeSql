@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -14,12 +16,20 @@ namespace FreeSql.Internal.Model
         public Type CsType { get; set; }
         public Type MapType { get; set; }
         public string DbField { get; set; }
+        public string DbNestedField { get; set; }
         public ConstructorInfo Consturctor { get; set; }
         public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();
         public TableInfo Table { get; set; }
         public bool IsEntity { get; set; }
         public bool IsDefaultCtor { get; set; }
         public string IncludeManyKey { get; set; } //ToList(a => new { a.Childs }) 集合属性指定加载
+        public Expression SubSelectMany { get; set; } //ToList(a => new { sublist = fsql.Select<T>().ToList() }) 子集合查询
+
+        public ColumnInfo GetColumn()
+        {
+            if (Childs.Any() == false && Table != null && CsName != null && Table.ColumnsByCs.TryGetValue(CsName, out var pcol)) return pcol;
+            return null;
+        }
 
         public void CopyTo(ReadAnonymousTypeInfo target)
         {
@@ -29,12 +39,37 @@ namespace FreeSql.Internal.Model
             target.CsType = CsType;
             target.MapType = MapType;
             target.DbField = DbField;
+            target.DbNestedField = DbNestedField;
             target.Consturctor = Consturctor;
-            target.Childs = Childs;
+            LocalEachCopyChilds(Childs, target.Childs);
             target.Table = Table;
             target.IsEntity = IsEntity;
             target.IsDefaultCtor = IsDefaultCtor;
             target.IncludeManyKey = IncludeManyKey;
+
+            void LocalEachCopyChilds(List<ReadAnonymousTypeInfo> from, List<ReadAnonymousTypeInfo> to)
+            {
+                foreach(var fromChild in from)
+                {
+                    var toChild = new ReadAnonymousTypeInfo();
+                    fromChild.CopyTo(toChild);
+                    to.Add(toChild);
+                }
+            }
+        }
+
+        public List<ReadAnonymousTypeInfo> GetAllChilds(int maxDepth = 10)
+        {
+            if (maxDepth <= 0) return new List<ReadAnonymousTypeInfo>();
+            var allchilds = new List<ReadAnonymousTypeInfo>();
+            foreach (var child in Childs)
+            {
+                if (child.Childs.Any())
+                    allchilds.AddRange(child.GetAllChilds(maxDepth - 1));
+                else
+                    allchilds.Add(child);
+            }
+            return allchilds;
         }
     }
     public class ReadAnonymousTypeAfInfo
@@ -42,6 +77,7 @@ namespace FreeSql.Internal.Model
         public ReadAnonymousTypeInfo map { get; }
         public string field { get; }
         public List<NativeTuple<string, IList, int>> fillIncludeMany { get; set; } //回填集合属性的数据
+        public List<NativeTuple<Expression, IList, int>> fillSubSelectMany { get; set; } //回填集合属性的数据
         public ReadAnonymousTypeAfInfo(ReadAnonymousTypeInfo map, string field)
         {
             this.map = map;

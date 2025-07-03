@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,11 +11,31 @@ namespace FreeSql.Tests.MsAccess
     public class MsAccessCodeFirstTest
     {
         [Fact]
+        public void Test_0String()
+        {
+            var fsql = g.msaccess;
+            fsql.Delete<test_0string01>().Where("1=1").ExecuteAffrows();
+
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).ExecuteAffrows());
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).NoneParameter().ExecuteAffrows());
+
+            var list = fsql.Select<test_0string01>().ToList();
+            Assert.Equal(2, list.Count);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[0].name);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[1].name);
+        }
+        class test_0string01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void InsertUpdateParameter()
         {
             var fsql = g.msaccess;
             fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
-            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "ÎÒÊÇÖĞ¹úÈË")) };
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº")) };
             Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
             var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -52,57 +72,57 @@ namespace FreeSql.Tests.MsAccess
         }
 
         [Fact]
-        public void ÖĞÎÄ±í_×Ö¶Î()
+        public void ä¸­æ–‡è¡¨_å­—æ®µ()
         {
-            var sql = g.msaccess.CodeFirst.GetComparisonDDLStatements<²âÊÔÖĞÎÄ±í>();
-            g.msaccess.CodeFirst.SyncStructure<²âÊÔÖĞÎÄ±í>();
+            var sql = g.msaccess.CodeFirst.GetComparisonDDLStatements<æµ‹è¯•ä¸­æ–‡è¡¨>();
+            g.msaccess.CodeFirst.SyncStructure<æµ‹è¯•ä¸­æ–‡è¡¨>();
 
-            var item = new ²âÊÔÖĞÎÄ±í
+            var item = new æµ‹è¯•ä¸­æ–‡è¡¨
             {
-                ±êÌâ = "²âÊÔ±êÌâ",
-                ´´½¨Ê±¼ä = DateTime.Now
+                æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜",
+                åˆ›å»ºæ—¶é—´ = DateTime.Now
             };
-            Assert.Equal(1, g.msaccess.Insert<²âÊÔÖĞÎÄ±í>().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±àºÅ);
-            var item2 = g.msaccess.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            Assert.Equal(1, g.msaccess.Insert<æµ‹è¯•ä¸­æ–‡è¡¨>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ç¼–å·);
+            var item2 = g.msaccess.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ";
-            Assert.Equal(1, g.msaccess.Update<²âÊÔÖĞÎÄ±í>().SetSource(item).ExecuteAffrows());
-            item2 = g.msaccess.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°";
+            Assert.Equal(1, g.msaccess.Update<æµ‹è¯•ä¸­æ–‡è¡¨>().SetSource(item).ExecuteAffrows());
+            item2 = g.msaccess.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo";
-            var repo = g.msaccess.GetRepository<²âÊÔÖĞÎÄ±í>();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo";
+            var repo = g.msaccess.GetRepository<æµ‹è¯•ä¸­æ–‡è¡¨>();
             Assert.Equal(1, repo.Update(item));
-            item2 = g.msaccess.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.msaccess.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo22";
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.msaccess.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.msaccess.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
         }
-        class ²âÊÔÖĞÎÄ±í
+        class æµ‹è¯•ä¸­æ–‡è¡¨
         {
             [Column(IsPrimary = true)]
-            public Guid ±àºÅ { get; set; }
+            public Guid ç¼–å· { get; set; }
 
-            public string ±êÌâ { get; set; }
+            public string æ ‡é¢˜ { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
-            public DateTime ´´½¨Ê±¼ä { get; set; }
+            public DateTime åˆ›å»ºæ—¶é—´ { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
-            public DateTime ¸üĞÂÊ±¼ä { get; set; }
+            public DateTime æ›´æ–°æ—¶é—´ { get; set; }
         }
 
         [Fact]
@@ -148,29 +168,29 @@ namespace FreeSql.Tests.MsAccess
         public void AddField()
         {
 
-            //ĞãÒ»²¨ FreeSql.Repository À©Õ¹°ü£¬dotnet add package FreeSql.Repository
-            var topicRepository = g.msaccess.GetGuidRepository<Topic>();
-            var commentRepository = g.msaccess.GetGuidRepository<Comment>();
+            //ç§€ä¸€æ³¢ FreeSql.Repository æ‰©å±•åŒ…ï¼Œdotnet add package FreeSql.Repository
+            var topicRepository = g.msaccess.GetRepository<Topic, Guid>();
+            var commentRepository = g.msaccess.GetRepository<Comment, Guid>();
 
-            //Ìí¼Ó²âÊÔÎÄÕÂ
+            //æ·»åŠ æµ‹è¯•æ–‡ç« 
             var topic = topicRepository.Insert(new Topic
             {
-                Title = "ÎÄÕÂ±êÌâ1",
-                Content = "ÎÄÕÂÄÚÈİ1",
+                Title = "æ–‡ç« æ ‡é¢˜1",
+                Content = "æ–‡ç« å†…å®¹1",
                 CreateTime = DateTime.Now
             });
 
-            //Ìí¼Ó10Ìõ²âÊÔÆÀÂÛ
+            //æ·»åŠ 10æ¡æµ‹è¯•è¯„è®º
             var comments = Enumerable.Range(0, 10).Select(a => new Comment
             {
                 TopicId = topic.Id,
-                Nickname = $"êÇ³Æ{a}",
-                Content = $"ÆÀÂÛÄÚÈİ{a}",
+                Nickname = $"æ˜µç§°{a}",
+                Content = $"è¯„è®ºå†…å®¹{a}",
                 CreateTime = DateTime.Now
             }).ToArray();
             var affrows = commentRepository.Insert(comments);
 
-            var find = commentRepository.Select.Where(a => a.Topic.Title == "ÎÄÕÂ±êÌâ1").ToList();
+            var find = commentRepository.Select.Where(a => a.Topic.Title == "æ–‡ç« æ ‡é¢˜1").ToList();
 
 
 
@@ -202,7 +222,7 @@ namespace FreeSql.Tests.MsAccess
         {
 
             var sql = g.msaccess.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            Assert.True(string.IsNullOrEmpty(sql)); //²âÊÔÔËĞĞÁ½´Îºó
+            Assert.True(string.IsNullOrEmpty(sql)); //æµ‹è¯•è¿è¡Œä¸¤æ¬¡å
             //sql = g.msaccess.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
         }
 
@@ -223,7 +243,7 @@ namespace FreeSql.Tests.MsAccess
                 BoolNullable = true,
                 Byte = 255,
                 ByteNullable = 127,
-                Bytes = Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"),
+                Bytes = Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"),
                 DateTime = DateTime.Now,
                 DateTimeNullable = DateTime.Now.AddHours(-1),
                 Decimal = 99.99M,
@@ -244,7 +264,7 @@ namespace FreeSql.Tests.MsAccess
                 SByteNullable = 99,
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
-                String = "ÎÒÊÇÖĞ¹úÈËstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                String = "æˆ‘æ˜¯ä¸­å›½äººstring'\\?!@#$%^&*()_+{}}{~?><<>",
                 Char = 'X',
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),

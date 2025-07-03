@@ -23,6 +23,7 @@ namespace FreeSql.Internal.Model
         public SelectTableInfoType Type { get; set; }
 
         public string Cascade { get; set; }
+        public string CascadeBefore { get; set; }
     }
-    public enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, Parent }
+    public enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, RawJoin, Parent }
 }

@@ -1,4 +1,5 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
+using Microsoft.Data.Sqlite;
 using System;
 using Xunit;
 
@@ -10,6 +11,14 @@ namespace FreeSql.Tests.Sqlite
         public void Pool()
         {
             var t1 = g.sqlite.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = "data source=:memory:";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.Sqlite, () => new SqliteConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]

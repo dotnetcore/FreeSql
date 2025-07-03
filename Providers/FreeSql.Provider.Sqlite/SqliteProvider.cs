@@ -9,6 +9,15 @@ namespace FreeSql.Sqlite
 
     public class SqliteProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        static int _firstInit = 1;
+        static void InitInternal()
+        {
+            if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
+            {
+                Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            }
+        }
+
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new SqliteSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsert<T1> CreateInsertProvider<T1>() => new SqliteInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new SqliteUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
@@ -17,6 +26,7 @@ namespace FreeSql.Sqlite
 
         public SqliteProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
+            InitInternal();
             this.InternalCommonUtils = new SqliteUtils(this);
             this.InternalCommonExpression = new SqliteExpression(this.InternalCommonUtils);
 

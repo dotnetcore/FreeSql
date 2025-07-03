@@ -12,12 +12,12 @@ namespace FreeSql
     public abstract partial class DbContext : IDisposable
     {
         internal DbContextScopedFreeSql _ormScoped;
-        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql ?? throw new ArgumentNullException(DbContextErrorStrings.ConfigureUseFreeSql);
 
         /// <summary>
         /// 该对象 Select/Delete/Insert/Update/InsertOrUpdate 与 DbContext 事务保持一致，可省略传递 WithTransaction
         /// </summary>
-        public IFreeSql Orm => _ormScoped ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        public IFreeSql Orm => _ormScoped ?? throw new ArgumentNullException(DbContextErrorStrings.ConfigureUseFreeSql);
 
         #region Property UnitOfWork
         internal bool _isUseUnitOfWork = true; //是否创建工作单元事务
@@ -46,7 +46,7 @@ namespace FreeSql
                     _optionsPriv = new DbContextOptions();
                     if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(OrmOriginal.Ado.Identifier, out var opt))
                     {
-                        _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
+                        _optionsPriv.EnableCascadeSave = opt.EnableCascadeSave;
                         _optionsPriv.EnableGlobalFilter = opt.EnableGlobalFilter;
                         _optionsPriv.NoneParameter = opt.NoneParameter;
                         _optionsPriv.OnEntityChange = opt.OnEntityChange;
@@ -83,20 +83,29 @@ namespace FreeSql
 
         #region Set
         static ConcurrentDictionary<Type, NativeTuple<PropertyInfo[], bool>> _dicGetDbSetProps = new ConcurrentDictionary<Type, NativeTuple<PropertyInfo[], bool>>();
+        static object _lockOnModelCreating = new object();
         internal void InitPropSets()
         {
             var thisType = this.GetType();
-            var dicval = _dicGetDbSetProps.GetOrAdd(thisType, tp =>
-                NativeTuple.Create(
-                    tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
-                        .Where(a => a.PropertyType.IsGenericType &&
-                            a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray(),
-                    false));
-            if (dicval.Item2 == false)
+            var isOnModelCreating = false;
+            if (_dicGetDbSetProps.TryGetValue(thisType, out var dicval) == false)
             {
-                if (_dicGetDbSetProps.TryUpdate(thisType, NativeTuple.Create(dicval.Item1, true), dicval))
-                    OnModelCreating(OrmOriginal.CodeFirst);
+                lock (_lockOnModelCreating)
+                {
+                    if (_dicGetDbSetProps.TryGetValue(thisType, out dicval) == false)
+                    {
+                        dicval = NativeTuple.Create(
+                            thisType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
+                                .Where(a => a.PropertyType.IsGenericType && 
+                                    a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray(),
+                            false);
+                        _dicGetDbSetProps.TryAdd(thisType, dicval);
+                        isOnModelCreating = true;
+                    }
+                }
             }
+            if (isOnModelCreating)
+                OnModelCreating(OrmOriginal.CodeFirst);
 
             foreach (var prop in dicval.Item1)
             {
@@ -126,7 +135,7 @@ namespace FreeSql
         void CheckEntityTypeOrThrow(Type entityType)
         {
             if (OrmOriginal.CodeFirst.GetTableByEntity(entityType) == null)
-                throw new ArgumentException($"参数 data 类型错误 {entityType.FullName} ");
+                throw new ArgumentException(DbContextErrorStrings.ParameterDataTypeError(entityType.FullName));
         }
         /// <summary>
         /// 添加
@@ -174,20 +183,6 @@ namespace FreeSql
             CheckEntityTypeOrThrow(typeof(TEntity));
             this.Set<TEntity>().AddOrUpdate(data);
         }
-        /// <summary>
-        /// 保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
-        /// 场景：在关闭级联保存功能之后，手工使用本方法<para></para>
-        /// 例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
-        /// 当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
-        /// 当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
-        /// </summary>
-        /// <param name="data">实体对象</param>
-        /// <param name="propertyName">属性名</param>
-        public void SaveMany<TEntity>(TEntity data, string propertyName) where TEntity : class
-        {
-            CheckEntityTypeOrThrow(typeof(TEntity));
-            this.Set<TEntity>().SaveMany(data, propertyName);
-        }
 
         /// <summary>
         /// 附加实体，可用于不查询就更新或删除
@@ -212,31 +207,37 @@ namespace FreeSql
             this.Set<TEntity>().AttachOnlyPrimary(data);
             return this;
         }
+
+        /// <summary>
+        /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
+        /// </summary>
+        /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+        /// <returns>key: 属性名, value: [旧值, 新值]</returns>
+        public Dictionary<string, object[]> CompareState<TEntity>(TEntity newdata) where TEntity : class
+        {
+            CheckEntityTypeOrThrow(typeof(TEntity));
+            return this.Set<TEntity>().CompareState(newdata);
+        }
 #if net40
 #else
-        public Task AddAsync<TEntity>(TEntity data) where TEntity : class
+        public Task AddAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().AddAsync(data);
+            return this.Set<TEntity>().AddAsync(data, cancellationToken);
         }
-        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data);
+        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data, cancellationToken);
 
-        public Task UpdateAsync<TEntity>(TEntity data) where TEntity : class
+        public Task UpdateAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().UpdateAsync(data);
+            return this.Set<TEntity>().UpdateAsync(data, cancellationToken);
         }
-        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data);
+        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data, cancellationToken);
 
-        public Task AddOrUpdateAsync<TEntity>(TEntity data) where TEntity : class
+        public Task AddOrUpdateAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().AddOrUpdateAsync(data);
-        }
-        public Task SaveManyAsync<TEntity>(TEntity data, string propertyName) where TEntity : class
-        {
-            CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().SaveManyAsync(data, propertyName);
+            return this.Set<TEntity>().AddOrUpdateAsync(data, cancellationToken);
         }
 #endif
         #endregion
@@ -252,6 +253,10 @@ namespace FreeSql
                 /// </summary>
                 public object BeforeObject { get; set; }
                 public EntityChangeType Type { get; set; }
+                /// <summary>
+                /// 实体类型
+                /// </summary>
+                public Type EntityType { get; set; }
             }
             /// <summary>
             /// 实体变化记录

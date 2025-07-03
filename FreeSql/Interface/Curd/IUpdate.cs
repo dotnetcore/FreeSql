@@ -10,6 +10,31 @@ namespace FreeSql
 {
     public interface IUpdate<T1>
     {
+        /// <summary>
+        /// 联表更新(危险操作)，支持更复杂的联表更新<para></para>
+        /// fsql.Update&lt;T1&gt;()<para></para>
+        /// .Join(fsql.Select&lt;T1&gt;(), (a, b) => a.id == b.id)<para></para>
+        /// .Set((a, b) => a.name == b.name)<para></para>
+        /// .Set((a, b) => a.time == b.time2)<para></para>
+        /// .ExecuteAffrows();
+        /// </summary>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="query"></param>
+        /// <param name="on"></param>
+        /// <returns></returns>
+        IUpdateJoin<T1, T2> Join<T2>(ISelect<T2> query, Expression<Func<T1, T2, bool>> on) where T2 : class;
+        /// <summary>
+        /// 联表更新(危险操作)<para></para>
+        /// fsql.Update&lt;T1&gt;()<para></para>
+        /// .Join&lt;T2&gt;((a, b) => a.id == b.id)<para></para>
+        /// .Set((a, b) => a.name == b.name)<para></para>
+        /// .Set((a, b) => a.time == b.time2)<para></para>
+        /// .ExecuteAffrows();
+        /// </summary>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="on"></param>
+        /// <returns></returns>
+        IUpdateJoin<T1, T2> Join<T2>(Expression<Func<T1, T2, bool>> on) where T2 : class;
 
         /// <summary>
         /// 指定事务对象
@@ -73,8 +98,9 @@ namespace FreeSql
         /// </summary>
         /// <param name="source">实体集合</param>
         /// <param name="tempPrimarys">根据临时主键更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}</param>
+        /// <param name="ignoreVersion">忽略 IsVersion 乐观锁版本号</param>
         /// <returns></returns>
-        IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null);
+        IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null, bool ignoreVersion = false);
         /// <summary>
         /// 更新数据，设置更新的实体，同时设置忽略的列<para></para>
         /// 忽略 null 属性：fsql.Update&lt;T&gt;().SetSourceAndIgnore(item, colval => colval == null)<para></para>
@@ -83,7 +109,7 @@ namespace FreeSql
         /// <param name="source">实体</param>
         /// <param name="ignore">属性值忽略判断, true忽略</param>
         /// <returns></returns>
-        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore);
+        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore = null);
 
         /// <summary>
         /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})<para></para>
@@ -133,7 +159,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value);
         /// <summary>
-        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// 设置列的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
         /// </summary>
@@ -142,7 +168,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp);
         /// <summary>
-        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// 设置列的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
         /// </summary>
@@ -160,23 +186,35 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetRaw(string sql, object parms = null);
 
-        /// <summary>
-        /// 设置更新的列<para></para>
-        /// SetDto(new { title = "xxx", clicks = 2 })<para></para>
-        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
-        /// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新
-        /// </summary>
-        /// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
-        /// <returns></returns>
-        IUpdate<T1> SetDto(object dto);
+		/// <summary>
+		/// 设置更新的列<para></para>
+		/// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+		/// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+		/// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新<para></para>
+		/// 注意：SetDto 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+		/// </summary>
+		/// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+		/// <returns></returns>
+		IUpdate<T1> SetDto(object dto);
+		/// <summary>
+		/// 设置更新的列<para></para>
+		/// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+		/// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+		/// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新<para></para>
+		/// 注意：SetDto 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+		/// </summary>
+		/// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+		/// <param name="ignore">属性值忽略判断, true忽略</param>
+		/// <returns></returns>
+		IUpdate<T1> SetDtoIgnore(object dto, Func<object, bool> ignore = null);
 
-        /// <summary>
-        /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
-        /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
-        /// </summary>
-        /// <param name="exp">lambda表达式条件</param>
-        /// <returns></returns>
-        IUpdate<T1> Where(Expression<Func<T1, bool>> exp);
+		/// <summary>
+		/// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
+		/// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
+		/// </summary>
+		/// <param name="exp">lambda表达式条件</param>
+		/// <returns></returns>
+		IUpdate<T1> Where(Expression<Func<T1, bool>> exp);
         /// <summary>
         /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
         /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
@@ -212,13 +250,19 @@ namespace FreeSql
         /// <param name="not">是否标识为NOT</param>
         /// <returns></returns>
         IUpdate<T1> WhereDynamic(object dywhere, bool not = false);
+		/// <summary>
+		/// 动态过滤条件
+		/// </summary>
+		/// <param name="filter"></param>
+		/// <returns></returns>
+		IUpdate<T1> WhereDynamicFilter(DynamicFilterInfo filter);
 
-        /// <summary>
-        /// 禁用全局过滤功能，不传参数时将禁用所有
-        /// </summary>
-        /// <param name="name">零个或多个过滤器名字</param>
-        /// <returns></returns>
-        IUpdate<T1> DisableGlobalFilter(params string[] name);
+		/// <summary>
+		/// 禁用全局过滤功能，不传参数时将禁用所有
+		/// </summary>
+		/// <param name="name">零个或多个过滤器名字</param>
+		/// <returns></returns>
+		IUpdate<T1> DisableGlobalFilter(params string[] name);
 
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
@@ -226,6 +270,12 @@ namespace FreeSql
         /// <param name="tableRule"></param>
         /// <returns></returns>
         IUpdate<T1> AsTable(Func<string, string> tableRule);
+        /// <summary>
+        /// 设置表名
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        IUpdate<T1> AsTable(string tableName);
         /// <summary>
         /// 动态Type，在使用 Update&lt;object&gt; 后使用本方法，指定实体类型
         /// </summary>
@@ -244,15 +294,22 @@ namespace FreeSql
         int ExecuteAffrows();
         /// <summary>
         /// 执行SQL语句，返回更新后的记录<para></para>
-        /// 注意：此方法只有 Postgresql/SqlServer 有效果
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteUpdated();
+        List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns);
 
 #if net40
 #else
-        Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
-        Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
+		Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// 执行SQL语句，返回更新后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/人大金仓 有效果
+        /// </summary>
+        /// <returns></returns>
+		Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
+		Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default);
 #endif
-    }
+	}
 }

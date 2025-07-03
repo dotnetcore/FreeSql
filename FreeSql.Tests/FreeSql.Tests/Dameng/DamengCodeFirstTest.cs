@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,11 +13,31 @@ namespace FreeSql.Tests.Dameng
     public class DamengCodeFirstTest
     {
         [Fact]
+        public void Test_0String()
+        {
+            var fsql = g.dameng;
+            fsql.Delete<test_0string01>().Where("1=1").ExecuteAffrows();
+
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).ExecuteAffrows());
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).NoneParameter().ExecuteAffrows());
+
+            var list = fsql.Select<test_0string01>().ToList();
+            Assert.Equal(2, list.Count);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[0].name);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[1].name);
+        }
+        class test_0string01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void InsertUpdateParameter()
         {
             var fsql = g.dameng;
             fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
-            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "ÎÒÊÇÖĞ¹úÈË")) };
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº")) };
             Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
             var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -40,6 +60,14 @@ namespace FreeSql.Tests.Dameng
         [Fact]
         public void StringLength36()
         {
+            var repo = g.dameng.GetRepository<TS_SL361, long>();
+
+            var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
+            repo.Insert(item1);
+            var item2 = repo.Get(item1.Id);
+
+            Assert.Equal(item1.CreatorId, item2.CreatorId);
+
             using (var conn = g.dameng.Ado.MasterPool.Get())
             {
                 var cmd = conn.Value.CreateCommand();
@@ -54,18 +82,10 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
                         var creatorId1 = dr.GetString(1);
 
                         var id = dr.GetValue(0);
-                        //var creatorId = dr.GetValue(1); //±¨´í
+                        //var creatorId = dr.GetValue(1); //æŠ¥é”™
                     }
                 }
             }
-
-            //var repo = g.dameng.GetRepository<TS_SL361, long>();
-
-            //var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
-            //repo.Insert(item1);
-            //var item2 = repo.Get(item1.Id);
-
-            //Assert.Equal(item1.CreatorId, item2.CreatorId);
         }
         class TS_SL361
         {
@@ -79,7 +99,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
         [Fact]
         public void Text_StringLength_1()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT02 { Data = str1 };
             Assert.Equal(1, g.dameng.Insert(item1).ExecuteAffrows());
@@ -101,7 +121,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
         [Fact]
         public void Text()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
 
             var item1 = new TS_TEXT01 { Data = str1 };
             Assert.Equal(1, g.dameng.Insert(item1).ExecuteAffrows());
@@ -122,7 +142,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
         [Fact]
         public void Blob()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÎÒÊÇÖĞ¹úÈË"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "æˆ‘æ˜¯ä¸­å›½äºº"));
             var data1 = Encoding.UTF8.GetBytes(str1);
 
             var item1 = new TS_BLB01 { Data = data1 };
@@ -136,8 +156,8 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
 
             //NoneParameter
             item1 = new TS_BLB01 { Data = data1 };
-            Assert.Throws<Exception>(() => g.dameng.Insert(item1).NoneParameter().ExecuteAffrows());
-            //DmException: ×Ö·û´®½Ø¶Ï
+            Assert.Equal(1, g.dameng.Insert(item1).NoneParameter().ExecuteAffrows());
+            //DmException: å­—ç¬¦ä¸²æˆªæ–­
         }
         class TS_BLB01
         {
@@ -162,106 +182,106 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
         }
 
         [Fact]
-        public void Êı×Ö±í_×Ö¶Î()
+        public void æ•°å­—è¡¨_å­—æ®µ()
         {
-            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<²âÊÔÊı×Ö±í>();
-            g.dameng.CodeFirst.SyncStructure<²âÊÔÊı×Ö±í>();
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<æµ‹è¯•æ•°å­—è¡¨>();
+            g.dameng.CodeFirst.SyncStructure<æµ‹è¯•æ•°å­—è¡¨>();
 
-            var item = new ²âÊÔÊı×Ö±í
+            var item = new æµ‹è¯•æ•°å­—è¡¨
             {
-                ±êÌâ = "²âÊÔ±êÌâ",
-                ´´½¨Ê±¼ä = DateTime.Now
+                æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜",
+                åˆ›å»ºæ—¶é—´ = DateTime.Now
             };
-            Assert.Equal(1, g.dameng.Insert<²âÊÔÊı×Ö±í>().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±àºÅ);
-            var item2 = g.dameng.Select<²âÊÔÊı×Ö±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            Assert.Equal(1, g.dameng.Insert<æµ‹è¯•æ•°å­—è¡¨>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ç¼–å·);
+            var item2 = g.dameng.Select<æµ‹è¯•æ•°å­—è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ";
-            Assert.Equal(1, g.dameng.Update<²âÊÔÊı×Ö±í>().SetSource(item).ExecuteAffrows());
-            item2 = g.dameng.Select<²âÊÔÊı×Ö±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°";
+            Assert.Equal(1, g.dameng.Update<æµ‹è¯•æ•°å­—è¡¨>().SetSource(item).ExecuteAffrows());
+            item2 = g.dameng.Select<æµ‹è¯•æ•°å­—è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo";
-            var repo = g.dameng.GetRepository<²âÊÔÊı×Ö±í>();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo";
+            var repo = g.dameng.GetRepository<æµ‹è¯•æ•°å­—è¡¨>();
             Assert.Equal(1, repo.Update(item));
-            item2 = g.dameng.Select<²âÊÔÊı×Ö±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.dameng.Select<æµ‹è¯•æ•°å­—è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo22";
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.dameng.Select<²âÊÔÊı×Ö±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.dameng.Select<æµ‹è¯•æ•°å­—è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
         }
-        [Table(Name = "123²âÊÔÊı×Ö±í")]
-        class ²âÊÔÊı×Ö±í
+        [Table(Name = "123æµ‹è¯•æ•°å­—è¡¨")]
+        class æµ‹è¯•æ•°å­—è¡¨
         {
-            [Column(IsPrimary = true, Name = "123±àºÅ")]
-            public Guid ±àºÅ { get; set; }
+            [Column(IsPrimary = true, Name = "123ç¼–å·")]
+            public Guid ç¼–å· { get; set; }
 
-            [Column(Name = "123±êÌâ")]
-            public string ±êÌâ { get; set; }
+            [Column(Name = "123æ ‡é¢˜")]
+            public string æ ‡é¢˜ { get; set; }
 
-            [Column(Name = "123´´½¨Ê±¼ä")]
-            public DateTime ´´½¨Ê±¼ä { get; set; }
+            [Column(Name = "123åˆ›å»ºæ—¶é—´")]
+            public DateTime åˆ›å»ºæ—¶é—´ { get; set; }
         }
 
         [Fact]
-        public void ÖĞÎÄ±í_×Ö¶Î()
+        public void ä¸­æ–‡è¡¨_å­—æ®µ()
         {
-            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<²âÊÔÖĞÎÄ±í>();
-            g.dameng.CodeFirst.SyncStructure<²âÊÔÖĞÎÄ±í>();
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<æµ‹è¯•ä¸­æ–‡è¡¨>();
+            g.dameng.CodeFirst.SyncStructure<æµ‹è¯•ä¸­æ–‡è¡¨>();
 
-            var item = new ²âÊÔÖĞÎÄ±í
+            var item = new æµ‹è¯•ä¸­æ–‡è¡¨
             {
-                ±êÌâ = "²âÊÔ±êÌâ",
-                ´´½¨Ê±¼ä = DateTime.Now
+                æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜",
+                åˆ›å»ºæ—¶é—´ = DateTime.Now
             };
-            Assert.Equal(1, g.dameng.Insert<²âÊÔÖĞÎÄ±í>().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±àºÅ);
-            var item2 = g.dameng.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            Assert.Equal(1, g.dameng.Insert<æµ‹è¯•ä¸­æ–‡è¡¨>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ç¼–å·);
+            var item2 = g.dameng.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ";
-            Assert.Equal(1, g.dameng.Update<²âÊÔÖĞÎÄ±í>().SetSource(item).ExecuteAffrows());
-            item2 = g.dameng.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°";
+            Assert.Equal(1, g.dameng.Update<æµ‹è¯•ä¸­æ–‡è¡¨>().SetSource(item).ExecuteAffrows());
+            item2 = g.dameng.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo";
-            var repo = g.dameng.GetRepository<²âÊÔÖĞÎÄ±í>();
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo";
+            var repo = g.dameng.GetRepository<æµ‹è¯•ä¸­æ–‡è¡¨>();
             Assert.Equal(1, repo.Update(item));
-            item2 = g.dameng.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.dameng.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
 
-            item.±êÌâ = "²âÊÔ±êÌâ¸üĞÂ_repo22";
+            item.æ ‡é¢˜ = "æµ‹è¯•æ ‡é¢˜æ›´æ–°_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.dameng.Select<²âÊÔÖĞÎÄ±í>().Where(a => a.±àºÅ == item.±àºÅ).First();
+            item2 = g.dameng.Select<æµ‹è¯•ä¸­æ–‡è¡¨>().Where(a => a.ç¼–å· == item.ç¼–å·).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±àºÅ, item2.±àºÅ);
-            Assert.Equal(item.±êÌâ, item2.±êÌâ);
+            Assert.Equal(item.ç¼–å·, item2.ç¼–å·);
+            Assert.Equal(item.æ ‡é¢˜, item2.æ ‡é¢˜);
         }
-        class ²âÊÔÖĞÎÄ±í
+        class æµ‹è¯•ä¸­æ–‡è¡¨
         {
             [Column(IsPrimary = true)]
-            public Guid ±àºÅ { get; set; }
+            public Guid ç¼–å· { get; set; }
 
-            public string ±êÌâ { get; set; }
+            public string æ ‡é¢˜ { get; set; }
 
-            public DateTime ´´½¨Ê±¼ä { get; set; }
+            public DateTime åˆ›å»ºæ—¶é—´ { get; set; }
         }
 
         [Fact]
@@ -313,7 +333,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
         public void GetComparisonDDLStatements()
         {
             var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            Assert.True(string.IsNullOrEmpty(sql)); //²âÊÔÔËĞĞÁ½´Îºó
+            Assert.True(string.IsNullOrEmpty(sql)); //æµ‹è¯•è¿è¡Œä¸¤æ¬¡å
             //sql = g.dameng.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
         }
 
@@ -330,7 +350,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
                 BoolNullable = true,
                 Byte = 255,
                 ByteNullable = 127,
-                Bytes = Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"),
+                Bytes = Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"),
                 DateTime = DateTime.Now,
                 DateTimeNullable = DateTime.Now.AddHours(-1),
                 Decimal = 99.99M,
@@ -351,7 +371,7 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
                 SByteNullable = 99,
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
-                String = "ÎÒÊÇÖĞ¹úÈËstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                String = "æˆ‘æ˜¯ä¸­å›½äººstring'\\?!@#$%^&*()_+{}}{~?><<>",
                 Char = 'X',
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
@@ -434,5 +454,74 @@ WHERE (a.""ID"" = 1) AND ROWNUM < 2";
 
         public enum TableAllTypeEnumType1 { e1, e2, e3, e5 }
         [Flags] public enum TableAllTypeEnumType2 { f1, f2, f3 }
+
+
+
+        [Fact]
+        public void UpgradeTableStructure()
+        {
+            g.dameng.CodeFirst.SyncStructure<TableUpgradeTest>();
+
+            g.dameng.Delete<TableUpgradeTest>()
+                .Where(item => 1 == 1)
+                .ExecuteAffrows();
+
+            var text = new StringBuilder();
+            var temp = "1234567890å“ˆ";
+            for (int i = 0; i < 3000 - temp.Length; i+= temp.Length)
+            {
+                text.Append(temp);
+            }
+
+            var mode = new TableUpgradeTest 
+            {
+                Name = "1234560123456012å“ˆå“ˆå“ˆå“ˆå“ˆå‘µå‘µ_123123",
+                Text = text.ToString(),
+                Text2 = "å‘µå‘µå‘µTest123123123"
+            };
+
+            mode.Id = g.dameng.Insert(mode)
+                .ExecuteIdentity();
+
+            // ç¬¬äºŒæ¬¡è¿›è¡Œæ•°æ®åº“ç»“æœåŒæ­¥
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<TableUpgradeTest>();
+            g.dameng.Ado.ExecuteNonQuery(sql);
+            //g.dameng.CodeFirst.SyncStructure<TableSubString>();
+
+            var resultMode = g.dameng.Select<TableUpgradeTest>()
+                .Where(item => item.Id == mode.Id)
+                .First();
+
+            Assert.Equal(mode.Name, resultMode?.Name);
+            Assert.Equal(mode.Text, resultMode?.Text);
+            Assert.Equal(mode.Text2, resultMode?.Text2);
+            Assert.Equal(mode.Text3, resultMode?.Text3);
+
+        }
+
+        [Table(Name = "tb_upgrade_test")]
+        public class TableUpgradeTest
+        {
+            [Column(Name = "id", IsPrimary = true, IsIdentity = true)]
+            public long Id { get; set; }
+
+
+            [Column(Name = "name", StringLength = 31, IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(Name = "text", StringLength = 32767, IsNullable = false)]
+            public string Text { get; set; }
+
+            [Column(Name = "number_test", IsNullable = false)]
+            public int TestNumber { get; set; }
+
+            [Column(Name = "text2", StringLength = 63)]
+            public string Text2 { get; set; }
+
+
+            [Column(Name = "text3")]
+            public string Text3 { get; set; }
+        }
+
     }
 }

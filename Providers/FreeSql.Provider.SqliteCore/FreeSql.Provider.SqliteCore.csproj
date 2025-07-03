@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>FreeSql;ncc;YeXiangQin</Authors>
+        <Description>FreeSql 数据库实现，基于 Microsoft.Data.Sqlite.Core、Sqlite 3.0，支持 .netstandard2.0、.net6.0</Description>
+        <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>FreeSql;ORM;sqlite</PackageTags>
+        <PackageId>$(AssemblyName)</PackageId>
+        <PackageIcon>logo.png</PackageIcon>
+        <Title>$(AssemblyName)</Title>
+        <IsPackable>true</IsPackable>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+        <DelaySign>false</DelaySign>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="../FreeSql.Provider.Sqlite/**/*.cs" Exclude="../FreeSql.Provider.Sqlite/obj/**/*" />
+    </ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.4" />
+	</ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+    </ItemGroup>
+    <PropertyGroup>
+        <DefineConstants>MicrosoftData</DefineConstants>
+    </PropertyGroup>
+</Project>

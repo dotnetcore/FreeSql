@@ -24,17 +24,25 @@ namespace FreeSql
         /// </summary>
         /// <param name="rule"></param>
         void AsTable(Func<string, string> rule);
+		/// <summary>
+		/// 分表规则，参数：实体类型、旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository
+		/// </summary>
+		/// <param name="rule"></param>
+		void AsTable(Func<Type, string, string> rule);
 
+		/// <summary>
+		/// 设置 DbContext 选项
+		/// </summary>
+		DbContextOptions DbContextOptions { get; set; }
         /// <summary>
-        /// 设置 DbContext 选项
+        /// GlobalFilter 禁用/启用控制
         /// </summary>
-        DbContextOptions DbContextOptions { get; set; }
+        RepositoryDataFilter DataFilter { get; }
     }
 
     public interface IBaseRepository<TEntity> : IBaseRepository
         where TEntity : class
     {
-        IDataFilter<TEntity> DataFilter { get; }
         ISelect<TEntity> Select { get; }
 
         ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp);
@@ -58,11 +66,30 @@ namespace FreeSql
         /// </summary>
         /// <param name="data"></param>
         IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data);
+        /// <summary>
+        /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
+        /// </summary>
+        /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+        /// <returns>key: 属性名, value: [旧值, 新值]</returns>
+        Dictionary<string, object[]> CompareState(TEntity newdata);
 
         int Update(TEntity entity);
         int Update(IEnumerable<TEntity> entitys);
 
         TEntity InsertOrUpdate(TEntity entity);
+
+        IUpdate<TEntity> UpdateDiy { get; }
+
+        int Delete(TEntity entity);
+        int Delete(IEnumerable<TEntity> entitys);
+        int Delete(Expression<Func<TEntity, bool>> predicate);
+        /// <summary>
+        /// 根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate);
+
         /// <summary>
         /// 保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
         /// 场景：在关闭级联保存功能之后，手工使用本方法<para></para>
@@ -73,12 +100,6 @@ namespace FreeSql
         /// <param name="entity">实体对象</param>
         /// <param name="propertyName">属性名</param>
         void SaveMany(TEntity entity, string propertyName);
-
-        IUpdate<TEntity> UpdateDiy { get; }
-
-        int Delete(TEntity entity);
-        int Delete(IEnumerable<TEntity> entitys);
-        int Delete(Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>
         /// 开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
@@ -110,6 +131,7 @@ namespace FreeSql
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
 

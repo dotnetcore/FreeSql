@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{3AAE17E8-8608-4905-826A-6DB68F75F339}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.ZeroEntity", "Extensions\FreeSql.Extensions.ZeroEntity\FreeSql.Extensions.ZeroEntity.csproj", "{E0480E6F-CFCD-4108-969C-448E44023C97}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{5E4928F2-E52B-4563-9FF7-C0A4119E6596}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zero_entity", "Examples\zero_entity\zero_entity.csproj", "{97E60B48-06AC-42F3-90A8-DFC5FD386582}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.MySql", "Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj", "{8533877A-F032-44E3-8FE2-3EA2970D3D71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AAE17E8-8608-4905-826A-6DB68F75F339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0480E6F-CFCD-4108-969C-448E44023C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E4928F2-E52B-4563-9FF7-C0A4119E6596}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E60B48-06AC-42F3-90A8-DFC5FD386582}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8533877A-F032-44E3-8FE2-3EA2970D3D71}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7E48B6A-A1A8-477E-AC28-EFD2E83369EF}
+	EndGlobalSection
+EndGlobal

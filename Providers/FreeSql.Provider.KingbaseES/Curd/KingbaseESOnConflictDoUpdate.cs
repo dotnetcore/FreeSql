@@ -18,27 +18,27 @@ namespace FreeSql.KingbaseES
         internal KingbaseESUpdate<T1> _update => _updatePriv ?? 
             (_updatePriv = new KingbaseESUpdate<T1>(_insert.InternalOrm, _insert.InternalCommonUtils, _insert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
                 .NoneParameter().SetSource(_insert.InternalSource) as KingbaseESUpdate<T1>);
-        ColumnInfo[] _columns;
+        internal ColumnInfo[] _tempPrimarys;
         bool _doNothing;
 
         public KingbaseESOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
             _insert = insert as KingbaseESInsert<T1>;
-            if (_insert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.KingbaseES 特有的功能");
+            if (_insert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnConflictDoUpdate", "KingbaseES"));
             if (_insert._noneParameterFlag == "c") _insert._noneParameterFlag = "cu";
 
             if (columns != null)
             {
                 var colsList = new List<ColumnInfo>();
-                var cols = _insert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
+                var cols = _insert.InternalCommonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, columns?.Body, false, null).ToDictionary(a => a, a => true);
                 foreach (var col in _insert.InternalTable.Columns.Values)
                     if (cols.ContainsKey(col.Attribute.Name))
                         colsList.Add(col);
-                _columns = colsList.ToArray();
+                _tempPrimarys = colsList.ToArray();
             }
-            if (_columns == null || _columns.Any() == false)
-                _columns = _insert.InternalTable.Primarys;
-            if (_columns.Any() == false) throw new Exception("OnConflictDoUpdate 功能要求实体类必须设置 IsPrimary 属性");
+            if (_tempPrimarys == null || _tempPrimarys.Any() == false)
+                _tempPrimarys = _insert.InternalTable.Primarys;
+            if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.S_OnConflictDoUpdate_MustIsPrimary);
         }
 
         protected void ClearData()
@@ -96,10 +96,10 @@ namespace FreeSql.KingbaseES
         {
             var sb = new StringBuilder();
             sb.Append(_insert.ToSql()).Append("\r\nON CONFLICT(");
-            for (var a = 0; a < _columns.Length; a++)
+            for (var a = 0; a < _tempPrimarys.Length; a++)
             {
                 if (a > 0) sb.Append(", ");
-                sb.Append(_insert.InternalCommonUtils.QuoteSqlName(_columns[a].Attribute.Name));
+                sb.Append(_insert.InternalCommonUtils.QuoteSqlName(_tempPrimarys[a].Attribute.Name));
             }
             if (_doNothing)
             {
@@ -109,6 +109,7 @@ namespace FreeSql.KingbaseES
             {
                 sb.Append(") DO UPDATE SET\r\n");
 
+                if (_update._tempPrimarys.Any() == false) _update._tempPrimarys = _tempPrimarys;
                 var sbSetEmpty = _update.InternalSbSet.Length == 0;
                 var sbSetIncrEmpty = _update.InternalSbSetIncr.Length == 0;
                 if (sbSetEmpty == false || sbSetIncrEmpty == false)
@@ -132,9 +133,16 @@ namespace FreeSql.KingbaseES
                         }
                         else if (_insert.InternalIgnore.ContainsKey(col.Attribute.Name))
                         {
-                            var caseWhen = _update.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
-                            sb.Append(caseWhen);
-                            if (caseWhen.EndsWith(" END")) _update.InternalToSqlCaseWhenEnd(sb, col);
+                            if (string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                            {
+                                sb.Append(_insert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(col.DbUpdateValue);
+                            }
+                            else
+                            {
+                                var caseWhen = _update.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
+                                sb.Append(caseWhen);
+                                if (caseWhen.EndsWith(" END")) _update.InternalToSqlCaseWhenEnd(sb, col);
+                            }
                         }
                         else
                         {

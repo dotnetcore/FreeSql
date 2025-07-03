@@ -21,12 +21,12 @@ namespace FreeSql.Firebird.Curd
 
         public override int ExecuteAffrows()
         {
-            base.NoneParameter(_source?.Count > 1);
+            if (_noneParameter == false) base.NoneParameter(_source?.Count > 1);
             return base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         }
         public override long ExecuteIdentity()
         {
-            base.NoneParameter(_source?.Count > 1);
+            if (_noneParameter == false) base.NoneParameter(_source?.Count > 1);
             return base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         }
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1, 999);
@@ -107,7 +107,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -126,12 +126,12 @@ namespace FreeSql.Firebird.Curd
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
-            base.NoneParameter(_source?.Count > 1);
+            if (_noneParameter == false) base.NoneParameter(_source?.Count > 1);
             return base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         }
         public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
-            base.NoneParameter(_source?.Count > 1);
+            if (_noneParameter == false) base.NoneParameter(_source?.Count > 1);
             return base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         }
         public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteInsertedAsync(1, 1000, cancellationToken);
@@ -207,7 +207,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {

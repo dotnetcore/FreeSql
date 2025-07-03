@@ -135,7 +135,7 @@ ELSE
     , @level2type = 'COLUMN', @level2name = N'{2}'
 ", schema.Replace("'", "''"), table.Replace("'", "''"), column.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
         }
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             Object<DbConnection> conn = null;
             string database = null;
@@ -149,9 +149,9 @@ ELSE
                 foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
-                    var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                    if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                    if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                    var tb = obj.tableSchema;
+                    if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                    if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                     var tbname = _commonUtils.SplitTableName(tb.DbName);
                     if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
                     if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
@@ -362,7 +362,8 @@ use [" + database + "];", tboldname ?? tbname);
                     }
                     //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
                     bool idents = false;
-                    var tablename = tboldname == null ? _commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2]) : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]);
+                    var newtablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2]);
+                    var tablename = tboldname == null ? newtablename : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]);
                     var tmptablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1], $"FreeSqlTmp_{tbname[2]}");
                     sb.Append("BEGIN TRANSACTION\r\n")
                         .Append("SET QUOTED_IDENTIFIER ON\r\n")
@@ -439,7 +440,7 @@ use [" + database + "];", tboldname ?? tbname);
                     {
                         sb.Append("CREATE ");
                         if (uk.IsUnique) sb.Append("UNIQUE ");
-                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename).Append("(");
                         foreach (var tbcol in uk.Columns)
                         {
                             sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -475,7 +476,22 @@ use [" + database + "];", tboldname ?? tbname);
                     {
                         cmd.CommandText = sql;
                         cmd.CommandType = CommandType.Text;
-                        return cmd.ExecuteScalar();
+                        var before = new Aop.CommandBeforeEventArgs(cmd);
+                        this._orm?.Aop.CommandBeforeHandler?.Invoke(this._orm, before);
+                        Exception afterException = null;
+                        try
+                        {
+                            return cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            afterException = ex;
+                            throw;
+                        }
+                        finally
+                        {
+                            this._orm?.Aop.CommandAfterHandler?.Invoke(this._orm, new Aop.CommandAfterEventArgs(before, afterException, null));
+                        }
                     }
                 }
                 finally

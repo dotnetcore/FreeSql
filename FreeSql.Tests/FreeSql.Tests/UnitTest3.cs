@@ -1,25 +1,13 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql;
+﻿using FreeSql;
+using FreeSql.DataAnnotations;
+using kwlib;
 using System;
 using System.Collections.Generic;
-using Xunit;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Data.SqlClient;
-using kwlib;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
-using System.Net.NetworkInformation;
-using System.Net;
-using System.Collections;
+using System.Threading;
+using Xunit;
 
 namespace FreeSql.Tests
 {
@@ -210,7 +198,7 @@ namespace FreeSql.Tests
             g.sqlite.Delete<tcate01>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<tshop01>().Where("1=1").ExecuteAffrows();
             var tshoprepo = g.sqlite.GetRepository<tcate01>();
-            tshoprepo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            tshoprepo.DbContextOptions.EnableCascadeSave = true;
             tshoprepo.Insert(new tcate01[]
             {
                 new tcate01 { name = "tcate1", tshops = new List<tshop01>{ new tshop01(), new tshop01(), new tshop01() } },
@@ -275,7 +263,7 @@ namespace FreeSql.Tests
 
             var ddlsql = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(testInsertNullable), "tb123123");
             Assert.Equal(@"CREATE TABLE IF NOT EXISTS ""main"".""tb123123"" (  
-  ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT, 
+  ""Id"" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
   ""str1"" NVARCHAR(255) NOT NULL, 
   ""int1"" INTEGER NOT NULL, 
   ""int2"" INTEGER , 
@@ -633,7 +621,7 @@ INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql2);
                 .UseLazyLoading(true)
                 .Build());
             ib.Register("db2", () => new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=3")
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=3")
                 .UseAutoSyncStructure(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .UseLazyLoading(true)

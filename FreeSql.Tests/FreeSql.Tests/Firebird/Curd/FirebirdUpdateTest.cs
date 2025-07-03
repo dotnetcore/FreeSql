@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +53,7 @@ namespace FreeSql.Tests.Firebird
             items[0].Clicks = null;
 
             sql = update.SetSource(items).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, \"CREATETIME\" = CASE \"ID\" WHEN 1 THEN @p_20 WHEN 2 THEN @p_21 WHEN 3 THEN @p_22 WHEN 4 THEN @p_23 WHEN 5 THEN @p_24 WHEN 6 THEN @p_25 WHEN 7 THEN @p_26 WHEN 8 THEN @p_27 WHEN 9 THEN @p_28 WHEN 10 THEN @p_29 END WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, \"CREATETIME\" = @p_20 WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
 
             sql = update.SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
@@ -88,7 +88,7 @@ namespace FreeSql.Tests.Firebird
             items[0].Clicks = null;
 
             sql = fsql.Update<Topic22>().SetSource(items).IgnoreColumns(a => a.TypeGuid).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_SETSOURCE\" SET \"CLICKS\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, \"CREATETIME\" = CASE \"ID\" WHEN 1 THEN @p_20 WHEN 2 THEN @p_21 WHEN 3 THEN @p_22 WHEN 4 THEN @p_23 WHEN 5 THEN @p_24 WHEN 6 THEN @p_25 WHEN 7 THEN @p_26 WHEN 8 THEN @p_27 WHEN 9 THEN @p_28 WHEN 10 THEN @p_29 END WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_SETSOURCE\" SET \"CLICKS\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, \"CREATETIME\" = @p_20 WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
 
             sql = fsql.Update<Topic22>().SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime, a.TypeGuid }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_SETSOURCE\" SET \"TITLE\" = CASE \"ID\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
@@ -146,20 +146,20 @@ namespace FreeSql.Tests.Firebird
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"TITLE\" = @p_0, \"CREATETIME\" = @p_1 WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(coalesce(\"CLICKS\", 0) * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((coalesce(\"CLICKS\", 0) * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             int incrv = 10;
             sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(coalesce(\"CLICKS\", 0) * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((coalesce(\"CLICKS\", 0) * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = trunc(\"CLICKS\" * 10/1) WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC_INSERT\" SET \"CLICKS\" = (trunc((\"CLICKS\" * 10)/1)) WHERE (\"ID\" = 1)", sql);
 
             var dt2000 = DateTime.Parse("2000-01-01");
             sql = update.Set(a => a.Clicks == (a.CreateTime > dt2000 ? 1 : 2)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");

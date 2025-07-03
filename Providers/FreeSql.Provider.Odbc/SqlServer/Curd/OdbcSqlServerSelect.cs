@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.SqlServer
 {
@@ -25,13 +26,16 @@ namespace FreeSql.Odbc.SqlServer
 
             if (_whereGlobalFilter.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
-                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter, true);
+                {
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == false), true);
+                    tb.CascadeBefore = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == true), true);
+                }
 
             var sb = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;
             for (var tbUnionsIdx = 0; tbUnionsIdx < tbUnions.Count; tbUnionsIdx++)
             {
-                if (tbUnionsIdx > 0) sb.Append("\r\n \r\nUNION ALL\r\n \r\n");
+                if (tbUnionsIdx > 0) sb.Append(" \r\n\r\nUNION ALL\r\n\r\n");
                 if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
 
@@ -40,46 +44,59 @@ namespace FreeSql.Odbc.SqlServer
                 if (_distinct) sb.Append("DISTINCT ");
                 //if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" "); //TOP 会引发 __rownum__ 无序的问题
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
-                sb.Append(field);
-                if (_skip > 0)
+                var rownum = "";
+
+                if (_limit > 0 || _skip > 0)
                 {
-                    if (string.IsNullOrEmpty(_orderby))
+                    if (string.IsNullOrEmpty(_orderby) && (_limit > 1 || _skip > 0))  //TOP 1 不自动 order by
                     {
-                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        if (string.IsNullOrEmpty(_groupby))
+                        {
+                            var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
+                            if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
+                            else if (_tables.FirstOrDefault()?.Table?.Columns?.Any() == true) _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else _orderby = " \r\nORDER BY getdate()";
+                        }
+                        else
+                            _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
-                    sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
+                    if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
+                        rownum = $", ROW_NUMBER() OVER({_orderby.Trim('\r', '\n', ' ')}) AS __rownum__";
                 }
-                sb.Append(" \r\nFROM ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
+                if (string.IsNullOrEmpty(rownum) == false && field == "*")
+                    sb.Append(tbsfrom[0].Alias).Append("."); //#1519 bug
+                sb.Append(field).Append(rownum);
+                sb.Append(" \r\nFROM ");
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
+                    var alias = LocalGetTableAlias(tbsfrom[a].Table.Type, tbUnion[tbsfrom[a].Table.Type], tbsfrom[a].Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(alias);
                     if (tbsjoin.Length > 0)
                     {
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            alias = LocalGetTableAlias(tbsfrom[b].Table.Type, tbUnion[tbsfrom[b].Table.Type], tbsfrom[b].Alias, _aliasRule);
+                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(alias);
 
-                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
-                            else
-                            {
-                                var onSql = tbsfrom[b].NavigateCondition ?? tbsfrom[b].On;
-                                sb.Append(" ON ").Append(onSql);
-                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false)
+                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) &&
+                                string.IsNullOrEmpty(tbsfrom[b].On) &&
+                                string.IsNullOrEmpty(tbsfrom[b].Cascade) &&
+                                string.IsNullOrEmpty(tbsfrom[b].CascadeBefore)) sb.Append(" ON 1 = 1");
+                            else sb.Append(" ON ").Append(string.Join(" AND ", new[]
                                 {
-                                    if (string.IsNullOrEmpty(onSql)) sb.Append(tbsfrom[b].Cascade);
-                                    else sb.Append(" AND ").Append(tbsfrom[b].Cascade);
-                                }
-                            }
+                                    tbsfrom[b].CascadeBefore,
+                                    tbsfrom[b].NavigateCondition ?? tbsfrom[b].On,
+                                    tbsfrom[b].Cascade
+                                }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                         }
                         break;
                     }
                     else
                     {
+                        if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].CascadeBefore)) sbnav.Append(" AND ").Append(tbsfrom[a].CascadeBefore);
                         if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
                         if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
                         if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND ").Append(tbsfrom[a].Cascade);
@@ -88,9 +105,11 @@ namespace FreeSql.Odbc.SqlServer
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");
                             break;
@@ -101,15 +120,21 @@ namespace FreeSql.Odbc.SqlServer
                             sb.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
-                    if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
+                    var alias = LocalGetTableAlias(tb.Table.Type, tbUnion[tb.Table.Type], tb.Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(alias)
+                        .Append(" ON ").Append(string.Join(" AND ", new[]
+                        {
+                            tb.CascadeBefore,
+                            tb.On ?? tb.NavigateCondition,
+                            tb.Cascade
+                        }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
                 if (_join.Length > 0) sb.Append(_join);
 
+                if (!string.IsNullOrEmpty(_tables[0].CascadeBefore)) sbnav.Append(" AND ").Append(_tables[0].CascadeBefore);
                 sbnav.Append(_where);
-                if (!string.IsNullOrEmpty(_tables[0].Cascade))
-                    sbnav.Append(" AND ").Append(_tables[0].Cascade);
+                if (!string.IsNullOrEmpty(_tables[0].Cascade)) sbnav.Append(" AND ").Append(_tables[0].Cascade);
 
                 if (sbnav.Length > 0)
                 {
@@ -124,7 +149,13 @@ namespace FreeSql.Odbc.SqlServer
                 if (_skip <= 0)
                     sb.Append(_orderby);
                 else
-                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
+                {
+                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__");
+                    if (_limit > 0)
+                        sb.Append(" between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
+                    else
+                        sb.Append(" > ").Append(_skip);
+                }
 
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
@@ -141,7 +172,10 @@ namespace FreeSql.Odbc.SqlServer
 
             if (_whereGlobalFilter.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
-                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter, true);
+                {
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == false), true);
+                    tb.CascadeBefore = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter.Where(a => a.Before == true), true);
+                }
 
             var sb = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;
@@ -150,41 +184,43 @@ namespace FreeSql.Odbc.SqlServer
                 if (tbUnionsIdx > 0) sb.Append("\r\n \r\nUNION ALL\r\n \r\n");
                 if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
-                
+
                 var sbnav = new StringBuilder();
                 sb.Append(_select);
                 if (_distinct) sb.Append("DISTINCT ");
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
                 sb.Append(field);
                 sb.Append(" \r\nFROM ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
+                    var alias = LocalGetTableAlias(tbsfrom[a].Table.Type, tbUnion[tbsfrom[a].Table.Type], tbsfrom[a].Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(alias);
                     if (tbsjoin.Length > 0)
                     {
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            alias = LocalGetTableAlias(tbsfrom[b].Table.Type, tbUnion[tbsfrom[b].Table.Type], tbsfrom[b].Alias, _aliasRule);
+                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(alias);
 
-                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
-                            else
-                            {
-                                var onSql = tbsfrom[b].NavigateCondition ?? tbsfrom[b].On;
-                                sb.Append(" ON ").Append(onSql);
-                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false)
+                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) &&
+                                string.IsNullOrEmpty(tbsfrom[b].On) &&
+                                string.IsNullOrEmpty(tbsfrom[b].Cascade) &&
+                                string.IsNullOrEmpty(tbsfrom[b].CascadeBefore)) sb.Append(" ON 1 = 1");
+                            else sb.Append(" ON ").Append(string.Join(" AND ", new[]
                                 {
-                                    if (string.IsNullOrEmpty(onSql)) sb.Append(tbsfrom[b].Cascade);
-                                    else sb.Append(" AND ").Append(tbsfrom[b].Cascade);
-                                }
-                            }
+                                    tbsfrom[b].CascadeBefore,
+                                    tbsfrom[b].NavigateCondition ?? tbsfrom[b].On,
+                                    tbsfrom[b].Cascade
+                                }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                         }
                         break;
                     }
                     else
                     {
+                        if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].CascadeBefore)) sbnav.Append(" AND ").Append(tbsfrom[a].CascadeBefore);
                         if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
                         if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
                         if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND ").Append(tbsfrom[a].Cascade);
@@ -193,9 +229,11 @@ namespace FreeSql.Odbc.SqlServer
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");
                             break;
@@ -206,15 +244,21 @@ namespace FreeSql.Odbc.SqlServer
                             sb.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
-                    if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
+                    var alias = LocalGetTableAlias(tb.Table.Type, tbUnion[tb.Table.Type], tb.Alias, _aliasRule);
+                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(alias)
+                        .Append(" ON ").Append(string.Join(" AND ", new[]
+                        {
+                            tb.CascadeBefore,
+                            tb.On ?? tb.NavigateCondition,
+                            tb.Cascade
+                        }.Where(sql => string.IsNullOrEmpty(sql) == false)));
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
                 if (_join.Length > 0) sb.Append(_join);
 
+                if (!string.IsNullOrEmpty(_tables[0].CascadeBefore)) sbnav.Append(" AND ").Append(_tables[0].CascadeBefore);
                 sbnav.Append(_where);
-                if (!string.IsNullOrEmpty(_tables[0].Cascade))
-                    sbnav.Append(" AND ").Append(_tables[0].Cascade);
+                if (!string.IsNullOrEmpty(_tables[0].Cascade)) sbnav.Append(" AND ").Append(_tables[0].Cascade);
 
                 if (sbnav.Length > 0)
                 {
@@ -230,9 +274,15 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     if (string.IsNullOrEmpty(_orderby))
                     {
-                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                        if (string.IsNullOrEmpty(_groupby))
+                        {
+                            var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
+                            if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
+                            else if (_tables.FirstOrDefault()?.Table?.Columns?.Any() == true) _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                            else _orderby = " \r\nORDER BY getdate()";
+                        }
+                        else
+                            _orderby = _groupby.Replace("GROUP BY ", "ORDER BY ");
                     }
                     sb.Append(_orderby).Append($" \r\nOFFSET {_skip} ROW");
                     if (_limit > 0) sb.Append($" \r\nFETCH NEXT {_limit} ROW ONLY");
@@ -248,6 +298,17 @@ namespace FreeSql.Odbc.SqlServer
             return sb.Append(_tosqlAppendContent).ToString();
         }
         #endregion
+
+        static string LocalGetTableAlias(Type entityType, string tbname, string alias, Func<Type, string, string> aliasRule)
+        {
+            if (aliasRule != null)
+            {
+                alias = aliasRule(entityType, alias);
+                if (tbname.IndexOf(' ') != -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                    alias = Regex.Replace(alias, @" With\([^\)]+\)", ""); //替换 WithLock、WithIndex
+            }
+            return alias;
+        }
 
         public OdbcSqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
         public override ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new OdbcSqlServerSelect<T1, T2>(_orm, _commonUtils, _commonExpression, null); OdbcSqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }

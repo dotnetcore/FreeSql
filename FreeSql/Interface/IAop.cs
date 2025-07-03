@@ -92,11 +92,14 @@ namespace FreeSql.Aop
     #region ParseExpression
     public class ParseExpressionEventArgs : EventArgs
     {
-        public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse)
+        public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse, List<SelectTableInfo> tables)
         {
             this.Expression = expression;
             this.FreeParse = freeParse;
+            this.Tables = tables;
         }
+
+        public List<SelectTableInfo> Tables { get; }
 
         /// <summary>
         /// 内置解析功能，可辅助您进行解析
@@ -131,7 +134,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 实体配置
         /// </summary>
-        public TableAttribute ModifyResult { get; }
+        public TableAttribute ModifyResult { get; internal set; }
         /// <summary>
         /// 索引配置
         /// </summary>
@@ -157,7 +160,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 实体的属性配置
         /// </summary>
-        public ColumnAttribute ModifyResult { get; }
+        public ColumnAttribute ModifyResult { get; internal set; }
     }
     #endregion
 
@@ -305,12 +308,13 @@ namespace FreeSql.Aop
     #region AuditValue
     public class AuditValueEventArgs : EventArgs
     {
-        public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
+        public AuditValueEventArgs(AuditValueType auditValueType, ColumnInfo column, PropertyInfo property, object value, object obj)
         {
-            this.AuditValueType = autoValueType;
+            this.AuditValueType = auditValueType;
             this.Column = column;
             this.Property = property;
             this._value = value;
+            this.Object = obj;
         }
 
         /// <summary>
@@ -339,6 +343,16 @@ namespace FreeSql.Aop
         }
         private object _value;
         public bool ValueIsChanged { get; private set; }
+        /// <summary>
+        /// 实体对象
+        /// </summary>
+        public object Object { get; }
+        /// <summary>
+        /// 中断实体对象审计<para></para>
+        /// false: 每个实体对象的属性都会审计（默认）<para></para>
+        /// true: 每个实体对象只审计一次
+        /// </summary>
+        public bool ObjectAuditBreak { get; set; } = false;
     }
     public enum AuditValueType { Update, Insert, InsertOrUpdate }
     #endregion
@@ -346,10 +360,11 @@ namespace FreeSql.Aop
     #region AuditDataReader
     public class AuditDataReaderEventArgs : EventArgs
     {
-        public AuditDataReaderEventArgs(DbDataReader dataReader, int index)
+        public AuditDataReaderEventArgs(DbDataReader dataReader, int index, PropertyInfo property)
         {
             this.DataReader = dataReader;
             this.Index = index;
+            this.Property = property;
         }
 
         /// <summary>
@@ -360,6 +375,10 @@ namespace FreeSql.Aop
         /// DataReader 对应的 Index 位置
         /// </summary>
         public int Index { get; }
+        /// <summary>
+        /// DataReader 对应的 PropertyInfo
+        /// </summary>
+        public PropertyInfo Property { get; }
         /// <summary>
         /// 获取 Index 对应的值，也可以设置拦截的新值
         /// </summary>

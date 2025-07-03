@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Globalization;
 
 namespace FreeSql.Sqlite
@@ -19,7 +23,7 @@ namespace FreeSql.Sqlite
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {
                 case DbType.Guid:
@@ -29,13 +33,17 @@ namespace FreeSql.Sqlite
                     break;
                 case DbType.Time:
                     if (value == null) value = null;
-                    else value = ((TimeSpan)value).Ticks / 10000;
-                    dbtype = DbType.Int64;
+                    else value = ((TimeSpan)value).TotalSeconds;
+                    dbtype = DbType.Decimal;
                     break;
             }
+#if MicrosoftData
+            var ret = new SqliteParameter();
+#else
             var ret = new SQLiteParameter();
+#endif
             ret.ParameterName = QuoteParamterName(parameterName);
-            ret.DbType = dbtype;
+            if (dbtype != null) ret.DbType = dbtype.Value;
             ret.Value = value;
             _params?.Add(ret);
             return ret;
@@ -57,12 +65,16 @@ namespace FreeSql.Sqlite
                             break;
                         case DbType.Time:
                             if (value == null) value = null;
-                            else value = ((TimeSpan)value).Ticks / 10000;
-                            dbtype = DbType.Int64;
+                            else value = ((TimeSpan)value).TotalSeconds;
+                            dbtype = DbType.Decimal;
                             break;
                     }
                 }
+#if MicrosoftData
+                var ret = new SqliteParameter();
+#else
                 var ret = new SQLiteParameter();
+#endif
                 ret.ParameterName = $"@{name}";
                 if (dbtype != null) ret.DbType = dbtype.Value;
                 ret.Value = value;
@@ -70,7 +82,7 @@ namespace FreeSql.Sqlite
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatSqlite(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {

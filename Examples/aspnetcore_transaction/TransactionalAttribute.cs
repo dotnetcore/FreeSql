@@ -1,54 +1,49 @@
-﻿using FreeSql;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Rougamo.Context;
 
 namespace FreeSql
 {
-    /// <summary>
-    /// 使用事务执行，请查看 Program.cs 代码开启动态代理
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public class TransactionalAttribute : DynamicProxyAttribute, IActionFilter
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class TransactionalAttribute : Rougamo.MoAttribute
     {
         public Propagation Propagation { get; set; } = Propagation.Required;
-        public IsolationLevel IsolationLevel { get => _IsolationLevelPriv.Value; set => _IsolationLevelPriv = value; }
-        IsolationLevel? _IsolationLevelPriv;
+        public IsolationLevel IsolationLevel { get => m_IsolationLevel.Value; set => m_IsolationLevel = value; }
+        IsolationLevel? m_IsolationLevel;
 
-        [DynamicProxyFromServices]
-#pragma warning disable IDE0044 // 添加只读修饰符
-        UnitOfWorkManager _uowManager;
-#pragma warning restore IDE0044 // 添加只读修饰符
+        static AsyncLocal<IServiceProvider> m_ServiceProvider = new AsyncLocal<IServiceProvider>();
+        public static void SetServiceProvider(IServiceProvider serviceProvider) => m_ServiceProvider.Value = serviceProvider;
+
         IUnitOfWork _uow;
-
-        public override Task Before(DynamicProxyBeforeArguments args) => OnBefore(_uowManager);
-        public override Task After(DynamicProxyAfterArguments args) => OnAfter(args.Exception);
-
-        //这里是为了 controller 
-        public void OnActionExecuting(ActionExecutingContext context) => OnBefore(context.HttpContext.RequestServices.GetService(typeof(UnitOfWorkManager)) as UnitOfWorkManager);
-        public void OnActionExecuted(ActionExecutedContext context) => OnAfter(context.Exception);
-
-
-        Task OnBefore(UnitOfWorkManager uowm)
+        public override void OnEntry(MethodContext context)
         {
-            _uow = uowm.Begin(this.Propagation, this._IsolationLevelPriv);
-            return Task.FromResult(false);
+            var uowManager = m_ServiceProvider.Value.GetService(typeof(UnitOfWorkManager)) as UnitOfWorkManager;
+            _uow = uowManager.Begin(this.Propagation, this.m_IsolationLevel);
         }
-        Task OnAfter(Exception ex)
+        public override void OnExit(MethodContext context)
         {
-            try
+            if (typeof(Task).IsAssignableFrom(context.RealReturnType))
             {
-                if (ex == null) _uow.Commit();
-                else _uow.Rollback();
+                ((Task)context.ReturnValue).ContinueWith(t => _OnExit());
+                return;
             }
-            finally
+            _OnExit();
+
+            void _OnExit()
             {
-                _uow.Dispose();
+                try
+                {
+                    if (context.Exception == null) _uow.Commit();
+                    else _uow.Rollback();
+                }
+                catch { }
+                finally
+                {
+                    _uow.Dispose();
+                }
             }
-            return Task.FromResult(false);
         }
     }
 }

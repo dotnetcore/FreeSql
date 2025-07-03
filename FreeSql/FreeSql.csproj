@@ -1,17 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>2.5.100</Version>
+		<TargetFrameworks>netstandard2.1;netstandard2.0;net451;net45;net40</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Firebird, Odbc, 达梦, 人大金仓, 神舟通用, 翰高, And Access</Description>
+		<Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Firebird, Clickhouse, DuckDB, TDengine, QuestDB, Odbc, Oledb, 达梦, 人大金仓, 南大通用, 虚谷, 神舟通用, 翰高, And Access</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
-		<PackageId>$(AssemblyName)</PackageId>
 		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
@@ -19,12 +17,47 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<!--<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
+		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0')) or
+						 $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) or
+						 $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">true</IsAotCompatible>-->
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
-  
+
+	<ItemGroup>
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Interface\Curd\ISelect\ISelect2`16.cs">
+	    <DependentUpon>ISelect2`16.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
+	  <Compile Update="Internal\CommonProvider\SelectProvider\Select1Provider2`16.cs">
+	    <DependentUpon>Select1Provider2`16.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\ISelect2`16.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>ISelect2`16.cs</LastGenOutput>
+		</None>
+		<None Update="Internal\CommonProvider\SelectProvider\T4Temp\Select1Provider2`16.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>Select1Provider2`16.cs</LastGenOutput>
+		</None>
+	</ItemGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DocumentationFile>FreeSql.xml</DocumentationFile>
 		<WarningLevel>3</WarningLevel>
@@ -34,5 +67,12 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
 	</PropertyGroup>
-	
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+		<DefineConstants>net45</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+		<DefineConstants>ns21</DefineConstants>
+	</PropertyGroup>
+
 </Project>
+

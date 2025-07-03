@@ -1,12 +1,10 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using Newtonsoft.Json.Linq;
-using Npgsql;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -18,11 +16,7 @@ namespace FreeSql.Tests.PostgreSQLExpression
     {
 
         ISelect<TableAllType> select => g.pgsql.Select<TableAllType>();
-
-        public OtherTest()
-        {
-            NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
-        }
+        IFreeSql fsql => g.pgsql;
 
         [Fact]
         public void Div()
@@ -39,11 +33,24 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var t8 = select.Where(a => a.testFieldDecimal / 3 > 3).Limit(10).ToList();
             var t9 = select.Where(a => a.testFieldFloat / 3 > 3).Limit(10).ToList();
         }
-
-        [Fact]
+        [Table(DisableSyncStructure = true)]
+		public class Student
+		{
+			public string Name { get; set; }
+			[Column(MapType = typeof(int))]
+			public bool IsDelete { get; set; }
+		}
+		[Fact]
         public void Boolean()
         {
-            var t1 = select.Where(a => a.testFieldBool == true).Limit(10).ToList();
+			var mapintSql01 = fsql.Select<Student>().Where(d => d.IsDelete).ToSql("1");
+			var mapintSql02 = fsql.Select<Student>().Where(d => d.IsDelete == true).ToSql("1");
+            Assert.Equal(mapintSql02, mapintSql01);
+            Assert.Equal(@"SELECT 1 
+FROM ""student"" a 
+WHERE (a.""isdelete"" = 1)", mapintSql01);
+
+			var t1 = select.Where(a => a.testFieldBool == true).Limit(10).ToList();
             var t2 = select.Where(a => a.testFieldBool != true).Limit(10).ToList();
             var t3 = select.Where(a => a.testFieldBool == false).Limit(10).ToList();
             var t4 = select.Where(a => !a.testFieldBool).Limit(10).ToList();
@@ -171,6 +178,12 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var sql16 = select.Where(a => a.testFieldJArray.Count() > 0).Limit(10).ToList();
             var sql17 = select.Where(a => a.testFieldJArray.LongCount() > 0).Limit(10).ToList();
             var sql18 = select.Where(a => a.testFieldJArray.Count > 0).Limit(10).ToList();
+
+            var sql19 = select.First(a => a.testFieldJToken["a"]);
+            var sql20 = select.Where(a => a.testFieldJToken["a"].ToString().Equals("1")).ToList();
+            var sql21 = select.Where(a => a.testFieldJToken["a"].ToString() == "1").ToList();
+            var sql23 = select.Where(a => int.Parse(a.testFieldJToken["a"].ToString()) > 0).ToList();
+
         }
 
         [Fact]

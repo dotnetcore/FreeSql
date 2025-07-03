@@ -1,19 +1,13 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql;
+﻿using FreeSql;
+using FreeSql.DataAnnotations;
+using kwlib;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using Xunit;
 using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
 using System.Threading;
-using Microsoft.Data.SqlClient;
-using kwlib;
-using System.Text;
+using Xunit;
 
 namespace FreeSql.Tests
 {
@@ -316,6 +310,13 @@ namespace FreeSql.Tests
                 .ToList();
             g.sqlite.Update<gf_t1>().NoneParameter().Set(a => a.rowstate + 1).Where(a => a.rowstate >= 0).ExecuteAffrows();
 
+            var dddd2sql1 = g.sqlite.Select<gf_t1>()
+                .DisableGlobalFilter()
+                .ToUpdate()
+                //.DisableGlobalFilter()
+                .Set(a => a.rowstate, 10)
+                .ToSql();
+
             var dtot2 = g.sqlite.Select<gf_t1>().ToList(a => new gfDto
             {
                 dto2 = new dfDto2
@@ -380,6 +381,16 @@ namespace FreeSql.Tests
             var gft1 = g.mysql.Select<gf_t1>().Where(a => a.id == Guid.NewGuid()).ToList();
             var gft2 = g.mysql.Select<gf_t2>().Where(a => a.id == Guid.NewGuid()).ToList();
             var gft3 = g.mysql.Select<gf_t3>().Where(a => a.id == Guid.NewGuid()).ToList();
+
+            var repo1 = g.mysql.GetRepository<gf_t1, Guid>();
+            using (repo1.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo1.Get(Guid.NewGuid());
+            var repo2 = g.mysql.GetRepository<gf_t2, Guid>();
+            using (repo2.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo2.Get(Guid.NewGuid());
+            var repo3 = g.mysql.GetRepository<gf_t3, Guid>();
+            using (repo3.DataFilter.Disable("gft1", "gft2", "gft3"))
+                repo3.Get(Guid.NewGuid());
 
             g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
             g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
@@ -521,7 +532,7 @@ namespace FreeSql.Tests
             };
 
 
-            var dbs = g.sqlserver.DbFirst.GetDatabases();
+            //var dbs = g.sqlserver.DbFirst.GetDatabases();
             var tbs = g.sqlserver.DbFirst.GetTablesByDatabase("ds_shop");
 
             var dicParamslist = g.sqlite.Select<SysModule>().Page(1, 10)

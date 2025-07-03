@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+Ôªøusing FreeSql.DataAnnotations;
 using FreeSql;
 using System;
 using System.Collections.Generic;
@@ -35,7 +35,6 @@ namespace FreeSql.Tests
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                     new DEPARTMENTS { deptid = 3, deptcode = "03" , deptname = ""},
                 });
-            user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
@@ -43,13 +42,11 @@ namespace FreeSql.Tests
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                     new DEPARTMENTS { deptid = 4, deptcode = "04", deptname = "" },
                 });
-            user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
                     new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                 });
-            user.SaveMany("depts");
 
             g.sqlite.CodeFirst.SyncStructure<Song_tag>();
             g.sqlite.CodeFirst.SyncStructure<Tag>();
@@ -75,7 +72,7 @@ namespace FreeSql.Tests
                 tags.Add(new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_01_÷–π˙2234234"
+                    Name = "test_manytoMany_01_‰∏≠ÂõΩ2234234"
                 });
                 tags[0].Name = "123123";
                 tags.RemoveAt(1);
@@ -99,36 +96,36 @@ namespace FreeSql.Tests
                 var tag1 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_01_÷–π˙"
+                    Name = "test_manytoMany_01_‰∏≠ÂõΩ"
                 };
                 var tag2 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_02_√¿π˙"
+                    Name = "test_manytoMany_02_ÁæéÂõΩ"
                 };
                 var tag3 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_03_»’±æ"
+                    Name = "test_manytoMany_03_Êó•Êú¨"
                 };
                 ctx.AddRange(new[] { tag1, tag2, tag3 });
 
                 var song1 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_01_Œ“ «÷–π˙»À.mp3",
+                    Title = "test_manytoMany_01_ÊàëÊòØ‰∏≠ÂõΩ‰∫∫.mp3",
                     Url = "http://ww.baidu.com/"
                 };
                 var song2 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_02_∞Æƒ„“ªÕÚƒÍ.mp3",
+                    Title = "test_manytoMany_02_Áà±‰Ω†‰∏Ä‰∏áÂπ¥.mp3",
                     Url = "http://ww.163.com/"
                 };
                 var song3 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_03_«ßƒÍµ»“ªªÿ.mp3",
+                    Title = "test_manytoMany_03_ÂçÉÂπ¥Á≠â‰∏ÄÂõû.mp3",
                     Url = "http://ww.sina.com/"
                 };
                 ctx.AddRange(new[] { song1, song2, song3 });
@@ -155,7 +152,7 @@ namespace FreeSql.Tests
 
             g.sqlite.SetDbContextOptions(opt =>
             {
-                //opt.EnableAddOrUpdateNavigateList = false;
+                //opt.EnableCascadeSave = false;
             });
 
             g.mysql.Insert<testenumWhere>().AppendData(new testenumWhere { type = testenumWhereType.Blaaa }).ExecuteAffrows();
@@ -163,11 +160,11 @@ namespace FreeSql.Tests
             var sql = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToSql();
             var tolist = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToList();
 
-            //÷ß≥÷ 1∂‘∂‡ º∂¡™±£¥Ê
+            //ÊîØÊåÅ 1ÂØπÂ§ö Á∫ßËÅî‰øùÂ≠ò
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigateList = true;
+                ctx.Options.EnableCascadeSave = true;
                 var tags = ctx.Set<Tag>().Select.IncludeMany(a => a.Tags).ToList();
 
                 var tag = new Tag
@@ -195,11 +192,11 @@ namespace FreeSql.Tests
         [Fact]
         public void Update()
         {
-            //≤È—Ø 1∂‘∂‡£¨‘Ÿº∂¡™±£¥Ê
+            //Êü•ËØ¢ 1ÂØπÂ§öÔºåÂÜçÁ∫ßËÅî‰øùÂ≠ò
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigateList = true;
+                ctx.Options.EnableCascadeSave = true;
                 var tag = ctx.Set<Tag>().Select.First();
                 tag.Tags.Add(new Tag { Name = "sub3" });
                 tag.Name = Guid.NewGuid().ToString();

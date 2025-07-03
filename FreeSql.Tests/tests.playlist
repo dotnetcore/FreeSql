@@ -1,0 +1,79 @@
+<Playlist Version="2.0">
+  <Rule Name="Includes" Match="Any">
+    <Rule Match="All">
+      <Property Name="Solution" />
+      <Rule Match="Any">
+        <Rule Match="All">
+          <Property Name="Project" Value="FreeSql.Tests" />
+          <Rule Match="Any">
+            <Property Name="Namespace" Value="FreeSql.ExpressionTree" />
+            <Property Name="Namespace" Value="FreeSql.InternalTests" />
+            <Property Name="Namespace" Value="FreeSql.Tests" />
+            <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.MySqlConnectionExtensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.NpgsqlConnectionExtensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.OracleConnectionExtensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.SqlConnectionExtensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.AdoNetExtensions.SQLiteConnectionExtensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.DataAnnotations" />
+            <Property Name="Namespace" Value="FreeSql.Tests.DynamicEntity" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Extensions" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Firebird" />
+            <Property Name="Namespace" Value="FreeSql.Tests.FirebirdExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.FirebirdMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Internal" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Linq" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MsAccess" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MsAccessExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MsAccessMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MySql" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MySqlExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.MySqlMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Oracle" />
+            <Property Name="Namespace" Value="FreeSql.Tests.OracleExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.OracleMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.PostgreSQL" />
+            <Property Name="Namespace" Value="FreeSql.Tests.PostgreSQL.PgArrayToMany" />
+            <Property Name="Namespace" Value="FreeSql.Tests.PostgreSQLExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.PostgreSQLMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Properties" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Sqlite" />
+            <Property Name="Namespace" Value="FreeSql.Tests.SqliteExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.SqliteMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.SqlServer" />
+            <Property Name="Namespace" Value="FreeSql.Tests.SqlServerExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.SqlServerMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Issues" />
+          </Rule>
+        </Rule>
+        <Property Name="Project" Value="FreeSql.Tests.DbContext" />
+        <Property Name="Project" Value="FreeSql.Tests.PerformanceTests" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.Custom" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.MySqlConnector (net6.0)" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.MySqlConnector (netcoreapp3.1)" />
+        <Rule Match="All">
+          <Property Name="Project" Value="FreeSql.Tests.Provider.Odbc" />
+          <Rule Match="Any">
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.Default" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DefaultExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.DefaultMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.MySql" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.MySqlExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.MySqlMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.Oracle" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.OracleExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.OracleMapType" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServer" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServerExpression" />
+            <Property Name="Namespace" Value="FreeSql.Tests.Odbc.SqlServerMapType" />
+          </Rule>
+        </Rule>
+        <Property Name="Project" Value="FreeSql.Tests.Provider.OracleOledb (net6.0)" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.OracleOledb (netcoreapp3.1)" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite" />
+        <Property Name="Project" Value="FreeSql.Tests.Provider.Sqlite.Data" />
+        <Property Name="Project" Value="FreeSql.Tests.VB" />
+      </Rule>
+    </Rule>
+  </Rule>
+</Playlist>

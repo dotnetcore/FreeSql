@@ -77,6 +77,14 @@ namespace FreeSql
         IInsert<T1> IgnoreColumns(string[] columns);
 
         /// <summary>
+        /// 忽略 InsertValueSql 设置，将使用实体对象的值插入<para></para>
+        /// IgnoreInsertValueSql(a => a.Name) | IgnoreInsertValueSql(a => new{a.Name,a.Time}) | IgnoreInsertValueSql(a => new[]{"name","time"})
+        /// </summary>
+        /// <param name="columns">属性名，或者字段名</param>
+        /// <returns></returns>
+        IInsert<T1> IgnoreInsertValueSql(Expression<Func<T1, object>> columns);
+
+        /// <summary>
         /// 指定可插入自增字段
         /// </summary>
         /// <returns></returns>
@@ -119,6 +127,12 @@ namespace FreeSql
         /// <returns></returns>
         IInsert<T1> AsTable(Func<string, string> tableRule);
         /// <summary>
+        /// 设置表名
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        IInsert<T1> AsTable(string tableName);
+        /// <summary>
         /// 动态Type，在使用 Insert&lt;object&gt; 后使用本方法，指定实体类型
         /// </summary>
         /// <param name="entityType"></param>
@@ -142,7 +156,7 @@ namespace FreeSql
         long ExecuteIdentity();
         /// <summary>
         /// 执行SQL语句，返回插入后的记录<para></para>
-        /// 注意：此方法只有 Postgresql/SqlServer 有效果
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();
@@ -160,6 +174,11 @@ namespace FreeSql
 #else
         Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
         Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// 执行SQL语句，返回插入后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer/Maridb/Firebird/DuckDB/人大金仓 有效果
+        /// </summary>
+        /// <returns></returns>
         Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default);
 #endif
     }

@@ -1,5 +1,4 @@
-using FreeSql.DataAnnotations;
-using Newtonsoft.Json;
+Ôªøusing FreeSql.DataAnnotations;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 using Npgsql.LegacyPostgis;
@@ -11,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text;
 using Xunit;
 
@@ -19,11 +19,130 @@ namespace FreeSql.Tests.PostgreSQL
     public class PostgreSQLCodeFirstTest
     {
         [Fact]
+        public void DateOnlyTimeOnly()
+        {
+            var fsql = g.pgsql;
+
+            var item = new test_DateOnlyTimeOnly01 { };
+            item.Id = (int)fsql.Insert(item).ExecuteIdentity();
+
+            var newitem = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item.Id).ToOne();
+
+            var now = DateTime.Parse("2024-8-20 23:00:11");
+            var item2 = new test_DateOnlyTimeOnly01
+            {
+                testFieldDateTime = now,
+                testFieldDateTimeArray = new[] { now, now.AddHours(2) },
+                testFieldDateTimeArrayNullable = new DateTime?[] { now, null, now.AddHours(2) },
+                testFieldDateTimeNullable = now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(now),
+                testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(now), DateOnly.FromDateTime(now.AddHours(2)) },
+                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(now), null, DateOnly.FromDateTime(now.AddHours(2)) },
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(now.AddDays(-1)),
+                
+                testFieldTimeSpan = TimeSpan.FromHours(16),
+                testFieldTimeSpanArray = new[] { TimeSpan.FromHours(16), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromHours(16), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
+                testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
+                testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
+                testFieldTimeOnlyArray = new[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldTimeOnlyArrayNullable = new TimeOnly?[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
+            };
+
+            var sqlPar = fsql.Insert(item2).ToSql();
+            var sqlText = fsql.Insert(item2).NoneParameter().ToSql();
+            var item3NP = fsql.Insert(item2).NoneParameter().ExecuteInserted()[0];
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var item3 = fsql.Insert(item2).ExecuteInserted().First();
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            item3 = fsql.Insert(item2).NoneParameter().ExecuteInserted().First();
+            item3NP = fsql.Select<test_DateOnlyTimeOnly01>().Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item3NP.testFieldDateOnly, item2.testFieldDateOnly);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[0], item2.testFieldDateOnlyArray[0]);
+            Assert.Equal(item3NP.testFieldDateOnlyArray[1], item2.testFieldDateOnlyArray[1]);
+            Assert.Equal(item3NP.testFieldDateOnlyNullable, item2.testFieldDateOnlyNullable);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnly - item2.testFieldTimeOnly).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[0] - item2.testFieldTimeOnlyArray[0]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyArray[1] - item2.testFieldTimeOnlyArray[1]).TotalSeconds) < 1);
+            Assert.True(Math.Abs((item3NP.testFieldTimeOnlyNullable - item2.testFieldTimeOnlyNullable).Value.TotalSeconds) < 1);
+
+            var items = fsql.Select<test_DateOnlyTimeOnly01>().ToList();
+            var itemstb = fsql.Select<test_DateOnlyTimeOnly01>().ToDataTable();
+        }
+        class test_DateOnlyTimeOnly01
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public TimeSpan testFieldTimeSpan { get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime testFieldDateTime { get; set; }
+            public DateOnly testFieldDateOnly { get; set; }
+
+            public TimeSpan? testFieldTimeSpanNullable { get; set; }
+            public TimeOnly? testFieldTimeOnlyNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime? testFieldDateTimeNullable { get; set; }
+            public DateOnly? testFieldDateOnlyNullable { get; set; }
+
+            /* array */
+            public TimeSpan[] testFieldTimeSpanArray { get; set; }
+            public TimeOnly[] testFieldTimeOnlyArray { get; set; }
+            public DateTime[] testFieldDateTimeArray { get; set; }
+            public DateOnly[] testFieldDateOnlyArray { get; set; }
+
+            public TimeSpan?[] testFieldTimeSpanArrayNullable { get; set; }
+            public TimeOnly?[] testFieldTimeOnlyArrayNullable { get; set; }
+            public DateTime?[] testFieldDateTimeArrayNullable { get; set; }
+            public DateOnly?[] testFieldDateOnlyArrayNullable { get; set; }
+        }
+
+        [Fact]
+        public void Test_0String()
+        {
+            var fsql = g.pgsql;
+            fsql.Delete<test_0string01>().Where("1=1").ExecuteAffrows();
+
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).ExecuteAffrows());
+            Assert.Equal(1, fsql.Insert(new test_0string01 { name = @"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000" }).NoneParameter().ExecuteAffrows());
+
+            var list = fsql.Select<test_0string01>().ToList();
+            Assert.Equal(2, list.Count);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[0].name);
+            Assert.Equal(@"1.0000\0.0000\0.0000\0.0000\1.0000\0.0000", list[1].name);
+        }
+        class test_0string01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void InsertUpdateParameter()
         {
             var fsql = g.pgsql;
             fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
-            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "Œ“ «÷–π˙»À")) };
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫")) };
             Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
             var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -91,7 +210,7 @@ namespace FreeSql.Tests.PostgreSQL
         [Fact]
         public void Blob()
         {
-            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "Œ“ «÷–π˙»À"));
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫"));
             var data1 = Encoding.UTF8.GetBytes(str1);
 
             var item1 = new TS_BLB01 { Data = data1 };
@@ -137,57 +256,57 @@ namespace FreeSql.Tests.PostgreSQL
         }
 
         [Fact]
-        public void ÷–Œƒ±Ì_◊÷∂Œ()
+        public void ‰∏≠ÊñáË°®_Â≠óÊÆµ()
         {
-            var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<≤‚ ‘÷–Œƒ±Ì>();
-            g.pgsql.CodeFirst.SyncStructure<≤‚ ‘÷–Œƒ±Ì>();
+            var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<ÊµãËØï‰∏≠ÊñáË°®>();
+            g.pgsql.CodeFirst.SyncStructure<ÊµãËØï‰∏≠ÊñáË°®>();
 
-            var item = new ≤‚ ‘÷–Œƒ±Ì
+            var item = new ÊµãËØï‰∏≠ÊñáË°®
             {
-                ±ÍÃ‚ = "≤‚ ‘±ÍÃ‚",
-                ¥¥Ω® ±º‰ = DateTime.Now
+                Ê†áÈ¢ò = "ÊµãËØïÊ†áÈ¢ò",
+                ÂàõÂª∫Êó∂Èó¥ = DateTime.Now
             };
-            Assert.Equal(1, g.pgsql.Insert<≤‚ ‘÷–Œƒ±Ì>().AppendData(item).ExecuteAffrows());
-            Assert.NotEqual(Guid.Empty, item.±‡∫≈);
-            var item2 = g.pgsql.Select<≤‚ ‘÷–Œƒ±Ì>().Where(a => a.±‡∫≈ == item.±‡∫≈).First();
+            Assert.Equal(1, g.pgsql.Insert<ÊµãËØï‰∏≠ÊñáË°®>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.ÁºñÂè∑);
+            var item2 = g.pgsql.Select<ÊµãËØï‰∏≠ÊñáË°®>().Where(a => a.ÁºñÂè∑ == item.ÁºñÂè∑).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±‡∫≈, item2.±‡∫≈);
-            Assert.Equal(item.±ÍÃ‚, item2.±ÍÃ‚);
+            Assert.Equal(item.ÁºñÂè∑, item2.ÁºñÂè∑);
+            Assert.Equal(item.Ê†áÈ¢ò, item2.Ê†áÈ¢ò);
 
-            item.±ÍÃ‚ = "≤‚ ‘±ÍÃ‚∏¸–¬";
-            Assert.Equal(1, g.pgsql.Update<≤‚ ‘÷–Œƒ±Ì>().SetSource(item).ExecuteAffrows());
-            item2 = g.pgsql.Select<≤‚ ‘÷–Œƒ±Ì>().Where(a => a.±‡∫≈ == item.±‡∫≈).First();
+            item.Ê†áÈ¢ò = "ÊµãËØïÊ†áÈ¢òÊõ¥Êñ∞";
+            Assert.Equal(1, g.pgsql.Update<ÊµãËØï‰∏≠ÊñáË°®>().SetSource(item).ExecuteAffrows());
+            item2 = g.pgsql.Select<ÊµãËØï‰∏≠ÊñáË°®>().Where(a => a.ÁºñÂè∑ == item.ÁºñÂè∑).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±‡∫≈, item2.±‡∫≈);
-            Assert.Equal(item.±ÍÃ‚, item2.±ÍÃ‚);
+            Assert.Equal(item.ÁºñÂè∑, item2.ÁºñÂè∑);
+            Assert.Equal(item.Ê†áÈ¢ò, item2.Ê†áÈ¢ò);
 
-            item.±ÍÃ‚ = "≤‚ ‘±ÍÃ‚∏¸–¬_repo";
-            var repo = g.pgsql.GetRepository<≤‚ ‘÷–Œƒ±Ì>();
+            item.Ê†áÈ¢ò = "ÊµãËØïÊ†áÈ¢òÊõ¥Êñ∞_repo";
+            var repo = g.pgsql.GetRepository<ÊµãËØï‰∏≠ÊñáË°®>();
             Assert.Equal(1, repo.Update(item));
-            item2 = g.pgsql.Select<≤‚ ‘÷–Œƒ±Ì>().Where(a => a.±‡∫≈ == item.±‡∫≈).First();
+            item2 = g.pgsql.Select<ÊµãËØï‰∏≠ÊñáË°®>().Where(a => a.ÁºñÂè∑ == item.ÁºñÂè∑).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±‡∫≈, item2.±‡∫≈);
-            Assert.Equal(item.±ÍÃ‚, item2.±ÍÃ‚);
+            Assert.Equal(item.ÁºñÂè∑, item2.ÁºñÂè∑);
+            Assert.Equal(item.Ê†áÈ¢ò, item2.Ê†áÈ¢ò);
 
-            item.±ÍÃ‚ = "≤‚ ‘±ÍÃ‚∏¸–¬_repo22";
+            item.Ê†áÈ¢ò = "ÊµãËØïÊ†áÈ¢òÊõ¥Êñ∞_repo22";
             Assert.Equal(1, repo.Update(item));
-            item2 = g.pgsql.Select<≤‚ ‘÷–Œƒ±Ì>().Where(a => a.±‡∫≈ == item.±‡∫≈).First();
+            item2 = g.pgsql.Select<ÊµãËØï‰∏≠ÊñáË°®>().Where(a => a.ÁºñÂè∑ == item.ÁºñÂè∑).First();
             Assert.NotNull(item2);
-            Assert.Equal(item.±‡∫≈, item2.±‡∫≈);
-            Assert.Equal(item.±ÍÃ‚, item2.±ÍÃ‚);
+            Assert.Equal(item.ÁºñÂè∑, item2.ÁºñÂè∑);
+            Assert.Equal(item.Ê†áÈ¢ò, item2.Ê†áÈ¢ò);
         }
-        class ≤‚ ‘÷–Œƒ±Ì
+        class ÊµãËØï‰∏≠ÊñáË°®
         {
             [Column(IsPrimary = true)]
-            public Guid ±‡∫≈ { get; set; }
+            public Guid ÁºñÂè∑ { get; set; }
 
-            public string ±ÍÃ‚ { get; set; }
+            public string Ê†áÈ¢ò { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
-            public DateTime ¥¥Ω® ±º‰ { get; set; }
+            public DateTime ÂàõÂª∫Êó∂Èó¥ { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
-            public DateTime ∏¸–¬ ±º‰ { get; set; }
+            public DateTime Êõ¥Êñ∞Êó∂Èó¥ { get; set; }
         }
 
         [Fact]
@@ -215,12 +334,12 @@ namespace FreeSql.Tests.PostgreSQL
         public void AddField()
         {
             var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
-            Assert.True(string.IsNullOrEmpty(sql)); //≤‚ ‘‘À––¡Ω¥Œ∫Û
+            Assert.True(string.IsNullOrEmpty(sql)); //ÊµãËØïËøêË°å‰∏§Ê¨°Âêé
             g.pgsql.Select<TopicAddField>();
             var id = g.pgsql.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
         }
 
-        [Table(Name = "ccc.TopicAddField", OldName = "TopicAddField")]
+        [Table(Name = "ccc2.TopicAddField", OldName = "ccc.TopicAddField")]
         public class TopicAddField
         {
             [Column(IsIdentity = true)]
@@ -234,8 +353,8 @@ namespace FreeSql.Tests.PostgreSQL
             //[Column(DbType = "varchar(200) not null", OldName = "title")]
             //public string title222 { get; set; } = "333";
 
-            //[Column(DbType = "varchar(200) not null")]
-            //public string title222333 { get; set; } = "xxx";
+            [Column(DbType = "varchar(200) not null")]
+            public string title222333 { get; set; } = "xxx";
 
             //[Column(DbType = "varchar(100) not null", OldName = "title122333aaa")]
             //public string titleaaa { get; set; } = "fsdf";
@@ -259,8 +378,6 @@ namespace FreeSql.Tests.PostgreSQL
         [Fact]
         public void CurdAllField()
         {
-            NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
-
             var sql1 = select.Where(a => a.testFieldIntArray.Contains(1)).ToSql();
             var sql2 = select.Where(a => a.testFieldIntArray.Contains(1)).ToSql();
 
@@ -271,8 +388,8 @@ namespace FreeSql.Tests.PostgreSQL
 
             var item2 = new TableAllType
             {
-                testFieldBitArray = new BitArray(Encoding.UTF8.GetBytes("Œ“ «")),
-                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("÷–π˙")), new BitArray(Encoding.UTF8.GetBytes("π´√Ò")) },
+                testFieldBitArray = new BitArray(Encoding.UTF8.GetBytes("ÊàëÊòØ")),
+                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("‰∏≠ÂõΩ")), new BitArray(Encoding.UTF8.GetBytes("ÂÖ¨Ê∞ë")) },
                 testFieldBool = true,
                 testFieldBoolArray = new[] { true, true, false, false },
                 testFieldBoolArrayNullable = new bool?[] { true, true, null, false, false },
@@ -281,8 +398,8 @@ namespace FreeSql.Tests.PostgreSQL
                 testFieldByteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6 },
                 testFieldByteArrayNullable = new byte?[] { 0, 1, 2, 3, null, 4, 5, 6 },
                 testFieldByteNullable = byte.MinValue,
-                testFieldBytes = Encoding.UTF8.GetBytes("Œ“ «÷–π˙»À"),
-                testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("Œ“ «÷–π˙»À"), Encoding.UTF8.GetBytes("Œ“ «÷–π˙»À") },
+                testFieldBytes = Encoding.UTF8.GetBytes("ÊàëÊòØ‰∏≠ÂõΩ‰∫∫"),
+                testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("ÊàëÊòØ‰∏≠ÂõΩ‰∫∫"), Encoding.UTF8.GetBytes("ÊàëÊòØ‰∏≠ÂõΩ‰∫∫") },
                 testFieldCidr = (IPAddress.Parse("10.0.0.0"), 8),
                 testFieldCidrArray = new[] { (IPAddress.Parse("10.0.0.0"), 8), (IPAddress.Parse("192.168.0.0"), 16) },
                 testFieldCidrArrayNullable = new (IPAddress, int)?[] { (IPAddress.Parse("10.0.0.0"), 8), null, (IPAddress.Parse("192.168.0.0"), 16) },
@@ -291,6 +408,10 @@ namespace FreeSql.Tests.PostgreSQL
                 testFieldDateTimeArray = new[] { DateTime.Now, DateTime.Now.AddHours(2) },
                 testFieldDateTimeArrayNullable = new DateTime?[] { DateTime.Now, null, DateTime.Now.AddHours(2) },
                 testFieldDateTimeNullable = DateTime.Now.AddDays(-1),
+                testFieldDateOnly = DateOnly.FromDateTime(DateTime.Now),
+                testFieldDateOnlyArray = new[] { DateOnly.FromDateTime(DateTime.Now), DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
+                testFieldDateOnlyArrayNullable = new DateOnly?[] { DateOnly.FromDateTime(DateTime.Now), null, DateOnly.FromDateTime(DateTime.Now.AddHours(2)) },
+                testFieldDateOnlyNullable = DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
                 testFieldDecimal = 999.99M,
                 testFieldDecimalArray = new[] { 999.91M, 999.92M, 999.93M },
                 testFieldDecimalArrayNullable = new decimal?[] { 998.11M, 998.12M, 998.13M },
@@ -457,13 +578,17 @@ namespace FreeSql.Tests.PostgreSQL
                 testFieldShortArray = new short[] { 1, 2, 3, 4, 5 },
                 testFieldShortArrayNullable = new short?[] { 1, 2, 3, null, 4, 5 },
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "Œ“ «÷–π˙»Àstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldString = "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldChar = 'X',
-                testFieldStringArray = new[] { "Œ“ «÷–π˙»ÀString1", "Œ“ «÷–π˙»ÀString2", null, "Œ“ «÷–π˙»ÀString3" },
+                testFieldStringArray = new[] { "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫String1", "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫String2", null, "ÊàëÊòØ‰∏≠ÂõΩ‰∫∫String3" },
                 testFieldTimeSpan = TimeSpan.FromDays(1),
                 testFieldTimeSpanArray = new[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
                 testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
+                testFieldTimeOnly = TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)),
+                testFieldTimeOnlyArray = new[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldTimeOnlyArrayNullable = new TimeOnly?[] { TimeOnly.FromTimeSpan(TimeSpan.FromHours(11)), TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(10)), null, TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(60)) },
+                testFieldTimeOnlyNullable = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(90)),
                 testFieldTsrange = new NpgsqlRange<DateTime>(DateTime.Now, DateTime.Now.AddMonths(1)),
                 testFieldTsrangeArray = new[] { new NpgsqlRange<DateTime>(DateTime.Now, DateTime.Now.AddMonths(1)), new NpgsqlRange<DateTime>(DateTime.Now, DateTime.Now.AddMonths(2)) },
                 testFieldTsrangeArrayNullable = new NpgsqlRange<DateTime>?[] { new NpgsqlRange<DateTime>(DateTime.Now, DateTime.Now.AddMonths(1)), null, new NpgsqlRange<DateTime>(DateTime.Now, DateTime.Now.AddMonths(2)) },
@@ -521,9 +646,11 @@ namespace FreeSql.Tests.PostgreSQL
             public float testFieldFloat { get; set; }
             public decimal testFieldDecimal { get; set; }
             public TimeSpan testFieldTimeSpan { get; set; }
+            public TimeOnly testFieldTimeOnly { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+            public DateOnly testFieldDateOnly { get; set; }
 
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
@@ -555,9 +682,11 @@ namespace FreeSql.Tests.PostgreSQL
             public float? testFieldFloatNullable { get; set; }
             public decimal? testFieldDecimalNullable { get; set; }
             public TimeSpan? testFieldTimeSpanNullable { get; set; }
+            public TimeOnly? testFieldTimeOnlyNullable { get; set; }
 
             [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+            public DateOnly? testFieldDateOnlyNullable { get; set; }
 
             public Guid? testFieldGuidNullable { get; set; }
             public NpgsqlPoint? testFieldNpgsqlPointNullable { get; set; }
@@ -608,7 +737,9 @@ namespace FreeSql.Tests.PostgreSQL
             public float[] testFieldFloatArray { get; set; }
             public decimal[] testFieldDecimalArray { get; set; }
             public TimeSpan[] testFieldTimeSpanArray { get; set; }
+            public TimeOnly[] testFieldTimeOnlyArray { get; set; }
             public DateTime[] testFieldDateTimeArray { get; set; }
+            public DateOnly[] testFieldDateOnlyArray { get; set; }
             public byte[][] testFieldBytesArray { get; set; }
             public string[] testFieldStringArray { get; set; }
             public Guid[] testFieldGuidArray { get; set; }
@@ -638,7 +769,9 @@ namespace FreeSql.Tests.PostgreSQL
             public float?[] testFieldFloatArrayNullable { get; set; }
             public decimal?[] testFieldDecimalArrayNullable { get; set; }
             public TimeSpan?[] testFieldTimeSpanArrayNullable { get; set; }
+            public TimeOnly?[] testFieldTimeOnlyArrayNullable { get; set; }
             public DateTime?[] testFieldDateTimeArrayNullable { get; set; }
+            public DateOnly?[] testFieldDateOnlyArrayNullable { get; set; }
             public Guid?[] testFieldGuidArrayNullable { get; set; }
             public NpgsqlPoint?[] testFieldNpgsqlPointArrayNullable { get; set; }
             public NpgsqlLine?[] testFieldNpgsqlLineArrayNullable { get; set; }

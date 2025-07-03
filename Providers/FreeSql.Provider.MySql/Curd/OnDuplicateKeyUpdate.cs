@@ -17,7 +17,7 @@ namespace FreeSql.MySql.Curd
         public OnDuplicateKeyUpdate(IInsert<T1> insert)
         {
             _mysqlInsert = insert as MySqlInsert<T1>;
-            if (_mysqlInsert == null) throw new Exception("OnDuplicateKeyUpdate 是 FreeSql.Provider.MySql/FreeSql.Provider.MySqlConnector 特有的功能");
+            if (_mysqlInsert == null) throw new Exception(CoreErrorStrings.S_Features_Unique("OnDuplicateKeyUpdate", "MySql/FreeSql.Provider.MySqlConnector"));
             if (_mysqlInsert._noneParameterFlag == "c") _mysqlInsert._noneParameterFlag = "cu";
         }
 
@@ -92,9 +92,16 @@ namespace FreeSql.MySql.Curd
                     }
                     else if (_mysqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
                     {
-                        var caseWhen = _mysqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
-                        sb.Append(caseWhen);
-                        if (caseWhen.EndsWith(" END")) _mysqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                        if (string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                        {
+                            sb.Append(_mysqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(col.DbUpdateValue);
+                        }
+                        else
+                        {
+                            var caseWhen = _mysqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
+                            sb.Append(caseWhen);
+                            if (caseWhen.EndsWith(" END")) _mysqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                        }
                     }
                     else
                     {

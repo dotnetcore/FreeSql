@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +20,37 @@ namespace FreeSql.Tests.Oracle
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
+        }
+
+        [Fact]
+        public void InsertDictionary()
+        {
+            var fsql = g.oracle;
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") VALUES(:id_0, :name_0)", sql1);
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT ALL
+INTO ""TABLE1""(""ID"", ""NAME"") VALUES(:id_0, :name_0)
+INTO ""TABLE1""(""ID"", ""NAME"") VALUES(:id_1, :name_1)
+ SELECT 1 FROM DUAL", sql2);
+            var sql3 = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") VALUES(1, 'xxxx')", sql3);
+            var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT ALL
+INTO ""TABLE1""(""ID"", ""NAME"") VALUES(1, 'xxxx')
+INTO ""TABLE1""(""ID"", ""NAME"") VALUES(2, 'yyyy')
+ SELECT 1 FROM DUAL", sql4);
         }
 
         [Fact]
@@ -204,13 +235,16 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
         public void ExecuteOracleBulkCopy()
         {
             var items = new List<Topic_bulkcopy>();
-            for (var a = 0; a < 10; a++) items.Add(new Topic_bulkcopy { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            for (var a = 0; a < 100; a++) items.Add(new Topic_bulkcopy { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
+            g.oracle.Delete<Topic_bulkcopy>().Where("1=1").ExecuteAffrows();
             g.oracle.Insert<Topic_bulkcopy>().AppendData(items).InsertIdentity().ExecuteOracleBulkCopy();
             //insert.AppendData(items).IgnoreColumns(a => new { a.CreateTime, a.Clicks }).ExecuteSqlBulkCopy();
             // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
+
+            g.oracle.Update<Topic_bulkcopy>().SetSource(items).ExecuteOracleBulkCopy();
         }
-        [Table(Name = "tb_topic_bulkcopy")]
+        [Table(Name = "tb_topic_bk1")]
         class Topic_bulkcopy
         {
             public Guid Id { get; set; }

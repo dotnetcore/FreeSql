@@ -18,9 +18,9 @@ namespace FreeSql.Custom
         public override IInsert<T1> CreateInsertProvider<T1>() => new CustomInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new CustomUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new CustomDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
-        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 
-        public override IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        public override IDbFirst DbFirst => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 
         public CustomProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
@@ -77,6 +77,7 @@ namespace FreeSql.Custom
             finally
             {
                 FreeSqlCustomAdapterGlobalExtensions._dicCustomAdater.TryRemove(Ado.Identifier, out var tryada);
+                FreeSqlCustomAdapterGlobalExtensions._dicDbProviderFactory.TryRemove(Ado.Identifier, out var trydbpf);
             }
         }
     }
@@ -88,4 +89,8 @@ public static class FreeSqlCustomAdapterGlobalExtensions
     internal static ConcurrentDictionary<Guid, CustomAdapter> _dicCustomAdater = new ConcurrentDictionary<Guid, CustomAdapter>();
     public static void SetCustomAdapter(this IFreeSql that, CustomAdapter adapter) => _dicCustomAdater.AddOrUpdate(that.Ado.Identifier, adapter, (fsql, old) => adapter);
     internal static CustomAdapter GetCustomAdapter(this IFreeSql that) => _dicCustomAdater.TryGetValue(that.Ado.Identifier, out var tryada) ? tryada : DefaultAdapter;
+
+    internal static ConcurrentDictionary<Guid, DbProviderFactory> _dicDbProviderFactory = new ConcurrentDictionary<Guid, DbProviderFactory>();
+    public static void SetDbProviderFactory(this IFreeSql that, DbProviderFactory factory) => _dicDbProviderFactory.AddOrUpdate(that.Ado.Identifier, factory, (fsql, old) => factory);
+    internal static DbProviderFactory GetDbProviderFactory(this IFreeSql that) => _dicDbProviderFactory.TryGetValue(that.Ado.Identifier, out var trydbpf) ? trydbpf : throw new Exception("需要先设置 fsql.SetDbProviderFactory(..) 方法");
 }

@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using Xunit;
 
@@ -10,6 +10,14 @@ namespace FreeSql.Tests.Firebird
         public void Pool()
         {
             var t1 = g.firebird.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.Firebird, () => new FirebirdSql.Data.FirebirdClient.FbConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]

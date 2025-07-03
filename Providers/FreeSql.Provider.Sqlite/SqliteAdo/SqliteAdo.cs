@@ -3,11 +3,16 @@ using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
-using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Text;
 using System.Threading;
+using System.Linq;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.Sqlite
 {
@@ -20,20 +25,26 @@ namespace FreeSql.Sqlite
             if (connectionFactory != null)
             {
                 var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 _CreateCommandConnection = pool.TestConnection;
                 return;
             }
+
+            var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
+            if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new SqliteConnectionPool("主库", masterConnectionString, null, null);
-            if (slaveConnectionStrings != null)
+                MasterPool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, CoreErrorStrings.S_MasterDatabase, () => SqliteConnectionPool.CreateConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new SqliteConnectionPool(CoreErrorStrings.S_MasterDatabase, masterConnectionString, null, null);
+
+            slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                foreach (var slaveConnectionString in slaveConnectionStrings)
-                {
-                    var slavePool = new SqliteConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-                    SlavePools.Add(slavePool);
-                }
-            }
+                var slavePool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, $"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => SqliteConnectionPool.CreateConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new SqliteConnectionPool($"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                SlavePools.Add(slavePool);
+            });
         }
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
@@ -48,13 +59,17 @@ namespace FreeSql.Sqlite
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return ((Enum)param).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
-            else if (param is DateTime || param is DateTime?)
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+
+            else if (param is DateTime)
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+            else if (param is DateTime?)
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).Ticks / 10000;
+                return ((TimeSpan)param).TotalSeconds;
             else if (param is byte[])
                 return string.Concat("'", Encoding.UTF8.GetString(param as byte[]), "'");
             else if (param is IEnumerable)
@@ -72,7 +87,12 @@ namespace FreeSql.Sqlite
                 cmd.Connection = null;
                 return cmd;
             }
-            return new SQLiteCommand();
+#if MicrosoftData
+                return new SqliteCommand();
+#else
+                return new SQLiteCommand();
+#endif
+
         }
 
         public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)

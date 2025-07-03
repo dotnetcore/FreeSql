@@ -67,19 +67,25 @@ namespace FreeSql.Internal.CommonProvider
             var index = -10000; //临时规则，不返回 as1
 
             if (selector != null) 
-                _comonExp.ReadAnonymousField(_select._tables, field, _map, ref index, selector, null, null, _select._whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _comonExp.ReadAnonymousField(_select._tables, _select._tableRule, field, _map, ref index, selector, null, null, _select._whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             _field = field.ToString();
         }
 
         public override string ParseExp(Expression[] members)
         {
-            if (members.Any() == false) return _map.DbField;
+            ParseExpMapResult = null;
+            if (members.Any() == false)
+            {
+                ParseExpMapResult = _map;
+                return _map.DbField;
+            }
             var read = _map;
             for (var a = 0; a < members.Length; a++)
             {
                 read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
                 if (read == null) return null;
             }
+            ParseExpMapResult = read;
             return read.DbField;
         }
 
@@ -162,7 +168,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (condition == false) return this;
             _lambdaParameter = column?.Parameters[0];
-            var sql = _comonExp.ExpressionWhereLambda(null, column, this, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, null, column, this, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { descending ? $"{sql} DESC" : sql, null });
             return this;
@@ -174,7 +180,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (condition == false) return this;
             _lambdaParameter = exp?.Parameters[0];
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, null, exp, this, null, null);
             var method = _select.GetType().GetMethod("Where", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;

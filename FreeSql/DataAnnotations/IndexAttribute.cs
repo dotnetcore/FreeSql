@@ -47,5 +47,16 @@ namespace FreeSql.DataAnnotations
         /// 是否唯一
         /// </summary>
         public bool IsUnique { get => _IsUnique ?? false; set => _IsUnique = value; }
+
+        /// <summary>
+        /// 索引类型<para></para>
+        /// 暂时只有 FreeSql.Provider.PostgreSQL 有效
+        /// </summary>
+        public IndexMethod IndexMethod { get; set; }
     }
+
+    /// <summary>
+    /// 暂时只有 FreeSql.Provider.PostgreSQL 有效
+    /// </summary>
+    public enum IndexMethod { B_Tree, Hash, GiST, GIN, SP_GiST, BRIN }
 }

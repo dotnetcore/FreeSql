@@ -1,7 +1,13 @@
+﻿using FreeSql;
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
 using Xunit;
 
 namespace FreeSql.Tests.Sqlite

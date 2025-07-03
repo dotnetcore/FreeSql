@@ -1,11 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-		<Version>2.5.100</Version>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;netstandard2.0;net461</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 人大金仓数据库 Ado.Net (Kdbndp)</Description>
+		<Description>FreeSql 数据库实现，基于 人大金仓数据库 V008R003/V008R006 Ado.Net (Kdbndp)</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -16,15 +15,29 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
 		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net461\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net6.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net7.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net8.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net9.0\" />
 		<None Include="lib/**/*.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -40,6 +53,9 @@
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<DefineConstants>ns20;netstandard20</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0'">
+		<DefineConstants>net60</DefineConstants>
 	</PropertyGroup>
 
 </Project>

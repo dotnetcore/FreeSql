@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,25 @@ namespace FreeSql.Tests.SqlServer
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
+        }
+
+        abstract class EntityBase
+        {
+            public int Id { get; set; }
+        }
+        class SysDictionnary : EntityBase
+        {
+            public string Name { get; set; }
+        }
+        [Fact]
+        public void AsType()
+        {
+            var fsql = g.sqlserver;
+
+            var delsid = new[] { 1, 2, 3, 4 }; 
+            var sqlsss22222 = fsql.Delete<object>().AsType(typeof(SysDictionnary))
+                .Where(o => delsid.Contains((o as EntityBase).Id))
+                .ToSql();
         }
 
         [Fact]

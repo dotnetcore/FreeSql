@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace FreeSql.Sqlite.Curd
 {
@@ -14,6 +15,15 @@ namespace FreeSql.Sqlite.Curd
         {
         }
 
+        public override IInsertOrUpdate<T1> SetSource(string sql, Expression<Func<T1, object>> tempPrimarys = null)
+        {
+            var list = _orm.Ado.CommandFluent(sql)
+                .WithConnection(_connection)
+                .WithTransaction(_transaction)
+                .Query<T1>();
+            return SetSource(list, tempPrimarys);
+        }
+
         public override string ToSql()
         {
             if (_source?.Any() != true) return null;
@@ -21,8 +31,8 @@ namespace FreeSql.Sqlite.Curd
             var sqls = new string[2];
             var dbParams = new List<DbParameter>();
             var ds = SplitSourceByIdentityValueIsNull(_source);
-            if (ds.Item1.Any()) sqls[0] = getInsertSql(ds.Item1, false);
-            if (ds.Item2.Any()) sqls[1] = getInsertSql(ds.Item2, true);
+            if (ds.Item1.Any()) sqls[0] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item1.Select(a => getInsertSql(a, false)));
+            if (ds.Item2.Any()) sqls[1] = string.Join("\r\n\r\n;\r\n\r\n", ds.Item2.Select(a => getInsertSql(a, true)));
             _params = dbParams.ToArray();
             if (ds.Item2.Any() == false) return sqls[0];
             if (ds.Item1.Any() == false) return sqls[1];
@@ -37,6 +47,7 @@ namespace FreeSql.Sqlite.Curd
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._noneParameterFlag = flagInsert ? "c" : "cu";
                 insert._source = data;
+                insert._table = _table;
 
                 string sql = "";
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();
@@ -45,21 +56,29 @@ namespace FreeSql.Sqlite.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
-                        if (_updateIgnore.Any()) throw new Exception($"fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作");
+                        if (_updateIgnore.Any()) throw new Exception(CoreErrorStrings.S_InsertOrUpdate_Unable_UpdateColumns);
                         sql = insert.ToSql();
                         if (sql?.StartsWith("INSERT INTO ") == true)
-                            sql = $"REPLACE INTO {sql.Substring("INSERT INTO ".Length)}";
+                            sql = $"INSERT OR REPLACE INTO {sql.Substring(12)}";
                     }
                     else
                     {
-                        if (_table.Primarys.Any() == false) throw new Exception($"fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite 要求实体类 {_table.CsName} 必须有主键");
-                        sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
-                            sb.Append(" \r\n WHERE NOT EXISTS(").Append(
-                                _orm.Select<T1>()
-                                .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
-                                .DisableGlobalFilter()
-                                .WhereDynamic(rowd)
-                                .Limit(1).ToSql("1").Replace(" \r\n", " \r\n    ")).Append(")"));
+                        if (_tempPrimarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite ", _table.CsName));
+                        sql = insert.ToSql();
+                        if (sql?.StartsWith("INSERT INTO ") == true)
+                            sql = $"INSERT OR IGNORE INTO {sql.Substring(12)}";
+                        //sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) => {
+                        //    sb.Append(" \r\n WHERE NOT EXISTS(");
+                        //    if (typeof(T1) == typeof(Dictionary<string, object>) && rowd is T1 dict)
+                        //        sb.Append($"SELECT 1 FROM {_commonUtils.QuoteSqlName(_tableRule(null))} WHERE {_commonUtils.WhereItems<T1>(_tempPrimarys, "", new T1[] { dict })})");
+                        //    else
+                        //        sb.Append(
+                        //            _orm.Select<T1>()
+                        //            .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
+                        //            .DisableGlobalFilter()
+                        //            .WhereDynamic(rowd)
+                        //            .Limit(1).ToSql("1").Replace(" \r\n", " \r\n    ")).Append(")");
+                        //});
                     }
                 }
                 if (string.IsNullOrEmpty(sql)) return null;

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;netstandard2.0</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql + DuckDB is a fast in-process analytical database，supports .NetCore、.NetFramework4.6.1+</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>FreeSql;ORM;duckdb</PackageTags>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DuckDB.NET.Data.Full" Version="1.2.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0'">
+		<DefineConstants>net60</DefineConstants>
+	</PropertyGroup>
+
+</Project>

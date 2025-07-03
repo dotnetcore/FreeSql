@@ -18,7 +18,7 @@ namespace FreeSql.Tests
         public void WithLambdaParameter01()
         {
             using (var fsql = new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=6")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=6;TrustServerCertificate=true")
                 .UseAutoSyncStructure(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .UseMonitorCommand(
@@ -304,7 +304,7 @@ GROUP BY a.""code"", a.""seqid"", a.""name""", sql);
             fsql.Delete<ts_otm_ll_02>().Where("1=1").ExecuteAffrows();
 
             var repo = fsql.GetRepository<ts_otm_ll_01>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new ts_otm_ll_01
             {
                 name = "001",
@@ -339,7 +339,7 @@ GROUP BY a.""code"", a.""seqid"", a.""name""", sql);
         public void SelectLambdaParameter()
         {
             using (var fsql = new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;min pool size=1;Max Pool Size=51")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;min pool size=1;Max Pool Size=51;TrustServerCertificate=true")
                 .UseAutoSyncStructure(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .UseMonitorCommand(

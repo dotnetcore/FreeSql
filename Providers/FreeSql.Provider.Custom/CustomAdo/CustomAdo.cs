@@ -18,12 +18,13 @@ namespace FreeSql.Custom
             if (connectionFactory != null)
             {
                 var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 _CreateCommandConnection = pool.TestConnection;
                 _CreateParameterCommand = CreateCommand();
                 return;
             }
-            throw new Exception("FreeSql.Provider.CustomAdapter 仅支持 UseConnectionFactory 方式构建 IFreeSql");
+            throw new Exception(CoreErrorStrings.S_CustomAdapter_OnlySuppport_UseConnectionFactory);
         }
         CustomAdapter Adapter => (_util == null ? FreeSqlCustomAdapterGlobalExtensions.DefaultAdapter : _util._orm.GetCustomAdapter());
 
@@ -39,12 +40,14 @@ namespace FreeSql.Custom
                 return Adapter.UnicodeStringRawSql(param, mapColumn);
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
-            else if (param is Enum)
-                return ((Enum)param).ToInt64();
+            else if (param is Enum) 
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
-            else if (param is DateTime || param is DateTime?)
-                return Adapter.DateTimeRawSql(param);
+            else if (param is DateTime)
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? Adapter.DateTimeRawSql(param);
+            else if (param is DateTime?)
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? Adapter.DateTimeRawSql(param);
             else if (param is TimeSpan || param is TimeSpan?)
                 return Adapter.TimeSpanRawSql(param);
             else if (param is byte[])
@@ -65,7 +68,7 @@ namespace FreeSql.Custom
                 cmd.Connection = null;
                 return cmd;
             }
-            throw new Exception("FreeSql.Provider.CustomAdapter 无法使用 CreateCommand");
+            throw new Exception(CoreErrorStrings.S_CustomAdapter_Cannot_Use_CreateCommand);
         }
         public DbParameter CreateParameter()
         {

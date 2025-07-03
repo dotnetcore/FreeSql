@@ -53,6 +53,10 @@
       <Project>{28c6a39c-7ae7-4210-b7b0-0970216637a8}</Project>
       <Name>FreeSql.Provider.MySql</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj">
+      <Project>{559b6369-1868-4a06-a590-f80ba7b80a1b}</Project>
+      <Name>FreeSql.Provider.Sqlite</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj">
       <Project>{b61aac9e-59e9-4f47-bbe3-97ac24112efe}</Project>
       <Name>FreeSql.Provider.SqlServer</Name>
@@ -63,7 +67,7 @@
       <Version>1.50.2</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.3</Version>
+      <Version>13.0.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

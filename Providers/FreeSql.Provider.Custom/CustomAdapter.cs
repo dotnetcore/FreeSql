@@ -53,7 +53,12 @@ namespace FreeSql.Custom
             if (value.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
             return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");
         }
-        public virtual string TimeSpanRawSql(object value) => value == null ? "NULL" : ((TimeSpan)value).TotalSeconds.ToString();
+        public virtual string TimeSpanRawSql(object value)
+        {
+            if (value == null) return "NULL";
+            var ts = (TimeSpan)value;
+            return $"'{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}'";
+        }
         public virtual string ByteRawSql(object value)
         {
             if (value == null) return "NULL";
@@ -136,7 +141,6 @@ namespace FreeSql.Custom
 
         public virtual string LambdaDateTime_DaysInMonth(string year, string month) => $"datepart(day, dateadd(day, -1, dateadd(month, 1, cast({year} as varchar) + '-' + cast({month} as varchar) + '-1')))";
         public virtual string LambdaDateTime_IsLeapYear(string year) => $"(({year})%4=0 AND ({year})%100<>0 OR ({year})%400=0)";
-        public virtual string LambdaDateTime_Add(string operand, string value) => $"dateadd(second, {value}, {operand})";
         public virtual string LambdaDateTime_AddDays(string operand, string value) => $"dateadd(day, {value}, {operand})";
         public virtual string LambdaDateTime_AddHours(string operand, string value) => $"dateadd(hour, {value}, {operand})";
         public virtual string LambdaDateTime_AddMilliseconds(string operand, string value) => $"dateadd(second, ({value})/1000, {operand})";
@@ -146,7 +150,6 @@ namespace FreeSql.Custom
         public virtual string LambdaDateTime_AddTicks(string operand, string value) => $"dateadd(second, ({value})/10000000, {operand})";
         public virtual string LambdaDateTime_AddYears(string operand, string value) => $"dateadd(year, {value}, {operand})";
         public virtual string LambdaDateTime_Subtract(string operand, string value) => $"datediff(second, {value}, {operand})";
-        public virtual string LambdaDateTime_SubtractTimeSpan(string operand, string value) => $"dateadd(second, ({value})*-1, {operand})";
         public virtual string LambdaDateTime_Equals(string operand, string value) => $"({operand} = {value})";
         public virtual string LambdaDateTime_CompareTo(string operand, string value) => $"datediff(second,{value},{operand})";
         public virtual string LambdaDateTime_ToString(string operand) => $"convert(varchar, {operand}, 121)";

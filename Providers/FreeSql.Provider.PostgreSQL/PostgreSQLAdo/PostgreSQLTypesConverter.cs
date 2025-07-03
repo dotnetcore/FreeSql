@@ -1,11 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
-using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 namespace Newtonsoft.Json
 {
@@ -57,6 +60,98 @@ namespace Newtonsoft.Json
 
             return false;
         }
+
+        private static readonly Regex NpgsqlPointParseRegex = new Regex("\\((-?\\d+.?\\d*),(-?\\d+.?\\d*)\\)");
+        static NpgsqlPoint NpgsqlPointParse(string s)
+        {
+            Match match = NpgsqlPointParseRegex.Match(s);
+            if (!match.Success)
+                throw new FormatException("Not a valid point: " + s);
+
+            return new NpgsqlPoint(double.Parse(match.Groups[1].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat), double.Parse(match.Groups[2].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat));
+        }
+        static readonly Regex NpgsqlLineRegex = new Regex(@"\{(-?\d+.?\d*),(-?\d+.?\d*),(-?\d+.?\d*)\}");
+        static NpgsqlLine NpgsqlLineParse(string s)
+        {
+            var m = NpgsqlLineRegex.Match(s);
+            if (!m.Success)
+                throw new FormatException("Not a valid line: " + s);
+            return new NpgsqlLine(
+                double.Parse(m.Groups[1].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[2].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[3].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat)
+            );
+        }
+        static readonly Regex NpgsqlLSegRegex = new Regex(@"\[\((-?\d+.?\d*),(-?\d+.?\d*)\),\((-?\d+.?\d*),(-?\d+.?\d*)\)\]");
+        static NpgsqlLSeg NpgsqlLSegParse(string s)
+        {
+            var m = NpgsqlLSegRegex.Match(s);
+            if (!m.Success)
+            {
+                throw new FormatException("Not a valid line: " + s);
+            }
+            return new NpgsqlLSeg(
+                double.Parse(m.Groups[1].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[2].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[3].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[4].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat)
+            );
+        }
+        static readonly Regex NpgsqlBoxRegex = new Regex(@"\((-?\d+.?\d*),(-?\d+.?\d*)\),\((-?\d+.?\d*),(-?\d+.?\d*)\)");
+        static NpgsqlBox NpgsqlBoxParse(string s)
+        {
+            var m = NpgsqlBoxRegex.Match(s);
+            return new NpgsqlBox(
+                new NpgsqlPoint(double.Parse(m.Groups[1].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                                double.Parse(m.Groups[2].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat)),
+                new NpgsqlPoint(double.Parse(m.Groups[3].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                                double.Parse(m.Groups[4].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat))
+            );
+        }
+        static NpgsqlPath NpgsqlPathParse(string s)
+        {
+            var open = s[0] == '[' ? true : (s[0] == '(' ? false : throw new Exception("Invalid path string: " + s));
+            Debug.Assert(s[s.Length - 1] == (open ? ']' : ')'));
+            var result = new NpgsqlPath(open);
+            var i = 1;
+            while (true)
+            {
+                var i2 = s.IndexOf(')', i);
+                result.Add(NpgsqlPointParse(s.Substring(i, i2 - i + 1)));
+                if (s[i2 + 1] != ',')
+                    break;
+                i = i2 + 2;
+            }
+            return result;
+        }
+        static NpgsqlPolygon NpgsqlPolygonParse(string s)
+        {
+            var points = new List<NpgsqlPoint>();
+            var i = 1;
+            while (true)
+            {
+                var i2 = s.IndexOf(')', i);
+                points.Add(NpgsqlPointParse(s.Substring(i, i2 - i + 1)));
+                if (s[i2 + 1] != ',')
+                    break;
+                i = i2 + 2;
+            }
+            return new NpgsqlPolygon(points);
+        }
+        static readonly Regex NpgsqlCircleRegex = new Regex(@"<\((-?\d+.?\d*),(-?\d+.?\d*)\),(\d+.?\d*)>");
+        static NpgsqlCircle NpgsqlCircleParse(string s)
+        {
+            var m = NpgsqlCircleRegex.Match(s);
+            if (!m.Success)
+                throw new FormatException("Not a valid circle: " + s);
+
+            return new NpgsqlCircle(
+                double.Parse(m.Groups[1].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[2].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat),
+                double.Parse(m.Groups[3].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat)
+            );
+        }
+
         private object YieldJToken(Type ctype, JToken jt, int rank)
         {
             if (jt.Type == JTokenType.Null) return null;
@@ -65,13 +160,13 @@ namespace Newtonsoft.Json
                 var ctypeGenericType1 = ctype.GenericTypeArguments.FirstOrDefault();//ctype.Namespace == "System" && ctype.Name.StartsWith("Nullable`") ? ctype.GenericTypeArguments.FirstOrDefault() : null;
                 if (ctype == typeof_BitArray) return jt.ToString().ToBitArray();
 
-                if (ctype == typeof_NpgsqlPoint || ctypeGenericType1 == typeof_NpgsqlPoint) return NpgsqlPoint.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlLine || ctypeGenericType1 == typeof_NpgsqlLine) return NpgsqlLine.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlLSeg || ctypeGenericType1 == typeof_NpgsqlLSeg) return NpgsqlLSeg.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlBox || ctypeGenericType1 == typeof_NpgsqlBox) return NpgsqlBox.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlPath || ctypeGenericType1 == typeof_NpgsqlPath) return NpgsqlPath.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlPolygon || ctypeGenericType1 == typeof_NpgsqlPolygon) return NpgsqlPolygon.Parse(jt.ToString());
-                if (ctype == typeof_NpgsqlCircle || ctypeGenericType1 == typeof_NpgsqlCircle) return NpgsqlCircle.Parse(jt.ToString());
+                if (ctype == typeof_NpgsqlPoint || ctypeGenericType1 == typeof_NpgsqlPoint) return NpgsqlPointParse(jt.ToString());
+                if (ctype == typeof_NpgsqlLine || ctypeGenericType1 == typeof_NpgsqlLine) return NpgsqlLineParse(jt.ToString());
+                if (ctype == typeof_NpgsqlLSeg || ctypeGenericType1 == typeof_NpgsqlLSeg) return NpgsqlLSegParse(jt.ToString());
+                if (ctype == typeof_NpgsqlBox || ctypeGenericType1 == typeof_NpgsqlBox) return NpgsqlBoxParse(jt.ToString());
+                if (ctype == typeof_NpgsqlPath || ctypeGenericType1 == typeof_NpgsqlPath) return NpgsqlPathParse(jt.ToString());
+                if (ctype == typeof_NpgsqlPolygon || ctypeGenericType1 == typeof_NpgsqlPolygon) return NpgsqlPolygonParse(jt.ToString());
+                if (ctype == typeof_NpgsqlCircle || ctypeGenericType1 == typeof_NpgsqlCircle) return NpgsqlCircleParse(jt.ToString());
 
                 if (ctype == typeof_Cidr || ctypeGenericType1 == typeof_Cidr)
                 {

@@ -126,6 +126,7 @@ namespace FreeSql.DataAnnotations
         /// <summary>
         /// 重读功能<para></para>
         /// 比如：[Column(RereadSql = &quot;{0}.STAsText()&quot;)]<para></para>
+        /// 或者：[Column(RereadSql = &quot;{geo}.STAsText()&quot;)]<para></para>
         /// 查询：SELECT a.[id], a.[geo].STAsText() FROM [table] a
         /// </summary>
         public string RereadSql { get; set; }

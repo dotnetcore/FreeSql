@@ -1,10 +1,12 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +51,7 @@ namespace FreeSql.Odbc.MySql
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();", _commandTimeout), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -107,7 +109,7 @@ namespace FreeSql.Odbc.MySql
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -187,7 +189,7 @@ namespace FreeSql.Odbc.MySql
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +49,7 @@ namespace FreeSql.Tests.Odbc.MySql
             items[0].Clicks = null;
 
             sql = update.SetSource(items).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE `tb_topic` SET `Clicks` = CASE `Id` WHEN 1 THEN NULL WHEN 2 THEN 100 WHEN 3 THEN 200 WHEN 4 THEN 300 WHEN 5 THEN 400 WHEN 6 THEN 500 WHEN 7 THEN 600 WHEN 8 THEN 700 WHEN 9 THEN 800 WHEN 10 THEN 900 END, `Title` = CASE `Id` WHEN 1 THEN 'newtitle0' WHEN 2 THEN 'newtitle1' WHEN 3 THEN 'newtitle2' WHEN 4 THEN 'newtitle3' WHEN 5 THEN 'newtitle4' WHEN 6 THEN 'newtitle5' WHEN 7 THEN 'newtitle6' WHEN 8 THEN 'newtitle7' WHEN 9 THEN 'newtitle8' WHEN 10 THEN 'newtitle9' END, `CreateTime` = CASE `Id` WHEN 1 THEN '0001-01-01 00:00:00.000' WHEN 2 THEN '0001-01-01 00:00:00.000' WHEN 3 THEN '0001-01-01 00:00:00.000' WHEN 4 THEN '0001-01-01 00:00:00.000' WHEN 5 THEN '0001-01-01 00:00:00.000' WHEN 6 THEN '0001-01-01 00:00:00.000' WHEN 7 THEN '0001-01-01 00:00:00.000' WHEN 8 THEN '0001-01-01 00:00:00.000' WHEN 9 THEN '0001-01-01 00:00:00.000' WHEN 10 THEN '0001-01-01 00:00:00.000' END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))", sql);
+            Assert.Equal("UPDATE `tb_topic` SET `Clicks` = CASE `Id` WHEN 1 THEN NULL WHEN 2 THEN 100 WHEN 3 THEN 200 WHEN 4 THEN 300 WHEN 5 THEN 400 WHEN 6 THEN 500 WHEN 7 THEN 600 WHEN 8 THEN 700 WHEN 9 THEN 800 WHEN 10 THEN 900 END, `Title` = CASE `Id` WHEN 1 THEN 'newtitle0' WHEN 2 THEN 'newtitle1' WHEN 3 THEN 'newtitle2' WHEN 4 THEN 'newtitle3' WHEN 5 THEN 'newtitle4' WHEN 6 THEN 'newtitle5' WHEN 7 THEN 'newtitle6' WHEN 8 THEN 'newtitle7' WHEN 9 THEN 'newtitle8' WHEN 10 THEN 'newtitle9' END, `CreateTime` = '0001-01-01 00:00:00.000' WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))", sql);
 
             sql = update.SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE `tb_topic` SET `Title` = CASE `Id` WHEN 1 THEN 'newtitle0' WHEN 2 THEN 'newtitle1' WHEN 3 THEN 'newtitle2' WHEN 4 THEN 'newtitle3' WHEN 5 THEN 'newtitle4' WHEN 6 THEN 'newtitle5' WHEN 7 THEN 'newtitle6' WHEN 8 THEN 'newtitle7' WHEN 9 THEN 'newtitle8' WHEN 10 THEN 'newtitle9' END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))", sql);
@@ -254,9 +254,6 @@ limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a
         {
             var sql = update.Where(a => a.Id == 1).SetRaw("clicks = clicks + ?", new { incrClick = 1 }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE `tb_topic` SET clicks = clicks + ? WHERE (`Id` = 1)", sql);
-
-            sql = g.mysql.Update<TestEnumUpdateTb>().NoneParameter().Where(a => a.id == 0).SetRaw("`type` = {0}".FormatOdbcMySql(TestEnumUpdateTbType.sum211)).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0)", sql);
         }
         [Fact]
         public void SetDto()

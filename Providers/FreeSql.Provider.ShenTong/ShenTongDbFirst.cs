@@ -30,10 +30,10 @@ namespace FreeSql.ShenTong
         OscarDbType GetOscarDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             OscarDbType ret = OscarDbType.Oidvector;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int2": ret = OscarDbType.SmallInt; break;
                 case "int4": ret = OscarDbType.Integer; break;
@@ -277,7 +277,6 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var position = 0;
                 foreach (object[] row in ds)
                 {
                     var object_id = string.Concat(row[0]);
@@ -325,9 +324,9 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment,
+                        Comment = comment,
                         DefaultValue = defaultValue,
-                        Position = ++position
+                        Position = attnum
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);
@@ -369,14 +368,14 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")
                     var inkey = string.Concat(row[7]).Split(' ');
                     var attnum = int.Parse(string.Concat(row[8]));
                     attnum = int.Parse(inkey[attnum - 1]);
-                    foreach (string tc in loc3[object_id].Keys)
-                    {
-                        if (loc3[object_id][tc].DbTypeText.EndsWith("[]"))
-                        {
-                            column = tc;
-                            break;
-                        }
-                    }
+                    //foreach (string tc in loc3[object_id].Keys)
+                    //{
+                    //    if (loc3[object_id][tc].DbTypeText.EndsWith("[]"))
+                    //    {
+                    //        column = tc;
+                    //        break;
+                    //    }
+                    //}
                     if (loc3.ContainsKey(object_id) == false || loc3[object_id].ContainsKey(column) == false) continue;
                     var loc9 = loc3[object_id][column];
                     if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
@@ -485,7 +484,7 @@ where {loc8.ToString().Replace("a.table_name", "a.pktable_schem || '.' || a.pkta
                             bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
                             compare = b2.CompareTo(b1);
                         }
-                        if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
+                        if (compare == 0) compare = c1.Position.CompareTo(c2.Position);
                         return compare;
                     });
                     loc1.Add(loc4);

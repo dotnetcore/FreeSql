@@ -27,10 +27,10 @@ namespace FreeSql.Firebird
         FbDbType GetFbDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             FbDbType ret = FbDbType.VarChar;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "bigint": ret = FbDbType.BigInt; break;
                 case "blob": ret = FbDbType.Binary; break;
@@ -128,7 +128,7 @@ select
 trim(rdb$relation_name) as id,
 trim(rdb$owner_name) as owner,
 trim(rdb$relation_name) as name,
-trim(rdb$external_description) as comment,
+trim(rdb$description) as comment,
 rdb$relation_type as type
 from rdb$relations
 where rdb$system_flag=0" + (tbname == null ? "" : $" and {(ignoreCase ? "upper(trim(rdb$relation_name))" : "trim(rdb$relation_name)")} = {_commonUtils.FormatSql("{0}", tbname.Last())}");
@@ -267,7 +267,7 @@ order by a.rdb$relation_name, a.rdb$field_position
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });

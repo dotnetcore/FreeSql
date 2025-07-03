@@ -16,14 +16,23 @@ namespace FreeSql
         Task<long> CountAsync(CancellationToken cancellationToken = default);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default);
+
 #endif
 
         /// <summary>
-        /// 按聚合条件过滤，Where(a => a.Count() > 10)
+        /// 按聚合条件过滤，Having(a => a.Count() > 10)
         /// </summary>
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp);
+        /// <summary>
+        /// 按聚合条件过滤，HavingIf(true, a => a.Count() > 10)
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp">lambda表达式</param>
+        /// <returns></returns>
+        ISelectGrouping<TKey, TValue> HavingIf(bool condition, Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp);
 
         /// <summary>
         /// 按列排序，OrderBy(a => a.Time)
@@ -47,6 +56,13 @@ namespace FreeSql
         /// <returns></returns>
         List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
         Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector);
+        /// <summary>
+        ///  执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="select"></param>
+        /// <returns></returns>
+        TReturn First<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
         /// <summary>
         /// 【linq to sql】专用方法，不建议直接使用
@@ -68,6 +84,13 @@ namespace FreeSql
         /// <returns></returns>
         string ToSql(string field);
 
+        /// <summary>
+        /// 嵌套查询 select * from ( select ... from table group by ... ) a
+        /// </summary>
+        /// <typeparam name="TDto"></typeparam>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        ISelect<TDto> WithTempQuery<TDto>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TDto>> selector);
 
         /// <summary>
         /// 查询向后偏移行数

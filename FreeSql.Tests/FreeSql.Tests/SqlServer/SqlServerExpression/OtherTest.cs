@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
@@ -39,6 +39,9 @@ namespace FreeSql.Tests.SqlServerExpression
         [Fact]
         public void Boolean()
         {
+            var s1 = select.Where(a => a.testFieldBoolNullable.HasValue).ToList();
+            var s2 = select.GroupBy(a => new { IsCheck = a.testFieldBoolNullable.HasValue ? true : false }).ToList(g => g.Key);
+
             var t1 = select.Where(a => a.testFieldBool == true).ToList();
             var t2 = select.Where(a => a.testFieldBool != true).ToList();
             var t3 = select.Where(a => a.testFieldBool == false).ToList();
@@ -82,6 +85,13 @@ namespace FreeSql.Tests.SqlServerExpression
         {
             IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
             var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();
+
+            var testlinqlist2 = new List<TableAllType>(new[] {
+                new TableAllType{Id = 1,},
+                new TableAllType{Id = 2,},
+                new TableAllType{Id = 3,}
+            }).Select(a => a.Id).ToArray().Distinct();
+            var testlinq2 = select.Where(a => testlinqlist2.Contains(a.testFieldInt) && a.testFieldByte == 1).ToList();
 
             //in not in
             var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();

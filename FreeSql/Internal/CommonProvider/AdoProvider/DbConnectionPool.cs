@@ -44,7 +44,7 @@ namespace FreeSql.Internal.CommonProvider
 
             _dataType = dataType;
             _connectionFactory = connectionFactory;
-            Policy = new DbConnectionPoolPolicy(this);
+            Policy = new DbConnectionPoolPolicy(dataType.ToString(), connectionFactory);
         }
 
         public IPolicy<DbConnection> Policy { get; }
@@ -88,32 +88,92 @@ namespace FreeSql.Internal.CommonProvider
                 obj.Value.Dispose();
         }
 
-        public bool SetUnavailable(Exception exception)
+        public bool SetUnavailable(Exception exception, DateTime lastGetTime)
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class DbConnectionPoolPolicy : IPolicy<DbConnection>
+    public class DbConnectionStringPool : IObjectPool<DbConnection>
     {
-        DbConnectionPool Pool;
-        public DbConnectionPoolPolicy(DbConnectionPool pool)
+        internal DataType _dataType;
+        internal Func<DbConnection> _connectionFactory;
+        int _id;
+        public DbConnectionStringPool(DataType dataType, string name, Func<DbConnection> connectionFactory)
         {
-            this.Pool = pool;
+            _dataType = dataType;
+            _connectionFactory = connectionFactory;
+            Policy = new DbConnectionPoolPolicy(string.IsNullOrWhiteSpace(name) ? dataType.ToString() : name, connectionFactory);
         }
 
-        public string Name { get; set; } = typeof(DbConnectionPoolPolicy).GetType().FullName;
+        public IPolicy<DbConnection> Policy { get; }
+
+        public bool IsAvailable => true;
+        public Exception UnavailableException => null;
+        public DateTime? UnavailableTime => null;
+        public string Statistics => "throw new NotImplementedException()";
+        public string StatisticsFullily => "throw new NotImplementedException()";
+
+        public void Dispose()
+        {
+        }
+
+        public Object<DbConnection> Get(TimeSpan? timeout = null)
+        {
+            var conn = _connectionFactory();
+            if (conn.State != ConnectionState.Open)
+                conn.Open();
+            return Object<DbConnection>.InitWith(this, Interlocked.Increment(ref _id), conn);
+        }
+
+#if net40
+#else
+        async public Task<Object<DbConnection>> GetAsync()
+        {
+            var conn = _connectionFactory();
+            if (conn.State != ConnectionState.Open)
+                await conn.OpenAsync();
+            return Object<DbConnection>.InitWith(this, Interlocked.Increment(ref _id), conn);
+        }
+#endif
+
+        public void Return(Object<DbConnection> obj, bool isReset = false)
+        {
+            if (obj == null || obj.Value == null) return;
+            if (obj.Value.State != ConnectionState.Closed)
+                obj.Value.Close();
+            if (_dataType == DataType.Sqlite)
+                obj.Value.Dispose();
+        }
+
+        public bool SetUnavailable(Exception exception, DateTime lastGetTime)
+        {
+            return false;
+        }
+    }
+
+    public class DbConnectionPoolPolicy : IPolicy<DbConnection>
+    {
+        Func<DbConnection> _connectionFactory;
+        public DbConnectionPoolPolicy(string name, Func<DbConnection> connectionFactory)
+        {
+            _connectionFactory = connectionFactory;
+            this.Name = name;
+        }
+
+        public string Name { get; set; }
         public int PoolSize { get; set; } = 1000;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
+        public int Weight { get; set; } = 1;
 
         public DbConnection OnCreate()
         {
-            var conn = Pool._connectionFactory();
+            var conn = _connectionFactory();
             if (conn.State != ConnectionState.Open)
                 conn.Open();
             return conn;

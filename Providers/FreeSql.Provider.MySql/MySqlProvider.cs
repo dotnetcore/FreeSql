@@ -2,8 +2,10 @@
 using FreeSql.Internal.CommonProvider;
 using FreeSql.MySql.Curd;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 
 namespace FreeSql.MySql
@@ -11,29 +13,41 @@ namespace FreeSql.MySql
 
     public class MySqlProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
-        static MySqlProvider()
+        static int _firstInit = 1;
+        static void InitInternal()
         {
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPoint)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisLineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPolygon)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPoint)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiLineString)] = true;
-            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPolygon)] = true;
-
-            var MethodMygisGeometryParse = typeof(MygisGeometry).GetMethod("Parse", new[] { typeof(string) });
-            Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
+            if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
             {
-                switch (type.FullName)
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPoint)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisLineString)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPolygon)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPoint)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiLineString)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPolygon)] = true;
+
+                var MethodMygisGeometryParse = typeof(MygisGeometry).GetMethod("Parse", new[] { typeof(string) });
+                Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
                 {
-                    case "MygisPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPoint)));
-                    case "MygisLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisLineString)));
-                    case "MygisPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPolygon)));
-                    case "MygisMultiPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPoint)));
-                    case "MygisMultiLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiLineString)));
-                    case "MygisMultiPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPolygon)));
-                }
-                return null;
-            });
+                    switch (type.FullName)
+                    {
+                        case "MygisPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPoint)));
+                        case "MygisLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisLineString)));
+                        case "MygisPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPolygon)));
+                        case "MygisMultiPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPoint)));
+                        case "MygisMultiLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiLineString)));
+                        case "MygisMultiPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPolygon)));
+                    }
+                    return null;
+                });
+
+                Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql] = new Dictionary<Type, MethodInfo>();
+                Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql][typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+                Select0Provider._dicMethodDataReaderGetValueOverride[DataType.MySql][typeof(DateTimeOffset)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) });
+            }
         }
 
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new MySqlSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
@@ -44,6 +58,7 @@ namespace FreeSql.MySql
 
         public MySqlProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
+            InitInternal();
             this.InternalCommonUtils = new MySqlUtils(this);
             this.InternalCommonExpression = new MySqlExpression(this.InternalCommonUtils);
 

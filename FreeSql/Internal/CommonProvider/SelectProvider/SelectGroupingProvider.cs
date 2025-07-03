@@ -19,6 +19,8 @@ namespace FreeSql.Internal.CommonProvider
         public CommonExpression _comonExp;
         public List<SelectTableInfo> _tables;
         public int _groupByLimit, _groupBySkip;
+        public bool _addFieldAlias;
+        public bool _flagNestedFieldAlias;
 
         public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
@@ -30,10 +32,17 @@ namespace FreeSql.Internal.CommonProvider
             _tables = tables;
         }
 
+        public static ThreadLocal<string> _ParseExpOnlyDbField = new ThreadLocal<string>();
         public override string ParseExp(Expression[] members)
         {
-            if (members.Any() == false) return _map.DbField;
-            var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
+            ParseExpMapResult = null;
+            if (members.Any() == false)
+            {
+                ParseExpMapResult = _map;
+                return _map.DbField;
+            }
+            var firstMember = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression);
+            var parentName = firstMember?.Member.Name;
             switch (parentName)
             {
                 case "Key":
@@ -43,31 +52,69 @@ namespace FreeSql.Internal.CommonProvider
                         read = read.Childs.Where(z => z.CsName == (members[a] as MemberExpression)?.Member.Name).FirstOrDefault();
                         if (read == null) return null;
                     }
+                    ParseExpMapResult = read;
+                    if (!_addFieldAlias) return read.DbField;
+                    if (_flagNestedFieldAlias) return read.DbField;
+                    if (_comonExp.EndsWithDbNestedField(read.DbField, read.DbNestedField) == false)
+                    {
+                        _ParseExpOnlyDbField.Value = read.DbField;
+                        return $"{read.DbField}{_comonExp._common.FieldAsAlias(read.DbNestedField)}";
+                    }
                     return read.DbField;
                 case "Value":
-                    var tb = _tables.First();
+                    var curtables = _tables;
+                    SelectTableInfo curtable = null;
                     var foridx = 0;
-                    if (members.Length > 1)
+                    if (_select._diymemexpWithTempQuery != null && _select._diymemexpWithTempQuery is Select0Provider.WithTempQueryParser tempQueryParser)
                     {
-                        var mem0 = (members.FirstOrDefault() as MemberExpression);
-                        var mem0Name = mem0?.Member.Name;
-                        if (mem0Name?.StartsWith("Item") == true && int.TryParse(mem0Name.Substring(4), out var tryitemidx))
+                        if (_select._tables.Count == 1)
+                            curtable = _select._tables[0];
+                        else
                         {
-                            if (tryitemidx == 1) foridx++;
-                            else
+                            curtables = _select._tables;
+                            LocalValueInitData();
+                        }
+                        if (tempQueryParser._outsideTable.Contains(curtable))
+                        {
+                            var replaceMember = firstMember.Type == curtable.Parameter.Type ? firstMember : members[0];
+                            var replaceVistor = new CommonExpression.ReplaceVisitor();
+                            for (var a = 0; a < members.Length; a++)
+                                members[a] = replaceVistor.Modify(members[a], replaceMember, curtable.Parameter);
+                            var ret = _select._diymemexpWithTempQuery.ParseExp(members);
+                            ParseExpMapResult = _select._diymemexpWithTempQuery.ParseExpMapResult;
+                            return ret;
+                        }
+                    }
+                    else
+                    {
+                        LocalValueInitData();
+                    }
+
+                    void LocalValueInitData()
+                    {
+                        curtable = curtables.First();
+                        if (members.Length > 1)
+                        {
+                            var mem0 = (members.FirstOrDefault() as MemberExpression);
+                            var mem0Name = mem0?.Member.Name;
+                            if (mem0Name?.StartsWith("Item") == true && int.TryParse(mem0Name.Substring(4), out var tryitemidx))
                             {
-                                //var alias = $"SP10{(char)(96 + tryitemidx)}";
-                                var tmptb = _tables.Where((a, idx) => //a.AliasInit == alias && 
-                                    a.Table.Type == mem0.Type && idx == tryitemidx - 1).FirstOrDefault();
-                                if (tmptb != null)
+                                if (tryitemidx == 1) foridx++;
+                                else
                                 {
-                                    tb = tmptb;
-                                    foridx++;
+                                    //var alias = $"SP10{(char)(96 + tryitemidx)}";
+                                    var tmptb = curtables.Where((a, idx) => //a.AliasInit == alias && 
+                                        a.Table.Type == mem0.Type && idx == tryitemidx - 1).FirstOrDefault();
+                                    if (tmptb != null)
+                                    {
+                                        curtable = tmptb;
+                                        foridx++;
+                                    }
                                 }
                             }
                         }
                     }
-                    var parmExp = Expression.Parameter(tb.Table.Type, tb.Alias);
+                    var parmExp = Expression.Parameter(curtable.Table.Type, curtable.Alias);
                     Expression retExp = parmExp;
                     for (var a = foridx; a < members.Length; a++)
                     {
@@ -83,20 +130,29 @@ namespace FreeSql.Internal.CommonProvider
                                 return null;
                         }
                     }
-                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
+                    return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, _tableRule = _select._tableRule, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
             }
             return null;
         }
 
         public void InternalHaving(Expression exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, _select._tableRule, exp, this, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
         }
         public void InternalOrderBy(Expression exp, bool isDescending)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
+            if (exp.NodeType == ExpressionType.Lambda) exp = (exp as LambdaExpression)?.Body;
+            if (exp?.NodeType == ExpressionType.New)
+            {
+                var newExp = exp as NewExpression;
+                if (newExp != null)
+                    for (var a = 0; a < newExp.Members.Count; a++)
+                        InternalOrderBy(newExp.Arguments[a], isDescending);
+                return;
+            }
+            var sql = _comonExp.ExpressionWhereLambda(null, _select._tableRule, exp, this, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
@@ -106,7 +162,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -119,7 +175,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, null, this, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -134,22 +190,23 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
             var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
             return InternalToSql(fieldSql);
         }
         public string InternalToSql(string field)
         {
             if (string.IsNullOrEmpty(field))
-                throw new ArgumentException("参数 field 未指定");
+                throw new ArgumentException(CoreErrorStrings.Parameter_Field_NotSpecified);
 
             var isNestedPageSql = false;
             switch (_orm.Ado.DataType)
             {
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
-                case DataType.Dameng:
-                case DataType.OdbcDameng: //Oracle、Dameng 分组时，嵌套分页
+                case DataType.CustomOracle:
+                case DataType.Dameng: //Oracle、Dameng 分组时，嵌套分页
+                case DataType.GBase:
                     isNestedPageSql = true;
                     break;
                 default:
@@ -173,7 +230,7 @@ namespace FreeSql.Internal.CommonProvider
     public class SelectGroupingProvider<TKey, TValue> : SelectGroupingProvider, ISelectGrouping<TKey, TValue>
     {
         public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
-            :base(orm, select, map, field, comonExp, tables) { }
+            : base(orm, select, map, field, comonExp, tables) { }
 
         public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
@@ -181,6 +238,46 @@ namespace FreeSql.Internal.CommonProvider
             return InternalToSql(select, fieldAlias);
         }
         public string ToSql(string field) => InternalToSql(field);
+
+        public ISelect<TDto> WithTempQuery<TDto>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TDto>> selector)
+        {
+            if (_orm.CodeFirst.IsAutoSyncStructure)
+                (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TDto)); //._dicSyced.TryAdd(typeof(TReturn), true);
+            var ret = (_orm as BaseDbProvider).CreateSelectProvider<TDto>(null) as Select1Provider<TDto>;
+            ret._commandTimeout = _select._commandTimeout;
+            ret._connection = _select._connection;
+            ret._transaction = _select._transaction;
+            ret._whereGlobalFilter = new List<GlobalFilter.Item>(_select._whereGlobalFilter.ToArray());
+            ret._cancel = _select._cancel;
+            //ret._params.AddRange(_select._params); //#1965 WithTempQueryParser 子查询参数化，押后添加参数
+            if (ret._tables[0].Table == null) ret._tables[0].Table = TableInfo.GetDefaultTable(typeof(TDto));
+            Select0Provider.WithTempQueryParser parser = null;
+            _addFieldAlias = true; //解决：[Column(Name = "flevel") 与属性名不一致时，嵌套查询 bug
+            _flagNestedFieldAlias = true;//解决重复设置别名问题：.GroupBy((l, p) => new { p.ID, ShopType=l.ShopType??0 }).WithTempQuery(a => new { Money = a.Sum(a.Value.Item1.Amount)* a.Key.ShopType })
+            var old_field = _field;
+            var fieldsb = new StringBuilder();
+            if (_map.Childs.Any() == false) fieldsb.Append(", ").Append(_map.DbField).Append(_comonExp.EndsWithDbNestedField(_map.DbField, _map.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(_map.DbNestedField));
+            foreach (var child in _map.GetAllChilds())
+                fieldsb.Append(", ").Append(child.DbField).Append(_comonExp.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : _comonExp._common.FieldAsAlias(child.DbNestedField));
+            _field = fieldsb.ToString();
+            fieldsb.Clear();
+            try
+            {
+                parser = new Select0Provider.WithTempQueryParser(_select, this, selector, ret._tables[0]);
+            }
+            finally
+            {
+                fieldsb.Clear();
+                _field = old_field;
+                _addFieldAlias = false;
+                _flagNestedFieldAlias = false;
+            }
+            var sql = $"\r\n{this.ToSql(parser._insideSelectList[0].InsideField)}";
+            ret.WithSql(sql);
+            ret._diymemexpWithTempQuery = parser;
+            ret._params.AddRange(_select._params);
+            return ret;
+        }
 
         public ISelectGrouping<TKey, TValue> Skip(int offset)
         {
@@ -216,6 +313,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelectGrouping<TKey, TValue> HavingIf(bool condition, Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp) => condition ? Having(exp) : this;
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
             _lambdaParameter = exp?.Parameters[0];
@@ -236,6 +334,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
+        public TReturn First<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList<TReturn>(select).FirstOrDefault();
         public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
             _lambdaParameter = select?.Parameters[0];
@@ -251,6 +350,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         async public Task<long> CountAsync(CancellationToken cancellationToken = default) => _select._cancel?.Invoke() == true ? 0 : long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_select._connection, _select._transaction, CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._commandTimeout, _select._params.ToArray(), cancellationToken)), out var trylng) ? trylng : default(long);
 
+        async public Task<TReturn> FirstAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default) => (await ToListAsync<TReturn>(select, cancellationToken)).FirstOrDefault();
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default)
         {
             var map = new ReadAnonymousTypeInfo();
@@ -258,7 +358,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _lambdaParameter = select?.Parameters[0];
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
@@ -272,7 +372,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _lambdaParameter = elementSelector?.Parameters[0];
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, null, this, null, null, false);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
             var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TElement));

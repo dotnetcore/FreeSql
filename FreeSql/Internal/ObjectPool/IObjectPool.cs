@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
@@ -25,8 +23,9 @@ namespace FreeSql.Internal.ObjectPool
         /// 将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
         /// </summary>
         /// <param name="exception"></param>
+        /// <param name="lastGetTime"></param>
         /// <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
-        bool SetUnavailable(Exception exception);
+        bool SetUnavailable(Exception exception, DateTime lastGetTime);
 
         /// <summary>
         /// 统计对象池中的对象

@@ -6,11 +6,13 @@
     <members>
         <member name="T:FreeSql.DataAnnotations.JsonMapAttribute">
             <summary>
-            当实体类属性为【对象】时，以JSON形式映射存储
+            When the entity class property is <see cref="T:System.Object"/>, map storage in JSON format. <br />
+            当实体类属性为【对象】时，以 JSON 形式映射存储
             </summary>
         </member>
         <member name="M:FreeSqlJsonMapCoreExtensions.UseJsonMap(IFreeSql)">
             <summary>
+            When the entity class property is <see cref="T:System.Object"/> and the attribute is marked as <see cref="T:FreeSql.DataAnnotations.JsonMapAttribute"/>, map storage in JSON format. <br />
             当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
             </summary>
             <returns></returns>

@@ -26,7 +26,7 @@ namespace FreeSql.Sqlite
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "boolean": return DbType.Boolean;
@@ -50,7 +50,7 @@ namespace FreeSql.Sqlite
 
                 case "character(36)": return DbType.AnsiString;
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "int":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["integer"]);
@@ -99,10 +99,10 @@ namespace FreeSql.Sqlite
                     return DbType.String;
 
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar(255)"]);
                     return DbType.String;
             }
-            throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
+            throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
         static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
@@ -204,7 +204,7 @@ namespace FreeSql.Sqlite
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = position
                 });
@@ -292,6 +292,45 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                             ds2item[8] = "";
                             ds2item[9] = string.Concat(col[4]);
                             addColumn(ds2item, ++position);
+                        }
+
+                        Dictionary<string, DbIndexInfo> indexes = new Dictionary<string, DbIndexInfo>();
+                        var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_LIST(\"{table}\")");
+                        foreach (var dbIndex in dbIndexes)
+                        {
+                            if (string.Concat(dbIndex[3]) == "pk") continue;
+                            var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_INFO({dbIndex[1]})");
+                            var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM \"{db}\".sqlite_master WHERE name = '{dbIndex[1]}'"));
+                            foreach (var dbcolumn in dbIndexesColumns)
+                            {
+                                var column = string.Concat(dbcolumn[2]);
+                                var indexName = string.Concat(dbIndex[1]);
+                                var isDesc = dbIndexesSql.IndexOf($@"{column}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
+                                var isUnique = string.Concat(dbIndex[2]);
+
+                                if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
+                                var loc9 = loc3[table_id][column];
+
+                                if (indexes.TryGetValue(indexName, out var indexInfo) == false)
+                                    indexes.Add(indexName, indexInfo = new DbIndexInfo
+                                    {
+                                        IsUnique = isUnique == "1",
+                                        Name = indexName
+                                    });
+                                if (indexInfo.Columns.Any(a => a.Column.Name == column) == false)
+                                    indexInfo.Columns.Add(new DbIndexColumnInfo
+                                    {
+                                        Column = loc9,
+                                        IsDesc = isDesc == "1"
+                                    });
+                            }
+                        }
+                        foreach (var indexItem in indexes)
+                        {
+                            if (indexItem.Value.IsUnique)
+                                loc2[table_id].UniquesDict.Add(indexItem.Key, indexItem.Value);
+                            else
+                                loc2[table_id].IndexesDict.Add(indexItem.Key, indexItem.Value);
                         }
 
                         if (tbname == null)

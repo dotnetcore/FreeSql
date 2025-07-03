@@ -34,7 +34,7 @@ namespace FreeSql.MySql
                             case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
                             case "System.Byte": return $"cast({getExp(operandExp)} as unsigned)";
                             case "System.Char": return $"substr(cast({getExp(operandExp)} as char), 1, 1)";
-                            case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as datetime)";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
                             case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
                             case "System.Int16":
@@ -62,7 +62,7 @@ namespace FreeSql.MySql
                                 case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as unsigned)";
                                 case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as char), 1, 1)";
-                                case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as datetime)";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as datetime)";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as decimal(32,16))";
                                 case "System.Int16":
@@ -88,7 +88,20 @@ namespace FreeSql.MySql
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+								}
+								var value = ExpressionGetValue(callExp.Object, out var success);
+								if (success) return formatSql(value, typeof(string), null, null);
+								return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
+                            }
                             return null;
                     }
 
@@ -120,10 +133,12 @@ namespace FreeSql.MySql
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
+                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                        tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
+                        tsc.isNotSetMapColumnTmp = false;
                         tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        tsc.SetDbParamsReturnOld(oldDbParams);
+                        if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
@@ -139,6 +154,7 @@ namespace FreeSql.MySql
                     for (var a = 0; a < arrExp.Expressions.Count; a++)
                     {
                         if (a > 0) arrSb.Append(",");
+                        if (a % 500 == 499) arrSb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                         arrSb.Append(getExp(arrExp.Expressions[a]));
                     }
                     if (arrSb.Length == 1) arrSb.Append("NULL");
@@ -203,7 +219,7 @@ namespace FreeSql.MySql
             switch (exp.Member.Name)
             {
                 case "Date": return $"cast(date_format({left},'%Y-%m-%d') as datetime)";
-                case "TimeOfDay": return $"timestampdiff(microsecond, date_format({left},'%Y-%m-%d'), {left})";
+                case "TimeOfDay": return $"timestampdiff(second, date_format({left},'%Y-%m-%d'), {left})";
                 case "DayOfWeek": return $"(dayofweek({left})-1)";
                 case "Day": return $"dayofmonth({left})";
                 case "DayOfYear": return $"dayofyear({left})";
@@ -214,35 +230,6 @@ namespace FreeSql.MySql
                 case "Second": return $"second({left})";
                 case "Millisecond": return $"floor(microsecond({left})/1000)";
                 case "Ticks": return $"(timestampdiff(microsecond, '0001-1-1', {left})*10)";
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "0";
-                    case "MinValue": return "-922337203685477580"; //微秒 Ticks / 10
-                    case "MaxValue": return "922337203685477580";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"(({left}) div {(long)1000000 * 60 * 60 * 24})";
-                case "Hours": return $"(({left}) div {(long)1000000 * 60 * 60} mod 24)";
-                case "Milliseconds": return $"(({left}) div 1000 mod 1000)";
-                case "Minutes": return $"(({left}) div {(long)1000000 * 60} mod 60)";
-                case "Seconds": return $"(({left}) div 1000000 mod 60)";
-                case "Ticks": return $"(({left}) * 10)";
-                case "TotalDays": return $"(({left}) / {(long)1000000 * 60 * 60 * 24})";
-                case "TotalHours": return $"(({left}) / {(long)1000000 * 60 * 60})";
-                case "TotalMilliseconds": return $"(({left}) / 1000)";
-                case "TotalMinutes": return $"(({left}) / {(long)1000000 * 60})";
-                case "TotalSeconds": return $"(({left}) / 1000000)";
             }
             return null;
         }
@@ -261,9 +248,11 @@ namespace FreeSql.MySql
                         var arg2 = getExp(exp.Arguments[0]);
                         return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
+                        if (exp.Arguments.Count == 1 && exp.Arguments[0].NodeType == ExpressionType.NewArrayInit && exp.Arguments[0] is NewArrayExpression concatNewArrExp)
+                            return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         if (exp.Arguments.Count == 1) return ExpressionLambdaToSql(exp.Arguments[0], tsc);
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
@@ -295,12 +284,19 @@ namespace FreeSql.MySql
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"concat({args0Value}, '%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE concat('%', {args0Value}, '%')";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
+                        if (new[] { '%', '_', '[', ']', '*' }.Any(wildcard => args0Value.Contains(wildcard)))
+                        {
+                            if (exp.Method.Name == "StartsWith") return $"locate({args0Value}, {left}) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"locate({args0Value}, {left}) = char_length({left})-char_length({args0Value})+1";
+                            return $"locate({args0Value}, {left}) > 0";
+                        }
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"concat({args0Value}, '%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"concat('%', {args0Value})")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE concat('%', {args0Value}, '%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
@@ -385,6 +381,18 @@ namespace FreeSql.MySql
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"timestampdiff(day,{getExp(date2)},{getExp(date1)})";
+                case "TotalHours": return $"timestampdiff(hour,{getExp(date2)},{getExp(date1)})";
+                case "TotalMinutes": return $"timestampdiff(minute,{getExp(date2)},{getExp(date1)})";
+                case "TotalSeconds": return $"timestampdiff(second,{getExp(date2)},{getExp(date1)})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -400,10 +408,10 @@ namespace FreeSql.MySql
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                 }
             }
             else
@@ -412,7 +420,6 @@ namespace FreeSql.MySql
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"date_add({left}, interval ({args1}) microsecond)";
                     case "AddDays": return $"date_add({left}, interval ({args1}) day)";
                     case "AddHours": return $"date_add({left}, interval ({args1}) hour)";
                     case "AddMilliseconds": return $"date_add({left}, interval ({args1})*1000 microsecond)";
@@ -424,12 +431,11 @@ namespace FreeSql.MySql
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"timestampdiff(microsecond, {args1}, {left})";
-                            case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";
+                            case "System.DateTime": return $"timestampdiff(second, {args1}, {left})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
+                    case "CompareTo": return $"timestampdiff(second,{args1},{left})";
                     case "ToString":
                         if (exp.Arguments.Count == 0) return $"date_format({left},'%Y-%m-%d %H:%i:%s.%f')";
                         switch (args1)
@@ -490,42 +496,6 @@ namespace FreeSql.MySql
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60 * 24})";
-                    case "FromHours": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60})";
-                    case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})*1000)";
-                    case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60})";
-                    case "FromSeconds": return $"(({getExp(exp.Arguments[0])})*1000000)";
-                    case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10)";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as signed)";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as signed)";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as char)";
-                }
-            }
-            return null;
-        }
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -536,7 +506,7 @@ namespace FreeSql.MySql
                     case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as unsigned)";
                     case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as char), 1, 1)";
-                    case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as decimal(36,18))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as decimal(32,16))";
                     case "ToInt16":

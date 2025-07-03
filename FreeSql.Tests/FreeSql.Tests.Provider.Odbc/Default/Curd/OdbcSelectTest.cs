@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,7 +185,7 @@ namespace FreeSql.Tests.Odbc.Default
 
             g.odbc.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.odbc.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -829,8 +829,8 @@ namespace FreeSql.Tests.Odbc.Default
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT sum(b.[Id]) 
-    FROM [tb_topic22] b) as6 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT sum(b.[Id]) 
+    FROM [tb_topic22] b), 0) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -844,15 +844,18 @@ FROM [tb_topic22] a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT min(b.[Id]) 
-    FROM [tb_topic22] b) as6 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT min(b.[Id]) 
+    FROM [tb_topic22] b), 0) as6, isnull((SELECT min(b.[CreateTime]) 
+    FROM [tb_topic22] b), '1970-01-01 00:00:00') as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Min(b => b.Id)
+                min = select.As("b").Min(b => b.Id),
+                min2 = select.As("b").Min(b => b.CreateTime)
             });
         }
         [Fact]
@@ -861,15 +864,18 @@ FROM [tb_topic22] a", subquery);
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT max(b.[Id]) 
-    FROM [tb_topic22] b) as6 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT max(b.[Id]) 
+    FROM [tb_topic22] b), 0) as6, isnull((SELECT max(b.[CreateTime]) 
+    FROM [tb_topic22] b), '1970-01-01 00:00:00') as7 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.As("b").Max(b => b.Id)
+                max = select.As("b").Max(b => b.Id),
+                max2 = select.As("b").Max(b => b.CreateTime)
             });
         }
         [Fact]
@@ -880,8 +886,8 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT avg(b.[Id]) 
-    FROM [tb_topic22] b) as6 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, isnull((SELECT avg(b.[Id]) 
+    FROM [tb_topic22] b), 0) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -1517,7 +1523,7 @@ WHERE (((cast(a.[Id] as nvarchar)) in (SELECT b.[Title]
             var fsql = g.odbc;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

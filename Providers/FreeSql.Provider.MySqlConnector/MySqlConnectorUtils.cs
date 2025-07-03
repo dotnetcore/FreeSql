@@ -20,7 +20,7 @@ namespace FreeSql.MySql
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var ret = new MySqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
-            var dbtype = (MySqlDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (MySqlDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (col != null)
             {
                 var dbtype2 = (MySqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -44,7 +44,8 @@ namespace FreeSql.MySql
             }
             else
             {
-                ret.MySqlDbType = dbtype;
+                if (dbtype != null)
+                    ret.MySqlDbType = dbtype.Value;
                 if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
                     ret.Value = EnumValueToMySql(value);
             }
@@ -90,7 +91,7 @@ namespace FreeSql.MySql
         }
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatMySql(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {

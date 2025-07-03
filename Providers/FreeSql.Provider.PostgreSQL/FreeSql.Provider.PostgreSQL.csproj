@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net461;net452;net451;net45</TargetFrameworks>
-		<Version>2.5.100</Version>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;netstandard2.0;net461;net452;net451;net45</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 PostgreSQL 9.5</Description>
@@ -19,19 +18,22 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="5.0.3" />
-		<PackageReference Include="Npgsql.NetTopologySuite" Version="5.0.3" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Npgsql.LegacyPostgis" Version="5.0.18" />
+		<PackageReference Include="Npgsql.NetTopologySuite" Version="5.0.18" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.7" />
@@ -46,6 +48,9 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
 		<DefineConstants>nts</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net6.0'">
+		<DefineConstants>net60;nts</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -62,12 +62,13 @@ namespace FreeSql
         /// <param name="tableName">指定表名对比</param>
         /// <returns></returns>
         string GetComparisonDDLStatements(Type entityType, string tableName);
-        /// <summary>
-        /// 同步实体类型到数据库<para></para>
-        /// 注意：生产环境中谨慎使用
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        void SyncStructure<TEntity>();
+		string GetComparisonDDLStatements(TableInfo tableSchema, string tableName);
+		/// <summary>
+		/// 同步实体类型到数据库<para></para>
+		/// 注意：生产环境中谨慎使用
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		void SyncStructure<TEntity>();
         /// <summary>
         /// 同步实体类型集合到数据库<para></para>
         /// 注意：生产环境中谨慎使用
@@ -82,13 +83,14 @@ namespace FreeSql
         /// <param name="tableName">指定表名对比</param>
         /// <param name="isForceSync">强制同步结构，无视缓存每次都同步</param>
         void SyncStructure(Type entityType, string tableName, bool isForceSync = false);
+		void SyncStructure(TableInfo tableSchema, string tableName, bool isForceSync = false);
 
-        /// <summary>
-        /// 根据 System.Type 获取数据库信息
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        DbInfoResult GetDbInfo(Type type);
+		/// <summary>
+		/// 根据 System.Type 获取数据库信息
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		DbInfoResult GetDbInfo(Type type);
         /// <summary>
         /// FreeSql FluentApi 配置实体，方法名与特性相同
         /// </summary>

@@ -28,6 +28,10 @@ BaseEntity 是一种极简单的 CodeFirst 开发方式，特别对单表或多�
 
 > dotnet add package FreeSql.Provider.Sqlite
 
+```csharp
+BaseEntity.Initialization(fsql, null);
+```
+
 1、定义一个主键 int 并且自增的实体类型，BaseEntity TKey 指定为 int/long 时，会认为主键是自增；
 
 ```csharp

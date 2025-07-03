@@ -18,183 +18,145 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+		async protected virtual Task SplitExecuteAsync(int valuesLimit, int parameterLimit, string traceName, Func<Task> executeAsync, CancellationToken cancellationToken = default)
         {
-            var ss = SplitSource(valuesLimit, parameterLimit);
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			if (ss.Length <= 1)
+			{
+				if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
+                await executeAsync();
+				ClearData();
+				return;
+			}
+			if (_transaction == null)
+			{
+				var threadTransaction = _orm.Ado.TransactionCurrentThread;
+				if (threadTransaction != null) this.WithTransaction(threadTransaction);
+			}
+
+			var before = new Aop.TraceBeforeEventArgs(traceName, null);
+			_orm.Aop.TraceBeforeHandler?.Invoke(this, before);
+			Exception exception = null;
+			try
+			{
+				if (_transaction != null || _batchAutoTransaction == false)
+				{
+					for (var a = 0; a < ss.Length; a++)
+					{
+						_source = ss[a];
+						_batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
+						await executeAsync();
+					}
+				}
+				else
+				{
+					if (_orm.Ado.MasterPool == null) throw new Exception(CoreErrorStrings.MasterPool_IsNull_UseTransaction);
+					using (var conn = await _orm.Ado.MasterPool.GetAsync())
+					{
+						_transaction = conn.Value.BeginTransaction();
+						var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+						_orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+						try
+						{
+							for (var a = 0; a < ss.Length; a++)
+							{
+								_source = ss[a];
+								_batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
+								await executeAsync();
+							}
+							_transaction.Commit();
+							_orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.Commit, null));
+						}
+						catch (Exception ex)
+						{
+							_transaction.Rollback();
+							_orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreErrorStrings.RollBack, ex));
+							throw;
+						}
+						_transaction = null;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				throw;
+			}
+			finally
+			{
+				var after = new Aop.TraceAfterEventArgs(before, null, exception);
+				_orm.Aop.TraceAfterHandler?.Invoke(this, after);
+			}
+			ClearData();
+		}
+
+		async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        {
             var ret = 0;
-            if (ss.Length <= 1)
-            {
-                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteAffrowsAsync(cancellationToken);
-                ClearData();
-                return ret;
-            }
-            if (_transaction == null)
-            {
-                var threadTransaction = _orm.Ado.TransactionCurrentThread;
-                if (threadTransaction != null) this.WithTransaction(threadTransaction);
-            }
-
-            var before = new Aop.TraceBeforeEventArgs("SplitExecuteAffrowsAsync", null);
-            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
-            Exception exception = null;
-            try
-            {
-                if (_transaction != null || _batchAutoTransaction == false)
-                {
-                    for (var a = 0; a < ss.Length; a++)
-                    {
-                        _source = ss[a];
-                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret += await this.RawExecuteAffrowsAsync(cancellationToken);
-                    }
-                }
-                else
-                {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
-                    using (var conn = await _orm.Ado.MasterPool.GetAsync())
-                    {
-                        _transaction = conn.Value.BeginTransaction();
-                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
-                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
-                        try
-                        {
-                            for (var a = 0; a < ss.Length; a++)
-                            {
-                                _source = ss[a];
-                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret += await this.RawExecuteAffrowsAsync(cancellationToken);
-                            }
-                            _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
-                        }
-                        catch (Exception ex)
-                        {
-                            _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw;
-                        }
-                        _transaction = null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.TraceAfterEventArgs(before, null, exception);
-                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
-            }
-            ClearData();
+            await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteAffrowsAsync", async () =>
+                ret += await this.RawExecuteAffrowsAsync(cancellationToken)
+            );
             return ret;
         }
-        async protected Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
-        {
-            var ss = SplitSource(valuesLimit, parameterLimit);
-            var ret = new List<T1>();
-            if (ss.Length <= 1)
-            {
-                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteUpdatedAsync(cancellationToken);
-                ClearData();
-                return ret;
-            }
-            if (_transaction == null)
-            {
-                var threadTransaction = _orm.Ado.TransactionCurrentThread;
-                if (threadTransaction != null) this.WithTransaction(threadTransaction);
-            }
+		async protected Task<List<TReturn>> SplitExecuteUpdatedAsync<TReturn>(int valuesLimit, int parameterLimit, IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
+		{
+			var ret = new List<TReturn>();
+			await SplitExecuteAsync(valuesLimit, parameterLimit, "SplitExecuteUpdatedAsync", async () =>
+				ret.AddRange(await this.RawExecuteUpdatedAsync<TReturn>(columns ?? _table.ColumnsByPosition))
+			);
+			return ret;
+		}
 
-            var before = new Aop.TraceBeforeEventArgs("SplitExecuteUpdatedAsync", null);
-            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
-            Exception exception = null;
-            try
-            {
-                if (_transaction != null || _batchAutoTransaction == false)
-                {
-                    for (var a = 0; a < ss.Length; a++)
-                    {
-                        _source = ss[a]; 
-                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(await this.RawExecuteUpdatedAsync(cancellationToken));
-                    }
-                }
-                else
-                {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
-                    using (var conn = await _orm.Ado.MasterPool.GetAsync())
-                    {
-                        _transaction = conn.Value.BeginTransaction();
-                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
-                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
-                        try
-                        {
-                            for (var a = 0; a < ss.Length; a++)
-                            {
-                                _source = ss[a];
-                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(await this.RawExecuteUpdatedAsync(cancellationToken));
-                            }
-                            _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
-                        }
-                        catch (Exception ex)
-                        {
-                            _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw;
-                        }
-                        _transaction = null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.TraceAfterEventArgs(before, null, exception);
-                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
-            }
-            ClearData();
-            return ret;
-        }
-
-        async protected Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
+		async protected Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-            var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            await ToSqlFetchAsync(async sb =>
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-                ValidateVersionAndThrow(affrows, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
-            return affrows;
-        }
-        protected abstract Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default);
+                if (dbParms == null) dbParms = _params.Concat(_paramsSource).ToArray();
+                var sql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
-        public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
-        public abstract Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
+                Exception exception = null;
+                try
+                {
+                    var affrowstmp = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(affrowstmp, sql, dbParms);
+                    affrows += affrowstmp;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            return affrows;
+		}
+		protected abstract Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default);
+
+		public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+		protected abstract Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default);
+
+		async public Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default)
+		{
+			var ret = await ExecuteUpdatedAsync<T1>(_table.ColumnsByPosition, cancellationToken);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
+		async public Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns, CancellationToken cancellationToken = default)
+		{
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, returnColumns?.Body, false, null)
+				.Distinct().Select(a => _table.ColumnsByCs.TryGetValue(a, out var c) ? c : null).Where(a => a != null).ToArray();
+			var ret = await ExecuteUpdatedAsync<TReturn>(cols, cancellationToken);
+            if (_table.TypeLazySetOrm != null) ret.ForEach(item => _table.TypeLazySetOrm.Invoke(item, new object[] { _orm }));
+            return ret;
+        }
 #endif
-    }
+	}
 }

@@ -1,7 +1,8 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace FreeSql.Tests.PostgreSQL
@@ -15,6 +16,120 @@ namespace FreeSql.Tests.PostgreSQL
             public string title { get; set; }
             public DateTime? time { get; set; }
         }
+
+        [Table(Name = "demo_class1"), Index("uk_demo1", "name", true)]
+        public class DemoClass1
+        {
+            [Column(Name = "id")]
+            public int Id { get; set; }
+
+            [Column(Name = "name", IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(Name = "desc")]
+            public string Description { get; set; }
+
+            #region 系统非业务基础字段
+            //更新操作忽略此字段 只在OnConflictDoUpdate的插入操作时生效
+            [Column(Name = "created_id", CanUpdate = false, InsertValueSql = "1")]
+            public virtual int CreatedId { get; set; }
+
+            //插入操作忽略此字段 只在OnConflictDoUpdate的更新操作时生效
+            [Column(Name = "modified_id", CanInsert = false, InsertValueSql = "1")]
+            [UpdateValueSql("1")]
+            public virtual int? ModifiedId { get; set; }
+
+            //更新操作忽略此字段 只在OnConflictDoUpdate的插入操作时生效
+            [Column(Name = "created_time", CanUpdate = false, ServerTime = DateTimeKind.Local)]
+            public virtual DateTime CreatedTime { get; set; }
+
+            //插入操作忽略此字段 只在OnConflictDoUpdate的更新操作时生效
+            [Column(Name = "modified_time", CanInsert = false, ServerTime = DateTimeKind.Local)]
+            public virtual DateTime? ModifiedTime { get; set; }
+            #endregion
+        }
+        [Table(Name = "demo_class2")]
+        public class DemoClass2
+        {
+            [Column(Name = "name", IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(Name = "desc")]
+            public string Description { get; set; }
+
+            #region 系统非业务基础字段
+            //更新操作忽略此字段 只在OnConflictDoUpdate的插入操作时生效
+            [Column(Name = "created_id", CanUpdate = false, InsertValueSql = "1")]
+            public virtual int CreatedId { get; set; }
+
+            //插入操作忽略此字段 只在OnConflictDoUpdate的更新操作时生效
+            [Column(Name = "modified_id", CanInsert = false, InsertValueSql = "1")]
+            [UpdateValueSql("1")]
+            public virtual int? ModifiedId { get; set; }
+
+            //更新操作忽略此字段 只在OnConflictDoUpdate的插入操作时生效
+            [Column(Name = "created_time", CanUpdate = false, ServerTime = DateTimeKind.Local)]
+            public virtual DateTime CreatedTime { get; set; }
+
+            //插入操作忽略此字段 只在OnConflictDoUpdate的更新操作时生效
+            [Column(Name = "modified_time", CanInsert = false, ServerTime = DateTimeKind.Local)]
+            public virtual DateTime? ModifiedTime { get; set; }
+            #endregion
+        }
+        class UpdateValueSqlAttribute : Attribute
+        {
+            public string Value { get; set; }
+            public UpdateValueSqlAttribute(string value) => Value = value;
+        }
+        [Fact]
+        public void Issues1393()
+        {
+            var fsql = g.pgsql;
+            //跟随 FreeSqlBuilder Build 之后初始化，批量设置实体类：
+            foreach (var entity in new[] { typeof(DemoClass1) })
+            {
+                var table = fsql.CodeFirst.GetTableByEntity(entity);
+                table.Properties.Values
+                    .Select(a => new { Property = a, UpdateValueSql = a.GetCustomAttribute<UpdateValueSqlAttribute>()?.Value })
+                    .Where(a => a.UpdateValueSql != null)
+                    .ToList()
+                    .ForEach(a =>
+                    {
+                        var col = table.ColumnsByCs[a.Property.Name];
+                        col.GetType().GetProperty("DbUpdateValue").SetValue(col, a.UpdateValueSql);
+                    });
+            }
+
+            var sql = fsql.Insert(Enumerable.Range(1, 5).Select(i => new DemoClass1 { Id = i, Name = $"Name{i}", Description = $"Description{i}" }))
+               .NoneParameter()
+               .OnConflictDoUpdate(a => new { a.Name })
+               .ToSql();
+            Assert.Equal(@"INSERT INTO ""demo_class1""(""id"", ""name"", ""desc"", ""created_id"", ""created_time"") VALUES(1, 'Name1', 'Description1', 1, current_timestamp), (2, 'Name2', 'Description2', 1, current_timestamp), (3, 'Name3', 'Description3', 1, current_timestamp), (4, 'Name4', 'Description4', 1, current_timestamp), (5, 'Name5', 'Description5', 1, current_timestamp)
+ON CONFLICT(""name"") DO UPDATE SET
+""name"" = EXCLUDED.""name"", 
+""desc"" = EXCLUDED.""desc"", 
+""modified_id"" = 1, 
+""modified_time"" = current_timestamp", sql);
+
+
+            sql = fsql.Insert(Enumerable.Range(1, 5).Select(i => new DemoClass2 { Name = $"Name{i}", Description = $"Description{i}", ModifiedId = 1 }))
+               .NoneParameter()
+               .OnConflictDoUpdate(a => new { a.Name })
+               .ToSql();
+            Assert.Equal(@"INSERT INTO ""demo_class2""(""name"", ""desc"", ""created_id"", ""created_time"") VALUES('Name1', 'Description1', 1, current_timestamp), ('Name2', 'Description2', 1, current_timestamp), ('Name3', 'Description3', 1, current_timestamp), ('Name4', 'Description4', 1, current_timestamp), ('Name5', 'Description5', 1, current_timestamp)
+ON CONFLICT(""name"") DO UPDATE SET
+""name"" = EXCLUDED.""name"", 
+""desc"" = EXCLUDED.""desc"", 
+""modified_id"" = 1, 
+""modified_time"" = current_timestamp", sql);
+
+            //sql = g.pgsql.Insert(data)
+            //   .NoneParameter()
+            //   .OnConflictDoUpdate(a => new { a.Name })
+            //   .UpdateColumns()
+            //   .ToSql();
+        }
+
 
         [Fact]
         public void ExecuteAffrows()
@@ -58,10 +173,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             Assert.Equal(odku2.ToSql(), @"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON CONFLICT(""id"") DO UPDATE SET
 ""title"" = EXCLUDED.""title"", 
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 200 THEN '2000-01-01 00:00:00.000000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000000' END::timestamp");
+""time"" = '2000-01-01 00:00:00.000000'");
             odku2.ExecuteAffrows();
 
 
@@ -79,10 +191,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             }).IgnoreColumns(a => a.time).NoneParameter().OnConflictDoUpdate().IgnoreColumns(a => a.title);
             Assert.Equal(odku2.ToSql(), @"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(200, 'title-200'), (201, 'title-201'), (202, 'title-202')
 ON CONFLICT(""id"") DO UPDATE SET
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 200 THEN '2000-01-01 00:00:00.000000' 
-WHEN 201 THEN '2000-01-01 00:00:00.000000' 
-WHEN 202 THEN '2000-01-01 00:00:00.000000' END::timestamp");
+""time"" = '2000-01-01 00:00:00.000000'");
             odku2.ExecuteAffrows();
         }
 
@@ -105,10 +214,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             Assert.Equal(odku2.ToSql(), @"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON CONFLICT(""id"") DO UPDATE SET
 ""title"" = EXCLUDED.""title"", 
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 300 THEN '2000-01-01 00:00:00.000000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000000' END::timestamp");
+""time"" = '2000-01-01 00:00:00.000000'");
             odku2.ExecuteAffrows();
 
 
@@ -126,10 +232,7 @@ ON CONFLICT(""id"") DO UPDATE SET
             }).InsertColumns(a => a.title).NoneParameter().OnConflictDoUpdate().UpdateColumns(a => a.time);
             Assert.Equal(odku2.ToSql(), @"INSERT INTO ""testonconflictdoupdateinfo""(""id"", ""title"") VALUES(300, 'title-300'), (301, 'title-301'), (302, 'title-302')
 ON CONFLICT(""id"") DO UPDATE SET
-""time"" = CASE EXCLUDED.""id"" 
-WHEN 300 THEN '2000-01-01 00:00:00.000000' 
-WHEN 301 THEN '2000-01-01 00:00:00.000000' 
-WHEN 302 THEN '2000-01-01 00:00:00.000000' END::timestamp");
+""time"" = '2000-01-01 00:00:00.000000'");
             odku2.ExecuteAffrows();
         }
 

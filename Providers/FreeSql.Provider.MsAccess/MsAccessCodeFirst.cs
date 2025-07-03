@@ -72,16 +72,16 @@ namespace FreeSql.MsAccess
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             var sb = new StringBuilder();
             var sbDeclare = new StringBuilder();
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
-                var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                var tb = obj.tableSchema;
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = tb.DbName;
                 var tboldname = tb.DbOldName; //旧表名
                 if (string.Compare(tbname, tboldname, true) == 0) tboldname = null;
@@ -177,7 +177,7 @@ namespace FreeSql.MsAccess
                     istmpatler = true;
                 }
                 if (tboldname != null && isexistsTb == true)
-                    throw new Exception($"旧表(OldName)：{tboldname} 存在，数据库已存在 {tbname} 表，无法改名");
+                    throw new Exception(CoreErrorStrings.S_OldTableExists(tboldname, tbname));
 
                 DataTable schemaColumns = null;
                 DataTable schemaDataTypes = null;
@@ -394,7 +394,8 @@ namespace FreeSql.MsAccess
                 }
 
                 Dictionary<string, bool> dicDropTable = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                Action<string> dropTable = tn => {
+                Action<string> dropTable = tn =>
+                {
                     if (dicDropTable.ContainsKey(tn)) return;
                     dicDropTable.Add(tn, true);
                     sb.Append("DROP TABLE ").Append(_commonUtils.QuoteSqlName(tn)).Append(";\r\n");
@@ -471,7 +472,6 @@ namespace FreeSql.MsAccess
             var scripts = ddl.Split(new string[] { ";\r\n" }, StringSplitOptions.None).Where(a => string.IsNullOrEmpty(a.Trim()) == false).ToArray();
 
             if (scripts.Any() == false) return 0;
-            if (scripts.Length == 1) return base.ExecuteDDLStatements(ddl);
 
             var affrows = 0;
             foreach (var script in scripts)

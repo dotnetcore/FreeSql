@@ -60,8 +60,8 @@ namespace FreeSql.Dameng
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    CsToDb.New(DmDbType.Int32, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
-                    CsToDb.New(DmDbType.Int64, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                    CsToDb.New(DmDbType.Int32, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(DmDbType.Int64, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -75,7 +75,7 @@ namespace FreeSql.Dameng
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
+        protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             var userId = (_orm.Ado.MasterPool as DamengConnectionPool)?.UserId;
             if (string.IsNullOrEmpty(userId))
@@ -83,7 +83,7 @@ namespace FreeSql.Dameng
                 {
                     userId = DamengConnectionPool.GetUserId(conn.Value.ConnectionString);
                 }
-            var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列：列，表，自增
+            var seqcols = new List<NativeTuple<Internal.Model.ColumnInfo, string[], bool>>(); //序列：列，表，自增
             var seqnameDel = new List<string>(); //要删除的序列+触发器
 
             var sb = new StringBuilder();
@@ -91,15 +91,15 @@ namespace FreeSql.Dameng
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
-                var tb = _commonUtils.GetTableByEntity(obj.entityType);
-                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
+                var tb = obj.tableSchema;
+                if (tb == null) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable(obj.tableSchema.Type.FullName));
+                if (tb.Columns.Any() == false) throw new Exception(CoreErrorStrings.S_Type_IsNot_Migrable_0Attributes(obj.tableSchema.Type.FullName));
                 var tbname = _commonUtils.SplitTableName(tb.DbName);
                 if (tbname?.Length == 1) tbname = new[] { userId, tbname[0] };
 
                 var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { userId, tboldname[0] };
-                var primaryKeyName = (obj.entityType.GetCustomAttributes(typeof(OraclePrimaryKeyNameAttribute), false)?.FirstOrDefault() as OraclePrimaryKeyNameAttribute)?.Name;
+                var primaryKeyName = (obj.tableSchema.Type.GetCustomAttributes(typeof(OraclePrimaryKeyNameAttribute), false)?.FirstOrDefault() as OraclePrimaryKeyNameAttribute)?.Name;
                 if (string.IsNullOrEmpty(obj.tableName) == false)
                 {
                     var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
@@ -114,7 +114,7 @@ namespace FreeSql.Dameng
                 //codefirst 不支持表名中带 .
 
                 if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
-                    throw new NotImplementedException($"达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
+                    throw new NotImplementedException(CoreErrorStrings.S_Dameng_NotSupport_TablespaceSchemas(tbname[0]));
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
@@ -316,7 +316,8 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                 //执行失败(语句1) 试图删除聚集主键
 
                 //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
-                var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
+                var newtablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                var tablename = tboldname == null ? newtablename : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}");
                 //创建临时表
                 sb.Append("execute immediate 'CREATE TABLE ").Append(tmptablename).Append(" ( ");
@@ -358,7 +359,11 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                         if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
                         {
                             var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
-                            insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
+                            var charMatch = Regex.Match(dbtypeNoneNotNull, "(N?)VARCHAR(2?)\\((?<precision>[0-9]+)\\)");
+                            if (charMatch != null && ushort.TryParse(charMatch.Groups["precision"]?.Value, out var precision))
+                                dbtypeNoneNotNull = Regex.Replace(dbtypeNoneNotNull, $"\\(({precision})\\)", $"");
+                            if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "NCLOB" && dbtypeNoneNotNull != "BLOB")
+                                insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
                         }
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"nvl({insertvalue},{tbcol.DbDefaultValue})";
@@ -375,7 +380,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                 {
                     sb.Append("execute immediate 'CREATE ");
                     if (uk.IsUnique) sb.Append("UNIQUE ");
-                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(tablename).Append("(");
+                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename).Append("(");
                     foreach (var tbcol in uk.Columns)
                     {
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -464,6 +469,12 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             {
             }
             else if (sqlType.StartsWith("NCLOB"))
+            {
+            }
+            else if (sqlType.StartsWith("RAW"))
+            {
+            }
+            else if (sqlType.StartsWith("LONG RAW"))
             {
             }
             else if (sqlType.StartsWith("TEXT"))

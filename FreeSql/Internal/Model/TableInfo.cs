@@ -17,16 +17,26 @@ namespace FreeSql.Internal.Model
         public Dictionary<string, ColumnInfo> ColumnsByCs { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public ColumnInfo[] ColumnsByPosition { get; set; }
+        public ColumnInfo[] ColumnsByCanUpdateDbUpdateValue { get; set; }
         public ColumnInfo[] Primarys { get; set; }
         public IndexInfo[] Indexes { get; set; }
         public string CsName { get; set; }
         public string DbName { get; set; }
         public string DbOldName { get; set; }
         public bool DisableSyncStructure { get; set; }
-        public string Comment { get; internal set; }
+        public string Comment { get; set; }
         public bool IsRereadSql { get; internal set; }
+        public bool IsDictionaryType { get; set; }
 
+        public IAsTable AsTableImpl { get; internal set; }
+        public ColumnInfo AsTableColumn { get; internal set; }
         public ColumnInfo VersionColumn { get; set; }
+
+        public void SetAsTable(IAsTable astable, ColumnInfo column)
+        {
+            AsTableImpl = astable;
+            AsTableColumn = column;
+        }
 
         ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);
 
@@ -34,7 +44,7 @@ namespace FreeSql.Internal.Model
         {
             _refs.AddOrUpdate(propertyName, tbref, (ok, ov) => tbref);
         }
-        public TableRef GetTableRef(string propertyName, bool isThrowException)
+        public TableRef GetTableRef(string propertyName, bool isThrowException, bool isCascadeQuery = true)
         {
             if (_refs.TryGetValue(propertyName, out var tryref) == false) return null;
             if (tryref.Exception != null)
@@ -42,8 +52,33 @@ namespace FreeSql.Internal.Model
                 if (isThrowException) throw tryref.Exception;
                 return null;
             }
+            if (isCascadeQuery == false && tryref.IsTempPrimary == true)
+            {
+                if (isThrowException)
+                {
+                    switch (tryref.RefType)
+                    {
+                        case TableRefType.OneToMany: throw new Exception($"[Navigate(\"{string.Join(",", tryref.RefColumns.Select(a => a.CsName))}\", TempPrimary = \"{string.Join(",", tryref.Columns.Select(a => a.CsName))}\")] Only cascade query are supported");
+                        case TableRefType.ManyToOne: throw new Exception($"[Navigate(\"{string.Join(",", tryref.Columns.Select(a => a.CsName))}\", TempPrimary = \"{string.Join(",", tryref.RefColumns.Select(a => a.CsName))}\")] Only cascade query are supported");
+                    }
+                }
+                return null;
+            }
             return tryref;
         }
+        public IEnumerable<KeyValuePair<string, TableRef>> GetAllTableRef() => _refs;
+
+        public static TableInfo GetDefaultTable(Type type) => new TableInfo
+        {
+            CsName = type.Name,
+            DbName = type.Name,
+            DisableSyncStructure = true,
+            Primarys = new ColumnInfo[0],
+            ColumnsByPosition = new ColumnInfo[0],
+            ColumnsByCanUpdateDbUpdateValue = new ColumnInfo[0],
+            Properties = type.GetPropertiesDictIgnoreCase(),
+            Type = type,
+        };
 
         //public void CopyTo(TableInfo target)
         //{
@@ -75,7 +110,7 @@ namespace FreeSql.Internal.Model
         //    target.VersionColumn = getOrCloneColumn(this.VersionColumn);
         //    foreach (var rf in this._refs) target._refs.TryAdd(rf.Key, new TableRef
         //    {
-                 
+
         //    });
 
 
@@ -143,9 +178,26 @@ namespace FreeSql.Internal.Model
         public List<ColumnInfo> RefColumns { get; set; } = new List<ColumnInfo>();
 
         public Exception Exception { get; set; }
+        public bool IsTempPrimary { get; set; }
     }
     public enum TableRefType
     {
-        OneToOne, ManyToOne, OneToMany, ManyToMany
+        OneToOne, ManyToOne, OneToMany, ManyToMany,
+        /// <summary>
+        /// PostgreSQL 数组类型专属功能<para></para>
+        /// 方式一：select * from Role where Id in (RoleIds)<para></para>
+        /// class User {<para></para>
+        /// ____public int[] RoleIds { get; set; }<para></para>
+        /// ____[Navigate(nameof(RoleIds))]<para></para>
+        /// ____public List&lt;Role&gt; Roles { get; set; }<para></para>
+        /// }<para></para>
+        /// 方式二：select * from User where RoleIds @&gt; Id<para></para>
+        /// class Role {<para></para>
+        /// ____public int Id { get; set; }<para></para>
+        /// ____[Navigate(nameof(User.RoleIds))]<para></para>
+        /// ____public List&lt;User&gt; Users { get; set; }<para></para>
+        /// }<para></para>
+        /// </summary>
+        PgArrayToMany
     }
 }

@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.0;net451;net45;</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>FreeSql;ncc;YeXiangQin;Daily</Authors>
+		<Description>FreeSql 数据库实现，基于TDengine.Connector</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>FreeSql;ORM;TDengine;TaoS</PackageTags>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<DelaySign>false</DelaySign>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="TDengine.Connector" Version="3.1.6" />
+	</ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+  </ItemGroup>
+
+</Project>

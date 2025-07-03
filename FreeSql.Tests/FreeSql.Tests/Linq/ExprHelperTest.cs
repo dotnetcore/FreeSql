@@ -1,22 +1,5 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql;
-using System;
-using System.Collections.Generic;
+﻿using System.Linq.Expressions;
 using Xunit;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Data.SqlClient;
-using kwlib;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using FreeSql.Extensions.Linq;
 
 namespace FreeSql.Tests.Linq
 {
@@ -26,16 +9,16 @@ namespace FreeSql.Tests.Linq
         [Fact]
         public void GetConstExprValue()
         {
-            Assert.Equal(-1, ExprHelper.GetConstExprValue(Expression.Constant(-1)));
-            Assert.Equal(-2, ExprHelper.GetConstExprValue(Expression.Constant(-2)));
-            Assert.Equal(0, ExprHelper.GetConstExprValue(Expression.Constant(0)));
-            Assert.Equal(1, ExprHelper.GetConstExprValue(Expression.Constant(1)));
-            Assert.Equal(2, ExprHelper.GetConstExprValue(Expression.Constant(2)));
+            Assert.Equal(-1, Expression.Constant(-1).GetConstExprValue());
+            Assert.Equal(-2, Expression.Constant(-2).GetConstExprValue());
+            Assert.Equal(0, Expression.Constant(0).GetConstExprValue());
+            Assert.Equal(1, Expression.Constant(1).GetConstExprValue());
+            Assert.Equal(2, Expression.Constant(2).GetConstExprValue());
 
             var arr = new[] { -1, -2, 0, 1, 2 };
             for (var a = 0; a < arr.Length; a++)
             {
-                Assert.Equal(arr[a], ExprHelper.GetConstExprValue(Expression.Constant(arr[a])));
+                Assert.Equal(arr[a], Expression.Constant(arr[a]).GetConstExprValue());
             }
 
             var arritems = new[]
@@ -48,8 +31,8 @@ namespace FreeSql.Tests.Linq
             }; 
             for (var a = 0; a < arr.Length; a++)
             {
-                Assert.Equal(arritems[a].Prop, ExprHelper.GetConstExprValue(Expression.Constant(arritems[a].Prop)));
-                Assert.Equal(arritems[a].Field, ExprHelper.GetConstExprValue(Expression.Constant(arritems[a].Field)));
+                Assert.Equal(arritems[a].Prop, Expression.Constant(arritems[a].Prop).GetConstExprValue());
+                Assert.Equal(arritems[a].Field, Expression.Constant(arritems[a].Field).GetConstExprValue());
             }
         }
         

@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql 扩展包，聚合根（实现室）.</Description>
+		<PackageProjectUrl>https://github.com/dotnetcore/FreeSql/wiki/%E8%81%9A%E5%90%88%E6%A0%B9%EF%BC%88%E5%AE%9E%E9%AA%8C%E5%AE%A4%EF%BC%89</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/dotnetcore/FreeSql/wiki/%E8%81%9A%E5%90%88%E6%A0%B9%EF%BC%88%E5%AE%9E%E9%AA%8C%E5%AE%A4%EF%BC%89</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>FreeSql;ORM</PackageTags>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+		<DocumentationFile>FreeSql.Extensions.AggregateRoot.xml</DocumentationFile>
+		<WarningLevel>3</WarningLevel>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
+
+</Project>

@@ -16,56 +16,58 @@ namespace FreeSql
             _repo = repo;
         }
 
+        IUnitOfWork _uowPriv;
+        internal override IUnitOfWork _uow
+        {
+            get => _uowPriv;
+            set
+            {
+                _uowPriv = value;
+                foreach (var dbset in _dicDbSetObjects.Values) //配合 UnitOfWorkManager
+                    dbset._uow = _uowPriv;
+            }
+        }
+
         protected override ISelect<TEntity> OrmSelect(object dywhere)
         {
-            var select = base.OrmSelect(dywhere).AsTable(_repo.AsTableSelectValueInternal);
-
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) select.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) select.DisableGlobalFilter();
+            var select = base.OrmSelect(dywhere);
+            if (_repo._asTablePriv != null) select.AsTable(_repo._asTablePriv);
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter);
             return select;
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
         protected override IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
         {
-            var update = base.OrmUpdate(entitys).AsTable(_repo.AsTableValueInternal);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true))
-            {
-                if (entitys != null)
-                    foreach (var entity in entitys)
-                        if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception($"FreeSql.Repository Update 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，更新的数据不符合 {_db.OrmOriginal.GetEntityString(_entityType, entity)}");
-                update.Where(filter.Value.Expression);
-            }
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) update.DisableGlobalFilter();
+            var update = base.OrmUpdate(entitys);
+			if (_repo._asTablePriv != null) update.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter);
             return update;
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
         protected override IDelete<TEntity> OrmDelete(object dywhere)
         {
-            var delete = base.OrmDelete(dywhere).AsTable(_repo.AsTableValueInternal);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
-            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) delete.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) delete.DisableGlobalFilter();
+            var delete = base.OrmDelete(dywhere);
+			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter);
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
-        protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
+
+		protected override IDelete<object> OrmDeleteAsType(Type entityType)
+		{
+			var delete = base.OrmDeleteAsType(entityType);
+			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+            return delete;
+		}
+
+		protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
         protected override IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys)
         {
-            var insert = base.OrmInsert(entitys).AsTable(_repo.AsTableValueInternal);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
-            foreach (var filter in filters)
-            {
-                if (entitys != null)
-                    foreach (var entity in entitys)
-                        if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception($"FreeSql.Repository Insert 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，插入的数据不符合 {_db.OrmOriginal.GetEntityString(_entityType, entity)}");
-            }
+            var insert = base.OrmInsert(entitys);
+			if (_repo._asTablePriv != null) insert.AsTable(old => _repo._asTablePriv(_entityType, old));
             return insert;
         }
         internal IInsert<TEntity> OrmInsertInternal(TEntity entity) => OrmInsert(entity);

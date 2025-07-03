@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -14,16 +14,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Dapper" Version="2.0.78" />
-        <PackageReference Include="IdleBus" Version="1.5.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.1" />
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+		<PackageReference Include="Dapper" Version="2.1.21" />
+		<PackageReference Include="IdleBus" Version="1.5.3" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.3.5" />
+		<PackageReference Include="xunit" Version="2.4.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -37,6 +38,7 @@
       <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.Linq\FreeSql.Extensions.Linq.csproj" />
       <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
       <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+      <ProjectReference Include="..\..\Providers\FreeSql.Provider.ClickHouse\FreeSql.Provider.ClickHouse.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
@@ -44,6 +46,7 @@
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
+      <ProjectReference Include="..\..\Providers\FreeSql.Provider.QuestDb\FreeSql.Provider.QuestDb.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />

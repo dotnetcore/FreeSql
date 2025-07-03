@@ -62,7 +62,7 @@ namespace FreeSql.Custom
             return ret;
         }
 
-        protected override List<T1> RawExecuteInserted() => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        protected override List<T1> RawExecuteInserted() => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 
 #if net40
 #else
@@ -107,7 +107,7 @@ namespace FreeSql.Custom
             }
             return ret;
         }
-        protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.Custom 未实现该功能");
+        protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.Custom {CoreErrorStrings.S_Not_Implemented_Feature}");
 #endif
     }
 }

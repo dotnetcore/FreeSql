@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>2.5.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 神舟通用数据库 7.0.8</Description>
@@ -16,10 +15,16 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<None Include="lib\System.Data.OscarClient.dll" Pack="true" PackagePath="\lib\net45\" />
 		<None Include="lib\System.Data.OscarClient.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib\Mono.Security.dll" Pack="true" PackagePath="\lib\net45\" />
@@ -34,7 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Oscar.Data.SqlClient" Version="1.0.8.2" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.0.5" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
 		<Reference Include="System.Data.OscarClient">

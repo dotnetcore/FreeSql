@@ -1,12 +1,12 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.OscarClient;
-using System.Text;
+using System.Linq;
 using System.Threading;
 
 namespace FreeSql.ShenTong
@@ -19,19 +19,26 @@ namespace FreeSql.ShenTong
             base._util = util; 
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.ShenTong, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.ShenTong, connectionFactory);
+                ConnectionString = pool.TestConnection?.ConnectionString;
+                MasterPool = pool;
                 return;
             }
+
+            var isAdoPool = masterConnectionString?.StartsWith("AdoConnectionPool,") ?? false;
+            if (isAdoPool) masterConnectionString = masterConnectionString.Substring("AdoConnectionPool,".Length);
             if (!string.IsNullOrEmpty(masterConnectionString))
-                MasterPool = new ShenTongConnectionPool("主库", masterConnectionString, null, null);
-            if (slaveConnectionStrings != null)
+                MasterPool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, CoreErrorStrings.S_MasterDatabase, () => new OscarConnection(masterConnectionString)) as IObjectPool<DbConnection> :
+                    new ShenTongConnectionPool(CoreErrorStrings.S_MasterDatabase, masterConnectionString, null, null);
+
+            slaveConnectionStrings?.ToList().ForEach(slaveConnectionString =>
             {
-                foreach (var slaveConnectionString in slaveConnectionStrings)
-                {
-                    var slavePool = new ShenTongConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-                    SlavePools.Add(slavePool);
-                }
-            }
+                var slavePool = isAdoPool ?
+                    new DbConnectionStringPool(base.DataType, $"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", () => new OscarConnection(slaveConnectionString)) as IObjectPool<DbConnection> :
+                    new ShenTongConnectionPool($"{CoreErrorStrings.S_SlaveDatabase}{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+                SlavePools.Add(slavePool);
+            });
         }
 
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
@@ -47,13 +54,22 @@ namespace FreeSql.ShenTong
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return ((Enum)param).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
-            else if (param is DateTime || param is DateTime?)
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
+
+            else if (param is DateTime)
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
+            else if (param is DateTime?)
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
+
             else if (param is TimeSpan || param is TimeSpan?)
-                return ((TimeSpan)param).TotalSeconds;
+            {
+                var ts = (TimeSpan)param;
+                var hh = Math.Min(24, (int)Math.Floor(ts.TotalHours));
+                if (hh >= 24) hh = 0;
+                return $"'{hh}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}'";
+            }
             else if (param is byte[])
                 return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable)

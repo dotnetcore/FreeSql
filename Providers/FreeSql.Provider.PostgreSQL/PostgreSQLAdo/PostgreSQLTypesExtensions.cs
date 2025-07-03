@@ -35,7 +35,7 @@ public static partial class PostgreSQLTypesExtensions
         double radLng2 = (double)(point.X) * Math.PI / 180d;
         return 2 * Math.Asin(Math.Sqrt(Math.Pow(Math.Sin((radLat1 - radLat2) / 2), 2) + Math.Cos(radLat1) * Math.Cos(radLat2) * Math.Pow(Math.Sin((radLng1 - radLng2) / 2), 2))) * 6378137;
     }
-    
+
     public static NpgsqlRange<T> ToNpgsqlRange<T>(this string that)
     {
         var s = that;

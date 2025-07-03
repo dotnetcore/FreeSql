@@ -19,7 +19,7 @@ namespace FreeSql.Firebird
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var ret = new FbParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
-            var dbtype = (FbDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (FbDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (col != null)
             {
                 var dbtype2 = (FbDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -35,7 +35,7 @@ namespace FreeSql.Firebird
                         break;
                 }
             }
-            ret.FbDbType = dbtype;
+            if (dbtype != null) ret.FbDbType = dbtype.Value;
             _params?.Add(ret);
             return ret;
         }
@@ -52,7 +52,7 @@ namespace FreeSql.Firebird
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatFirebird(args);
-        public override string QuoteSqlName(params string[] name)
+        public override string QuoteSqlNameAdapter(params string[] name)
         {
             if (name.Length == 1)
             {
@@ -89,11 +89,8 @@ namespace FreeSql.Firebird
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
-            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
-            {
-                var ts = (TimeSpan)value;
-                value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
-            }
+            if (type == typeof(string) && col != null && (specialParamFlag == "c" || specialParamFlag == "cu")) 
+                return $"cast('{value.ToString().Replace("'", "''")}' as {col.Attribute.DbType.Replace("NOT NULL", "").Replace("NULL", "")})"; //#1923
             return FormatSql("{0}", value, 1);
         }
     }

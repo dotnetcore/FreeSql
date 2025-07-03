@@ -90,7 +90,20 @@ namespace FreeSql.Odbc.Oracle
                             if (callExp.Method.DeclaringType.IsNumberType()) return "dbms_random.value";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
+                            if (callExp.Object != null)
+                            {
+                                if (callExp.Object.Type.NullableTypeOrThis().IsEnum)
+                                {
+                                    tsc.SetMapColumnTmp(null);
+                                    var oldMapType = tsc.SetMapTypeReturnOld(typeof(string));
+                                    var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
+                                    tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                                    return enumStr;
+								}
+								var value = ExpressionGetValue(callExp.Object, out var success);
+								if (success) return formatSql(value, typeof(string), null, null);
+								return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
+                            }
                             return null;
                     }
 
@@ -122,10 +135,12 @@ namespace FreeSql.Odbc.Oracle
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
+                        var oldDbParams = objExp?.NodeType == ExpressionType.MemberAccess ? tsc.SetDbParamsReturnOld(null) : null; //#900 UseGenerateCommandParameterWithLambda(true) 子查询 bug、以及 #1173 参数化 bug
+                        tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
+                        tsc.isNotSetMapColumnTmp = false;
                         tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        tsc.SetDbParamsReturnOld(oldDbParams);
+                        if (oldDbParams != null) tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
@@ -141,6 +156,7 @@ namespace FreeSql.Odbc.Oracle
                     for (var a = 0; a < arrExp.Expressions.Count; a++)
                     {
                         if (a > 0) arrSb.Append(",");
+                        if (a % 500 == 499) arrSb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                         arrSb.Append(getExp(arrExp.Expressions[a]));
                     }
                     if (arrSb.Length == 1) arrSb.Append("NULL");
@@ -219,35 +235,6 @@ namespace FreeSql.Odbc.Oracle
             }
             return null;
         }
-        public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
-        {
-            if (exp.Expression == null)
-            {
-                switch (exp.Member.Name)
-                {
-                    case "Zero": return "numtodsinterval(0,'second')";
-                    case "MinValue": return "numtodsinterval(-233720368.5477580,'second')";
-                    case "MaxValue": return "numtodsinterval(233720368.5477580,'second')";
-                }
-                return null;
-            }
-            var left = ExpressionLambdaToSql(exp.Expression, tsc);
-            switch (exp.Member.Name)
-            {
-                case "Days": return $"extract(day from {left})";
-                case "Hours": return $"extract(hour from {left})";
-                case "Milliseconds": return $"cast(substr(extract(second from {left})-floor(extract(second from {left})),3,3) as number)";
-                case "Minutes": return $"extract(minute from {left})";
-                case "Seconds": return $"floor(extract(second from {left}))";
-                case "Ticks": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))*10000000";
-                case "TotalDays": return $"extract(day from {left})";
-                case "TotalHours": return $"(extract(day from {left})*24+extract(hour from {left}))";
-                case "TotalMilliseconds": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))*1000";
-                case "TotalMinutes": return $"(extract(day from {left})*1440+extract(hour from {left})*60+extract(minute from {left}))";
-                case "TotalSeconds": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))";
-            }
-            return null;
-        }
 
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -263,9 +250,11 @@ namespace FreeSql.Odbc.Oracle
                         var arg2 = getExp(exp.Arguments[0]);
                         return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
+                        if (exp.Arguments.Count == 1 && exp.Arguments[0].NodeType == ExpressionType.NewArrayInit && exp.Arguments[0] is NewArrayExpression concatNewArrExp)
+                            return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), null);
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
                         var expArgsHack = exp.Arguments.Count == 2 && exp.Arguments[1].NodeType == ExpressionType.NewArrayInit ?
                             (exp.Arguments[1] as NewArrayExpression).Expressions : exp.Arguments.Where((a, z) => z > 0);
                         //3个 {} 时，Arguments 解析出来是分开的
@@ -296,12 +285,19 @@ namespace FreeSql.Odbc.Oracle
                     case "StartsWith":
                     case "EndsWith":
                     case "Contains":
+                        var leftLike = exp.Object.NodeType == ExpressionType.MemberAccess ? left : $"({left})";
                         var args0Value = getExp(exp.Arguments[0]);
-                        if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(to_char({args0Value})||'%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'||to_char({args0Value}))")}";
-                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE ('%'||to_char({args0Value})||'%')";
+                        if (args0Value == "NULL") return $"{leftLike} IS NULL";
+                        if (new[] { '%', '_', '[', ']', '*' }.Any(wildcard => args0Value.Contains(wildcard)))
+                        {
+                            if (exp.Method.Name == "StartsWith") return $"instr({left}, {args0Value}, 1, 1) = 1";
+                            if (exp.Method.Name == "EndsWith") return $"instr({left}, {args0Value}, 1, 1) = length({left})-length({args0Value})+1";
+                            return $"instr({left}, {args0Value}, 1, 1) > 0";
+                        }
+                        if (exp.Method.Name == "StartsWith") return $"{leftLike} LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(to_char({args0Value})||'%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"{leftLike} LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'||to_char({args0Value}))")}";
+                        if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"{leftLike} LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        return $"{leftLike} LIKE ('%'||to_char({args0Value})||'%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
@@ -388,6 +384,19 @@ namespace FreeSql.Odbc.Oracle
             }
             return null;
         }
+        public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
+        {
+            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            switch (memberName)
+            {
+                case "TotalDays": return $"(({getExp(date1)}+0)-({getExp(date2)}+0))";
+                case "TotalHours": return $"((({getExp(date1)}+0)-({getExp(date2)}+0))*24)";
+                case "TotalMilliseconds": return $"((({getExp(date1)}+0)-({getExp(date2)}+0))*{24 * 60 * 60 * 1000})";
+                case "TotalMinutes": return $"((({getExp(date1)}+0)-({getExp(date2)}+0))*{24 * 60})";
+                case "TotalSeconds": return $"((({getExp(date1)}+0)-({getExp(date2)}+0))*{24 * 60 * 60})";
+            }
+            return null;
+        }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
@@ -415,7 +424,6 @@ namespace FreeSql.Odbc.Oracle
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"({left}+{args1})";
                     case "AddDays": return $"({left}+{args1})";
                     case "AddHours": return $"({left}+({args1})/24)";
                     case "AddMilliseconds": return $"({left}+({args1})/86400000)";
@@ -427,8 +435,7 @@ namespace FreeSql.Odbc.Oracle
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"numtodsinterval(({left}+0)-({args1}+0),'day')";
-                            case "System.TimeSpan": return $"({left}-{args1})";
+                            case "System.DateTime": return $"((({left}+0)-({args1}+0))*{24 * 60 * 60})";
                         }
                         break;
                     case "Equals": return $"({left} = {args1})";
@@ -490,42 +497,6 @@ namespace FreeSql.Odbc.Oracle
                         }
                         if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
                         return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
-                }
-            }
-            return null;
-        }
-        public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
-        {
-            Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
-            if (exp.Object == null)
-            {
-                switch (exp.Method.Name)
-                {
-                    case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
-                    case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
-                    case "FromDays": return $"numtodsinterval(({getExp(exp.Arguments[0])})*{(long)60 * 60 * 24},'second')";
-                    case "FromHours": return $"numtodsinterval(({getExp(exp.Arguments[0])})*{(long)60 * 60},'second')";
-                    case "FromMilliseconds": return $"numtodsinterval(({getExp(exp.Arguments[0])})/1000,'second')";
-                    case "FromMinutes": return $"numtodsinterval(({getExp(exp.Arguments[0])})*60,'second')";
-                    case "FromSeconds": return $"numtodsinterval(({getExp(exp.Arguments[0])}),'second')";
-                    case "FromTicks": return $"numtodsinterval(({getExp(exp.Arguments[0])})/10000000,'second')";
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to second(7))";
-                    case "ParseExact":
-                    case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as interval day(9) to second(7))";
-                }
-            }
-            else
-            {
-                var left = getExp(exp.Object);
-                var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
-                switch (exp.Method.Name)
-                {
-                    case "Add": return $"({left}+{args1})";
-                    case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {args1})";
-                    case "CompareTo": return $"extract(day from ({left}-({args1})))";
-                    case "ToString": return $"to_char({left})";
                 }
             }
             return null;

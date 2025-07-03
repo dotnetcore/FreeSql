@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+锘縰sing FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using Microsoft.Data.SqlClient;
 using NetTaste;
@@ -24,6 +24,14 @@ namespace FreeSql.Tests.SqlServer
         public void Pool()
         {
             var t1 = g.sqlserver.Ado.MasterPool.StatisticsFullily;
+
+            var connectionString = "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=31;TrustServerCertificate=true";
+            using (var t2 = new FreeSqlBuilder()
+                .UseConnectionFactory(FreeSql.DataType.SqlServer, () => new SqlConnection(connectionString))
+                .Build())
+            {
+                Assert.Equal(connectionString, t2.Ado.ConnectionString);
+            }
         }
 
         [Fact]
@@ -82,7 +90,7 @@ namespace FreeSql.Tests.SqlServer
             fsql.Ado.CommandFluent("dbo.GetICMaxNum", new Dictionary<string, object>
                 {
                     ["TableName"] = "tb1"
-                    // 更多参数
+                    // 鏇村鍙傛暟
                 })
                 .WithParameter("FInterID", null, p =>
                 {

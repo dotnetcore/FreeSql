@@ -38,7 +38,7 @@ namespace FreeSql.Sqlite.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -56,6 +56,22 @@ namespace FreeSql.Sqlite.Curd
             var ret = _source.ToList();
             this.RawExecuteAffrows();
             return ret;
+        }
+
+        public override string ToSql()
+        {
+            if (_table.Columns.Count == 1 && _table.ColumnsByPosition[0].Attribute.IsIdentity)
+            {
+                var sb = new StringBuilder();
+                var didx = 0;
+                foreach (var d in _source)
+                {
+                    if (didx++ > 0) sb.Append(";\r\n");
+                    sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" DEFAULT VALUES");
+                }
+                return sb.ToString();
+            }
+            return base.ToSql();
         }
 
 #if net40
@@ -81,7 +97,7 @@ namespace FreeSql.Sqlite.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

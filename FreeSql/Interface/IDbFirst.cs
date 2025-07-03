@@ -15,7 +15,7 @@ namespace FreeSql
         /// <summary>
         /// 获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
         /// </summary>
-        /// <param name="database"></param>
+        /// <param name="database">可选-默认查询当前数据库</param>
         /// <returns></returns>
         List<DbTableInfo> GetTablesByDatabase(params string[] database);
 

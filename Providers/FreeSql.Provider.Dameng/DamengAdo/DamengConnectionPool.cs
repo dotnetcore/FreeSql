@@ -34,8 +34,8 @@ namespace FreeSql.Dameng
 
         public static string GetUserId(string connectionString)
         {
-            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
-            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid|User)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid|User)\s*=\s*([^;]+)");
             return userIdMatch.Groups[2].Value.Trim().ToUpper();
         }
 
@@ -43,14 +43,8 @@ namespace FreeSql.Dameng
         {
             if (exception != null && exception is DmException)
             {
-                if (exception is System.IO.IOException)
-                {
-                    base.SetUnavailable(exception);
-                }
-                else if (obj.Value.Ping() == false)
-                {
-                    base.SetUnavailable(exception);
-                }
+                if (obj.Value.Ping() == false)
+                    base.SetUnavailable(exception, obj.LastGetTimeCopy);
             }
             base.Return(obj, isRecreate);
         }
@@ -60,14 +54,15 @@ namespace FreeSql.Dameng
     {
 
         internal DamengConnectionPool _pool;
-        public string Name { get; set; } = "Dameng DmConnection 对象池";
+        public string Name { get; set; } = $"Dameng DmConnection {CoreErrorStrings.S_ObjectPool}";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
-        public int CheckAvailableInterval { get; set; } = 5;
+        public int CheckAvailableInterval { get; set; } = 2;
+        public int Weight { get; set; } = 1;
 
         static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
         private string _connectionString;
@@ -78,9 +73,18 @@ namespace FreeSql.Dameng
             {
                 _connectionString = value ?? "";
 
-                var pattern = @"(Max\s*)?pool\s*size\s*=\s*(\d+)";
-                Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
+                var minPoolSize = 0;
+                var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    minPoolSize = int.Parse(m.Groups[1].Value);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                }
+
+                pattern = @"(Max\s*)?pool\s*size\s*=\s*(\d+)";
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = Math.Max(100, minPoolSize);
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
@@ -96,21 +100,13 @@ namespace FreeSql.Dameng
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
-                var minPoolSize = 0;
-                pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
-                }
-
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
             }
         }
 
         public bool OnCheckAvailable(Object<DbConnection> obj)
         {
+            if (obj.Value == null) return false;
             if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
             return obj.Value.Ping(true);
         }
@@ -134,9 +130,8 @@ namespace FreeSql.Dameng
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
+                    _pool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
@@ -148,8 +143,9 @@ namespace FreeSql.Dameng
                     }
                     catch (Exception ex)
                     {
-                        if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
+                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
+                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
+                        throw;
                     }
                 }
             }
@@ -164,9 +160,8 @@ namespace FreeSql.Dameng
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
-                    return;
+                    _pool.SetUnavailable(new Exception(CoreErrorStrings.S_ConnectionStringError), obj.LastGetTimeCopy);
+                    throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
@@ -178,8 +173,9 @@ namespace FreeSql.Dameng
                     }
                     catch (Exception ex)
                     {
-                        if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
+                        if (_pool.SetUnavailable(ex, obj.LastGetTimeCopy) == true)
+                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
+                        throw;
                     }
                 }
             }

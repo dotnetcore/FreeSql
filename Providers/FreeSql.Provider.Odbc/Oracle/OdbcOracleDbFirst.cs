@@ -27,7 +27,7 @@ namespace FreeSql.Odbc.Oracle
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         OdbcType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "number(1)": return OdbcType.Bit;
@@ -55,7 +55,7 @@ namespace FreeSql.Odbc.Oracle
 
                 case "char(36 char)": return OdbcType.Char;
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
@@ -110,10 +110,10 @@ namespace FreeSql.Odbc.Oracle
                     return OdbcType.Double;
                 case "rowid":
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OdbcType.NVarChar;
             }
-            throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
+            throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
         static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
@@ -331,7 +331,7 @@ to_char(b.comments),
 nvl(FREESQL_LONG_TO_CHAR_DEFAULT(a.table_name, a.column_name),'')
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
-where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8} and a.column_id is not null
+where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Count <= 10 ? $" and {loc8}" : "")} and a.column_id is not null
 ";
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -339,6 +339,8 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
             var ds2 = new List<object[]>();
             foreach (var row in ds)
             {
+                var table_id = string.Concat(row[0]);
+                if (!loc2.ContainsKey(table_id)) continue;
                 var ds2item = new object[9];
                 ds2item[0] = row[0];
                 ds2item[1] = row[1];
@@ -379,7 +381,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });
@@ -403,7 +405,7 @@ all_ind_columns c
 where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
-and {(ignoreCase ? "lower(a.table_owner)" : "a.table_owner")} in ({databaseIn}) and {loc8}
+and {(ignoreCase ? "lower(a.table_owner)" : "a.table_owner")} in ({databaseIn}){(loc2.Count <= 10 ? $" and {loc8}" : "")}
 ";
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -413,6 +415,7 @@ and {(ignoreCase ? "lower(a.table_owner)" : "a.table_owner")} in ({databaseIn}) 
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
+                if (!loc2.ContainsKey(table_id)) continue;
                 string column = string.Concat(row[1]).Trim('"');
                 string index_id = string.Concat(row[2]);
                 bool is_unique = string.Concat(row[3]) == "1";
@@ -492,7 +495,7 @@ and a.owner = c.owner 　　
 and a.table_name = c.table_name 　　
 and b.owner = d.owner 　　
 and b.table_name = d.table_name
-and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
+and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Count <= 10 ? $" and {loc8}" : "")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
@@ -501,6 +504,7 @@ and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
                 foreach (var row in ds)
                 {
                     string table_id = string.Concat(row[0]);
+                    if (!loc2.ContainsKey(table_id)) continue;
                     string column = string.Concat(row[1]);
                     string fk_id = string.Concat(row[2]);
                     string ref_table_id = string.Concat(row[3]);

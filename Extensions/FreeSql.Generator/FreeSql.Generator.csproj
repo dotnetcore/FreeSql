@@ -1,48 +1,60 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net50</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IsPackable>true</IsPackable>
-    <PackAsTool>true</PackAsTool>
-    <Authors>FreeSql;ncc;YeXiangQin</Authors>
-    <Company>2881099</Company>
-    <Product>FreeSql</Product>
-    <Description>使用 FreeSql 快速生成数据库的实体类，安装：dotnet tool install -g FreeSql.Generator</Description>
-    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
-    <Version>2.5.100</Version>
-    <PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net6.0</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IsPackable>true</IsPackable>
+		<PackAsTool>true</PackAsTool>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Company>2881099</Company>
+		<Product>FreeSql</Product>
+		<Description>使用 FreeSql 快速生成数据库的实体类，安装：dotnet tool install -g FreeSql.Generator</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
+		<Version>3.5.210-preview20250626</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="RazorEngine.NetCore" Version="2.2.6" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="../../readme.md" Pack="true" PackagePath="\"/>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="DmProvider">
-      <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Data.OscarClient">
-      <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Colorful.Console" Version="1.2.9" />
+		<PackageReference Include="RazorEngine.NetCore" Version="2.2.6" />
+		<PackageReference Include="System.CodeDom" Version="6.0.0" />
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<Reference Include="DmProvider">
+			<HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="System.Data.OscarClient">
+			<HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Kdbndp">
+			<HintPath>..\..\Providers\FreeSql.Provider.KingbaseES\lib\Kdbndp.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+	</ItemGroup>
 
 </Project>

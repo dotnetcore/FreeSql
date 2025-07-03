@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.AggregateRoot</name>
+    </assembly>
+    <members>
+        <member name="T:FreeSql.DataAnnotations.AggregateRootBoundaryAttribute">
+            <summary>
+            设置 AggregateRootRepository 边界范围<para></para>
+            在边界范围之内的规则 ：<para></para>
+            1、OneToOne/OneToMany/ManyToMany(中间表) 可以查询、可以增删改<para></para>
+            2、ManyToOne/ManyToMany外部表/PgArrayToMany 只可以查询，不支持增删改（会被忽略）<para></para>
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.AggregateRootBoundaryAttribute.Break">
+            <summary>
+            边界是否终止
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.AggregateRootBoundaryAttribute.BreakThen">
+            <summary>
+            边界是否终止向下探测
+            </summary>
+        </member>
+        <member name="P:FreeSql.AggregateRootRepository`1.Select">
+            <summary>
+            默认：创建查询对象（递归包含 Include/IncludeMany 边界之内的导航属性）<para></para>
+            重写：使用
+            </summary>
+        </member>
+        <member name="P:FreeSql.AggregateRootRepository`1.SelectDiy">
+            <summary>
+            创建查询对象（纯净）<para></para>
+            _<para></para>
+            聚合根内关系较复杂时，获取 Include/IncludeMany 字符串代码，方便二次开发<para></para>
+            string code = AggregateRootUtils.GetAutoIncludeQueryStaicCode(null, fsql, typeof(Order))
+            </summary>
+        </member>
+        <member name="P:FreeSql.AggregateRootRepository`1.SelectAggregateRoot">
+            <summary>
+            创建查询对象（递归包含 Include/IncludeMany 边界之内的导航属性）
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.AggregateRootRepository`1.SelectAggregateRootTracking(System.Object)">
+            <summary>
+            ISelect.TrackToList 委托，数据返回后自动 Attach
+            </summary>
+            <param name="list"></param>
+        </member>
+    </members>
+</doc>

@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,6 +11,16 @@ namespace FreeSql.Internal.CommonProvider
 {
     partial class AdoProvider
     {
+        public object AddslashesTypeHandler(Type type, object param)
+        {
+            if (Utils.TypeHandlers.TryGetValue(type, out var typeHandler))
+            {
+                var result = typeHandler.Serialize(param);
+                return AddslashesProcessParam(result, null, null);
+            }
+            return null;
+        }
+
         public abstract object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn);
         public string Addslashes(string filter, params object[] parms)
         {
@@ -40,15 +51,16 @@ namespace FreeSql.Internal.CommonProvider
                     sb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
                     idx = 1;
                 }
-                sb.Append(AddslashesProcessParam(z, mapType, mapColumn));
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", AddslashesProcessParam(z, mapType, mapColumn)));
             }
 
             return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
         }
 
-        public static bool IsFromSlave(string cmdText)
+        public static bool IsFromSlave(string cmdText, CommandType cmdType)
         {
-            return cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase) ||
+            return cmdType == CommandType.StoredProcedure ||
+                cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase) ||
                 cmdText.StartsWith("WITH ", StringComparison.CurrentCultureIgnoreCase);
         }
     }
