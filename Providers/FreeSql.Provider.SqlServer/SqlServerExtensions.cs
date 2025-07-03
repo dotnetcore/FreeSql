@@ -82,7 +82,10 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         {
             if (batchSize.HasValue) bulkCopy.BatchSize = batchSize.Value;
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
-            bulkCopy.DestinationTableName = dt.TableName;
+            bulkCopy.DestinationTableName =
+                        dt.TableName.IndexOf(' ') >= 0 && !(dt.TableName.StartsWith("[") && dt.TableName.EndsWith("]"))
+                        ? $"[{dt.TableName}]"
+                        : dt.TableName;
             for (int i = 0; i < dt.Columns.Count; i++)
                 bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
             bulkCopy.WriteToServer(dt);
