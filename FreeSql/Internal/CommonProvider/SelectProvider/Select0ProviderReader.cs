@@ -248,7 +248,7 @@ namespace FreeSql.Internal.CommonProvider
                 return;
             }
             if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
-            this.ToListChunkPrivate(size, done, this.GetAllFieldExpressionTreeLevel2(), null);
+            this.ToListChunkPrivate(size, done, !_isIncluded ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
 
         internal void ToListMrChunkPrivate<TReturn>(int chunkSize, Action<FetchCallbackArgs<List<TReturn>>> chunkDone, string sql, ReadAnonymousTypeAfInfo af)
@@ -315,7 +315,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var ret = new Dictionary<TKey, TElement>();
             if (_cancel?.Invoke() == true) return ret;
-            var af = this.GetAllFieldExpressionTreeLevel2();
+            var af = !_isIncluded ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -1342,7 +1342,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var ret = new Dictionary<TKey, TElement>();
             if (_cancel?.Invoke() == true) return ret;
-            var af = this.GetAllFieldExpressionTreeLevel2();
+            var af = !_isIncluded ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -1797,7 +1797,7 @@ namespace FreeSql.Internal.CommonProvider
                 };
             }
             if (_selectExpression != null) throw new ArgumentException(CoreErrorStrings.Before_Chunk_Cannot_Use_Select);
-            return this.ToListChunkPrivateAsyncEnumerable(size, this.GetAllFieldExpressionTreeLevel2(), null);
+            return this.ToListChunkPrivateAsyncEnumerable(size, !_isIncluded ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
 
 
