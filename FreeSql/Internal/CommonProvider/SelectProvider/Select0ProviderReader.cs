@@ -1038,9 +1038,15 @@ namespace FreeSql.Internal.CommonProvider
                 childs.Add(new ReadAnonymousTypeInfo { DbField = dbfield, CsName = col.CsName });
             }
             var selectField = string.Join(", ", childs.Select(a => a.DbField));
+            var cteWithSql = "";
+            if (_is_AsTreeCte && this._select.TrimStart().StartsWith("WITH") && this._select.EndsWith("SELECT "))
+            {
+                cteWithSql = this._select.Substring(0, this._select.Length - 7);
+                this._select = "SELECT ";
+            }
             var selectSql = this.ToSql(selectField);
             var insertField = string.Join(", ", childs.Select(a => _commonUtils.QuoteSqlName(tb.ColumnsByCs[a.CsName].Attribute.Name)));
-            var sql = $"INSERT INTO {_commonUtils.QuoteSqlName(tableName)}({insertField})\r\n{selectSql}";
+            var sql = $"{cteWithSql}INSERT INTO {_commonUtils.QuoteSqlName(tableName)}({insertField})\r\n{selectSql}";
             return sql;
         }
         public int InternalInsertInto<TTargetEntity>(string tableName, Expression select)

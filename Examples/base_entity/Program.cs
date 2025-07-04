@@ -581,7 +581,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
@@ -622,8 +622,36 @@ namespace base_entity
             #endregion
 
 
+            fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
+            var repoxx = fsql.GetRepository<VM_District_Child>();
+            repoxx.DbContextOptions.EnableCascadeSave = true;
+            repoxx.DbContextOptions.NoneParameter = true;
+            repoxx.Insert(new VM_District_Child
+            {
+                Code = "100000",
+                Name = "中国",
+                Childs = new List<VM_District_Child>(new[] {
+                    new VM_District_Child
+                    {
+                        Code = "110000",
+                        Name = "北京",
+                        Childs = new List<VM_District_Child>(new[] {
+                            new VM_District_Child{ Code="110100", Name = "北京市" },
+                            new VM_District_Child{ Code="110101", Name = "东城区" },
+                        })
+                    }
+                })
+            });
+            var ttre1 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国")
+                .AsTreeCte(pathSelector: a => $"[{a.Name}]{a.Code}", pathSeparator: "=>")
+                .OrderBy(a => a.Code).ToTreeList();
+            fsql.Select<VM_District_Child>().Where(a => a.Name == "中国")
+                .AsTreeCte(pathSelector: a => $"[{a.Name}]{a.Code}", pathSeparator: "=>")
+                .OrderBy(a => a.Code).InsertInto("VM_District_Child_Copy", a => new VM_District_Child { Code = a.Code, Name = a.Name });
+
             var usergroupRepository = fsql.GetAggregateRootRepository<UserGroup>();
             usergroupRepository.Delete(a => true);
+            usergroupRepository.Orm.Delete<User1>().Where(a => true).ExecuteAffrows();
             usergroupRepository.Insert(new[]{
                 new UserGroup
                 {
@@ -649,9 +677,18 @@ namespace base_entity
                         new User1 { Nickname = "nickname21", Username = "username21", Description = "desc21" },
                         new User1 { Nickname = "nickname22", Username = "username22", Description = "desc22" },
                         new User1 { Nickname = "nickname23", Username = "username23", Description = "desc23" },
+                        new User1 { Nickname = "nickname24", Username = "username24", Description = "desc24" },
                     }
                 },
             });
+            Task.Run(async () =>
+            {
+                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname, a.Username }).ToChunkAsyncEnumerable(2))
+                {
+                    foreach (var item in xxs1)
+                        Console.WriteLine(item.Nickname);
+                }
+            }).Wait();
             var ugroupFirst = usergroupRepository.Select.First();
             ugroupFirst.Sort++;
             usergroupRepository.Update(ugroupFirst);
@@ -954,30 +991,6 @@ namespace base_entity
 
 
 
-
-            fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
-            var repoxx = fsql.GetRepository<VM_District_Child>();
-            repoxx.DbContextOptions.EnableCascadeSave = true;
-            repoxx.DbContextOptions.NoneParameter = true;
-            repoxx.Insert(new VM_District_Child
-            {
-                Code = "100000",
-                Name = "中国",
-                Childs = new List<VM_District_Child>(new[] {
-                    new VM_District_Child
-                    {
-                        Code = "110000",
-                        Name = "北京",
-                        Childs = new List<VM_District_Child>(new[] {
-                            new VM_District_Child{ Code="110100", Name = "北京市" },
-                            new VM_District_Child{ Code="110101", Name = "东城区" },
-                        })
-                    }
-                })
-            });
-            var ttre1 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国")
-                .AsTreeCte(pathSelector: a => $"[{a.Name}]{a.Code}", pathSeparator: "=>")
-                .OrderBy(a => a.Code).ToTreeList(); ;
 
             var list111222 = fsql.Select<OrderLine, Product>()
 			    .InnerJoin((l, p) => l.ProductId == p.ID)
