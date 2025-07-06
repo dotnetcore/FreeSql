@@ -12,8 +12,17 @@ namespace FreeSql.Internal
         ConcurrentDictionary<string, Item> _filters = new ConcurrentDictionary<string, Item>(StringComparer.CurrentCultureIgnoreCase);
         int _id = 0;
 
+        [Flags]
+        public enum FilterType
+        {
+            Query = 1,    // 2^0
+            Update = 2,   // 2^1
+            Delete = 4    // 2^2
+        }
+
         public class Item
         {
+            public FilterType FilterType { get; set; }
             public int Id { get; internal set; }
             public string Name { get; internal set; }
             internal Func<bool> Condition { get; set; }
@@ -67,7 +76,7 @@ namespace FreeSql.Internal
         /// <returns></returns>
         public GlobalFilter ApplyOnlyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(true, name, condition, where, before);
 
-        GlobalFilter Apply<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before)
+        GlobalFilter Apply<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before, FilterType filterType = FilterType.Query | FilterType.Update | FilterType.Delete)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (where == null) return this;
@@ -84,6 +93,7 @@ namespace FreeSql.Internal
             item.Condition = condition;
             item.Only = only;
             item.Before = before;
+            item.FilterType = filterType;
             _filters.AddOrUpdate(name, item, (_, __) => item);
             return this;
         }

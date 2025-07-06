@@ -22,7 +22,7 @@ namespace FreeSql.Internal.CommonProvider
     {
         public Select1Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere)
         {
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Query) == GlobalFilter.FilterType.Query).ToList();
         }
 
         protected ISelect<T1> InternalFrom(LambdaExpression lambdaExp)

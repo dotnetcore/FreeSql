@@ -80,7 +80,6 @@ namespace FreeSql
             get => _unitOfWork;
         }
         public IUpdate<TEntity> UpdateDiy => _dbset.OrmUpdateInternal(null);
-
         public virtual ISelect<TEntity> Select => _dbset.OrmSelectInternal(null);
         public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => Select.Where(exp);
         public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => Select.WhereIf(condition, exp);

@@ -39,7 +39,7 @@ namespace FreeSql.Internal.CommonProvider
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+           _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Delete) == GlobalFilter.FilterType.Delete).ToList();
         }
 
         protected void ClearData()
@@ -47,7 +47,7 @@ namespace FreeSql.Internal.CommonProvider
             _where.Clear();
             _whereTimes = 0;
             _params.Clear();
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Delete) == GlobalFilter.FilterType.Delete).ToList();
         }
 
         public IDelete<T1> WithTransaction(DbTransaction transaction)
@@ -120,21 +120,21 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
             this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params)) :
             this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere, _params)})");
-		public IDelete<T1> WhereDynamicFilter(DynamicFilterInfo filter)
+        public IDelete<T1> WhereDynamicFilter(DynamicFilterInfo filter)
         {
             var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);
-			var tempQuery = _orm.Select<object>().AsType(_table.Type).DisableGlobalFilter().As(alias);
+            var tempQuery = _orm.Select<object>().AsType(_table.Type).DisableGlobalFilter().As(alias);
             tempQuery.WhereDynamicFilter(filter);
             var where = (tempQuery as Select0Provider)._where.ToString().Replace(alias + ".", "");
             if (where.StartsWith(" AND "))
             {
-				if (++_whereTimes == 1) _where.Append(where.Substring(5));
+                if (++_whereTimes == 1) _where.Append(where.Substring(5));
                 else _where.Append(where);
             }
-			return this;
+            return this;
         }
 
-		public IDelete<T1> DisableGlobalFilter(params string[] name)
+        public IDelete<T1> DisableGlobalFilter(params string[] name)
         {
             if (_whereGlobalFilter.Any() == false) return this;
             if (name?.Any() != true)
@@ -219,7 +219,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tableRule = old => name;
                     sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
                     _interceptSql?.Invoke(sb);
-					if (sb.Length > 0) fetch(sb);
+                    if (sb.Length > 0) fetch(sb);
                 }
                 _tableRule = oldTableRule;
                 return;
@@ -254,7 +254,7 @@ namespace FreeSql.Internal.CommonProvider
                     _tableRule = old => name;
                     sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
                     _interceptSql?.Invoke(sb);
-					if (sb.Length > 0) await fetchAsync(sb);
+                    if (sb.Length > 0) await fetchAsync(sb);
                 }
                 _tableRule = oldTableRule;
                 return;

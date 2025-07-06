@@ -184,7 +184,7 @@ namespace FreeSql.Internal.CommonProvider
             this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Update) == GlobalFilter.FilterType.Update).ToList();
             _sourceOld = _source;
         }
 
@@ -212,7 +212,7 @@ namespace FreeSql.Internal.CommonProvider
             _params.Clear();
             _paramsSource.Clear();
             IgnoreCanUpdate();
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Update) == GlobalFilter.FilterType.Update).ToList();
             _batchProgress = null;
             _interceptSql = null;
             _tableAlias = null;
