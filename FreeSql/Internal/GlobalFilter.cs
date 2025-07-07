@@ -39,7 +39,7 @@ namespace FreeSql.Internal
         /// <param name="where">表达式</param>
         /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter Apply<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(false, name, () => true, where, before);
+        public GlobalFilter Apply<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => ApplyCore(false, name, () => true, where, before);
         /// <summary>
         /// 创建一个动态过滤器，当 condition 返回值为 true 时才生效<para></para>
         /// 场景：当登陆身份是管理员，则过滤条件不生效<para></para>
@@ -51,7 +51,7 @@ namespace FreeSql.Internal
         /// <param name="where">表达式</param>
         /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(false, name, condition, where, before);
+        public GlobalFilter ApplyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => ApplyCore(false, name, condition, where, before);
 
         /// <summary>
         /// 创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
@@ -62,7 +62,7 @@ namespace FreeSql.Internal
         /// <param name="where">表达式</param>
         /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyOnly<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(true, name, () => true, where, before);
+        public GlobalFilter ApplyOnly<TEntity>(string name, Expression<Func<TEntity, bool>> where, bool before = false) => ApplyCore(true, name, () => true, where, before);
         /// <summary>
         /// 创建一个过滤器（实体类型 属于指定 TEntity 才会生效）<para></para>
         /// 场景：当登陆身份是管理员，则过滤条件不生效<para></para>
@@ -74,9 +74,9 @@ namespace FreeSql.Internal
         /// <param name="where">表达式</param>
         /// <param name="before">条件在最前面</param>
         /// <returns></returns>
-        public GlobalFilter ApplyOnlyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => Apply(true, name, condition, where, before);
+        public GlobalFilter ApplyOnlyIf<TEntity>(string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before = false) => ApplyCore(true, name, condition, where, before);
 
-        GlobalFilter Apply<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before, FilterType filterType = FilterType.Query | FilterType.Update | FilterType.Delete)
+        public GlobalFilter ApplyCore<TEntity>(bool only, string name, Func<bool> condition, Expression<Func<TEntity, bool>> where, bool before, FilterType filterType = FilterType.Query | FilterType.Update | FilterType.Delete)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (where == null) return this;
