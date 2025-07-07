@@ -1,4 +1,5 @@
 ﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,9 @@ namespace FreeSql
         {
             var select = base.OrmSelect(dywhere);
             if (_repo._asTablePriv != null) select.AsTable(_repo._asTablePriv);
-            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            var disableFilter = _repo.DataFilter._filtersByOrm
+                .Where(a => a.Value.IsEnabled == false || (a.Value.Filter.FilterType & GlobalFilter.FilterType.Query) != GlobalFilter.FilterType.Query)
+                .Select(a => a.Key).ToArray();
             if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter);
             return select;
         }
@@ -40,8 +43,8 @@ namespace FreeSql
         protected override IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
         {
             var update = base.OrmUpdate(entitys);
-			if (_repo._asTablePriv != null) update.AsTable(old => _repo._asTablePriv(_entityType, old));
-            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (_repo._asTablePriv != null) update.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false || (a.Value.Filter.FilterType & GlobalFilter.FilterType.Update) != GlobalFilter.FilterType.Update).Select(a => a.Key).ToArray();
             if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter);
             return update;
         }
@@ -49,25 +52,25 @@ namespace FreeSql
         protected override IDelete<TEntity> OrmDelete(object dywhere)
         {
             var delete = base.OrmDelete(dywhere);
-			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
-            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
+            if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+            var disableFilter = _repo.DataFilter._filtersByOrm.Where(a => a.Value.IsEnabled == false || (a.Value.Filter.FilterType & GlobalFilter.FilterType.Delete) != GlobalFilter.FilterType.Delete).Select(a => a.Key).ToArray();
             if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter);
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
 
-		protected override IDelete<object> OrmDeleteAsType(Type entityType)
-		{
-			var delete = base.OrmDeleteAsType(entityType);
-			if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
+        protected override IDelete<object> OrmDeleteAsType(Type entityType)
+        {
+            var delete = base.OrmDeleteAsType(entityType);
+            if (_repo._asTablePriv != null) delete.AsTable(old => _repo._asTablePriv(_entityType, old));
             return delete;
-		}
+        }
 
-		protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
+        protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
         protected override IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys)
         {
             var insert = base.OrmInsert(entitys);
-			if (_repo._asTablePriv != null) insert.AsTable(old => _repo._asTablePriv(_entityType, old));
+            if (_repo._asTablePriv != null) insert.AsTable(old => _repo._asTablePriv(_entityType, old));
             return insert;
         }
         internal IInsert<TEntity> OrmInsertInternal(TEntity entity) => OrmInsert(entity);
