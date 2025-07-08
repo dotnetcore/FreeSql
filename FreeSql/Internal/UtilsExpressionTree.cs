@@ -2558,7 +2558,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
@@ -2574,7 +2574,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
@@ -2590,7 +2590,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
@@ -2618,7 +2618,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
@@ -2634,7 +2634,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
@@ -2650,7 +2650,7 @@ namespace FreeSql.Internal
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.IfThenElse(
                                         Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExpDecimal)),
-                                        Expression.Return(returnTarget, Expression.Convert(Expression.Convert(tryparseVarExpDecimal, tryparseVarExp.Type), typeof(object))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType,Expression.Convert(tryparseVarExpDecimal,typeof(object)),Expression.Constant(type, typeof(Type)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                     )
                                 )
