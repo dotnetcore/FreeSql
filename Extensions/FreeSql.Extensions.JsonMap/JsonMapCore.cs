@@ -2,6 +2,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Internal.CommonProvider;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -62,8 +63,16 @@ public static class FreeSqlJsonMapCoreExtensions
 
                 if (e.ModifyResult.MapType == null)
                 {
-                    e.ModifyResult.MapType = typeof(string);
-                    e.ModifyResult.StringLength = -2;
+                    switch (fsql.Ado.DataType)
+                    {
+                        case DataType.PostgreSQL:
+                            e.ModifyResult.MapType = typeof(JObject);
+                            break;
+                        default:
+                            e.ModifyResult.MapType = typeof(string);
+                            e.ModifyResult.StringLength = -2;
+                            break;
+                    }
                 }
                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))
                 {

@@ -3498,7 +3498,7 @@ class Table11
 {
     public int Id { get; set; }
 
-    [JsonMap, Column(DbType = "json")]
+    [JsonMap]
     public TableOptions Options { get; set; }
 }
 class TableOptions
