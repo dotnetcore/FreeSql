@@ -95,6 +95,11 @@ public static class FreeSqlJsonMapCoreExtensions
             case DataType.CustomOracle:
             case DataType.Dameng:
             case DataType.DuckDB:
+            case DataType.PostgreSQL:
+            case DataType.OdbcPostgreSQL:
+            case DataType.CustomPostgreSQL:
+            case DataType.KingbaseES:
+            case DataType.ShenTong:
                 fsql.Aop.ParseExpression += (_, e) =>
                 {
                     //if (e.Expression is MethodCallExpression callExp)
@@ -205,6 +210,7 @@ public static class FreeSqlJsonMapCoreExtensions
                             }
                             break;
                     }
+
                     //解析 POCO Json   a.Customer.Name
                     if (e.Expression.NodeType == ExpressionType.MemberAccess)
                         LocalParseMemberExp(e.Expression as MemberExpression);

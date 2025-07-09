@@ -583,7 +583,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
@@ -621,6 +621,10 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            fsql.UseJsonMap();
+
+            fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
 
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repoxx = fsql.GetRepository<VM_District_Child>();
@@ -904,9 +908,6 @@ namespace base_entity
 
             var firebirdList01 = fsql.Select<User1>().ToList();
 
-            fsql.UseJsonMap();
-
-            fsql.Select<Table11>().Where(a => a.Options.Value1 == 100 && a.Options.Value2 == "xx").ToList();
 
             
 
