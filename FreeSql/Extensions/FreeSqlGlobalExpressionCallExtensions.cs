@@ -228,11 +228,18 @@ namespace FreeSql
 		/// </summary>
 		/// <returns></returns>
 		public static ISqlOver<int> DenseRank() => Over<int>("dense_rank()");
-		/// <summary>
-		/// count() over(order by ...)
-		/// </summary>
-		/// <returns></returns>
-		public static ISqlOver<int> Count(object column) => Over<int>($"count({expContext.Value.ParsedContent["column"]})");
+
+        /// <summary>
+        ///  ntile(5) over (order by ...)
+        /// </summary>
+        /// <returns></returns>
+        public static ISqlOver<int> Ntile(int value) => Over<int>($"ntile({value})");
+
+        /// <summary>
+        /// count() over(order by ...)
+        /// </summary>
+        /// <returns></returns>
+        public static ISqlOver<int> Count(object column) => Over<int>($"count({expContext.Value.ParsedContent["column"]})");
 		/// <summary>
 		/// sum(..) over(order by ...)
 		/// </summary>
