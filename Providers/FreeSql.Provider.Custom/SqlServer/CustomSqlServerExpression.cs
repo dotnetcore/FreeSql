@@ -118,7 +118,10 @@ namespace FreeSql.Custom.SqlServer
                     if (objType?.FullName == "System.Byte[]") return null;
 
                     var argIndex = 0;
-                    if (objType == null && callExp.Method.DeclaringType == typeof(Enumerable))
+                    if (objType == null && (
+                        callExp.Method.DeclaringType == typeof(Enumerable) ||
+                        callExp.Method.DeclaringType.FullName == "System.MemoryExtensions"
+                        ))
                     {
                         objExp = callExp.Arguments.FirstOrDefault();
                         objType = objExp?.Type;

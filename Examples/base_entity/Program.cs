@@ -576,14 +576,14 @@ namespace base_entity
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
-                .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 ////.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=127.0.0.1;Port=5432;Username=postgres;Password=123456;Database=toc;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
@@ -620,6 +620,18 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            string[] names33 = ["bbb", "ccc"];
+            var sss33 = fsql.Select<User1>().Where(a => System.Linq.Enumerable.Contains(names33, a.Username)).ToSql();
+            var sss32 = fsql.Select<User1>().Where(a => System.MemoryExtensions.Contains(names33, a.Username)).ToSql(); //出错
+
+
+            string inputUserId = "1444";
+
+            var testst2 = fsql.Select<plataction>().Where(a => a.PlatStatus != -1 && a.PlatStatus != 1)
+               .FromQuery<platactioninuser>(fsql.Select<platactioninuser>().Where(b => b.PlatUserId == inputUserId))
+               .InnerJoin((a, b) => a.Id == b.PlatPathId)
+               .ToList((a, b) => a);
 
 
             fsql.UseJsonMap();
@@ -3630,4 +3642,76 @@ class User11Role11
 
     public int Role11Id { get; set; }
     public Role11 Role11 { get; set; }
+}
+
+[JsonObject(MemberSerialization.OptIn), Table(DisableSyncStructure = true)]
+public partial class plataction
+{
+
+    [JsonProperty, Column(StringLength = 40, IsPrimary = true, IsNullable = false)]
+    public string Id { get; set; }
+
+    [JsonProperty, Column(StringLength = 20)]
+    public string ActionName { get; set; }
+
+    [JsonProperty, Column(StringLength = 200)]
+    public string ActionUrl { get; set; }
+
+    [JsonProperty]
+    public string PlatPathId { get; set; }
+
+    [JsonProperty]
+    public int PlatStatus { get; set; }
+
+    [JsonProperty, Column(StringLength = 40)]
+    public string CreateBy { get; set; }
+
+    [JsonProperty, Column(DbType = "datetime")]
+    public DateTime? CreateAt { get; set; }
+
+    [JsonProperty, Column(StringLength = 40)]
+    public string ModifyBy { get; set; }
+
+    [JsonProperty, Column(DbType = "datetime")]
+    public DateTime? ModifyAt { get; set; }
+
+    [JsonProperty]
+    public int PlatOrderNo { get; set; }
+
+    [JsonProperty]
+    public int? IsDeleted { get; set; }
+
+}
+
+[JsonObject(MemberSerialization.OptIn), Table(DisableSyncStructure = true)]
+public partial class platactioninuser
+{
+
+    [JsonProperty, Column(IsPrimary = true, IsNullable = false)]
+    public string Id { get; set; }
+
+    [JsonProperty]
+    public string PlatPathId { get; set; }
+
+    [JsonProperty]
+    public string PlatUserId { get; set; }
+
+    [JsonProperty]
+    public int? IsDeleted { get; set; }
+
+    [JsonProperty, Column(StringLength = 40)]
+    public string CreateBy { get; set; }
+
+    [JsonProperty, Column(DbType = "datetime")]
+    public DateTime? CreateAt { get; set; }
+
+    [JsonProperty, Column(StringLength = 40)]
+    public string ModifyBy { get; set; }
+
+    [JsonProperty, Column(DbType = "datetime")]
+    public DateTime? ModifyAt { get; set; }
+
+    [JsonProperty]
+    public int? PlatStatus { get; set; }
+
 }
