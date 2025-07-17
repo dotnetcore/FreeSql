@@ -340,9 +340,10 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Coun
             foreach (var row in ds)
             {
                 var table_id = string.Concat(row[0]);
+                if (database.Length == 1) table_id = table_id.Substring(table_id.IndexOf('.') + 1);
                 if (!loc2.ContainsKey(table_id)) continue;
                 var ds2item = new object[9];
-                ds2item[0] = row[0];
+                ds2item[0] = table_id;
                 ds2item[1] = row[1];
                 ds2item[2] = Regex.Replace(string.Concat(row[2]), @"\(\d+\)", "");
                 ds2item[4] = OdbcOracleCodeFirst.GetOracleSqlTypeFullName(new object[] { row[1], row[2], row[3], row[4], row[5], row[6] });
@@ -367,10 +368,6 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Coun
                 string comment = string.Concat(row[7]);
                 string defaultValue = string.Concat(row[8]);
                 if (max_length == 0) max_length = -1;
-                if (database.Length == 1)
-                {
-                    table_id = table_id.Substring(table_id.IndexOf('.') + 1);
-                }
                 loc3[table_id].Add(column, new DbColumnInfo
                 {
                     Name = column,
@@ -415,15 +412,14 @@ and {(ignoreCase ? "lower(a.table_owner)" : "a.table_owner")} in ({databaseIn}){
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
-                if (!loc2.ContainsKey(table_id)) continue;
                 string column = string.Concat(row[1]).Trim('"');
                 string index_id = string.Concat(row[2]);
                 bool is_unique = string.Concat(row[3]) == "1";
                 bool is_primary_key = string.Concat(row[4]) == "1";
                 bool is_clustered = string.Concat(row[5]) == "1";
                 bool is_desc = string.Concat(row[6]) == "1";
-                if (database.Length == 1)
-                    table_id = table_id.Substring(table_id.IndexOf('.') + 1);
+                if (database.Length == 1) table_id = table_id.Substring(table_id.IndexOf('.') + 1);
+                if (!loc2.ContainsKey(table_id)) continue;
                 if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                 var loc9 = loc3[table_id][column];
                 if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
@@ -504,7 +500,6 @@ and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Count 
                 foreach (var row in ds)
                 {
                     string table_id = string.Concat(row[0]);
-                    if (!loc2.ContainsKey(table_id)) continue;
                     string column = string.Concat(row[1]);
                     string fk_id = string.Concat(row[2]);
                     string ref_table_id = string.Concat(row[3]);
@@ -515,9 +510,11 @@ and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(loc2.Count 
                         table_id = table_id.Substring(table_id.IndexOf('.') + 1);
                         ref_table_id = ref_table_id.Substring(ref_table_id.IndexOf('.') + 1);
                     }
+                    if (!loc2.ContainsKey(table_id)) continue;
+                    if (!loc2.ContainsKey(ref_table_id)) continue;
                     if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
+                    if (loc3.ContainsKey(ref_table_id) == false || loc3[ref_table_id].ContainsKey(referenced_column) == false) continue;
                     var loc9 = loc3[table_id][column];
-                    if (loc2.ContainsKey(ref_table_id) == false) continue;
                     var loc10 = loc2[ref_table_id];
                     var loc11 = loc3[ref_table_id][referenced_column];
 
