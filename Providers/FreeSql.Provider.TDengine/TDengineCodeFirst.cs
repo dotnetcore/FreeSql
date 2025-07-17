@@ -20,6 +20,7 @@ namespace FreeSql.TDengine
         {
         }
 
+        static object DicCsToDbLock = new object();
         static readonly Dictionary<string, CsToDb<DbType>> DicCsToDb = new Dictionary<string, CsToDb<DbType>>()
         {
             { typeof(bool).FullName, CsToDb.New(DbType.Boolean, "BOOL", "BOOL", null, false, null) },
@@ -69,6 +70,23 @@ namespace FreeSql.TDengine
                 return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable,
                     trydc.defaultValue);
             if (type.IsArray) return null;
+            var enumType = type.IsEnum ? type : null;
+            if (enumType == null && type.IsNullableType() && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
+            if (enumType != null)
+            {
+                var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
+                    CsToDb.New(DbType.Int32, "int", $"int{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(DbType.Int64, "long", $"long{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                if (DicCsToDb.ContainsKey(type.FullName) == false)
+                {
+                    lock (DicCsToDbLock)
+                    {
+                        if (DicCsToDb.ContainsKey(type.FullName) == false)
+                            DicCsToDb.Add(type.FullName, newItem);
+                    }
+                }
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
+            }
             return null;
         }
 

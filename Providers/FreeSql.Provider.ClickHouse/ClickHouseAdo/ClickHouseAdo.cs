@@ -54,7 +54,7 @@ namespace FreeSql.ClickHouse
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return AddslashesTypeHandler(param.GetType(), param) ?? string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'"); //((Enum)val).ToInt64();
+                return AddslashesTypeHandler(param.GetType(), param) ?? ((Enum)param).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
 

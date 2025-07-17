@@ -82,25 +82,35 @@ namespace FreeSql.ClickHouse
 
         public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc))
-                return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable,
-                    trydc.defaultValue);
+            var isarray = type.FullName != "System.Byte[]" && type.IsArray;
+            var elementType = isarray ? type.GetElementType() : type;
+            var info = GetDbInfoNoneArray(elementType);
+            if (info == null) return null;
+            if (isarray == false) return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
+            return new DbInfoResult((int)DbType.Object, $"Array({info.dbtype})", $"Array({info.dbtype})", null, Array.CreateInstance(elementType, 0));
+        }
 
-            //判断是否是集合
-            var isCollection = IsArray(type);
-            if (isCollection.Item1)
+        CsToDb<DbType> GetDbInfoNoneArray(Type type)
+        {
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return trydc;
+            if (type.IsArray) return null;
+            var enumType = type.IsEnum ? type : null;
+            if (enumType == null && type.IsNullableType() && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
+            if (enumType != null)
             {
-                var genericType = isCollection.Item2;
-                var genericTypeName = genericType?.FullName;
-                var tryGetValue = _dicCsToDb.TryGetValue(genericTypeName, out var value);
-                if (tryGetValue)
+                var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
+                    CsToDb.New(DbType.Int32, "Int32", $"{(type.IsEnum ? "Int32" : "Nullable(Int32)")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(DbType.Int64, "Int64", $"{(type.IsEnum ? "Int64" : "Nullable(Int64)")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
-                    var arrayDbType = $"Array({value.dbtype})";
-                    var defaultArray = new ArrayList(0);
-                    return new DbInfoResult(Convert.ToInt32(DbType.Object), arrayDbType, arrayDbType, false, defaultArray);
+                    lock (_dicCsToDbLock)
+                    {
+                        if (_dicCsToDb.ContainsKey(type.FullName) == false)
+                            _dicCsToDb.Add(type.FullName, newItem);
+                    }
                 }
+                return newItem;
             }
-
             return null;
         }
 

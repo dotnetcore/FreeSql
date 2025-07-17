@@ -72,10 +72,25 @@ namespace FreeSql.QuestDb
         public override DbInfoResult GetDbInfo(Type type)
         {
             if (_dicCsToDb.TryGetValue(type.FullName, out var trydc))
-                return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable,
-                    trydc.defaultValue);
-            if (type.IsArray)
-                return null;
+                return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
+            if (type.IsArray) return null;
+            var enumType = type.IsEnum ? type : null;
+            if (enumType == null && type.IsNullableType() && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
+            if (enumType != null)
+            {
+                var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
+                    CsToDb.New(NpgsqlDbType.Bigint, "int", $"int{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(NpgsqlDbType.Integer, "long", $"long{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
+                if (_dicCsToDb.ContainsKey(type.FullName) == false)
+                {
+                    lock (_dicCsToDbLock)
+                    {
+                        if (_dicCsToDb.ContainsKey(type.FullName) == false)
+                            _dicCsToDb.Add(type.FullName, newItem);
+                    }
+                }
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
+            }
             return null;
         }
 
