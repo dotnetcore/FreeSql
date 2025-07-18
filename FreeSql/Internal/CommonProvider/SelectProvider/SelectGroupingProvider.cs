@@ -156,34 +156,6 @@ namespace FreeSql.Internal.CommonProvider
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
-        public object InternalToList(Expression select, Type elementType)
-        {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = 0;
-
-            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
-            if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
-            var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(elementType);
-            var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
-            return method.Invoke(_select, new object[] { InternalToSql(fieldSql), new ReadAnonymousTypeAfInfo(map, fieldSql), null });
-        }
-        public IEnumerable<KeyValuePair<object, object>> InternalToKeyValuePairs(Expression elementSelector, Type elementType)
-        {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = 0;
-
-            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, _select, this, null, null, null, false);
-            if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
-            var method = _select.GetType().GetMethod("ToListMrPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(elementType);
-            var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
-            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
-            var values = method.Invoke(_select, new object[] { InternalToSql($"{fieldSql}{_field}"), new ReadAnonymousTypeAfInfo(map, fieldSql), new[] { otherAf } }) as IList;
-            return otherAf.retlist.Select((a, b) => new KeyValuePair<object, object>(a, values[b]));
-        }
         public string InternalToSql(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var map = new ReadAnonymousTypeInfo();
@@ -214,8 +186,7 @@ namespace FreeSql.Internal.CommonProvider
                     _select._skip = _groupBySkip;
                     break;
             }
-            var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
-            var sql = method.Invoke(_select, new object[] { field }) as string;
+            var sql = _select.ToSqlBase(field);
             if (isNestedPageSql == false)
             {
                 _select._limit = 0;
@@ -337,13 +308,29 @@ namespace FreeSql.Internal.CommonProvider
         public TReturn First<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList<TReturn>(select).FirstOrDefault();
         public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+            
             _lambdaParameter = select?.Parameters[0];
-            return InternalToList(select, typeof(TReturn)) as List<TReturn>;
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
+            var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+            return _select.ToListMrPrivate<TReturn>(InternalToSql(fieldSql), new ReadAnonymousTypeAfInfo(map, fieldSql), null);
         }
         public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
         {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+
             _lambdaParameter = elementSelector?.Parameters[0];
-            return InternalToKeyValuePairs(elementSelector, typeof(TElement)).ToDictionary(a => (TKey)a.Key, a => (TElement)a.Value);
+            _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, _select, this, null, null, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
+            var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
+            var values = _select.ToListMrPrivate<TElement>(InternalToSql($"{fieldSql}{_field}"), new ReadAnonymousTypeAfInfo(map, fieldSql), new[] { otherAf });
+            return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a=>a.Key,a=>a.Value);
         }
 
 #if net40
@@ -360,12 +347,10 @@ namespace FreeSql.Internal.CommonProvider
             _lambdaParameter = select?.Parameters[0];
             _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, select, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
-            var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(typeof(TReturn));
             var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
-            return method.Invoke(_select, new object[] { InternalToSql(fieldSql), new ReadAnonymousTypeAfInfo(map, fieldSql), null, cancellationToken }) as Task<List<TReturn>>;
+            return _select.ToListMrPrivateAsync<TReturn>(InternalToSql(fieldSql), new ReadAnonymousTypeAfInfo(map, fieldSql), null, cancellationToken);
         }
-        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector, CancellationToken cancellationToken = default)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
@@ -374,11 +359,9 @@ namespace FreeSql.Internal.CommonProvider
             _lambdaParameter = elementSelector?.Parameters[0];
             _comonExp.ReadAnonymousField(null, _select._tableRule, field, map, ref index, elementSelector, _select, this, null, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
-            var method = _select.GetType().GetMethod("ToListMrPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(typeof(TElement));
             var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
             var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
-            var values = await (method.Invoke(_select, new object[] { InternalToSql($"{fieldSql}{_field}"), new ReadAnonymousTypeAfInfo(map, fieldSql), new[] { otherAf }, cancellationToken }) as Task<List<TElement>>);
+            var values = await _select.ToListMrPrivateAsync<TElement>(InternalToSql($"{fieldSql}{_field}"), new ReadAnonymousTypeAfInfo(map, fieldSql), new[] { otherAf }, cancellationToken);
             return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a => a.Key, a => a.Value);
         }
 #endif
