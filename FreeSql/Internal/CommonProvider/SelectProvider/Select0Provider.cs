@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
@@ -86,6 +87,83 @@ namespace FreeSql.Internal.CommonProvider
 
         public abstract string ToSqlBase(string field = null);
         public abstract void AsTableBase(Func<Type, string, string> tableRule);
+
+        internal virtual List<TReturn> ToListMrPrivate<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        {
+            var ret = new List<TReturn>();
+            if (_cancel?.Invoke() == true) return ret;
+            var dbParms = _params.ToArray();
+            var type = typeof(TReturn);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var retCount = 0;
+            Exception exception = null;
+            try
+            {
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
+                {
+                    var index = -1;
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
+                    if (otherData != null)
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
+                    retCount++;
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            _trackToList?.Invoke(ret);
+            return ret;
+        }
+        #region async
+#if !net40
+        internal virtual async Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
+        {
+            var ret = new List<TReturn>();
+            if (_cancel?.Invoke() == true) return ret;
+            var dbParms = _params.ToArray();
+            var type = typeof(TReturn);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var retCount = 0;
+            Exception exception = null;
+            try
+            {
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
+                {
+                    var index = -1;
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
+                    if (otherData != null)
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
+                    retCount++;
+                    return Task.FromResult(false);
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            _trackToList?.Invoke(ret);
+            return ret;
+        }
+#endif
+        #endregion
+        
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
         {
