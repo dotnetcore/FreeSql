@@ -59,13 +59,9 @@ namespace FreeSql.GBase
                 return param;
 
             else if (param is DateTime)
-                return AddslashesTypeHandler(typeof(DateTime), param) ?? (mapColumn?.DbPrecision > 0 ?
-                    string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'") :
-                    string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'"));
+                return AddslashesTypeHandler(typeof(DateTime), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
             else if (param is DateTime?)
-                return AddslashesTypeHandler(typeof(DateTime?), param) ?? (mapColumn?.DbPrecision > 0 ?
-                    string.Concat("'", ((DateTime)param).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(mapColumn.DbPrecision, 'f')}"), "'") :
-                    string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'"));
+                return AddslashesTypeHandler(typeof(DateTime?), param) ?? string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
 
             else if (param is TimeSpan || param is TimeSpan?)
             {
