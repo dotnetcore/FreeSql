@@ -212,7 +212,7 @@ namespace FreeSql.Sqlite
                     foreach (var dbIndex in dbIndexes)
                     {
                         if (string.Concat(dbIndex[3]) == "pk") continue;
-                        var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_INFO({dbIndex[1]})");
+                        var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_INFO(\"{dbIndex[1]}\")");
                         var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM {_commonUtils.QuoteSqlName(tbtmp[0])}.sqlite_master WHERE name = '{dbIndex[1]}'"));
                         foreach (var dbcolumn in dbIndexesColumns)
                         {

@@ -299,7 +299,7 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                         foreach (var dbIndex in dbIndexes)
                         {
                             if (string.Concat(dbIndex[3]) == "pk") continue;
-                            var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_INFO({dbIndex[1]})");
+                            var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_INFO(\"{dbIndex[1]}\")");
                             var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM \"{db}\".sqlite_master WHERE name = '{dbIndex[1]}'"));
                             foreach (var dbcolumn in dbIndexesColumns)
                             {
