@@ -343,41 +343,10 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        internal List<TReturn> ToListMrPrivate<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        internal override List<TReturn> ToListMrPrivate<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
-            var ret = new List<TReturn>();
-            if (_cancel?.Invoke() == true) return ret;
-            var dbParms = _params.ToArray();
-            var type = typeof(TReturn);
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var retCount = 0;
-            Exception exception = null;
-            try
-            {
-                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
-                {
-                    var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
-                    if (otherData != null)
-                        foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
-                    retCount++;
-                }, CommandType.Text, sql, _commandTimeout, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
-            if (typeof(TReturn) == typeof(T1))
-                foreach (var include in _includeToList) include?.Invoke(ret);
-            _trackToList?.Invoke(ret);
+            var ret = base.ToListMrPrivate<TReturn>(sql, af, otherData);
+            if (typeof(TReturn) == typeof(T1)) foreach (var include in _includeToList) include?.Invoke(ret);
             return ret;
         }
         internal List<TReturn> ToListMapReaderPrivate<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
@@ -1377,42 +1346,10 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
+        internal override async Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
-            var ret = new List<TReturn>();
-            if (_cancel?.Invoke() == true) return ret;
-            var dbParms = _params.ToArray();
-            var type = typeof(TReturn);
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var retCount = 0;
-            Exception exception = null;
-            try
-            {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
-                {
-                    var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
-                    if (otherData != null)
-                        foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
-                    retCount++;
-                    return Task.FromResult(false);
-                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
-            if (typeof(TReturn) == typeof(T1))
-                foreach (var include in _includeToListAsync) await include?.Invoke(ret, cancellationToken);
-            _trackToList?.Invoke(ret);
+            var ret = await base.ToListMrPrivateAsync<TReturn>(sql, af, otherData, cancellationToken);
+            if (typeof(TReturn) == typeof(T1)) foreach (var include in _includeToListAsync) await include?.Invoke(ret, cancellationToken);
             return ret;
         }
         internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
