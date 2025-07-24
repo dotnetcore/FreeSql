@@ -621,6 +621,17 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+
+            fsql.Insert(new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" }).ExecuteAffrows();
+            Task.Run(async () =>
+            {
+                await foreach (var xxs1 in fsql.Select<User1>().WithTempQuery(a => new { a.Nickname }).ToChunkAsyncEnumerable(2))
+                {
+                    foreach (var item in xxs1)
+                        Console.WriteLine(item.Nickname);
+                }
+            }).Wait();
+
             string[] names33 = ["bbb", "ccc"];
             var sss33 = fsql.Select<User1>().Where(a => System.Linq.Enumerable.Contains(names33, a.Username)).ToSql();
             var sss32 = fsql.Select<User1>().Where(a => System.MemoryExtensions.Contains(names33, a.Username)).ToSql(); //出错

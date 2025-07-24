@@ -1659,11 +1659,6 @@ namespace FreeSql.Internal.CommonProvider
                         dataReaderAsyncEnumerator = await (_orm.Ado as AdoProvider).ExecuteReaderMultipleAsync(1, _connection, _transaction, null, null, CommandType.Text, sql, _commandTimeout, dbParms, true, cancellationToken);
                         if (dataReaderAsyncEnumerator == null) return false;
                     }
-                    if (!await dataReaderAsyncEnumerator.Reader.ReadAsync(cancellationToken))
-                    {
-                        items = null;
-                        return false;
-                    }
                     items = null;
                     for (var a = 0; a < chunkSize; a++)
                     {
