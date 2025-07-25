@@ -344,6 +344,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 lock (sdCopyLock)
                     sd = sdCopy?.ToArray();
                 if (sd == null || sd.Any() == false) return;
+                if (e.Exception != null) return;
                 foreach (var et in e.EntityTypes)
                 {
                     if (et != typeof(T)) continue;
