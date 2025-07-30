@@ -303,6 +303,11 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 switch (_orm.Ado.DataType)
                                 {
+                                    case DataType.Oracle:
+                                    case DataType.OdbcOracle:
+                                    case DataType.CustomOracle:
+                                    case DataType.Dameng:
+                                        break; // Oracle 不支持 cast(null as xxx)，直接用 NULL
                                     case DataType.MsAccess:
                                     case DataType.Odbc:
                                     case DataType.Custom:
@@ -313,10 +318,7 @@ namespace FreeSql.Internal.CommonProvider
                                     case DataType.KingbaseES:
                                     case DataType.ShenTong:
                                         valsql = $"NULL::{_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype}";
-                                        break;
-                                    default:
-                                        valsql = $"cast(NULL as {_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype})";
-                                        break;
+                                        break; // #2047
                                 }
                             }
                         }
