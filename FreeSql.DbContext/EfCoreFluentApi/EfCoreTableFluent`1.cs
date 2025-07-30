@@ -340,6 +340,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             var sdCopyLock = new object();
             _fsql.Aop.SyncStructureAfter += new EventHandler<Aop.SyncStructureAfterEventArgs>((s, e) =>
             {
+                if (e.Exception != null) return;
                 object[] sd = null;
                 lock (sdCopyLock)
                     sd = sdCopy?.ToArray();
