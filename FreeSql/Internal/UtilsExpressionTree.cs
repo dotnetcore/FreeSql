@@ -74,7 +74,7 @@ namespace FreeSql.Internal
             try
             {
                 if (entity.IsAbstract == false && entity.IsInterface == false)
-                    entityDefault = Activator.CreateInstance(entity);
+                    entityDefault = Activator.CreateInstance(entity, true);
             }
             catch { }
             var tbattr = common.GetEntityTableAttribute(entity);
@@ -2798,7 +2798,7 @@ namespace FreeSql.Internal
         }
         public static object GetDataReaderValue(Type type, object value)
         {
-            //if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
+            //if (value == null || value == DBNull.Value) return Activator.CreateInstance(type, true);
             if (type == null) return value;
             var valueType = value?.GetType() ?? type;
             if (TypeHandlers.TryGetValue(valueType, out var typeHandler)) return typeHandler.Serialize(value);
