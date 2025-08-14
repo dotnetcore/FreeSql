@@ -33,7 +33,25 @@ namespace FreeSql.Xugu
                     {
                         switch (exp.Type.NullableTypeOrThis().ToString())
                         {
-                            case "System.Boolean": return $"(cast({getExp(operandExp)} as varchar) not in ('0','false'))";
+                            case "System.Boolean":
+                                var boolstr = getExp(operandExp);
+                                switch (boolstr)
+                                {
+                                    case "0":
+                                    case "'0'":
+                                    case "false":
+                                    case "'f'":
+                                    case "'no'":
+                                        return "'f'::bool";
+                                    case "1":
+                                    case "'1'":
+                                    case "true":
+                                    case "'t'":
+                                    case "'yes'":
+                                        return "'t'::bool";
+                                    default:
+                                        return $"(({boolstr})::varchar not in ('0','false','f','no'))";
+                                }
                             case "System.Byte": return $"cast({getExp(operandExp)} as tinyint)";
                             case "System.Char": return $"substring(cast({getExp(operandExp)} as varchar),1,1)";
                             case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as datetime)";
@@ -64,7 +82,25 @@ namespace FreeSql.Xugu
                         case "TryParse":
                             switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString())
                             {
-                                case "System.Boolean": return $"(cast({getExp(callExp.Arguments[0])} as varchar) not in ('0','false'))";
+                                case "System.Boolean":
+                                    var boolstr = getExp(callExp.Arguments[0]);
+                                    switch (boolstr)
+                                    {
+                                        case "0":
+                                        case "'0'":
+                                        case "false":
+                                        case "'f'":
+                                        case "'no'":
+                                            return "'f'::bool";
+                                        case "1":
+                                        case "'1'":
+                                        case "true":
+                                        case "'t'":
+                                        case "'yes'":
+                                            return "'t'::bool";
+                                        default:
+                                            return $"(({boolstr})::varchar not in ('0','false','f','no'))";
+                                    }
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as tinyint)";
                                 case "System.Char": return $"substring(cast({getExp(callExp.Arguments[0])} as varchar),1,1)";
                                 case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as datetime)";
@@ -555,7 +591,25 @@ namespace FreeSql.Xugu
             {
                 switch (exp.Method.Name)
                 {
-                    case "ToBoolean": return $"(cast({getExp(exp.Arguments[0])} as varchar) not in ('0','false'))";
+                    case "ToBoolean":
+                        var boolstr = getExp(exp.Arguments[0]);
+                        switch (boolstr)
+                        {
+                            case "0":
+                            case "'0'":
+                            case "false":
+                            case "'f'":
+                            case "'no'":
+                                return "'f'::bool";
+                            case "1":
+                            case "'1'":
+                            case "true":
+                            case "'t'":
+                            case "'yes'":
+                                return "'t'::bool";
+                            default:
+                                return $"(({boolstr})::varchar not in ('0','false','f','no'))";
+                        }
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
                     case "ToChar": return $"substring(cast({getExp(exp.Arguments[0])} as varchar),1,1)";
                     case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
