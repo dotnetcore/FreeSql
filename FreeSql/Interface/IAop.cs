@@ -337,8 +337,8 @@ namespace FreeSql.Aop
             get => _value;
             set
             {
+                if (_value != value) this.ValueIsChanged = true;
                 _value = value;
-                this.ValueIsChanged = true;
             }
         }
         private object _value;
