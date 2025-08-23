@@ -919,10 +919,11 @@ namespace FreeSql.Internal
 
                 if (pnvAttr?.ManyToMany != null)
                 {
-                    isManyToMany = propElementType != trytb.Type &&
-                        tbref.Properties.Where(z => (z.Value.PropertyType.GetGenericArguments().FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
-                            common.GetEntityNavigateAttribute(tbref.Type, z.Value)?.ManyToMany == pnvAttr.ManyToMany &&
-                            typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
+                    isManyToMany = propElementType != trytb.Type
+                        // && tbref.Properties.Where(z => (z.Value.PropertyType.GetGenericArguments().FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+                        //     common.GetEntityNavigateAttribute(tbref.Type, z.Value)?.ManyToMany == pnvAttr.ManyToMany &&
+                        //     typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any()
+                        ;
 
                     if (isManyToMany == false)
                     {
