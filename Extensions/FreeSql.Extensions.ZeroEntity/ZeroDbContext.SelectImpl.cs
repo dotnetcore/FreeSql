@@ -733,7 +733,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				foreach (var rm in replacedMap)
 				{
-					var find = $"{rm.Item3}.{_common.QuoteSqlName(rm.Item1)}";
+					var find = $"{_selectProvider._tables[0].Alias}.{_common.QuoteSqlName(rm.Item1)}";
 					var idx = newWhere.IndexOf(find);
 					if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]")) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
 				}
