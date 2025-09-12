@@ -717,7 +717,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			string ParseDynamicFilter(DynamicFilterInfo filter)
 			{
 				var replacedFilter = new DynamicFilterInfo();
-				var replacedMap = new List<NativeTuple<string, string, string>>();
+				var replacedMap = new List<NativeTuple<string, string, string, DynamicFilterInfo>>();
 				LocalCloneFilter(filter, replacedFilter);
 				var oldWhere = _selectProvider._where.ToString();
 				var newWhere = "";
@@ -734,14 +734,13 @@ namespace FreeSql.Extensions.ZeroEntity
 				foreach (var rm in replacedMap)
 				{
 					var find = $"{_selectProvider._tables[0].Alias}.{_common.QuoteSqlName(rm.Item1)}";
-					while (true)
+					var forend = rm.Item4.Operator == DynamicFilterOperator.DateRange ||
+						rm.Item4.Operator == DynamicFilterOperator.Range ? 2 : 1;
+                    for (var forstart = 0; forstart < forend; forstart++)
 					{
-						var idx = newWhere.IndexOf(find);
-						if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]"))
-							newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
-						else
-							break;
-					}
+                        var idx = newWhere.IndexOf(find);
+                        if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]")) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
+                    }
 				}
 				return newWhere;
 
@@ -760,7 +759,7 @@ namespace FreeSql.Extensions.ZeroEntity
 								target.Field = pname;
 							else
 								target.Field = TestDynamicFilterInfo._dictTypeToPropertyname[typeof(string)];
-							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3));
+							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3, source));
 						}
 					}
 					if (source.Filters?.Any() == true)
