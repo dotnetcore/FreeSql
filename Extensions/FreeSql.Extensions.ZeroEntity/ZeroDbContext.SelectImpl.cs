@@ -538,8 +538,9 @@ namespace FreeSql.Extensions.ZeroEntity
 			{
 				if (string.IsNullOrEmpty(property)) return null;
 				var field = property.Split('.').Select(a => a.Trim()).ToArray();
-
-				if (field.Length == 1)
+				var fieldCopy = field.ToArray();
+				if (fieldCopy.Length == 3) field = new[] { string.Join(".", field.Take(field.Length - 1)), field[2] };
+                if (field.Length == 1)
 				{
 					if (firstTable != null && firstTable.ColumnsByCs.TryGetValue(field[0], out var col2) == true)
 						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
@@ -566,8 +567,9 @@ namespace FreeSql.Extensions.ZeroEntity
 					}
 					if (_tableAlias.Where(a => a.Alias == field[0]).FirstOrDefault()?.Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
 						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, field[0]);
+					if (fieldCopy.Length == 3) field = fieldCopy.ToArray();
 				}
-
+				
 				var navPath = string.Join(".", field.Skip(1).Take(field.Length - 1));
 				var ta = _tableAlias.Where(a => string.Join(".", a.NavPath) == navPath).FirstOrDefault();
 				if (ta?.Table.ColumnsByCs.TryGetValue(field.Last(), out var col) == true)
