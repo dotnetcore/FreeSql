@@ -77,13 +77,19 @@ namespace FreeSql.ClickHouse.Curd
         internal async Task<int> InternalBulkCopyAsync()
         {
             var data = ToDataTable();
+            var columns = new string[_table.ColumnsByPosition.Length];
+            for ( var i = 0; i < columns.Length; i++ )
+            {
+                columns[i] = _table.ColumnsByPosition[i].CsName;
+            }
             using (var conn = _orm.Ado.MasterPool.Get())
             {
                 using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                        {
                            DestinationTableName = data.TableName,
-                           BatchSize = _source.Count
-                       })
+                           BatchSize = _source.Count,
+                           ColumnNames =columns
+                })
                 {
                     await bulkCopyInterface.InitAsync();
                     await bulkCopyInterface.WriteToServerAsync(data, default);
