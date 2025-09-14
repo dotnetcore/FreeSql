@@ -1,5 +1,5 @@
-﻿using ClickHouse.Client.ADO;
-using ClickHouse.Client.Copy;
+﻿using ClickHouse.Driver.ADO;
+using ClickHouse.Driver.Copy;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;

@@ -1,13 +1,13 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using ClickHouse.Client.ADO;
+using ClickHouse.Driver.ADO;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Globalization;
 using System.Data;
 using System.Text.Json;
-using ClickHouse.Client.ADO.Parameters;
+using ClickHouse.Driver.ADO.Parameters;
 using System.Text.RegularExpressions;
 using System.Text;
 

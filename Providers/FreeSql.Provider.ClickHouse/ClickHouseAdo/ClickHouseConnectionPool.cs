@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ClickHouse.Client.ADO;
+using ClickHouse.Driver.ADO;
 
 namespace FreeSql.ClickHouse
 {
