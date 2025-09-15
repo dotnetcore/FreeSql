@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ClickHouse.Client" Version="7.13.2" />
+		<PackageReference Include="ClickHouse.Driver" Version="0.7.20" />
 	</ItemGroup>
 
 </Project>

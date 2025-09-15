@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Data.Common;
 using System.Reflection;
 using FreeSql.Internal.ObjectPool;
-using ClickHouse.Client.ADO;
+using ClickHouse.Driver.ADO;
 using FreeSql.DataAnnotations;
 
 namespace FreeSql.ClickHouse
