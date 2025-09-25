@@ -175,7 +175,7 @@ namespace FreeSql.Sqlite
                 if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
                 database = new[] { tbname[0] };
             }
-            else if (database == null || database.Any() == false)
+            else if (database == null || database.Any() == false || string.IsNullOrEmpty(database.FirstOrDefault()))
                 database = GetDatabases().ToArray();
             if (database.Any() == false) return loc1;
 
