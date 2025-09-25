@@ -538,8 +538,9 @@ namespace FreeSql.Extensions.ZeroEntity
 			{
 				if (string.IsNullOrEmpty(property)) return null;
 				var field = property.Split('.').Select(a => a.Trim()).ToArray();
-
-				if (field.Length == 1)
+				var fieldCopy = field.ToArray();
+				if (fieldCopy.Length == 3) field = new[] { string.Join(".", field.Take(field.Length - 1)), field[2] };
+                if (field.Length == 1)
 				{
 					if (firstTable != null && firstTable.ColumnsByCs.TryGetValue(field[0], out var col2) == true)
 						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
@@ -566,8 +567,9 @@ namespace FreeSql.Extensions.ZeroEntity
 					}
 					if (_tableAlias.Where(a => a.Alias == field[0]).FirstOrDefault()?.Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
 						return NativeTuple.Create($"{field[0]}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, field[0]);
+					if (fieldCopy.Length == 3) field = fieldCopy.ToArray();
 				}
-
+				
 				var navPath = string.Join(".", field.Skip(1).Take(field.Length - 1));
 				var ta = _tableAlias.Where(a => string.Join(".", a.NavPath) == navPath).FirstOrDefault();
 				if (ta?.Table.ColumnsByCs.TryGetValue(field.Last(), out var col) == true)
@@ -717,7 +719,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			string ParseDynamicFilter(DynamicFilterInfo filter)
 			{
 				var replacedFilter = new DynamicFilterInfo();
-				var replacedMap = new List<NativeTuple<string, string, string>>();
+				var replacedMap = new List<NativeTuple<string, string, string, DynamicFilterInfo>>();
 				LocalCloneFilter(filter, replacedFilter);
 				var oldWhere = _selectProvider._where.ToString();
 				var newWhere = "";
@@ -734,14 +736,13 @@ namespace FreeSql.Extensions.ZeroEntity
 				foreach (var rm in replacedMap)
 				{
 					var find = $"{_selectProvider._tables[0].Alias}.{_common.QuoteSqlName(rm.Item1)}";
-					while (true)
+					var forend = rm.Item4.Operator == DynamicFilterOperator.DateRange ||
+						rm.Item4.Operator == DynamicFilterOperator.Range ? 2 : 1;
+                    for (var forstart = 0; forstart < forend; forstart++)
 					{
-						var idx = newWhere.IndexOf(find);
-						if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]"))
-							newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
-						else
-							break;
-					}
+                        var idx = newWhere.IndexOf(find);
+                        if (idx != -1 && !Regex.IsMatch(newWhere.Substring(idx - 1, 1), @"[\w_]")) newWhere = $"{newWhere.Substring(0, idx)}{rm.Item2}{newWhere.Substring(idx + find.Length)}";
+                    }
 				}
 				return newWhere;
 
@@ -760,7 +761,7 @@ namespace FreeSql.Extensions.ZeroEntity
 								target.Field = pname;
 							else
 								target.Field = TestDynamicFilterInfo._dictTypeToPropertyname[typeof(string)];
-							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3));
+							replacedMap.Add(NativeTuple.Create(target.Field, parseResult.Item1, parseResult.Item3, source));
 						}
 					}
 					if (source.Filters?.Any() == true)

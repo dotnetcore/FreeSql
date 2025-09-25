@@ -1,4 +1,4 @@
-﻿using ClickHouse.Client.ADO;
+﻿using ClickHouse.Driver.ADO;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
