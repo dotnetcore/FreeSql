@@ -1,10 +1,10 @@
-﻿using FreeSql.Internal;
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
+using FreeSql.Internal;
 
 namespace FreeSql.SqlServer
 {
@@ -40,8 +40,9 @@ namespace FreeSql.SqlServer
                             case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
                             case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
                             case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
-                            case "System.String": return gentype == typeof(Guid) ? 
-                                    $"cast({getExp(operandExp)} as varchar(36))" : 
+                            case "System.String":
+                                return gentype == typeof(Guid) ?
+                                    $"cast({getExp(operandExp)} as varchar(36))" :
                                     $"cast({getExp(operandExp)} as nvarchar{(gentype.IsNumberType() || gentype.IsEnum ? "(100)" : "(max)")})";
                             case "System.UInt16": return $"cast({getExp(operandExp)} as smallint)";
                             case "System.UInt32": return $"cast({getExp(operandExp)} as int)";
@@ -102,10 +103,10 @@ namespace FreeSql.SqlServer
                                     var enumStr = ExpressionLambdaToSql(callExp.Object, tsc);
                                     tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                     return enumStr;
-								}
-								var value = ExpressionGetValue(callExp.Object, out var success);
-								if (success) return formatSql(value, typeof(string), null, null);
-								return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
+                                }
+                                var value = ExpressionGetValue(callExp.Object, out var success);
+                                if (success) return formatSql(value, typeof(string), null, null);
+                                return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ?
                                     $"cast({getExp(callExp.Object)} as varchar(36))" :
                                     $"cast({getExp(callExp.Object)} as nvarchar{(gentype2.IsNumberType() || gentype2.IsEnum ? "(100)" : "(max)")})") : null;
                             }
@@ -262,7 +263,7 @@ namespace FreeSql.SqlServer
                             return _common.StringConcat(concatNewArrExp.Expressions.Select(a => getExp(a)).ToArray(), concatNewArrExp.Expressions.Select(a => a.Type).ToArray());
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
                     case "Format":
-                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp,exp.Arguments[0]));
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception(CoreErrorStrings.Not_Implemented_Expression_ParameterUseConstant(exp, exp.Arguments[0]));
                         var expArgs0 = ExpressionLambdaToSql(exp.Arguments[0], tsc);
                         if (exp.Arguments.Count == 1) return expArgs0;
                         var nchar = expArgs0.StartsWith("N'") ? "N" : "";
@@ -297,6 +298,15 @@ namespace FreeSql.SqlServer
                             }
                         }
                         break;
+                    case nameof(string.Compare):
+                        {
+                            if (exp.Arguments.Count != 2)
+                                throw new Exception(CoreErrorStrings.Not_Implemented_Expression(exp));
+
+                            var left = getExp(exp.Arguments[0]);
+                            var right = getExp(exp.Arguments[1]);
+                            return $"(case when {left} = {right} then 0 when {left} > {right} then 1 else -1 end)";
+                        }
                 }
             }
             else
@@ -349,7 +359,14 @@ namespace FreeSql.SqlServer
                     case "TrimStart": return $"ltrim({left})";
                     case "TrimEnd": return $"rtrim({left})";
                     case "Replace": return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
-                    case "CompareTo": return $"({left} - {getExp(exp.Arguments[0])})";
+                    case nameof(string.CompareTo):
+                        {
+                            if (exp.Arguments.Count != 1)
+                                throw new Exception(CoreErrorStrings.Not_Implemented_Expression(exp));
+
+                            var right = getExp(exp.Arguments[0]);
+                            return $"(case when {left} = {right} then 0 when {left} > {right} then 1 else -1 end)";
+                        }
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                 }
             }
@@ -469,9 +486,11 @@ namespace FreeSql.SqlServer
                                 case "d": return $"' + case when substring(convert(char(6), {left}, 12), 5, 1) = '0' then substring(convert(char(6), {left}, 12), 6, 1) else substring(convert(char(6), {left}, 12), 5, 2) end + {nchar}'";
                                 case "HH": return $"' + substring(convert(char(8), {left}, 24), 1, 2) + {nchar}'";
                                 case "H": return $"' + case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end + {nchar}'";
-                                case "hh": return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
+                                case "hh":
+                                    return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
                                     $"when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end + {nchar}'";
-                                case "h": return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
+                                case "h":
+                                    return $"' + case cast(case when substring(convert(char(8), {left}, 24), 1, 1) = '0' then substring(convert(char(8), {left}, 24), 2, 1) else substring(convert(char(8), {left}, 24), 1, 2) end as int) % 12" +
                                     $"when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end + {nchar}'";
                                 case "mm": return $"' + substring(convert(char(8), {left}, 24), 4, 2) + {nchar}'";
                                 case "m": return $"' + case when substring(convert(char(8), {left}, 24), 4, 1) = '0' then substring(convert(char(8), {left}, 24), 5, 1) else substring(convert(char(8), {left}, 24), 4, 2) end + {nchar}'";
@@ -507,8 +526,8 @@ namespace FreeSql.SqlServer
                     case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as decimal(14,7))";
                     case "ToString":
                         var gentype = exp.Arguments[0].Type.NullableTypeOrThis();
-                        return gentype == typeof(Guid) ? 
-                            $"cast({getExp(exp.Arguments[0])} as varchar(36))" : 
+                        return gentype == typeof(Guid) ?
+                            $"cast({getExp(exp.Arguments[0])} as varchar(36))" :
                             $"cast({getExp(exp.Arguments[0])} as nvarchar{(gentype.IsNumberType() || gentype.IsEnum ? "(100)" : "(max)")})";
                     case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";
                     case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as int)";
