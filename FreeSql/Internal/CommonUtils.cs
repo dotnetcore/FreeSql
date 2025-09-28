@@ -420,7 +420,7 @@ namespace FreeSql.Internal
             if (attr.ManyToMany != null) ret = attr;
             return ret;
         }
-        public IndexAttribute[] GetEntityIndexAttribute(Type type, MappingPriorityType[] mappingPriorityTypes)
+        public IndexAttribute[] GetEntityIndexAttribute(Type type, MappingPriorityType[] mappingPriorityTypes = null)
         {
             if (mappingPriorityTypes == null) mappingPriorityTypes = _mappingPriorityTypes;
             var ret = new Dictionary<string, IndexAttribute>();
