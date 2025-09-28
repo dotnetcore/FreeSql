@@ -175,6 +175,13 @@ namespace FreeSql.Internal
                     case MappingPriorityType.Aop:
                         if (_orm.Aop.ConfigEntityHandler != null)
                         {
+                            var aopeIndexsPriorityTypes = new List<MappingPriorityType>();
+                            foreach (var aipt in _mappingPriorityTypes)
+                            {
+                                if (aipt == MappingPriorityType.Aop) break;
+                                else aopeIndexsPriorityTypes.Add(aipt);
+                            }
+                            var aopeIndexs = GetEntityIndexAttribute(type, aopeIndexsPriorityTypes.ToArray());
                             var aope = new Aop.ConfigEntityEventArgs(type)
                             {
                                 ModifyResult = new TableAttribute
@@ -183,7 +190,8 @@ namespace FreeSql.Internal
                                     OldName = attr.OldName,
                                     _DisableSyncStructure = attr._DisableSyncStructure,
                                     AsTable = attr.AsTable
-                                }
+                                },
+                                ModifyIndexResult = aopeIndexs.ToList()
                             };
                             _orm.Aop.ConfigEntityHandler(_orm, aope); 
                             var tryattr = aope.ModifyResult;
@@ -412,10 +420,11 @@ namespace FreeSql.Internal
             if (attr.ManyToMany != null) ret = attr;
             return ret;
         }
-        public IndexAttribute[] GetEntityIndexAttribute(Type type)
+        public IndexAttribute[] GetEntityIndexAttribute(Type type, MappingPriorityType[] mappingPriorityTypes)
         {
+            if (mappingPriorityTypes == null) mappingPriorityTypes = _mappingPriorityTypes;
             var ret = new Dictionary<string, IndexAttribute>();
-            foreach (var mp in _mappingPriorityTypes)
+            foreach (var mp in mappingPriorityTypes)
             {
                 switch (mp)
                 {
