@@ -175,13 +175,13 @@ namespace FreeSql.Internal
                     case MappingPriorityType.Aop:
                         if (_orm.Aop.ConfigEntityHandler != null)
                         {
-                            var aopeIndexsPriorityTypes = new List<MappingPriorityType>();
+                            var aopBeforeTypes = new List<MappingPriorityType>();
                             foreach (var aipt in _mappingPriorityTypes)
                             {
                                 if (aipt == MappingPriorityType.Aop) break;
-                                else aopeIndexsPriorityTypes.Add(aipt);
+                                else aopBeforeTypes.Add(aipt);
                             }
-                            var aopeIndexs = GetEntityIndexAttribute(type, aopeIndexsPriorityTypes.ToArray());
+                            var aopeIndexs = GetEntityIndexAttribute(type, aopBeforeTypes);
                             var aope = new Aop.ConfigEntityEventArgs(type)
                             {
                                 ModifyResult = new TableAttribute
@@ -420,7 +420,25 @@ namespace FreeSql.Internal
             if (attr.ManyToMany != null) ret = attr;
             return ret;
         }
-        public IndexAttribute[] GetEntityIndexAttribute(Type type, MappingPriorityType[] mappingPriorityTypes = null)
+        public IndexAttribute[] GetEntityIndexAttribute(Type type)
+        {
+            //计算 Aop 优先级后面的配置
+            var aopAfterTypes = new List<MappingPriorityType>();
+            var isAopFirst = false;
+            foreach (var aipt in _mappingPriorityTypes)
+            {
+                if (aipt == MappingPriorityType.Aop)
+                {
+                    isAopFirst = true;
+                    aopAfterTypes.Add(aipt);
+                    continue;
+                }
+                if (isAopFirst) aopAfterTypes.Add(aipt);
+            }
+            var indexs = GetEntityIndexAttribute(type, aopAfterTypes);
+            return indexs;
+        }
+        IndexAttribute[] GetEntityIndexAttribute(Type type, IEnumerable<MappingPriorityType> mappingPriorityTypes)
         {
             if (mappingPriorityTypes == null) mappingPriorityTypes = _mappingPriorityTypes;
             var ret = new Dictionary<string, IndexAttribute>();
