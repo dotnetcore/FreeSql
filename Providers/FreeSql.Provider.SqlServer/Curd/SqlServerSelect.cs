@@ -311,7 +311,7 @@ namespace FreeSql.SqlServer.Curd
         }
 
         public SqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) {
-            if (FreeSqlSqlServerGlobalExtensions._dicSetGlobalSelectWithLock.TryGetValue(orm.Ado.Identifier, out var tryval))
+            if (FreeSqlGlobalExtensions._dicSetGlobalSelectWithLock.TryGetValue(orm.Ado.Identifier, out var tryval))
                 this.WithLock(tryval.Item1, tryval.Item2);
         }
         public override ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new SqlServerSelect<T1, T2>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
