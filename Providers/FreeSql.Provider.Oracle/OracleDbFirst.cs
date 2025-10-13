@@ -351,7 +351,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(tbname ==
                 if (database.Length == 1)
                 {
                     table_id = table_id.Substring(table_id.IndexOf('.') + 1);
-                    schema = "";
+                    //schema = "";
                 }
                 loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
                 loc3.Add(table_id, new Dictionary<string, DbColumnInfo>());
