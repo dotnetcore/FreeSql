@@ -16,17 +16,17 @@ namespace FreeSql.Tests.QuestDb
         [Fact]
         public void Test_SyncStructure()
         {
-            fsql.CodeFirst.SyncStructure<QuestDb_Model_Test01>();
-            fsql.CodeFirst.SyncStructure(typeof(Topic));
-            fsql.CodeFirst.SyncStructure(typeof(Category));
-            fsql.CodeFirst.SyncStructure(typeof(CategoryType));
+            Db.CodeFirst.SyncStructure<QuestDb_Model_Test01>();
+            Db.CodeFirst.SyncStructure(typeof(Topic));
+            Db.CodeFirst.SyncStructure(typeof(Category));
+            Db.CodeFirst.SyncStructure(typeof(CategoryType));
         }
 
         [Fact]
         public void Test_SyncStructure_Type()
         {
-            fsql.CodeFirst.SyncStructure<QuestDb_Model_Type01>();
-            var result = fsql.Insert(new QuestDb_Model_Type01()
+            Db.CodeFirst.SyncStructure<QuestDb_Model_Type01>();
+            var result = Db.Insert(new QuestDb_Model_Type01()
             {
                 TestBool = false,
                 TestDecimal = (decimal?)153.02,

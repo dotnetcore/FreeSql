@@ -12,8 +12,8 @@ namespace FreeSql.Tests.QuestDb.QuestDbIssue
         [Fact]
         public void Issue1757()
         {
-            restFsql.CodeFirst.SyncStructure<Test0111>();
-            var count = fsql.Insert(new List<Test0111>()
+            RestApiDb.CodeFirst.SyncStructure<Test0111>();
+            var count = Db.Insert(new List<Test0111>()
             {
                 new()
                 {
@@ -26,15 +26,15 @@ namespace FreeSql.Tests.QuestDb.QuestDbIssue
 
             Assert.True(count > 0);
 
-            var list = fsql.Select<Test0111>().ToList();
+            var list = Db.Select<Test0111>().ToList();
         }
 
 
         [Fact]
         public void Issue1757Many()
         {
-            restFsql.CodeFirst.SyncStructure<Test0111>();
-            var count = fsql.Insert(new List<Test0111>()
+            RestApiDb.CodeFirst.SyncStructure<Test0111>();
+            var count = Db.Insert(new List<Test0111>()
             {
                 new()
                 {
@@ -61,7 +61,7 @@ namespace FreeSql.Tests.QuestDb.QuestDbIssue
 
             Assert.True(count > 0);
 
-            var list = fsql.Select<Test0111>().ToList();
+            var list = Db.Select<Test0111>().ToList();
         }
     }
 
