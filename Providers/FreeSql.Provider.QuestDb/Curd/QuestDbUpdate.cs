@@ -1,5 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+using FreeSql.Provider.QuestDb;
+using FreeSql.Provider.QuestDb.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -10,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FreeSql.Provider.QuestDb;
 
 namespace FreeSql.QuestDb.Curd
 {
@@ -32,15 +33,16 @@ namespace FreeSql.QuestDb.Curd
 
         internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
 
-        private int RestApiExecuteAffrows()
+        private async Task<int> RestApiExecuteAffrowsAsync()
         {
             var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
             var sql = ToSql();
-            var execAsync = apiFeatures.ExecAsync(sql).GetAwaiter().GetResult();
-            var resultHash = new Hashtable();
+
+            var execAsync = await apiFeatures.ExecAsync(sql);
+            var result = new RestApiExecResponseJsonBody();
             try
             {
-                resultHash = JsonConvert.DeserializeObject<Hashtable>(execAsync);
+                result = JsonConvert.DeserializeObject<RestApiExecResponseJsonBody>(execAsync);
             }
             catch
             {
@@ -50,22 +52,20 @@ namespace FreeSql.QuestDb.Curd
                 }
             }
 
-            var ddl = resultHash["ddl"]?.ToString();
-            var updated = Convert.ToInt32(resultHash["updated"]);
-            return ddl?.ToLower() == "ok" ? updated : 0;
+            return result.IsSuccessful ? result.Updated : 0;
         }
 
         public override int ExecuteAffrows()
         {
             //如果设置了RestApi 则走HTTP执行Sql
             var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
-            if (apiFeatures != null && string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
+            if (apiFeatures == null || string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
             {
                 return base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
                     _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
             }
 
-            return RestApiExecuteAffrows();
+            return RestApiExecuteAffrowsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) =>
@@ -187,13 +187,13 @@ namespace FreeSql.QuestDb.Curd
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
-            if (apiFeatures != null && string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
+            if (apiFeatures == null || string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
             {
                 return base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
                     _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
             }
 
-            return Task.FromResult(RestApiExecuteAffrows());
+            return RestApiExecuteAffrowsAsync();
         }
 
 

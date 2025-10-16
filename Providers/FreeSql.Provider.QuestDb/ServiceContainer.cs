@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -23,4 +24,5 @@ namespace FreeSql.Provider.QuestDb
             return _serviceProvider == null ? default : _serviceProvider.GetService<T>();
         }
     }
+
 }

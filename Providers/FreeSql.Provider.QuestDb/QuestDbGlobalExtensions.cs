@@ -1,15 +1,14 @@
 ﻿using CsvHelper;
 using FreeSql;
-using FreeSql.Internal.CommonProvider;
-using FreeSql.Internal.Model;
+using FreeSql.Provider.QuestDb;
+using FreeSql.Provider.QuestDb.Models;
 using FreeSql.QuestDb;
 using FreeSql.QuestDb.Curd;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Npgsql;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,10 +17,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using FreeSql.Provider.QuestDb;
-using System.Net;
-using Microsoft.Extensions.DependencyInjection;
 
 public static partial class QuestDbGlobalExtensions
 {
@@ -50,7 +45,12 @@ public static partial class QuestDbGlobalExtensions
         //初始化容器，添加HttpClient
         ServiceContainer.Initialize(service =>
         {
-            service.AddHttpClient("QuestDb", client => client.BaseAddress = new Uri(host))
+            var apiFeatures = new QuestResetApiFeatures
+            {
+                BaseAddress = host.StartsWith("http") ? host : $"http://{host}"
+            };
+
+            service.AddHttpClient("QuestDb", client => client.BaseAddress = new Uri(apiFeatures.BaseAddress))
                 .ConfigurePrimaryHttpMessageHandler(handlerBuilder =>
                 {
                     //忽略SSL验证
@@ -62,18 +62,13 @@ public static partial class QuestDbGlobalExtensions
                     };
                 });
 
-            var description = new QuestResetApiFeatures()
-            {
-                BaseAddress = host
-            };
-
             if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
             {
                 var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
-                description.BasicToken = $"Basic {base64}";
+                apiFeatures.BasicToken = $"Basic {base64}";
             }
 
-            service.AddSingleton(description);
+            service.AddSingleton(apiFeatures);
         });
 
         //RestApi需要无参数
@@ -348,25 +343,5 @@ static class LatestOnExtension
         expressionVisitor.Visit(partition);
         var _partition = expressionVisitor.Fields();
         LatestOnString.Value = string.Format(latestOnTemple, _timestamp, _partition);
-    }
-}
-
-internal class QuestResetApiFeatures
-{
-    internal string BaseAddress { get; set; }
-
-    internal string BasicToken { get; set; }
-
-    internal HttpClient HttpClient => ServiceContainer.GetService<IHttpClientFactory>().CreateClient("QuestDb");
-
-    internal async Task<string> ExecAsync(string sql)
-    {
-        //HTTP GET 执行SQL
-        var url = $"exec?query={HttpUtility.UrlEncode(sql)}";
-        if (!string.IsNullOrWhiteSpace(BasicToken))
-            HttpClient.DefaultRequestHeaders.Add("Authorization", BasicToken);
-        var httpResponseMessage = await HttpClient.GetAsync(url);
-        var result = await httpResponseMessage.Content.ReadAsStringAsync();
-        return result;
     }
 }
