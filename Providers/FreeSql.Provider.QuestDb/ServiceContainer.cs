@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FreeSql.Provider.QuestDb
 {
-    internal class QuestDbContainer
+    internal class ServiceContainer
     {
-        //作用于HttpClientFatory
-        private static IServiceCollection Services;
+        private static IServiceCollection _services;
         internal static IServiceProvider ServiceProvider { get; private set; }
 
         internal static void Initialize(Action<IServiceCollection> service)
         {
-            Services = new ServiceCollection();
-            service?.Invoke(Services);
-            ServiceProvider = Services.BuildServiceProvider();
+            _services = new ServiceCollection();
+            service?.Invoke(_services);
+            ServiceProvider = _services.BuildServiceProvider();
         }
 
         internal static T GetService<T>()
