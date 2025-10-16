@@ -9,18 +9,18 @@ namespace FreeSql.Provider.QuestDb
     internal class ServiceContainer
     {
         private static IServiceCollection _services;
-        internal static IServiceProvider ServiceProvider { get; private set; }
+        private static IServiceProvider _serviceProvider;
 
         internal static void Initialize(Action<IServiceCollection> service)
         {
             _services = new ServiceCollection();
             service?.Invoke(_services);
-            ServiceProvider = _services.BuildServiceProvider();
+            _serviceProvider = _services.BuildServiceProvider();
         }
 
         internal static T GetService<T>()
         {
-            return ServiceProvider.GetService<T>();
+            return _serviceProvider == null ? default : _serviceProvider.GetService<T>();
         }
     }
 }

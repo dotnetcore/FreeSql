@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FreeSql.Provider.QuestDb;
 
 namespace FreeSql.QuestDb.Curd
 {
@@ -31,10 +32,11 @@ namespace FreeSql.QuestDb.Curd
 
         internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
 
-        private int InternelExecuteAffrows()
+        private int RestApiExecuteAffrows()
         {
+            var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
             var sql = ToSql();
-            var execAsync = RestAPIExtension.ExecAsync(sql).GetAwaiter().GetResult();
+            var execAsync = apiFeatures.ExecAsync(sql).GetAwaiter().GetResult();
             var resultHash = new Hashtable();
             try
             {
@@ -47,6 +49,7 @@ namespace FreeSql.QuestDb.Curd
                     throw new Exception("请确认new FreeSqlBuilder().UseQuestDbRestAPI()中设置的用户名密码是否正确.");
                 }
             }
+
             var ddl = resultHash["ddl"]?.ToString();
             var updated = Convert.ToInt32(resultHash["updated"]);
             return ddl?.ToLower() == "ok" ? updated : 0;
@@ -54,19 +57,23 @@ namespace FreeSql.QuestDb.Curd
 
         public override int ExecuteAffrows()
         {
-            //如果设置了RestAPI中Url则走HTTP
-            if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
+            //如果设置了RestApi 则走HTTP执行Sql
+            var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
+            if (apiFeatures != null && string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
             {
                 return base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
                     _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
             }
-            return InternelExecuteAffrows();
+
+            return RestApiExecuteAffrows();
         }
 
-		protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) => base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
+        protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns) =>
+            base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
 
-		protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
-		{
+        protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
+        {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
@@ -94,10 +101,11 @@ namespace FreeSql.QuestDb.Curd
 
                 Exception exception = null;
                 try
-				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql,
+                        _commandTimeout, dbParms);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)
@@ -178,20 +186,25 @@ namespace FreeSql.QuestDb.Curd
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(RestAPIExtension.BaseUrl))
+            var apiFeatures = ServiceContainer.GetService<QuestResetApiFeatures>();
+            if (apiFeatures != null && string.IsNullOrWhiteSpace(apiFeatures.BaseAddress))
             {
                 return base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
                     _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
             }
-         
-            return Task.FromResult(InternelExecuteAffrows());
+
+            return Task.FromResult(RestApiExecuteAffrows());
         }
 
 
-		protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns, cancellationToken);
+        protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
+            CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync<TReturn>(
+            _batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000,
+            columns, cancellationToken);
 
-		async protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns, CancellationToken cancellationToken = default)
-		{
+        protected override async Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
+            CancellationToken cancellationToken = default)
+        {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
             StringBuilder sbret = null;
@@ -219,10 +232,11 @@ namespace FreeSql.QuestDb.Curd
 
                 Exception exception = null;
                 try
-				{
-					var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-					var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-					ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction,
+                        CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
                     ret.AddRange(rettmp);
                 }
                 catch (Exception ex)

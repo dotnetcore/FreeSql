@@ -351,7 +351,7 @@ static class LatestOnExtension
     }
 }
 
-class QuestResetApiFeatures
+internal class QuestResetApiFeatures
 {
     internal string BaseAddress { get; set; }
 
