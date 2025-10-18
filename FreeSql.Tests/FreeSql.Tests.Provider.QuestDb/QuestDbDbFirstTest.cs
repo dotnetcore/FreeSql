@@ -14,13 +14,13 @@ namespace FreeSql.Tests.QuestDb
         [Fact]
         public void Test_ExistsTable()
         {
-            var existsTable = QuestDbTest.fsql.DbFirst.ExistsTable(nameof(QuestDb_Model_Test01));
+            var existsTable = QuestDbTest.Db.DbFirst.ExistsTable(nameof(QuestDb_Model_Test01));
         }
 
         [Fact]
         public void Test_GetTablesByDatabase()
         {
-            var tablesByDatabase = QuestDbTest.fsql.DbFirst.GetTablesByDatabase("");
+            var tablesByDatabase = QuestDbTest.Db.DbFirst.GetTablesByDatabase("");
             tablesByDatabase.ForEach(d =>
             {
                 Debug.WriteLine(d.Name);

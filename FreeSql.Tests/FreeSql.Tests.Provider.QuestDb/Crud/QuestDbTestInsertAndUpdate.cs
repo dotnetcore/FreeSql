@@ -17,7 +17,7 @@ namespace FreeSql.Tests.QuestDb.Crud
         [Fact,Order(1)]
         public async Task TestInsertAsync()
         {
-            var result = await fsql.Insert(new QuestDb_Model_Test01()
+            var result = await Db.Insert(new QuestDb_Model_Test01()
             {
                 Primarys = Guid.NewGuid().ToString(),
                 CreateTime = DateTime.Now,
@@ -66,7 +66,7 @@ namespace FreeSql.Tests.QuestDb.Crud
                     NameUpdate = "NameUpdate"
                 },
             };
-            var result = await fsql.Insert(list).ExecuteAffrowsAsync();
+            var result = await Db.Insert(list).ExecuteAffrowsAsync();
             Assert.True(result > 0);
         }
 
@@ -106,14 +106,14 @@ namespace FreeSql.Tests.QuestDb.Crud
                     NameUpdate = "NameUpdate"
                 },
             };
-            var result = await fsql.Insert(list).IgnoreColumns(q => q.NameInsert).ExecuteAffrowsAsync();
+            var result = await Db.Insert(list).IgnoreColumns(q => q.NameInsert).ExecuteAffrowsAsync();
             Assert.True(result > 0);
         }
 
         [Fact]
         public async Task TestRestInsertAsync()
         {
-            var result = await restFsql.Insert(new QuestDb_Model_Test01()
+            var result = await RestApiDb.Insert(new QuestDb_Model_Test01()
             {
                 Primarys = Guid.NewGuid().ToString(),
                 CreateTime = DateTime.Now,
@@ -162,7 +162,7 @@ namespace FreeSql.Tests.QuestDb.Crud
                     NameUpdate = "NameUpdate"
                 },
             };
-            var result = await restFsql.Insert(list).ExecuteAffrowsAsync();
+            var result = await RestApiDb.Insert(list).ExecuteAffrowsAsync();
             Assert.True(result > 0);
         }
 
@@ -202,7 +202,7 @@ namespace FreeSql.Tests.QuestDb.Crud
                     NameUpdate = "NameUpdate"
                 },
             };
-            var result = await restFsql.Insert(list).IgnoreColumns(q => q.NameInsert).ExecuteAffrowsAsync();
+            var result = await RestApiDb.Insert(list).IgnoreColumns(q => q.NameInsert).ExecuteAffrowsAsync();
             Assert.True(result > 0);
         }
 
@@ -224,7 +224,7 @@ namespace FreeSql.Tests.QuestDb.Crud
                 });
             }
 
-            var result = await restFsql.Insert(list).ExecuteQuestDbBulkCopyAsync();
+            var result = await RestApiDb.Insert(list).ExecuteQuestDbBulkCopyAsync();
             Assert.True(result > 0);
         }
 
@@ -233,7 +233,7 @@ namespace FreeSql.Tests.QuestDb.Crud
         public void TestNormalUpdate()
         {
             var updateTime = DateTime.Now;
-            var updateObj = fsql.Update<QuestDb_Model_Test01>()
+            var updateObj = Db.Update<QuestDb_Model_Test01>()
                 .Set(q => q.NameUpdate, "UpdateNow")
                 //     .Set(q => q.CreateTime, DateTime.Now)   分表的时间不可以随便改
                 .Where(q => q.Id == "1");
@@ -253,7 +253,7 @@ WHERE (""Id"" = '1')";
         {
             var primary = Guid.NewGuid().ToString();
             //先插入
-            fsql.Insert(new QuestDb_Model_Test01()
+            Db.Insert(new QuestDb_Model_Test01()
             {
                 Primarys = primary,
                 CreateTime = DateTime.Now,
@@ -269,11 +269,11 @@ WHERE (""Id"" = '1')";
                 Id = primary,
                 Activos = 12.65,
             };
-            var updateObj = fsql.Update<QuestDb_Model_Test01>().SetSourceIgnore(updateModel, o => o == null);
+            var updateObj = Db.Update<QuestDb_Model_Test01>().SetSourceIgnore(updateModel, o => o == null);
             var sql = updateObj.ToSql();
             Debug.WriteLine(sql);
             var result = updateObj.ExecuteAffrows();
-            var resultAsync = fsql.Update<QuestDb_Model_Test01>().SetSourceIgnore(updateModel, o => o == null)
+            var resultAsync = Db.Update<QuestDb_Model_Test01>().SetSourceIgnore(updateModel, o => o == null)
                 .ExecuteAffrows();
             Assert.True(result > 0);
             Assert.True(resultAsync > 0);
@@ -288,7 +288,7 @@ WHERE (""Id"" = '{primary}')", sql);
             var primary = Guid.NewGuid().ToString();
             var updateTime = DateTime.Now;
             //先插入
-            fsql.Insert(new QuestDb_Model_Test01()
+            Db.Insert(new QuestDb_Model_Test01()
             {
                 Primarys = primary,
                 CreateTime = DateTime.Now,
@@ -298,6 +298,7 @@ WHERE (""Id"" = '{primary}')", sql);
                 NameInsert = "NameInsert",
                 NameUpdate = "NameUpdate"
             }).ExecuteAffrows();
+            
             var updateModel = new QuestDb_Model_Test01
             {
                 Id = primary,
@@ -305,12 +306,12 @@ WHERE (""Id"" = '{primary}')", sql);
                 IsCompra = true,
                 CreateTime = DateTime.Now
             };
-            var updateObj = fsql.Update<QuestDb_Model_Test01>().SetSource(updateModel)
+            var updateObj = Db.Update<QuestDb_Model_Test01>().SetSource(updateModel)
                 .IgnoreColumns(q => new { q.Id, q.CreateTime });
             var sql = updateObj.ToSql();
             Debug.WriteLine(sql);
             var result = updateObj.ExecuteAffrows();
-            var resultAsync = await fsql.Update<QuestDb_Model_Test01>().SetSource(updateModel)
+            var resultAsync = await Db.Update<QuestDb_Model_Test01>().SetSource(updateModel)
                 .IgnoreColumns(q => new { q.Id, q.CreateTime }).ExecuteAffrowsAsync();
             Assert.True(result > 0);
             Assert.True(resultAsync > 0);
@@ -323,7 +324,7 @@ WHERE (""Id"" = '{primary}')", sql);
         public async Task TestUpdateToUpdateAsync()
         {
             //官网demo有问题，暂时放弃此功能
-            var result = await fsql.Select<QuestDb_Model_Test01>().Where(q => q.Id == "IdAsync" && q.NameInsert == null)
+            var result = await Db.Select<QuestDb_Model_Test01>().Where(q => q.Id == "IdAsync" && q.NameInsert == null)
                 .ToUpdate()
                 .Set(q => q.UpdateTime, DateTime.Now)
                 .ExecuteAffrowsAsync();
