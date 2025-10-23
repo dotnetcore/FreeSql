@@ -621,7 +621,7 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            var skdkdk1 = fsql.Select<User1>().LimitBy2(a => a.Sort, 1).ToSql();
+            var skdkdk1 = fsql.Select<User1>().LimitBy(a => a.Sort, 1).ToSql();
 
 
             fsql.Insert(new User1 { Nickname = "nickname11", Username = "username11", Description = "desc11" }).ExecuteAffrows();
