@@ -138,7 +138,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 索引配置
         /// </summary>
-        public List<IndexAttribute> ModifyIndexResult { get; }
+        public List<IndexAttribute> ModifyIndexResult { get; internal set; }
     }
     public class ConfigEntityPropertyEventArgs : EventArgs
     {

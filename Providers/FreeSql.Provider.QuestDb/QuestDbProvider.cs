@@ -118,10 +118,6 @@ namespace FreeSql.QuestDb
                 Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] =
                     typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
 
-                QuestDbContainer.Initialize(service =>
-                {
-                    service.AddHttpClient();
-                });
             }
         }
 

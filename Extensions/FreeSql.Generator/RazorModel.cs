@@ -240,13 +240,13 @@ public class RazorModel
 			if (cstype == typeof(string) && string.Compare(defval, "newid()", true) == 0) return $"Guid.NewGuid().ToString().ToUpper()";
 			if (defval == "NULL") return null;
 		}
-		if (!isInsertValueSql && (fsql.Ado.DataType == DataType.PostgreSQL || fsql.Ado.DataType == DataType.OdbcPostgreSQL || fsql.Ado.DataType == DataType.CustomPostgreSQL ||
+		if ((fsql.Ado.DataType == DataType.PostgreSQL || fsql.Ado.DataType == DataType.OdbcPostgreSQL || fsql.Ado.DataType == DataType.CustomPostgreSQL ||
 					fsql.Ado.DataType == DataType.KingbaseES ||
 					fsql.Ado.DataType == DataType.ShenTong))
 		{
 			switch (defval)
 			{
-				case "uuid_generate_v4()": return null;
+				case "uuid_generate_v4()": return isInsertValueSql ? defval : null;
 			}
 		}
 		if ((cstype == typeof(string) && defval.StartsWith("'") && defval.EndsWith("'::character varying") ||

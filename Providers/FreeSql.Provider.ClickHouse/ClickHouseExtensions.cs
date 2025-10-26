@@ -34,7 +34,12 @@ public static partial class FreeSqlClickHouseGlobalExtensions
         try
         {
             s0p.InternalOrderBy(selector);
-            s0p._limitBy = $"LIMIT {(offset > 0 ? $"{offset}, " : "")}{limit} BY {s0p._orderby}";
+            s0p._limitBy = s0p._orderby;
+            if (s0p._limitBy.StartsWith(" \r\nORDER BY "))
+                s0p._limitBy = string.Concat(
+                    $" \r\nLIMIT {(offset > 0 ? $"{offset}, " : "")}{limit} BY ",
+                    s0p._limitBy.Substring(" \r\nORDER BY ".Length)
+                    );
         }
         finally
         {

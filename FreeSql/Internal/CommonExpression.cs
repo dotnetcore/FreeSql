@@ -1452,7 +1452,12 @@ namespace FreeSql.Internal
                                             }
                                             break;
                                     }
-                                    if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
+                                    if (tsc.dbParams != null)
+                                    {
+                                        if (fsqlSelect0._params?.Any() == true)
+                                            tsc.dbParams.AddRange(fsqlSelect0._params);
+                                        fsqlSelect0._params = tsc.dbParams;
+                                    }
                                     fsqltables = fsqlSelect0._tables;
                                     //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
                                     if (fsqltables != tsc._tables)
@@ -1607,7 +1612,12 @@ namespace FreeSql.Internal
                                                 fsql = method.Invoke(fsql, args);
                                                 fsqlType = fsql.GetType();
                                                 fsqlSelect0 = fsql as Select0Provider;
-                                                if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
+                                                if (tsc.dbParams != null)
+                                                {
+                                                    if (fsqlSelect0._params?.Any() == true)
+                                                        tsc.dbParams.AddRange(fsqlSelect0._params);
+                                                    fsqlSelect0._params = tsc.dbParams;
+                                                }
                                                 fsqltables = fsqlSelect0._tables;
                                                 fsqltable1SetAlias = false;
                                                 if (method.Name == nameof(ISelect<object>.WithTempQuery)) fsqltable1SetAliasGai = 0;
