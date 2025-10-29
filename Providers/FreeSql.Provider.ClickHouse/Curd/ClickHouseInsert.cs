@@ -185,14 +185,21 @@ namespace FreeSql.ClickHouse.Curd
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                     var data = ToDataTable();
+                    var columns = new string[_table.ColumnsByPosition.Length];
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        columns[i] = _table.ColumnsByPosition[i].CsName;
+                    }
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         using (var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
                         {
                             DestinationTableName = data.TableName,
-                            BatchSize = _source.Count
+                            BatchSize = _source.Count,
+                            ColumnNames = columns,
                         })
                         {
+                            await bulkCopyInterface.InitAsync();
                             await bulkCopyInterface.WriteToServerAsync(data, default);
                         }
                     }
@@ -201,7 +208,7 @@ namespace FreeSql.ClickHouse.Curd
                 catch (Exception ex)
                 {
                     exception = ex;
-                    throw ex;
+                    throw;
                 }
                 finally
                 {
