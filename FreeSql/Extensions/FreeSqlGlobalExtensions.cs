@@ -420,21 +420,102 @@ public static partial class FreeSqlGlobalExtensions
             case DataType.SqlServer:
             case DataType.OdbcSqlServer:
             case DataType.CustomSqlServer:
+                {
+                    var oldalias = selectProvider._aliasRule;
+                    selectProvider._aliasRule = (type, old) =>
+                    {
+                        if (oldalias != null) old = oldalias(type, old);
+                        if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendWithString(old, $"index={indexName}");
+                        if (rule == null) return old;
+                        return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendWithString(old, $"index={tryidxName}") : old;
+                    };
+                }
                 break;
-            default:
-                return query;
+            case DataType.MySql:
+            case DataType.OdbcMySql:
+            case DataType.CustomMySql:
+                {
+                    var oldalias = selectProvider._aliasRule;
+                    selectProvider._aliasRule = (type, old) =>
+                    {
+                        if (oldalias != null) old = oldalias(type, old);
+                        if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendMySqlIndex(old, indexName);
+                        if (rule == null) return old;
+                        return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendMySqlIndex(old, indexName) : old;
+                    };
+                }
+                break;
+            case DataType.Oracle:
+            case DataType.OdbcOracle:
+            case DataType.CustomOracle:
+                {
+                    var hintParts = new List<string>();
+                    if (!string.IsNullOrEmpty(indexName) && !string.IsNullOrEmpty(selectProvider._tables[0].Alias))
+                    {
+                        string alias = selectProvider._tables[0].Alias;
+                        hintParts.Add($"INDEX({alias} {indexName})");
+                    }
+                    if (rule != null && rule.Count > 0)
+                    {
+                        var tablesMap = selectProvider._tables
+                            .Skip(1)
+                            .Where(t => !string.IsNullOrEmpty(t.Alias) && t.Table?.Type != null)
+                            .ToDictionary(t => t.Table.Type, t => t);
+                        foreach (var indexRule in rule)
+                        {
+                            if (tablesMap.TryGetValue(indexRule.Key, out var tableInfo))
+                            {
+                                string otherIndexName = indexRule.Value;
+                                if (!string.IsNullOrEmpty(otherIndexName))
+                                    hintParts.Add($"INDEX({tableInfo.Alias} {otherIndexName})");
+                            }
+                        }
+                    }
+                    if (hintParts.Count > 0)
+                    {
+                        string finalHint = $"/*+ {string.Join(" ", hintParts)} */";
+                        var _select = selectProvider._select;
+                        int selectKeywordIndex = _select.IndexOf("SELECT ", StringComparison.OrdinalIgnoreCase);
+                        if (selectKeywordIndex != -1)
+                        {
+                            int insertionPoint = selectKeywordIndex + "SELECT ".Length;
+                            selectProvider._select = _select.Insert(insertionPoint, $"{finalHint} ");
+                        }
+                    }
+                }
+                break;
+            case DataType.Sqlite:
+                {
+                    var oldalias = selectProvider._aliasRule;
+                    selectProvider._aliasRule = (type, old) =>
+                    {
+                        if (oldalias != null) old = oldalias(type, old);
+                        if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendSqliteIndex(old, indexName);
+                        if (rule == null) return old;
+                        return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendSqliteIndex(old, indexName) : old;
+                    };
+                }
+                break;
         }
-        var oldalias = selectProvider._aliasRule;
-        selectProvider._aliasRule = (type, old) =>
-        {
-            if (oldalias != null) old = oldalias(type, old);
-            if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendWithString(old, $"index={indexName}");
-            if (rule == null) return old;
-            return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendWithString(old, $"index={tryidxName}") : old;
-        };
+        
         return query;
     }
     static string LocalAppendWithString(string old, string str) => old?.Contains(" With(") == true ? old.Replace(" With(", $" With({str}, ") : $"{old} With({str})";
+    static string LocalAppendMySqlIndex(string old, string indexName)
+    {
+        if (string.IsNullOrEmpty(old)) return $"FORCE INDEX({indexName})";
+        int forceIndexPosition = old.IndexOf("FORCE INDEX(", StringComparison.OrdinalIgnoreCase);
+        if (forceIndexPosition == -1) return $"{old} FORCE INDEX({indexName})";
+        int closingParenPosition = old.IndexOf(')', forceIndexPosition);
+        if (closingParenPosition != -1) return old.Insert(closingParenPosition, $",{indexName}");
+        return old;
+    }
+    static string LocalAppendSqliteIndex(string old, string indexName)
+    {
+        if (string.IsNullOrEmpty(old)) return $"INDEXED BY {indexName}";
+        if (old.IndexOf("INDEXED BY", StringComparison.OrdinalIgnoreCase) != -1) return old;
+        return $"{old} INDEXED BY {indexName}";
+    }
 
     /// <summary>
     /// 设置全局 SqlServer: with(nolock)<para></para>
