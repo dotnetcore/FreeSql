@@ -98,10 +98,36 @@ ON CONFLICT(""id"") DO UPDATE SET
             var lst = fsql.Select<tbiou02>().Where(a => new[] { 1, 2, 3, 4 }.Contains(a.id)).ToList();
             Assert.Equal(4, lst.Where(a => a.name == "00" + a.id).Count());
         }
+
         class tbiou02
         {
             public int id { get; set; }
             public string name { get; set; }
+        }
+
+        [Fact]
+        public void InsertOrUpdate_TempPrimary()
+        {
+            fsql.Delete<tbiou_temp>().Where("1=1").ExecuteAffrows();
+            var iou = fsql.InsertOrUpdate<tbiou_temp>().SetSource(new tbiou_temp { name = "01", description = "testval" }, m => new { m.name });
+            var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou_temp""(""name"", ""description"") VALUES('01', 'testval')
+ON CONFLICT(""name"") DO UPDATE SET
+""description"" = EXCLUDED.""description""", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            var iou2 = fsql.InsertOrUpdate<tbiou_temp>().SetSource(new tbiou_temp { name = "01", description = "testval2" }, m => new { m.name }).ExecuteAffrows();
+            Assert.Equal(1, iou2);
+
+        }
+        [Index("uix_tbiou_temp_name", "name", true)]
+        class tbiou_temp
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public int id { get; set; }
+
+            public string name { get; set; }
+            public string description { get; set; }
         }
         [Fact]
         public void InsertOrUpdate_OnePrimaryAndIdentity()
