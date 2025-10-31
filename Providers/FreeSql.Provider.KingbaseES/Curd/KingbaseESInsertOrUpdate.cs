@@ -56,7 +56,7 @@ namespace FreeSql.KingbaseES
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();
                 else
                 {
-                    var ocdu = new KingbaseESOnConflictDoUpdate<T1>(insert.InsertIdentity());
+                    var ocdu = new KingbaseESOnConflictDoUpdate<T1>(_tempPrimarys?.Length > 0 ? insert : insert.InsertIdentity());
                     ocdu._tempPrimarys = _tempPrimarys;
                     var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
                         _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
