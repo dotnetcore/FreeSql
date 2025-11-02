@@ -11,7 +11,31 @@ namespace FreeSql
     /// <summary>
     /// 工作单元管理器
     /// </summary>
-    public class UnitOfWorkManager : IDisposable
+    public interface IUnitOfWorkManager : IDisposable
+    {
+        IFreeSql Orm { get; }
+        /// <summary>
+        /// 当前的工作单元
+        /// </summary>
+        IUnitOfWork Current { get; }
+        /// <summary>
+        /// 将仓储的事务交给我管理
+        /// </summary>
+        /// <param name="repository"></param>
+        void Binding(IBaseRepository repository);
+        /// <summary>
+        /// 创建工作单元
+        /// </summary>
+        /// <param name="propagation">事务传播方式</param>
+        /// <param name="isolationLevel">事务隔离级别</param>
+        /// <returns></returns>
+        IUnitOfWork Begin(Propagation propagation = Propagation.Required, IsolationLevel? isolationLevel = null);
+    }
+
+    /// <summary>
+    /// 工作单元管理器
+    /// </summary>
+    public class UnitOfWorkManager : IUnitOfWorkManager
     {
         internal DbContextScopedFreeSql _ormScoped;
         internal IFreeSql OrmOriginal => _ormScoped?._originalFsql;

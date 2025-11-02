@@ -149,8 +149,17 @@ namespace FreeSql.KingbaseES
         protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
             InitIsSysV8R3();
+            var builder = new System.Data.Common.DbConnectionStringBuilder
+            {
+                ConnectionString = _orm.Ado.ConnectionString
+            };
+            var searchPath = builder.ContainsKey("SearchPath") ? builder["SearchPath"].ToString() : "PUBLIC"; //读取链接字符串中的SearchPath 来确定架构模式
+            if (searchPath.Contains(','))
+            {
+                searchPath = searchPath.Split(',')[0];
+            }
             var pg_ = _isSysV8R3 == true ? "sys_" : "pg_";
-            var public_ = _isSysV8R3 == true ? "PUBLIC" : "public";
+            var public_ = _isSysV8R3 == true ? searchPath.ToUpper() : searchPath;
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
 
@@ -182,11 +191,11 @@ namespace FreeSql.KingbaseES
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{{0}}.{{1}}'", tbname)) == null)
+                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where  b.nspname ='{{0}}' && a.tablename = '{{1}}'", tbname)) == null)//原判断V9版本存在问题
                 { //表不存在
                     if (tboldname != null)
                     {
-                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{{0}}.{{1}}'", tboldname)) == null)
+                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname ='{{0}}' && a.tablename = '{{1}}'", tboldname)) == null)
                             //旧表不存在
                             tboldname = null;
                     }
@@ -388,7 +397,7 @@ from {pg_}class a
 inner join {pg_}namespace b on b.oid = a.relnamespace
 left join {pg_}description d on d.objoid = a.oid and objsubid = 0
 where upper(b.nspname) not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('r') and b.nspname = {{0}} and a.relname = {{1}}
-and upper(b.nspname || '.' || a.relname) not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')", tbname[0], tbname[1])));
+and upper(text(b.nspname || '.' || a.relname)) not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')", tbname[0], tbname[1])));//解决报错 function upper(boolean) is not unique 错误的问题
                     if (dbcomment != (tb.Comment ?? ""))
                         sbalter.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
 
