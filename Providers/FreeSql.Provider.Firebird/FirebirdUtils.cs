@@ -88,7 +88,18 @@ namespace FreeSql.Firebird
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-            if (type == typeof(byte[])) return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
+            if (type == typeof(byte[]))
+            {
+                if (col.Attribute.StringLength < 0)
+                {
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    return pam.ParameterName;
+                }
+                else
+                {
+                    return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
+                }
+            }
             if (type == typeof(string))
             {
                 if (col.Attribute.StringLength < 0)
