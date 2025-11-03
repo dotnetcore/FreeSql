@@ -51,7 +51,7 @@ namespace FreeSql.KingbaseES
 
             bool isdic;
             if (param is bool || param is bool?)
-                return (bool)param ? "'t'" : "'f'";
+                return (bool)param ? "TRUE" : "FALSE";
             else if (param is string)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
             else if (param is char)
