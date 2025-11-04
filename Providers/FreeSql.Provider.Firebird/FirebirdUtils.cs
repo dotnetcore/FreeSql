@@ -88,9 +88,30 @@ namespace FreeSql.Firebird
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-            if (type == typeof(byte[])) return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
-            if (type == typeof(string) && col != null && (specialParamFlag == "c" || specialParamFlag == "cu")) 
-                return $"cast('{value.ToString().Replace("'", "''")}' as {col.Attribute.DbType.Replace("NOT NULL", "").Replace("NULL", "")})"; //#1923
+            if (type == typeof(byte[]))
+            {
+                if (col.Attribute.StringLength < 0)
+                {
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    return pam.ParameterName;
+                }
+                else
+                {
+                    return $"x'{CommonUtils.BytesSqlRaw(value as byte[])}'";
+                }
+            }
+            if (type == typeof(string))
+            {
+                if (col.Attribute.StringLength < 0)
+                {
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    return pam.ParameterName;
+                }
+                else if (col != null && (specialParamFlag == "c" || specialParamFlag == "cu"))
+                {
+                    return $"cast('{value.ToString().Replace("'", "''")}' as {col.Attribute.DbType.Replace("NOT NULL", "").Replace("NULL", "")})"; //#1923
+                }
+            }
             return FormatSql("{0}", value, 1);
         }
     }
