@@ -635,6 +635,30 @@
             例如：20191121_214504_1
             </summary>
         </member>
+        <member name="T:FreeSql.IUnitOfWorkManager">
+            <summary>
+            工作单元管理器
+            </summary>
+        </member>
+        <member name="P:FreeSql.IUnitOfWorkManager.Current">
+            <summary>
+            当前的工作单元
+            </summary>
+        </member>
+        <member name="M:FreeSql.IUnitOfWorkManager.Binding(FreeSql.IBaseRepository)">
+            <summary>
+            将仓储的事务交给我管理
+            </summary>
+            <param name="repository"></param>
+        </member>
+        <member name="M:FreeSql.IUnitOfWorkManager.Begin(FreeSql.Propagation,System.Nullable{System.Data.IsolationLevel})">
+            <summary>
+            创建工作单元
+            </summary>
+            <param name="propagation">事务传播方式</param>
+            <param name="isolationLevel">事务隔离级别</param>
+            <returns></returns>
+        </member>
         <member name="T:FreeSql.UnitOfWorkManager">
             <summary>
             工作单元管理器
@@ -716,6 +740,15 @@
             <param name="codeFirst"></param>
             <param name="entityType">实体类型</param>
             <param name="modelBuilder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlDbContextExtensions.ApplyConfigurationsFromAssembly(FreeSql.ICodeFirst,System.Reflection.Assembly,System.Func{System.Type,System.Boolean})">
+            <summary>
+            根据Assembly扫描所有继承IEntityTypeConfiguration&lt;T&gt;的配置类
+            </summary>
+            <param name="codeFirst"></param>
+            <param name="assembly"></param>
+            <param name="predicate"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">
