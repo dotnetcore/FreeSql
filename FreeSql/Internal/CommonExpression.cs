@@ -1136,8 +1136,10 @@ namespace FreeSql.Internal
                         return conditionalSql;
                     }
                 case ExpressionType.Call:
-                    if (!tsc.isNotSetMapColumnTmp) tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
+                    if (exp3.CanDynamicInvoke() && tsc.mapType != null || tsc.mapTypeTmp != null || tsc.mapColumnTmp != null)
+                        return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    if (!tsc.isNotSetMapColumnTmp) tsc.mapType = null;
                     if (exp3.IsExpressionCall())
                     {
                         //SqlExt.In 替换成 Array.Contains 解析，可避免 MapType 问题
