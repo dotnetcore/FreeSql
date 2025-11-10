@@ -150,6 +150,14 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value);
         /// <summary>
+        /// 设置列的新值，SetByPropertyName("Name", "newvalue")<para></para>
+        /// 机制同 ISelect.WhereDynamicFilter/OrderByPropertyName
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        IUpdate<T1> SetByPropertyName(string column, object value);
+        /// <summary>
         /// 设置列的新值，Set(a => a.Name, "newvalue")
         /// </summary>
         /// <typeparam name="TMember"></typeparam>
@@ -158,6 +166,15 @@ namespace FreeSql
         /// <param name="value">新值</param>
         /// <returns></returns>
         IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value);
+        /// <summary>
+        /// 设置列的新值，SetByPropertyNameIf(true, "Name", "newvalue")<para></para>
+        /// 机制同 ISelect.WhereDynamicFilter/OrderByPropertyName
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="column"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        IUpdate<T1> SetByPropertyNameIf(bool condition, string column, object value);
         /// <summary>
         /// 设置列的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>

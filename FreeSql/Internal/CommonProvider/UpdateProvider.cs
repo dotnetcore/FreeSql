@@ -672,6 +672,17 @@ namespace FreeSql.Internal.CommonProvider
             SetPriv(cols.First().Column, value);
             return this;
         }
+        public IUpdate<T1> SetByPropertyNameIf(bool condition, string propertyName, object value)=> condition ? SetByPropertyName(propertyName, value) : this;
+        public IUpdate<T1> SetByPropertyName(string propertyName, object value)
+        {
+            var alias = "t_" + Guid.NewGuid().ToString("n").Substring(0, 8);
+            var tempQuery = _orm.Select<object>().AsType(_table.Type).DisableGlobalFilter().As(alias);
+            tempQuery.WhereDynamicFilter(new DynamicFilterInfo { Field = propertyName, Operator = DynamicFilterOperator.Eq, Value = value });
+            var where = (tempQuery as Select0Provider)._where.ToString().Replace(alias + ".", "").Replace("  IS  NULL", " = NULL");
+            if (where.StartsWith(" AND (")) where = where.Substring(6, where.Length - 7);
+            _set.Append(", ").Append(where);
+            return this;
+        }
         public IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value) => condition ? Set(column, value) : this;
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp)
         {
