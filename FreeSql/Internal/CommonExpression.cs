@@ -954,8 +954,8 @@ namespace FreeSql.Internal
             var isRightMapType = false;
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
 
-            var right = (leftMapColumn != null &&
-                (leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.CanDynamicInvoke())) ? //自动分表
+            var right = (leftMapColumn != null && leftMapColumn.Table.AsTableColumn == leftMapColumn && rightExp.CanDynamicInvoke()) || //自动分表
+                        (leftMapColumn != null && rightExp.NodeType == ExpressionType.Call && rightExp.CanDynamicInvoke()) ?
                 formatSql(Expression.Lambda(rightExp).Compile().DynamicInvoke(), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams) :
                 ExpressionLambdaToSql(rightExp, tsc);
             if (right != "NULL" && isLeftMapType &&
@@ -980,8 +980,8 @@ namespace FreeSql.Internal
                 if (isRightMapType)
                 {
                     oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
-                    left = (rightMapColumn != null &&
-                        (rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.CanDynamicInvoke())) ? //自动分表
+                    left = (rightMapColumn != null && rightMapColumn.Table.AsTableColumn == rightMapColumn && leftExp.CanDynamicInvoke()) || //自动分表
+                           (rightMapColumn != null && leftExp.NodeType == ExpressionType.Call && leftExp.CanDynamicInvoke()) ?
                         formatSql(Expression.Lambda(leftExp).Compile().DynamicInvoke(), rightMapColumn.Attribute.MapType, rightMapColumn, tsc.dbParams) :
                         ExpressionLambdaToSql(leftExp, tsc);
                     if (left != "NULL" && isRightMapType &&
@@ -1136,10 +1136,8 @@ namespace FreeSql.Internal
                         return conditionalSql;
                     }
                 case ExpressionType.Call:
-                    var exp3 = exp as MethodCallExpression;
-                    if (exp3.CanDynamicInvoke() && tsc.mapType != null || tsc.mapTypeTmp != null || tsc.mapColumnTmp != null)
-                        return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     if (!tsc.isNotSetMapColumnTmp) tsc.mapType = null;
+                    var exp3 = exp as MethodCallExpression;
                     if (exp3.IsExpressionCall())
                     {
                         //SqlExt.In 替换成 Array.Contains 解析，可避免 MapType 问题
