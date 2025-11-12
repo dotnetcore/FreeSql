@@ -191,11 +191,11 @@ namespace FreeSql.KingbaseES
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where  b.nspname ='{{0}}' && a.tablename = '{{1}}'", tbname)) == null)//原判断V9版本存在问题
+                if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where  b.nspname ='{{0}}' and a.tablename = '{{1}}'", tbname)) == null)//原判断V9版本存在问题
                 { //表不存在
                     if (tboldname != null)
                     {
-                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname ='{{0}}' && a.tablename = '{{1}}'", tboldname)) == null)
+                        if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format($" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where b.nspname ='{{0}}' and a.tablename = '{{1}}'", tboldname)) == null)
                             //旧表不存在
                             tboldname = null;
                     }
