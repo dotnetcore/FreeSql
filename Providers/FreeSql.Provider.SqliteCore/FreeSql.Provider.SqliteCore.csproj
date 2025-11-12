@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+        <TargetFrameworks>net10.0;net8.0;net6.0;netstandard2.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>FreeSql;ncc;YeXiangQin</Authors>
-        <Description>FreeSql 数据库实现，基于 Microsoft.Data.Sqlite.Core、Sqlite 3.0，支持 .netstandard2.0、.net6.0</Description>
+        <Description>FreeSql 数据库实现，基于 Microsoft.Data.Sqlite.Core、Sqlite 3.0，支持 .netstandard2.0 .net6.0 .net8.0 .net10.0</Description>
         <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
         <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -18,7 +18,7 @@
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
         <DelaySign>false</DelaySign>
-		<Version>3.5.216</Version>
+		<Version>3.5.300</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -31,12 +31,16 @@
         <Compile Include="../FreeSql.Provider.Sqlite/**/*.cs" Exclude="../FreeSql.Provider.Sqlite/obj/**/*" />
     </ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.0" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0" />
 	</ItemGroup>
 	
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.4" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.0" />
 	</ItemGroup>
 
     <ItemGroup>
