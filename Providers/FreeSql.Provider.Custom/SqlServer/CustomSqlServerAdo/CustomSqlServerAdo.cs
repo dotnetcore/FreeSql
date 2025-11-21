@@ -14,13 +14,13 @@ namespace FreeSql.Custom.SqlServer
     {
         DbProviderFactory Factory => FreeSqlCustomAdapterGlobalExtensions.GetDbProviderFactory(_util._orm);
 
-        public CustomSqlServerAdo() : base(DataType.OdbcSqlServer, null, null) { }
-        public CustomSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcSqlServer, masterConnectionString, slaveConnectionStrings)
+        public CustomSqlServerAdo() : base(DataType.CustomSqlServer, null, null) { }
+        public CustomSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.CustomSqlServer, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.CustomSqlServer, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 return;
