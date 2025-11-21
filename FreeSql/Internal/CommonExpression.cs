@@ -1137,8 +1137,7 @@ namespace FreeSql.Internal
                     }
                 case ExpressionType.Call:
                     var exp3 = exp as MethodCallExpression;
-                    if (exp3.Type.Name == "ReadOnlySpan`1" && exp3.Method.Name == "op_Implicit" && exp3.Arguments.Count == 1)
-                        return ExpressionLambdaToSql(exp3.Arguments[0], tsc);
+                    if (exp3.IsReadonlySpanOp_Implicit()) return ExpressionLambdaToSql(exp3.Arguments[0], tsc);
                     if (!tsc.isNotSetMapColumnTmp) tsc.mapType = null;
                     if (exp3.IsExpressionCall())
                     {

@@ -195,7 +195,9 @@ namespace FreeSql.ShenTong
 								else args1 = $"array[{args1}]";
 								if (objExp != null)
                                 {
-                                    var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
+                                    var dbinfo = _common._orm.CodeFirst.GetDbInfo(
+                                        objExp.IsReadonlySpanOp_Implicit() ? (objExp as MethodCallExpression).Arguments[0].Type :
+                                        objExp.Type);
                                     if (dbinfo != null) args1 = $"{args1}::{dbinfo.dbtype}";
                                 }
                                 return $"({left} @> {args1})";
