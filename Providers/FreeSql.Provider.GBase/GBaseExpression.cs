@@ -210,7 +210,7 @@ namespace FreeSql.GBase
             var left = ExpressionLambdaToSql(exp.Expression, tsc);
             switch (exp.Member.Name)
             {
-                case "Date": return $"to_date(to_char({left}, 'YYYY-MM-DD'), 'YYYY-MM-DD')";
+                case "Date": return $"trunc(to_date({left}, 'YYYY-MM-DD HH24:MI:SS'))";
                 case "TimeOfDay": return $"('0 '||to_char({left}, 'HH24:MI:SS.FF3'))::interval day(9) to fraction";
                 case "DayOfWeek": return $"weekday({left})";
                 case "Day": return $"day({left})";
