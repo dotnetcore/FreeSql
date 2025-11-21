@@ -21,7 +21,7 @@ namespace FreeSql.GBase.Curd
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1, 999);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
         public override string ToSql()
         {
@@ -91,14 +91,110 @@ namespace FreeSql.GBase.Curd
         }
         protected override List<T1> RawExecuteInserted()
         {
-            throw new NotImplementedException();
+            var sql = this.ToSql();
+            if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+            var identityCol = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
+            var identityType = identityCol?.Attribute.MapType.NullableTypeOrThis();
+            var identitySql = "";
+            if (identityType != null)
+            {
+                if (identityType == typeof(int) || identityType == typeof(uint)) identitySql = "SELECT dbinfo('sqlca.sqlerrd1') FROM dual";
+                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql =
+                    identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ?
+                    "SELECT dbinfo('bigserial')::INT8 FROM dual" : "SELECT dbinfo('serial8') FROM dual";
+            }
+
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, string.IsNullOrWhiteSpace(identitySql) ? "" : $"; {identitySql};"), _params);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new List<T1>();
+            Exception exception = null;
+            var isUseConnection = _connection != null;
+            try
+            {
+                if (isUseConnection == false)
+                {
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        _connection = conn.Value;
+                        _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+
+                        if (identityCol != null && string.IsNullOrWhiteSpace(identitySql) == false)
+                        {
+                            long lastId = 0;
+                            long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, identitySql, _commandTimeout, _params)), out lastId);
+                            var cnt = _source.Count;
+                            var startId = lastId - cnt + 1;
+                            var sb = new StringBuilder();
+                            var colidx = 0;
+                            foreach (var col in _table.Columns.Values)
+                            {
+                                if (colidx > 0) sb.Append(", ");
+                                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                                ++colidx;
+                            }
+                            sb.Insert(0, "SELECT ");
+                            sb.Append(" FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke()))
+                              .Append(" WHERE ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name))
+                              .Append(" BETWEEN ").Append(startId).Append(" AND ").Append(lastId)
+                              .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name));
+                            ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sb.ToString(), _commandTimeout, null);
+                        }
+                        else
+                        {
+                            ret = _source.ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                    if (identityCol != null && string.IsNullOrWhiteSpace(identitySql) == false)
+                    {
+                        long lastId = 0;
+                        long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, identitySql, _commandTimeout, _params)), out lastId);
+                        var cnt = _source.Count;
+                        var startId = lastId - cnt + 1;
+                        var sb = new StringBuilder();
+                        var colidx = 0;
+                        foreach (var col in _table.Columns.Values)
+                        {
+                            if (colidx > 0) sb.Append(", ");
+                            sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                            ++colidx;
+                        }
+                        sb.Insert(0, "SELECT ");
+                        sb.Append(" FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke()))
+                          .Append(" WHERE ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name))
+                          .Append(" BETWEEN ").Append(startId).Append(" AND ").Append(lastId)
+                          .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name));
+                        ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sb.ToString(), _commandTimeout, null);
+                    }
+                    else
+                    {
+                        ret = _source.ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                if (isUseConnection == false) _connection = null;
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            return ret;
         }
 
 #if net40
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
-        public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteInsertedAsync(1, 1000, cancellationToken);
+        public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
 
         async protected override Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
@@ -152,9 +248,105 @@ namespace FreeSql.GBase.Curd
             }
             return ret;
         }
-        protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default)
+        async protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var sql = this.ToSql();
+            if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+            var identityCol = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
+            var identityType = identityCol?.Attribute.MapType.NullableTypeOrThis();
+            var identitySql = "";
+            if (identityType != null)
+            {
+                if (identityType == typeof(int) || identityType == typeof(uint)) identitySql = "SELECT dbinfo('sqlca.sqlerrd1') FROM dual";
+                else if (identityType == typeof(long) || identityType == typeof(ulong)) identitySql =
+                        identityCol.Attribute.DbType.IndexOf("bigserial", StringComparison.OrdinalIgnoreCase) != -1 ?
+                        "SELECT dbinfo('bigserial') FROM dual" : "SELECT dbinfo('serial8') FROM dual";
+            }
+
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, string.IsNullOrWhiteSpace(identitySql) ? "" : $"; {identitySql};"), _params);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new List<T1>();
+            Exception exception = null;
+            var isUseConnection = _connection != null;
+            try
+            {
+                if (isUseConnection == false)
+                {
+                    using (var conn = await _orm.Ado.MasterPool.GetAsync())
+                    {
+                        _connection = conn.Value;
+                        await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+
+                        if (identityCol != null && string.IsNullOrWhiteSpace(identitySql) == false)
+                        {
+                            long lastId = 0;
+                            long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, identitySql, _commandTimeout, _params, cancellationToken)), out lastId);
+                            var cnt = _source.Count;
+                            var startId = lastId - cnt + 1;
+                            var sb = new StringBuilder();
+                            var colidx = 0;
+                            foreach (var col in _table.Columns.Values)
+                            {
+                                if (colidx > 0) sb.Append(", ");
+                                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                                ++colidx;
+                            }
+                            sb.Insert(0, "SELECT ");
+                            sb.Append(" FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke()))
+                              .Append(" WHERE ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name))
+                              .Append(" BETWEEN ").Append(startId).Append(" AND ").Append(lastId)
+                              .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name));
+                            ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sb.ToString(), _commandTimeout, null, cancellationToken);
+                        }
+                        else
+                        {
+                            ret = _source.ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                    if (identityCol != null && string.IsNullOrWhiteSpace(identitySql) == false)
+                    {
+                        long lastId = 0;
+                        long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, identitySql, _commandTimeout, _params, cancellationToken)), out lastId);
+                        var cnt = _source.Count;
+                        var startId = lastId - cnt + 1;
+                        var sb = new StringBuilder();
+                        var colidx = 0;
+                        foreach (var col in _table.Columns.Values)
+                        {
+                            if (colidx > 0) sb.Append(", ");
+                            sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                            ++colidx;
+                        }
+                        sb.Insert(0, "SELECT ");
+                        sb.Append(" FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke()))
+                          .Append(" WHERE ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name))
+                          .Append(" BETWEEN ").Append(startId).Append(" AND ").Append(lastId)
+                          .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(identityCol.Attribute.Name));
+                        ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sb.ToString(), _commandTimeout, null, cancellationToken);
+                    }
+                    else
+                    {
+                        ret = _source.ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                if (isUseConnection == false) _connection = null;
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            return ret;
         }
 #endif
     }
