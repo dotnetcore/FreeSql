@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests.GBase
@@ -80,9 +81,28 @@ namespace FreeSql.Tests.GBase
         [Fact]
         public void ExecuteDeleted()
         {
-            Assert.Throws<NotImplementedException>(() => delete.Where(a => a.Id > 0).ExecuteDeleted());
+            g.gbase.Delete<Topic>().Where(a => a.Id > 0).ExecuteAffrows();
+            var list = new[] { new Topic { Title = "t1" }, new Topic { Title = "t2" } };
+            g.gbase.Insert<Topic>().ExecuteAffrows();
+            var datas = delete.Where(a => a.Id > 0).ExecuteDeleted();
+            foreach (var data in datas)
+            {
+                Assert.Contains(list, it => it.Title == data.Title);
+            }
         }
-
+        [Fact]
+        public async Task ExecuteDeletedAsync()
+        {
+            await g.gbase.Delete<Topic>().Where(a => a.Id > 0).ExecuteAffrowsAsync();
+            var list = new[] { new Topic { Title = "t1" }, new Topic { Title = "t2" } };
+            var cnt = await g.gbase.Insert(list).ExecuteAffrowsAsync();
+            var datas = await delete.Where(a => a.Id > 0).ExecuteDeletedAsync();
+            foreach (var data in datas)
+            {
+                Assert.Contains(list, it => it.Title == data.Title);
+            }
+        }
+        
         [Fact]
         public void AsTable()
         {

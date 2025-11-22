@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests.GBase
@@ -249,15 +250,47 @@ UNION ALL
 
             Assert.NotEqual(0, insert.AppendData(items.First()).ExecuteIdentity());
         }
+        
+        [Table(Name = "TB_TOPIC_INSERT_T")]
+        class Topic_T
+        {
+         [Column(IsIdentity = true, IsPrimary = true)]
+         public Guid Id { get; set; } = Guid.NewGuid();
+         public int Clicks { get; set; }
+         public string Title { get; set; }
+         public DateTime CreateTime { get; set; }
+        }
+        
         [Fact]
         public void ExecuteInserted()
         {
             var items = new List<Topic>();
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+            var items2 = insert.AppendData(items).ExecuteInserted();
+            Assert.Equal(items.First().Title, items2.First().Title);
+            Assert.Equal(items.Last().Title, items2.Last().Title);
 
-            Assert.Throws<NotImplementedException>(() => insert.AppendData(items.First()).ExecuteInserted());
+            var items3 = new List<Topic_T>();
+            for (var a = 0; a < 10; a++) items3.Add(new Topic_T { Title = $"newtitle{a}", Clicks = a * 100 });
+            var items4 = g.gbase.Insert(items3).ExecuteInserted();
+            Assert.Equal(items3.Select(u => u.Id), items4.Select(u => u.Id));
         }
 
+        [Fact]
+        public async Task ExecuteInsertedAsync()
+        {
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+            var items2 = await insert.AppendData(items).ExecuteInsertedAsync();
+            Assert.Equal(items.First().Title, items2.First().Title);
+            Assert.Equal(items.Last().Title, items2.Last().Title);
+
+            var items3 = new List<Topic_T>();
+            for (var a = 0; a < 10; a++) items3.Add(new Topic_T { Title = $"newtitle{a}", Clicks = a * 100 });
+            var items4 = await g.gbase.Insert(items3).ExecuteInsertedAsync();
+            Assert.Equal(items3.Select(u => u.Id), items4.Select(u => u.Id));
+        }
+        
         [Fact]
         public void AsTable()
         {
