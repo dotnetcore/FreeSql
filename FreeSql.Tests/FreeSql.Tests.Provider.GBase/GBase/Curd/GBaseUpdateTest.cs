@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests.GBase
@@ -215,12 +216,65 @@ namespace FreeSql.Tests.GBase
             update.SetSource(items.First()).NoneParameter().ExecuteAffrows();
             update.SetSource(items).NoneParameter().ExecuteAffrows();
         }
+        
+        
+        [Table(Name = "TB_TOPIC_INSERT_T")]
+        class Topic_T
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public Guid Id { get; set; } = Guid.NewGuid();
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
+        }
+        
         [Fact]
         public void ExecuteUpdated()
         {
-
+            var items = new Dictionary<Guid, Topic_T>();
+            for (var a = 0; a < 10; a++)
+            {
+                var guid = Guid.NewGuid();
+                items.Add(guid, new Topic_T { Id = guid, Title = $"newtitle{a}", Clicks = a * 100 });
+            }
+            g.gbase.Insert(items.Values.AsEnumerable()).ExecuteAffrows();
+            foreach (var key in items.Keys)
+            {
+                items[key].Title += $"newtitle";
+                items[key].Clicks += 100;
+            }
+            var items2 = g.gbase.Update<Topic_T>().SetSource(items.Values).ExecuteUpdated().ToDictionary(x => x.Id, y => y);
+            foreach (var key in items.Keys)
+            {
+                Assert.Equal(items[key].Title, items2[key].Title);
+                Assert.Equal(items[key].Clicks, items2[key].Clicks);
+            }
         }
 
+        [Fact]
+        public async Task ExecuteUpdatedAsnyc()
+        {
+            var items = new Dictionary<Guid, Topic_T>();
+            for (var a = 0; a < 10; a++)
+            {
+                var guid = Guid.NewGuid();
+                items.Add(guid, new Topic_T { Id = guid, Title = $"newtitle{a}", Clicks = a * 100 });
+            }
+            await g.gbase.Insert(items.Values.AsEnumerable()).ExecuteAffrowsAsync();
+            foreach (var key in items.Keys)
+            {
+                items[key].Title += $"newtitle";
+                items[key].Clicks += 100;
+            }
+            var list = await g.gbase.Update<Topic_T>().SetSource(items.Values).ExecuteUpdatedAsync();
+            var items2 = list.ToDictionary(x => x.Id, y => y);
+            foreach (var key in items.Keys)
+            {
+                Assert.Equal(items[key].Title, items2[key].Title);
+                Assert.Equal(items[key].Clicks, items2[key].Clicks);
+            }
+        }
+        
         [Fact]
         public void AsTable()
         {
