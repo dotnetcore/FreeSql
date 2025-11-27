@@ -290,8 +290,12 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in _table.Columns.Values)
                 {
                     if (colidx2 > 0) sb.Append(", ");
-                    if (disableInsertValueSql == false && string.IsNullOrEmpty(col.DbInsertValue) == false)
+                    if (disableInsertValueSql == false && string.IsNullOrEmpty(col.DbInsertValue) == false) 
+                    {
+                        // oracle 使用序列自增主键 using 语句中不能使用序列，在 insert 时再使用
+                        if (col.Attribute.IsIdentity && col.DbInsertValue.EndsWith(".nextval", ignoreCase: true)) continue;
                         sb.Append(col.DbInsertValue);
+                    }    
                     else
                     {
                         object val = col.GetDbValue(d);
