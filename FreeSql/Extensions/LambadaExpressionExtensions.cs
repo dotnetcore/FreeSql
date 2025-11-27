@@ -248,6 +248,13 @@ namespace System.Linq.Expressions
             return test.Result;
         }
 
+        public static bool IsReadonlySpanOp_Implicit(this Expression exp)
+        {
+            return exp.NodeType == ExpressionType.Call && 
+                exp is MethodCallExpression exp3 &&
+                exp3.Type.Name == "ReadOnlySpan`1" && exp3.Method.Name == "op_Implicit" && exp3.Arguments.Count == 1;
+        }
+
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public static bool IsStringJoin(this MethodCallExpression exp, out Expression tolistObjectExpOut, out MethodInfo toListMethodOut, out LambdaExpression toListArgs0Out)
         {

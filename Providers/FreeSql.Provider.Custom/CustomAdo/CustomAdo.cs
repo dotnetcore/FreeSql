@@ -17,7 +17,7 @@ namespace FreeSql.Custom
             base._util = util;
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Custom, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 _CreateCommandConnection = pool.TestConnection;

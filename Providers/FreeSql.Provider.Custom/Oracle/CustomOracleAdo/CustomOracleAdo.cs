@@ -14,13 +14,13 @@ namespace FreeSql.Custom.Oracle
     {
         DbProviderFactory Factory => FreeSqlCustomAdapterGlobalExtensions.GetDbProviderFactory(_util._orm);
 
-        public CustomOracleAdo() : base(DataType.OdbcOracle, null, null) { }
-        public CustomOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcOracle, masterConnectionString, slaveConnectionStrings)
+        public CustomOracleAdo() : base(DataType.CustomOracle, null, null) { }
+        public CustomOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.CustomOracle, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.CustomOracle, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 using (var conn = pool.Get())

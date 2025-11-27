@@ -13,13 +13,13 @@ namespace FreeSql.Custom.MySql
     {
         DbProviderFactory Factory => FreeSqlCustomAdapterGlobalExtensions.GetDbProviderFactory(_util._orm);
 
-        public CustomMySqlAdo() : base(DataType.OdbcMySql, null, null) { }
-        public CustomMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcMySql, masterConnectionString, slaveConnectionStrings)
+        public CustomMySqlAdo() : base(DataType.CustomMySql, null, null) { }
+        public CustomMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.CustomMySql, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.CustomMySql, connectionFactory);
                 ConnectionString = pool.TestConnection?.ConnectionString;
                 MasterPool = pool;
                 return;
