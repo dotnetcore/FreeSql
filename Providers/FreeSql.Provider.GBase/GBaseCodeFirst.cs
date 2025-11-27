@@ -122,23 +122,38 @@ namespace FreeSql.GBase
                         }
                     }
 
-                    //创建表
                     var createTableName = _commonUtils.QuoteSqlName(tbname[0], tbname[1]);
-                    sb.Append("CREATE TABLE IF NOT EXISTS ").Append(createTableName).Append(" ( ");
-                    foreach (var tbcol in tb.ColumnsByPosition)
+                    var tableExists = LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" select first 1 1 from systables where tabname={0}", new[] { tbname[1] })) != null;
+                    if (tableExists == false)
                     {
-                        sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                        sb.Append(",");
+                        // 创建表
+                        sb.Append("CREATE TABLE IF NOT EXISTS ").Append(createTableName).Append(" ( ");
+                        foreach (var tbcol in tb.ColumnsByPosition)
+                        {
+                            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+                            sb.Append(",");
+                        }
+                        if (tb.Primarys.Any())
+                        {
+                            sb.Append(" \r\n  PRIMARY KEY (");
+                            foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+                            sb.Remove(sb.Length - 2, 2).Append("),");
+                        }
+                        sb.Remove(sb.Length - 1, 1);
+                        sb.Append("\r\n)");
+                        sb.Append(";\r\n");
                     }
-                    if (tb.Primarys.Any())
+                    else
                     {
-                        sb.Append(" \r\n  PRIMARY KEY (");
-                        foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                        sb.Remove(sb.Length - 2, 2).Append("),");
+                        var ds = _orm.Ado.ExecuteArray(CommandType.Text, _commonUtils.FormatSql(" select b.colname from syscolumns b where b.tabid=(select a.tabid from systables a where a.tabname={0})", new[] { tbname[1] }));
+                        var dbcols = new HashSet<string>(ds.Select(a => string.Concat(a[0])), StringComparer.CurrentCultureIgnoreCase);
+                        // 新增列
+                        foreach (var tbcol in tb.ColumnsByPosition)
+                        {
+                            if (dbcols.Contains(tbcol.Attribute.Name) == false)
+                                sb.Append("ALTER TABLE ").Append(createTableName).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(";\r\n");
+                        }
                     }
-                    sb.Remove(sb.Length - 1, 1);
-                    sb.Append("\r\n)");
-                    sb.Append(";\r\n");
                     //创建表的索引
                     foreach (var uk in tb.Indexes)
                     {
@@ -152,7 +167,7 @@ namespace FreeSql.GBase
                         }
                         sb.Remove(sb.Length - 2, 2).Append(");\r\n");
                     }
-                    //备注
+                    // 备注
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
