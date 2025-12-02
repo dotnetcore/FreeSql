@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Data.Odbc;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace FreeSql.GBase
 {
@@ -124,11 +125,25 @@ namespace FreeSql.GBase
                     return string.Concat("'", ((DateTime)value).ToString($"yyyy-MM-dd HH:mm:ss.{"f".PadRight(col.DbPrecision, 'f')}"), "'");
                 return string.Concat("'", ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"), "'");
             }
-            if (type == typeof(string) && ((string)value)?.Length > 8000)
+            if (type == typeof(string))
             {
-                var pam = AppendParamter(specialParams, "", null, type, value);
-                ((OdbcParameter)pam).OdbcType = OdbcType.Text;
-                return pam.ParameterName;
+                var str = (string)value;
+                // TEXT和byte字段类型无法用insert直接写入,CLOB需启用Oracle后可直接insert; 参考https://www.gbase.cn/community/post/4863
+                var isText = (col?.Attribute?.DbType?.IndexOf("TEXT", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0
+                             || string.Equals(col?.DbTypeText, "text", StringComparison.CurrentCultureIgnoreCase);
+                if (isText)
+                {
+                    var pam = AppendParamter(specialParams, "", col, typeof(byte[]), value);
+                    ((OdbcParameter)pam).OdbcType = OdbcType.VarBinary;
+                    pam.Value = value == null ? (object)DBNull.Value : (object)Encoding.UTF8.GetBytes(str ?? "");
+                    return pam.ParameterName;
+                }
+                // if (str?.Length > 8000)  // 长字符串GBase8s不能以text或varBinary格式写入，反而直接写入无异常
+                // {
+                //     var pam = AppendParamter(specialParams, "", col, type, value);
+                //     ((OdbcParameter)pam).OdbcType = OdbcType.Text;
+                //     return pam.ParameterName;
+                // }
             }
             return FormatSql("{0}", value, 1);
         }
