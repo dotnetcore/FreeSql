@@ -375,13 +375,15 @@ namespace FreeSql.GBase
         public override string ExpressionLambdaToSqlCallDateDiff(string memberName, Expression date1, Expression date2, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            var d1 = getExp(date1);
+            var d2 = getExp(date2);
             switch (memberName)
             {
-                case "TotalDays": return $"({getExp(date1)}-{getExp(date2)})";
-                case "TotalHours": return $"(({getExp(date1)}-{getExp(date2)})*24)";
-                case "TotalMilliseconds": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60 * 60 * 1000})";
-                case "TotalMinutes": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60})";
-                case "TotalSeconds": return $"(({getExp(date1)}-{getExp(date2)})*{24 * 60 * 60})";
+                case "TotalDays": return $"(({d1}-{d2}) / (1 units day))";
+                case "TotalHours": return $"(({d1}-{d2}) / (1 units hour))";
+                case "TotalMilliseconds": return $"((({d1}-{d2}) / (1 units fraction)) / 1000)";
+                case "TotalMinutes": return $"(({d1}-{d2}) / (1 units minute))";
+                case "TotalSeconds": return $"(({d1}-{d2}) / (1 units second))";
             }
             return null;
         }
@@ -414,11 +416,11 @@ namespace FreeSql.GBase
                 {
                     case "AddDays": return $"({left} + ({args1}) units day)";
                     case "AddHours": return $"({left} + ({args1}) units hour)";
-                    case "AddMilliseconds": return $"({left} + ({args1})/1000 units fraction)";
+                    case "AddMilliseconds": return $"({left} + (({args1})/1000) units fraction)";
                     case "AddMinutes": return $"({left} + ({args1}) units minute)";
                     case "AddMonths": return $"({left} + ({args1}) units month)";
                     case "AddSeconds": return $"({left} + ({args1}) units second)";
-                    case "AddTicks": return $"({left} + ({args1})/10000000 units fraction)";
+                    case "AddTicks": return $"({left} + (({args1})/10000000) units fraction)";
                     case "AddYears": return $"({left} + ({args1}) units year)";
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
