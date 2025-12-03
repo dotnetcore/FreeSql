@@ -400,17 +400,24 @@ namespace FreeSql.Tests.GBaseExpression
             data.Add(select.Where(a => a.CreateTime.AddMilliseconds(1) > DateTime.Now).ToList());
             data.Add(select.Where(a => a.Type.Time.AddMilliseconds(1) > DateTime.Now).ToList());
             data.Add(select.Where(a => a.Type.Parent.Time2.AddMilliseconds(1) > DateTime.Now).ToList());
-            //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-            //FROM `tb_topic111333` a 
-            //WHERE (date_add(a.`CreateTime`, interval (1) * 1000 microsecond) > now());
+            // SELECT a.Id, a.Clicks, a.TypeGuid, a.Title, a.CreateTime,(a.CreateTime + ((1)/1000) units fraction) 
+            // FROM tb_topic111333 a 
+            // WHERE ((a.CreateTime + ((1)/1000) units fraction) > current)
 
             //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
             //FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
             //WHERE (date_add(a__Type.`Time`, interval (1) * 1000 microsecond) > now());
 
-            //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-            //FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-            //WHERE (date_add(a__Type__Parent.`Time2`, interval (1) * 1000 microsecond) > now())
+            // SELECT a.Id, a.Clicks, a.TypeGuid, a__Type.Guid, a__Type.ParentId, a__Type.Name, a__Type.Time, a.Title, a.CreateTime
+            //     FROM tb_topic111333 a
+            // LEFT JOIN TestTypeInfo333 a__Type ON a__Type.Guid = a.TypeGuid
+            // WHERE ((a__Type.Time + ((1)/1000) units fraction) > current)
+            
+            // SELECT a.Id, a.Clicks, a.TypeGuid, a__Type.Guid, a__Type.ParentId, a__Type.Name, a__Type.Time, a.Title, a.CreateTime
+            //     FROM tb_topic111333 a
+            // LEFT JOIN TestTypeInfo333 a__Type ON a__Type.Guid = a.TypeGuid
+            // LEFT JOIN TestTypeParentInf1 a__Type__Parent ON a__Type__Parent.Id = a__Type.ParentId
+            // WHERE ((a__Type__Parent.Time2 + ((1)/1000) units fraction) > current)
         }
         [Fact]
         public void AddMinutes()
