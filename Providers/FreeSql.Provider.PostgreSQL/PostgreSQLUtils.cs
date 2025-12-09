@@ -195,7 +195,7 @@ namespace FreeSql.PostgreSQL
             }
             value = getParamterValue(type, value);
             var type2 = value.GetType();
-            if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
+            if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'::bytea";
             if (value is Array)
             {
                 var valueArr = value as Array;

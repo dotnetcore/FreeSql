@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.PostgreSQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,6 +121,7 @@ ON CONFLICT(""name"") DO UPDATE SET
             Assert.Equal(1, iou2);
 
         }
+
         [Index("uix_tbiou_temp_name", "name", true)]
         class tbiou_temp
         {
@@ -321,6 +323,42 @@ ON CONFLICT(""id"") DO UPDATE SET
             public int version { get; set; }
             [Column(CanUpdate = false, ServerTime = DateTimeKind.Local)]
             public DateTime CreateTime { get; set; }
+        }
+
+        class tbiou05
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+
+            public byte[] data { get; set; }
+        }
+
+        [Fact]
+        public void InsertOrUpdate_Blob()
+        {
+            var pgsql = g.opengauss;
+            (pgsql as IPostgreSQLProviderOptions).UseMergeInto = true;
+            var iou = pgsql.InsertOrUpdate<tbiou05>().SetSource(new tbiou05 { name = "01", data = null, id = 1 });
+            var sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""tbiou05"" t1 
+USING (SELECT 1 as ""id"", '01' as ""name"", NULL::bytea as ""data"" ) t2 ON (t1.""id"" = t2.""id"") 
+WHEN MATCHED THEN 
+  update set ""name"" = t2.""name"", ""data"" = t2.""data"" 
+WHEN NOT MATCHED THEN 
+  insert (""id"", ""name"", ""data"") 
+  values (t2.""id"", t2.""name"", t2.""data"");", sql);
+
+            var tbiou1 = new tbiou05 { id = 1, name = "01", data = new byte[] { 1, 2, 3, 4, 5, 6 } };
+            var iou2 = pgsql.InsertOrUpdate<tbiou05>().SetSource(tbiou1);
+            var sql2 = iou2.ToSql();
+            Assert.Equal(@"MERGE INTO ""tbiou05"" t1 
+USING (SELECT 1 as ""id"", '01' as ""name"", '\x010203040506'::bytea as ""data"" ) t2 ON (t1.""id"" = t2.""id"") 
+WHEN MATCHED THEN 
+  update set ""name"" = t2.""name"", ""data"" = t2.""data"" 
+WHEN NOT MATCHED THEN 
+  insert (""id"", ""name"", ""data"") 
+  values (t2.""id"", t2.""name"", t2.""data"");", sql2);
         }
     }
 }
