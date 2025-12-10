@@ -1,9 +1,11 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.ClickHouse.Curd;
+using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
-using FreeSql.ClickHouse.Curd;
 using System;
+using System.Collections;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Threading;
 
 namespace FreeSql.ClickHouse
@@ -11,6 +13,21 @@ namespace FreeSql.ClickHouse
 
     public class ClickHouseProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        static int _firstInit = 1;
+        static void InitInternal()
+        {
+            if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
+            {
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BigInteger)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
+                Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            }
+        }
+
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new ClickHouseSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsert<T1> CreateInsertProvider<T1>() => new ClickHouseInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new ClickHouseUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
@@ -21,6 +38,7 @@ namespace FreeSql.ClickHouse
         }
         public ClickHouseProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
+            InitInternal();
             this.InternalCommonUtils = new ClickHouseUtils(this);
             this.InternalCommonExpression = new ClickHouseExpression(this.InternalCommonUtils);
 

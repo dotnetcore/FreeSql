@@ -51,26 +51,16 @@ namespace FreeSql.ClickHouse
             { typeof(double?).FullName, CsToDb.New(DbType.Double, "Float64", "Nullable(Float64)", false, true, null) },
             { typeof(float).FullName, CsToDb.New(DbType.Single, "Float32", "Float32", false, false, 0) },
             { typeof(float?).FullName, CsToDb.New(DbType.Single, "Float32", "Nullable(Float32)", false, true, null) },
-            {
-                typeof(decimal).FullName,
-                CsToDb.New(DbType.Decimal, "Decimal(38, 19)", "Decimal(38, 19)", false, false,
-                    0) //Nullable(Decimal(38, 19))
-            },
-            {
-                typeof(decimal?).FullName,
-                CsToDb.New(DbType.Decimal, "Nullable(Decimal(38, 19))", "Nullable(Decimal(38, 19))", false, true, null)
-            },
+            { typeof(decimal).FullName, CsToDb.New(DbType.Decimal, "Decimal(38, 19)", "Decimal(38, 19)", false, false, 0) }, //Nullable(Decimal(38, 19))
+            { typeof(decimal?).FullName, CsToDb.New(DbType.Decimal, "Nullable(Decimal(38, 19))", "Nullable(Decimal(38, 19))", false, true, null) },
 
-            {
-                typeof(DateTime).FullName,
-                CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "DateTime('Asia/Shanghai')", false, false,
-                    new DateTime(1970, 1, 1))
-            },
-            {
-                typeof(DateTime?).FullName,
-                CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "Nullable(DateTime('Asia/Shanghai'))", false,
-                    true, null)
-            },
+            { typeof(DateTime).FullName, CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "DateTime('Asia/Shanghai')", false, false, new DateTime(1970, 1, 1)) },
+            { typeof(DateTime?).FullName, CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "Nullable(DateTime('Asia/Shanghai'))", false, true, null) },
+
+#if net60
+            { typeof(TimeOnly).FullName, CsToDb.New(DbType.Time, "time", "time NOT NULL", false, false, TimeOnly.MinValue) },{ typeof(TimeOnly?).FullName, CsToDb.New(DbType.Time, "time", "time", false, true, null) },
+            { typeof(DateOnly).FullName, CsToDb.New(DbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(DbType.Date, "date", "date", false, true, null) },
+#endif
 
             { typeof(string).FullName, CsToDb.New(DbType.String, "String", "String", false, null, "") },
             { typeof(char).FullName, CsToDb.New(DbType.String, "String", "String", false, false, "") },
