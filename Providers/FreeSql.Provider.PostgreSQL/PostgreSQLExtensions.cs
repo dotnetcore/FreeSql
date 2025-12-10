@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
+using FreeSql.PostgreSQL;
 using FreeSql.PostgreSQL.Curd;
 using Npgsql;
 using NpgsqlTypes;
@@ -97,16 +98,26 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
         sb.Clear();
         try
         {
-            upsert._sourceSql = $"select __**__ from {tempTableName}";
-            var sql2 = upsert.ToSql();
-            if (string.IsNullOrWhiteSpace(sql2) == false)
+            if ((upsert._orm as IPostgreSQLProviderOptions)?.UseMergeInto == true) //#2170
             {
-                var field = sql2.Substring(sql2.IndexOf("\"(") + 2);
-                field = field.Remove(field.IndexOf(upsert._sourceSql)).TrimEnd().TrimEnd(')');
-                sql2 = sql2.Replace(upsert._sourceSql, $"select {field} from {tempTableName}");
+                upsert._sourceSql = $"select * from {tempTableName}";
+                var sql2 = upsert.ToSql();
+                var sql3 = $"DROP TABLE {tempTableName}";
+                return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
             }
-            var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
-            return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
+            else
+            {
+                upsert._sourceSql = $"select __**__ from {tempTableName}";
+                var sql2 = upsert.ToSql();
+                if (string.IsNullOrWhiteSpace(sql2) == false)
+                {
+                    var field = sql2.Substring(sql2.IndexOf("\"(") + 2);
+                    field = field.Remove(field.IndexOf(upsert._sourceSql)).TrimEnd().TrimEnd(')');
+                    sql2 = sql2.Replace(upsert._sourceSql, $"select {field} from {tempTableName}");
+                }
+                var sql3 = $"DROP TABLE {_commonUtils.QuoteSqlName(tempTableName)}";
+                return NativeTuple.Create(sql1, sql2, sql3, tempTableName, _table.Columns.Values.Select(a => a.Attribute.Name).ToArray());
+            }
         }
         finally
         {
@@ -268,10 +279,10 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
 #else
     public static Task<int> ExecutePgCopyAsync<T>(this IInsertOrUpdate<T> that, CancellationToken cancellationToken = default) where T : class
     {
-        var upsert = that as UpdateProvider<T>;
+        var upsert = that as InsertOrUpdateProvider<T>;
         if (upsert._source.Any() != true || upsert._tempPrimarys.Any() == false) return Task.FromResult(0);
         var state = ExecutePgCopyState(upsert);
-        return UpdateProvider.ExecuteBulkUpdateAsync(upsert, state, insert => insert.ExecutePgCopyAsync(cancellationToken));
+        return UpdateProvider.ExecuteBulkUpsertAsync(upsert, state, insert => insert.ExecutePgCopyAsync(cancellationToken));
     }
     public static Task<int> ExecutePgCopyAsync<T>(this IUpdate<T> that, CancellationToken cancellationToken = default) where T : class
     {
