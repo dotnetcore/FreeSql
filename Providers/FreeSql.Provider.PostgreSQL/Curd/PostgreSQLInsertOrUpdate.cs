@@ -111,11 +111,9 @@ namespace FreeSql.PostgreSQL.Curd
 
                 var tempPrimaryIsIdentity = _tempPrimarys.Any(b => b.Attribute.IsIdentity);
                 var sb = new StringBuilder();
-                if (IdentityColumn != null && tempPrimaryIsIdentity) sb.Append("SET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" ON;\r\n");
                 sb.Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
                 sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _tempPrimarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
-
                 var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
                     _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
@@ -140,9 +138,6 @@ namespace FreeSql.PostgreSQL.Curd
                             if (tempPrimaryIsIdentity == false && a.Attribute.IsIdentity && string.IsNullOrEmpty(a.DbInsertValue) == false) return a.DbInsertValue;
                             return $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}";
                         }))).Append(");");
-
-                if (IdentityColumn != null && tempPrimaryIsIdentity) sb.Append(";\r\nSET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" OFF;");
-
                 return sb.ToString();
             }
             string getInsertSql(List<T1> data)
