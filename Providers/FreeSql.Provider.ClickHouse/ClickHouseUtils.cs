@@ -31,6 +31,16 @@ namespace FreeSql.ClickHouse
             var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName };//QuoteParamterName(parameterName)
             if (dbtype != null) ret.DbType = dbtype.Value;
+            if (value is Enum)
+            {
+                switch (ret.DbType)
+                {
+                    case DbType.Int32:
+                        value = Utils.GetDataReaderValue(typeof(int), value); break;
+                    case DbType.Int64:
+                        value = Utils.GetDataReaderValue(typeof(long), value); break;
+                }
+            }
             ret.Value = value;
             if (col != null)
             {
@@ -57,7 +67,7 @@ namespace FreeSql.ClickHouse
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
-                if (value is string str) 
+                if (value is string str)
                     value = str?.Replace("\t", "\\t")
                         .Replace("\r\n", "\\r\\n")
                         .Replace("\n", "\\n")
@@ -65,8 +75,20 @@ namespace FreeSql.ClickHouse
                         .Replace("/", "\\/");
                 DbParameter ret = new ClickHouseDbParameter { ParameterName = $"@{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-                if (tp != null)
-                    ret.DbType = (DbType)tp.Value;
+                if (tp != null) ret.DbType = (DbType)tp.Value;
+                if (value is Enum)
+                {
+                    if (tp != null)
+                        switch (ret.DbType)
+                        {
+                            case DbType.Int32:
+                                value = Utils.GetDataReaderValue(typeof(int), value); break;
+                            case DbType.Int64:
+                                value = Utils.GetDataReaderValue(typeof(long), value); break;
+                        }
+                    else
+                        value = Utils.GetDataReaderValue(typeof(int), value);
+                }
                 return ret;
             });
 
