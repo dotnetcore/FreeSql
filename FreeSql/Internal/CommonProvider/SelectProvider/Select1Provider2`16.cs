@@ -23,9 +23,10 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2> ISelect<T1, T2>.WithoutJoin(bool t2 = false)
+        ISelect<T1, T2> ISelect<T1, T2>.WithoutJoin(bool t2)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2> ISelect<T1, T2>.WithSql(string sqlT1, string sqlT2, object parms)
@@ -504,7 +505,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -527,9 +528,11 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.WithoutJoin(bool t2 = false, bool t3 = false)
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.WithoutJoin(bool t2, bool t3)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.WithSql(string sqlT1, string sqlT2, string sqlT3, object parms)
@@ -1010,7 +1013,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -1034,9 +1037,12 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false)
+        ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.WithoutJoin(bool t2, bool t3, bool t4)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, object parms)
@@ -1519,7 +1525,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -1544,9 +1550,13 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false)
+        ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.WithoutJoin(bool t2, bool t3, bool t4, bool t5)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, object parms)
@@ -2031,7 +2041,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -2057,9 +2067,14 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false)
+        ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, object parms)
@@ -2546,7 +2561,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -2573,9 +2588,15 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, object parms)
@@ -3064,7 +3085,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -3092,9 +3113,16 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, object parms)
@@ -3585,7 +3613,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -3614,9 +3642,17 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, object parms)
@@ -4109,7 +4145,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -4139,9 +4175,18 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, object parms)
@@ -4636,7 +4681,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -4667,9 +4712,19 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, object parms)
@@ -5166,7 +5221,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -5198,9 +5253,20 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11, bool t12)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; if (t12) _tables[11].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            if (t12) _tables[11].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, object parms)
@@ -5699,7 +5765,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -5732,9 +5798,21 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11, bool t12, bool t13)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; if (t12) _tables[11].Type = SelectTableInfoType.Parent; if (t13) _tables[12].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            if (t12) _tables[11].Type = SelectTableInfoType.Parent;
+            if (t13) _tables[12].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, object parms)
@@ -6235,7 +6313,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -6269,9 +6347,22 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11, bool t12, bool t13, bool t14)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; if (t12) _tables[11].Type = SelectTableInfoType.Parent; if (t13) _tables[12].Type = SelectTableInfoType.Parent; if (t14) _tables[13].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            if (t12) _tables[11].Type = SelectTableInfoType.Parent;
+            if (t13) _tables[12].Type = SelectTableInfoType.Parent;
+            if (t14) _tables[13].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, object parms)
@@ -6774,7 +6865,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -6809,9 +6900,23 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false, bool t15 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11, bool t12, bool t13, bool t14, bool t15)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; if (t12) _tables[11].Type = SelectTableInfoType.Parent; if (t13) _tables[12].Type = SelectTableInfoType.Parent; if (t14) _tables[13].Type = SelectTableInfoType.Parent; if (t15) _tables[14].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            if (t12) _tables[11].Type = SelectTableInfoType.Parent;
+            if (t13) _tables[12].Type = SelectTableInfoType.Parent;
+            if (t14) _tables[13].Type = SelectTableInfoType.Parent;
+            if (t15) _tables[14].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, object parms)
@@ -7316,7 +7421,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);
@@ -7352,9 +7457,24 @@ namespace FreeSql.Internal.CommonProvider
         }
 
 
-        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false, bool t15 = false, bool t16 = false)
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.WithoutJoin(bool t2, bool t3, bool t4, bool t5, bool t6, bool t7, bool t8, bool t9, bool t10, bool t11, bool t12, bool t13, bool t14, bool t15, bool t16)
         {
-            if (t2) _tables[1].Type = SelectTableInfoType.Parent; if (t3) _tables[2].Type = SelectTableInfoType.Parent; if (t4) _tables[3].Type = SelectTableInfoType.Parent; if (t5) _tables[4].Type = SelectTableInfoType.Parent; if (t6) _tables[5].Type = SelectTableInfoType.Parent; if (t7) _tables[6].Type = SelectTableInfoType.Parent; if (t8) _tables[7].Type = SelectTableInfoType.Parent; if (t9) _tables[8].Type = SelectTableInfoType.Parent; if (t10) _tables[9].Type = SelectTableInfoType.Parent; if (t11) _tables[10].Type = SelectTableInfoType.Parent; if (t12) _tables[11].Type = SelectTableInfoType.Parent; if (t13) _tables[12].Type = SelectTableInfoType.Parent; if (t14) _tables[13].Type = SelectTableInfoType.Parent; if (t15) _tables[14].Type = SelectTableInfoType.Parent; if (t16) _tables[15].Type = SelectTableInfoType.Parent; return this;
+            if (t2) _tables[1].Type = SelectTableInfoType.Parent;
+            if (t3) _tables[2].Type = SelectTableInfoType.Parent;
+            if (t4) _tables[3].Type = SelectTableInfoType.Parent;
+            if (t5) _tables[4].Type = SelectTableInfoType.Parent;
+            if (t6) _tables[5].Type = SelectTableInfoType.Parent;
+            if (t7) _tables[6].Type = SelectTableInfoType.Parent;
+            if (t8) _tables[7].Type = SelectTableInfoType.Parent;
+            if (t9) _tables[8].Type = SelectTableInfoType.Parent;
+            if (t10) _tables[9].Type = SelectTableInfoType.Parent;
+            if (t11) _tables[10].Type = SelectTableInfoType.Parent;
+            if (t12) _tables[11].Type = SelectTableInfoType.Parent;
+            if (t13) _tables[12].Type = SelectTableInfoType.Parent;
+            if (t14) _tables[13].Type = SelectTableInfoType.Parent;
+            if (t15) _tables[14].Type = SelectTableInfoType.Parent;
+            if (t16) _tables[15].Type = SelectTableInfoType.Parent;
+            return this;
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, string sqlT16, object parms)
@@ -7861,7 +7981,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
 
 #if ns21
-        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16, TReturn>> select, int size)
+        public IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, int size)
         {
             for (var a = 0; a < select?.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToChunkAsyncEnumerable<TReturn>(select?.Body, size);

@@ -75,7 +75,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         
-        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WithoutJoin(<#=string.Join(",",WithSql.Skip(1)).Replace("string sqlT", "bool t").Replace(",bool t", " = false, bool t")#> = false)
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WithoutJoin(<#=string.Join(",",WithSql.Skip(1)).Replace("string sqlT", "bool t")#>)
         {
             <#
     for (int paramIndex = 0; paramIndex < WithSql.Skip(1).Count(); paramIndex++)
