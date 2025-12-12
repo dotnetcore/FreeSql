@@ -74,6 +74,18 @@ namespace FreeSql.Internal.CommonProvider
             <#=_tables.ToString() #>
         }
 
+        
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WithoutJoin(<#=string.Join(",",WithSql.Skip(1)).Replace("string sqlT", "bool t").Replace(",bool t", " = false, bool t")#> = false)
+        {
+            <#
+    for (int paramIndex = 0; paramIndex < WithSql.Skip(1).Count(); paramIndex++)
+    {
+        string paramName = "t" + (paramIndex + 2);
+#>
+            if (<#=paramName#>) _tables[<#=(paramIndex+1)#>].Type = SelectTableInfoType.Parent;<# } #>
+            return this;
+        }
+
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WithSql(<#=string.Join(",", WithSql) #>, object parms)
         {
             this.AsTable((type, old) =>

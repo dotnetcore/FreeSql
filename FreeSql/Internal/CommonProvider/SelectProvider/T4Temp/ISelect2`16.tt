@@ -125,7 +125,8 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
         ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
         ISelect<<#=NewStr #>> OrderByIf<TMember>(bool condition, Expression<Func<<#=NewStr #>, TMember>> column, bool descending = false);
-
+        
+        ISelect<<#=NewStr #>> WithoutJoin(<#=string.Join(",",WithSql.Skip(1)).Replace("string sqlT", "bool t").Replace(",bool t", " = false, bool t")#> = false);
         ISelect<<#=NewStr #>> WithSql(<#=string.Join(",",WithSql)#>, object parms = null);
         ISelect<<#=NewStr #>> As(<#=string.Join(",",WithSql).Replace("string sqlT", "string aliasT")#>);
 

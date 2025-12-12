@@ -52,7 +52,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, bool>> exp);
@@ -89,6 +89,7 @@ namespace FreeSql
         ISelect<T1, T2> OrderByDescending<TMember>(Expression<Func<T1, T2, TMember>> column);
         ISelect<T1, T2> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2> WithoutJoin(bool t2 = false);
         ISelect<T1, T2> WithSql(string sqlT1, string sqlT2, object parms = null);
         ISelect<T1, T2> As(string aliasT1, string aliasT2);
 
@@ -179,7 +180,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, bool>> exp);
@@ -216,6 +217,7 @@ namespace FreeSql
         ISelect<T1, T2, T3> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, TMember>> column);
         ISelect<T1, T2, T3> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3> WithoutJoin(bool t2 = false, bool t3 = false);
         ISelect<T1, T2, T3> WithSql(string sqlT1, string sqlT2, string sqlT3, object parms = null);
         ISelect<T1, T2, T3> As(string aliasT1, string aliasT2, string aliasT3);
 
@@ -306,7 +308,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, bool>> exp);
@@ -343,6 +345,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, TMember>> column);
         ISelect<T1, T2, T3, T4> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false);
         ISelect<T1, T2, T3, T4> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, object parms = null);
         ISelect<T1, T2, T3, T4> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4);
 
@@ -433,7 +436,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, bool>> exp);
@@ -470,6 +473,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column);
         ISelect<T1, T2, T3, T4, T5> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false);
         ISelect<T1, T2, T3, T4, T5> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, object parms = null);
         ISelect<T1, T2, T3, T4, T5> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5);
 
@@ -560,7 +564,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
@@ -597,6 +601,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false);
         ISelect<T1, T2, T3, T4, T5, T6> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6);
 
@@ -687,7 +692,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp);
@@ -724,6 +729,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7);
 
@@ -814,7 +820,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> exp);
@@ -851,6 +857,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8);
 
@@ -941,7 +948,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp);
@@ -978,6 +985,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9);
 
@@ -1068,7 +1076,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> exp);
@@ -1105,6 +1113,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10);
 
@@ -1195,7 +1204,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, bool>> exp);
@@ -1232,6 +1241,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11);
 
@@ -1322,7 +1332,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp);
@@ -1359,6 +1369,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12);
 
@@ -1449,7 +1460,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, bool>> exp);
@@ -1486,6 +1497,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13);
 
@@ -1576,7 +1588,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, bool>> exp);
@@ -1613,6 +1625,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14);
 
@@ -1703,7 +1716,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, bool>> exp);
@@ -1740,6 +1753,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false, bool t15 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15);
 
@@ -1830,7 +1844,7 @@ namespace FreeSql
 #endif
 
 #if ns21
-        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, int size);
+        IAsyncEnumerable<List<TReturn>> ToChunkAsyncEnumerable<TReturn>(Expression<Func<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16, TReturn>> select, int size);
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, bool>> exp);
@@ -1867,6 +1881,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column, bool descending = false);
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> WithoutJoin(bool t2 = false, bool t3 = false, bool t4 = false, bool t5 = false, bool t6 = false, bool t7 = false, bool t8 = false, bool t9 = false, bool t10 = false, bool t11 = false, bool t12 = false, bool t13 = false, bool t14 = false, bool t15 = false, bool t16 = false);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, string sqlT11, string sqlT12, string sqlT13, string sqlT14, string sqlT15, string sqlT16, object parms = null);
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> As(string aliasT1, string aliasT2, string aliasT3, string aliasT4, string aliasT5, string aliasT6, string aliasT7, string aliasT8, string aliasT9, string aliasT10, string aliasT11, string aliasT12, string aliasT13, string aliasT14, string aliasT15, string aliasT16);
 
