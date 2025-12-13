@@ -41,7 +41,7 @@ namespace FreeSql.Custom
                 throw new NotImplementedException(CoreErrorStrings.S_NotImplementSkipOffset("Custom"));
 
                 sb.Append(" \r\nFROM ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent && a.Type != SelectTableInfoType.WithoutJoin).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
@@ -81,6 +81,7 @@ namespace FreeSql.Custom
                     {
                         case SelectTableInfoType.Parent:
                         case SelectTableInfoType.RawJoin:
+                        case SelectTableInfoType.WithoutJoin:
                             continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");

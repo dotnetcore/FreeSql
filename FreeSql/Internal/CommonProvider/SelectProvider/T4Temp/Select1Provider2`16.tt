@@ -82,7 +82,8 @@ namespace FreeSql.Internal.CommonProvider
     {
         string paramName = "t" + (paramIndex + 2);
 #>
-            if (<#=paramName#>) _tables[<#=(paramIndex+1)#>].Type = SelectTableInfoType.Parent;<# } #>
+            if (<#=paramName#>) _tables[<#=(paramIndex+1)#>].Type = SelectTableInfoType.WithoutJoin;
+<# } #>
             return this;
         }
 
