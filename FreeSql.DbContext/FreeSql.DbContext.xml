@@ -596,6 +596,12 @@
             <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.ExternalUnitOfWork">
+            <summary>
+            外部事务适配的工作单元
+            <para>用于适配第三方事务（如 EFCore、ADO.NET 原生事务）给 FreeSql 使用</para>
+            </summary>
+        </member>
         <member name="T:FreeSql.IUnitOfWork">
             <summary>
             工作单元
@@ -786,6 +792,23 @@
             创建基于工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql,System.Data.Common.DbTransaction)">
+            <summary>
+            创建基于外部事务的工作单元
+            <para>注意：该工作单元 Commit/Dispose 时不会关闭传入的 transaction，请自行管理 transaction 生命周期</para>
+            </summary>
+            <param name="fsql"></param>
+            <param name="transaction">外部传入的 DbTransaction</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
