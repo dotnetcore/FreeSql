@@ -81,3 +81,23 @@ public class IdentityTable
     [JsonProperty, Column(DbType = "datetime")]
     public DateTime? create_time { get; set; }
 }
+
+[Table(Name = "Order1_1")]
+public class Order1
+{
+    [Column(IsIdentity = true, IsPrimary = true)]
+    public int id { get; set; }
+
+    public string name { get; set; }
+
+    public decimal price { get; set; }
+
+    [Column(MapType = typeof(int))]
+    public OrderStatus status { get; set; }
+    public enum OrderStatus
+    {
+        Pending = 0,
+        Completed = 1,
+        Cancelled = 2
+    }
+}

@@ -448,6 +448,7 @@ namespace FreeSql.Internal
                     if (initExp.Bindings?.Count > 0)
                     {
                         //指定 dto映射
+                        var dtoTable = _common.CodeFirst.GetTableByEntity(initExp.Type);
                         for (var a = 0; a < initExp.Bindings.Count; a++)
                         {
                             var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
@@ -480,15 +481,25 @@ namespace FreeSql.Internal
                                         }
                                         break;
                                 }
+                            var mapType = initExpArg.Type;
+                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) != null && 
+                                dtoCol.Attribute.IsIgnore != true)
+                                mapType = dtoCol.Attribute.MapType;
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance), //#427 不能使用 BindingFlags.IgnoreCase
                                 CsName = initExp.Bindings[a].Member.Name,
                                 CsType = initExpArg.Type,
-                                MapType = initExpArg.Type
+                                MapType = mapType
                             };
                             if (child.Property == null) child.ReflectionField = initExp.Type.GetField(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance);
                             parent.Childs.Add(child);
+                            if (child.CsType != mapType && initExpArg.CanDynamicInvoke())
+                            {
+                                var val = Expression.Lambda(initExpArg).Compile().DynamicInvoke();
+                                var mapTypeVal = Utils.GetDataReaderValue(mapType, val);
+                                initExpArg = Expression.Constant(mapTypeVal, mapType);
+                            }
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }

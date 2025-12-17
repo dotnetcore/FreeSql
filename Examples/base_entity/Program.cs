@@ -564,7 +564,7 @@ namespace base_entity
 
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(true)
+                //.UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 //.UseNameConvert(NameConvertType.ToLower)
                 .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
@@ -579,7 +579,7 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
                 //.UseQuoteSqlName(false)
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;min pool size=1;Max pool size=3;AllowLoadLocalInfile=true")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
                 //.UseAdoConnectionPool(false)
@@ -620,6 +620,14 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var orderStatusValue = Order1.OrderStatus.Cancelled;
+            fsql.Select<Order1>().Where(a => a.status == Order1.OrderStatus.Completed).InsertInto(null, a => new Order1
+            {
+                name = a.name,
+                price = a.price,
+                 status = Order1.OrderStatus.Cancelled
+            });
 
             var skdkdk1 = fsql.Select<User1>().LimitBy(a => a.Sort, 1).ToSql();
 
