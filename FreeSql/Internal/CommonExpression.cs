@@ -482,7 +482,7 @@ namespace FreeSql.Internal
                                         break;
                                 }
                             var mapType = initExpArg.Type;
-                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) != null && 
+                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) == true && 
                                 dtoCol.Attribute.IsIgnore != true)
                                 mapType = dtoCol.Attribute.MapType;
                             var child = new ReadAnonymousTypeInfo
