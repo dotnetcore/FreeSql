@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
@@ -81,7 +82,7 @@ namespace FreeSql.Internal.ObjectPool
         /// 从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
         /// </summary>
         /// <param name="obj">资源对象</param>
-        Task OnGetAsync(Object<T> obj);
+        Task OnGetAsync(Object<T> obj, CancellationToken cancellationToken);
 #endif
 
         /// <summary>

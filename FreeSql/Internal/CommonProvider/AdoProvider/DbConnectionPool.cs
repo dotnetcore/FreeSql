@@ -69,11 +69,11 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        async public Task<Object<DbConnection>> GetAsync()
+        async public Task<Object<DbConnection>> GetAsync(CancellationToken cancellationToken)
         {
             var conn = _connectionFactory();
             if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
+                await conn.OpenAsync(cancellationToken);
             return Object<DbConnection>.InitWith(this, Interlocked.Increment(ref _id), conn);
         }
 #endif
@@ -128,11 +128,11 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        async public Task<Object<DbConnection>> GetAsync()
+        async public Task<Object<DbConnection>> GetAsync(CancellationToken cancellationToken)
         {
             var conn = _connectionFactory();
             if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
+                await conn.OpenAsync(cancellationToken);
             return Object<DbConnection>.InitWith(this, Interlocked.Increment(ref _id), conn);
         }
 #endif
@@ -195,7 +195,7 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        public Task OnGetAsync(Object<DbConnection> obj)
+        public Task OnGetAsync(Object<DbConnection> obj, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
         }

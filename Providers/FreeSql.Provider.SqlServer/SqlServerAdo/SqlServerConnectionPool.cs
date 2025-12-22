@@ -1,7 +1,6 @@
 ﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 #if microsoft
@@ -10,6 +9,7 @@ using Microsoft.Data.SqlClient;
 using System.Data.SqlClient;
 #endif
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.SqlServer
@@ -148,7 +148,7 @@ namespace FreeSql.SqlServer
         }
 #if net40
 #else
-        async public Task OnGetAsync(Object<DbConnection> obj)
+        async public Task OnGetAsync(Object<DbConnection> obj, CancellationToken cancellationToken)
         {
 
             if (_pool.IsAvailable)
@@ -160,11 +160,11 @@ namespace FreeSql.SqlServer
                     throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
                 }
 
-                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
+                if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync(false, cancellationToken)) == false)
                 {
                     try
                     {
-                        await obj.Value.OpenAsync();
+                        await obj.Value.OpenAsync(cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -223,11 +223,11 @@ namespace FreeSql.SqlServer
         }
 #if net40
 #else
-        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
+        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                await PingCommand(that).ExecuteNonQueryAsync();
+                await PingCommand(that).ExecuteNonQueryAsync(cancellationToken);
                 return true;
             }
             catch
