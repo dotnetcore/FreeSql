@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
@@ -37,7 +38,7 @@ namespace FreeSql.Internal.ObjectPool
 
 #if net40
 #else
-        public Task OnGetAsync(Object<T> obj)
+        public Task OnGetAsync(Object<T> obj, CancellationToken cancellationToken)
         {
             OnGetObject?.Invoke(obj);
             return Task.FromResult(true);
