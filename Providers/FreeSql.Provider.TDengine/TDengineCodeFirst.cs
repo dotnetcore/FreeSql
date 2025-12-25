@@ -61,8 +61,8 @@ namespace FreeSql.TDengine
             { typeof(float?).FullName, CsToDb.New(DbType.Single, "FLOAT", "FLOAT", null, true, null) },
             { typeof(double).FullName, CsToDb.New(DbType.Double, "DOUBLE", "DOUBLE", null, false, 0) },
             { typeof(double?).FullName, CsToDb.New(DbType.Double, "DOUBLE", "DOUBLE", null, true, null) },
-            { typeof(decimal).FullName, CsToDb.New(DbType.Single, "DECIMAL", "DECIMAL(36,18)", null, false, 0) },
-            { typeof(decimal?).FullName, CsToDb.New(DbType.Single, "DECIMAL", "DECIMAL(36,18)", null, true, null) },
+            { typeof(decimal).FullName, CsToDb.New(DbType.Decimal, "DECIMAL", "DECIMAL(36,18)", null, false, 0) },
+            { typeof(decimal?).FullName, CsToDb.New(DbType.Decimal, "DECIMAL", "DECIMAL(36,18)", null, true, null) },
             { typeof(string).FullName, CsToDb.New(DbType.String, "NCHAR", "NCHAR(255)", null, false, 0) },
         };
 
