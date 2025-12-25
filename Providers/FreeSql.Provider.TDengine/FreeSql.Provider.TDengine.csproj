@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="TDengine.Connector" Version="3.1.6" />
+	  <PackageReference Include="TDengine.Connector" Version="3.1.9" />
 	</ItemGroup>
 
 
