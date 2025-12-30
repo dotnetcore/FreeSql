@@ -19,7 +19,16 @@ namespace FreeSql
         public DbContextDbSet(DbContext ctx)
         {
             _db = ctx;
-            _uow = ctx.UnitOfWork;
+        }
+
+        internal override IUnitOfWork _uow
+        {
+            get => _db.UnitOfWork;
+            set
+            {
+                if (_db.UnitOfWork != value)
+                    _db.UnitOfWork = value;
+            }
         }
     }
 
