@@ -67,18 +67,18 @@ namespace FreeSql.Internal.CommonProvider
         ~Select0Provider()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
-            _where.Clear();
-            if (_paramsInit == _params) _params.Clear(); //子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
-            _tables.Clear();
-            _tableRules.Clear();
-            _join.Clear();
+            _where?.Clear();
+            if (_paramsInit == _params) _params?.Clear(); //子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
+            _tables?.Clear();
+            _tableRules?.Clear();
+            _join?.Clear();
             _trackToList = null;
-            _includeToList.Clear();
+            _includeToList?.Clear();
 #if net40
 #else
-            _includeToListAsync.Clear();
+            _includeToListAsync?.Clear();
 #endif
-            _includeInfo.Clear();
+            _includeInfo?.Clear();
             _selectExpression = null;
             _whereGlobalFilter?.Clear();
             _cancel = null;
