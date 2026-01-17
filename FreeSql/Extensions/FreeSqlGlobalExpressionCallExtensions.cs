@@ -361,35 +361,106 @@ namespace FreeSql
 			expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]}  IS  NULL";
 			return false;
 		}
-		#endregion
+        #endregion
 
-		#region 时间比较
-		/// <summary>
-		/// 计算两个日期之间的差异
-		/// 时间2 - 时间1
-		/// </summary>
-		/// <param name="datePart"></param>
-		/// <param name="dateTimeOffset1"></param>
-		/// <param name="dateTimeOffset2"></param>
-		public static long DateDiff(string datePart, DateTimeOffset dateTimeOffset1, DateTimeOffset dateTimeOffset2)
+        #region 时间比较
+        private static void InternalDateDiff(string datePart, string arg1Name, string arg2Name)
+        {
+            var up = expContext.Value;
+            var dt1 = up.ParsedContent[arg1Name];
+            var dt2 = up.ParsedContent[arg2Name];
+
+            // 统一处理 datePart：部分数据库需要带单引号，部分不需要
+            // 这里假设传入的 datePart 已经是符合 SQL Server 风格的关键字（如 year, month, day, hour 等）
+            string part = datePart.Trim('\'', '"');
+
+            switch (up.DataType)
+            {
+                case DataType.SqlServer:
+                case DataType.Dameng:
+                case DataType.Xugu:
+                    up.Result = $"DATEDIFF({part}, {dt1}, {dt2})";
+                    break;
+
+                case DataType.MySql:
+                case DataType.OdbcMySql:
+                case DataType.CustomMySql:
+                case DataType.GBase:
+                    up.Result = $"TIMESTAMPDIFF({part.ToUpper()}, {dt1}, {dt2})";
+                    break;
+
+                case DataType.PostgreSQL:
+                case DataType.OdbcPostgreSQL:
+                case DataType.CustomPostgreSQL:
+                case DataType.KingbaseES:
+                case DataType.ShenTong:
+                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                        up.Result = $"(DATE_PART('day', {dt2} - {dt1}))";
+                    else if (part.ToLower() == "second" || part.ToLower() == "s")
+                        up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})))";
+                    else if (part.ToLower() == "minute")
+                        up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})) / 60)";
+                    else if (part.ToLower() == "hour")
+                        up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})) / 3600)";
+                    else if (part.ToLower() == "month")
+                        up.Result = $"(EXTRACT(YEAR FROM AGE({dt2}, {dt1})) * 12 + EXTRACT(MONTH FROM AGE({dt2}, {dt1})))";
+                    else if (part.ToLower() == "year")
+                        up.Result = $"(EXTRACT(YEAR FROM AGE({dt2}, {dt1})))";
+                    else
+                        throw new NotImplementedException($"PostgreSQL 不支持 datePart: {part}");
+                    break;
+
+                case DataType.Oracle:
+                case DataType.OdbcOracle:
+                case DataType.CustomOracle:
+                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                        up.Result = $"TRUNC(CAST({dt2} AS DATE) - CAST({dt1} AS DATE))";
+                    else if (part.ToLower() == "month")
+                        up.Result = $"MONTHS_BETWEEN({dt2}, {dt1})";
+                    else if (part.ToLower() == "year")
+                        up.Result = $"MONTHS_BETWEEN({dt2}, {dt1}) / 12";
+                    else
+                        up.Result = $"(CAST({dt2} AS DATE) - CAST({dt1} AS DATE)) * {(part.ToLower() == "hour" ? 24 : part.ToLower() == "minute" ? 1440 : 86400)}";
+                    break;
+
+                case DataType.Sqlite:
+                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                        up.Result = $"(julianday({dt2}) - julianday({dt1}))";
+                    else if (part.ToLower() == "second")
+                        up.Result = $"(julianday({dt2}) - julianday({dt1})) * 86400.0";
+                    else
+                        up.Result = $"CAST((strftime('%s', {dt2}) - strftime('%s', {dt1})) AS INTEGER)";
+                    break;
+
+                case DataType.ClickHouse:
+                    up.Result = $"dateDiff('{part.ToLower()}', {dt1}, {dt2})";
+                    break;
+                case DataType.DuckDB:
+                    up.Result = $"date_diff('{part.ToLower()}', {dt1}, {dt2})";
+                    break;
+                case DataType.Firebird:
+                    up.Result = $"datediff({part} from {dt1} to {dt2})";
+                    break;
+                case DataType.TDengine:
+                    up.Result = $"timediff({dt2}, {dt1})";
+                    break;
+
+                default:
+                    throw new NotImplementedException($"暂不支持数据库类型: {up.DataType} 的 DateDiff 操作");
+            }
+        }
+        /// <summary>
+        /// 计算两个日期之间的差异
+        /// 时间2 - 时间1
+        /// </summary>
+        /// <param name="datePart"></param>
+        /// <param name="dateTimeOffset1"></param>
+        /// <param name="dateTimeOffset2"></param>
+        public static long DateDiff(string datePart, DateTimeOffset dateTimeOffset1, DateTimeOffset dateTimeOffset2)
 		{
-			var up = expContext.Value;
-
-			// 根据不同数据库类型定义不同的 SQL 语句
-			if (up.DataType == DataType.SqlServer)
-			{
-				up.Result = $"DATEDIFF({datePart}, {up.ParsedContent["dateTimeOffset1"]}, {up.ParsedContent["dateTimeOffset2"]})";
-			}
-			else if (up.DataType == DataType.MySql)
-			{
-				up.Result = $"TIMESTAMPDIFF({datePart}, {up.ParsedContent["dateTimeOffset1"]}, {up.ParsedContent["dateTimeOffset2"]})";
-			}
-			else
-			{
-				throw new NotImplementedException("不支持的数据库类型");
-			}
-			return 0;
-		}
+            InternalDateDiff(datePart, nameof(dateTimeOffset1), nameof(dateTimeOffset2));
+            return 0;
+        }
 		/// <summary>
 		/// 计算两个日期之间的差异
 		/// 时间2 - 时间1
@@ -399,23 +470,9 @@ namespace FreeSql
 		/// <param name="dateTime2">时间2</param>
 		public static long DateDiff(string datePart, DateTime dateTime1, DateTime dateTime2)
 		{
-			var up = expContext.Value;
-
-			// 根据不同数据库类型定义不同的 SQL 语句
-			if (up.DataType == DataType.SqlServer)
-			{
-				up.Result = $"DATEDIFF({datePart}, {up.ParsedContent["dateTimeOffset1"]}, {up.ParsedContent["dateTimeOffset2"]})";
-			}
-			else if (up.DataType == DataType.MySql)
-			{
-				up.Result = $"TIMESTAMPDIFF({datePart}, {up.ParsedContent["dateTimeOffset1"]}, {up.ParsedContent["dateTimeOffset2"]})";
-			}
-			else
-			{
-				throw new NotImplementedException("不支持的数据库类型");
-			}
-			return 0;
-		}
+            InternalDateDiff(datePart, nameof(dateTime1), nameof(dateTime2));
+            return 0;
+        }
         #endregion
 
         /// <summary>
