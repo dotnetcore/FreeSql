@@ -251,6 +251,16 @@
             编号
             </summary>
         </member>
+        <member name="T:FreeSql.Tests.Internal.CommonExpressionTest.IIFTest02Model2">
+            <summary>
+            任务统计日期
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.Internal.CommonExpressionTest.IIFTest03Model">
+            <summary>
+            任务统计日期
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Issues._1092.Test.Name">
             <summary> 
             会员ID
@@ -673,29 +683,6 @@
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
             </summary>
-        </member>
-        <member name="T:FreeSql.Tests.QuestDb.Utils.OrderAttribute">
-            <summary>
-            测试方法的执行顺序
-            </summary>
-        </member>
-        <member name="P:FreeSql.Tests.QuestDb.Utils.OrderAttribute.Sort">
-            <summary>
-            顺序
-            </summary>
-        </member>
-        <member name="T:FreeSql.Tests.QuestDb.Utils.TestOrders">
-            <summary>
-            单元测试的排序策略
-            </summary>
-        </member>
-        <member name="M:FreeSql.Tests.QuestDb.Utils.TestOrders.OrderTestCases``1(System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            执行顺序
-            </summary>
-            <typeparam name="TTestCase"></typeparam>
-            <param name="testCases"></param>
-            <returns></returns>
         </member>
         <member name="P:FreeSql.Tests.SqlServer.SqlServerSelectWithTempQueryTest.Issues1467Class.ResponseDeliverInfoDto.Code">
             <summary>
