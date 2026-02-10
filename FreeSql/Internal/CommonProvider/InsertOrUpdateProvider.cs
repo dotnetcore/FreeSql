@@ -298,7 +298,7 @@ namespace FreeSql.Internal.CommonProvider
                         var valsql = _commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
                         if (didx == 0)//首行需要类型
                         {
-                            if (valsql == "NULL" || col.CsType == typeof(DateTime))//时间类型转换
+                            if (valsql == "NULL" || col.DbTypeText == "TIMESTAMP")//时间类型转换
                             {
                                 var dbtype = _orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
                                 if (!string.IsNullOrWhiteSpace(dbtype))
@@ -319,7 +319,7 @@ namespace FreeSql.Internal.CommonProvider
                                         case DataType.CustomPostgreSQL:
                                         case DataType.KingbaseES:
                                         case DataType.ShenTong:
-                                            valsql = $"{valsql}::{_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype}";
+                                            valsql = $"{valsql}::{dbtype}";
                                             break; // #2047
                                     }
                                 }
