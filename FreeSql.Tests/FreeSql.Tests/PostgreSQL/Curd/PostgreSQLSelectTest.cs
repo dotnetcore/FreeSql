@@ -21,6 +21,7 @@ namespace FreeSql.Tests.PostgreSQL
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
+            public DateTime? UpdateTime { get; set; }
         }
         class TestTypeInfo
         {
@@ -2058,9 +2059,10 @@ WHERE ((((a.""id"")::text) in (SELECT b.""title""
         public void WithMemoryTest()
         {
             var fsql = g.pgsql;
-            var topics = new List<Topic>() { new Topic { Id = 1, CreateTime = new DateTime(1900, 1, 1) } };
+            var topics = new List<Topic>() { new Topic { Id = 1, CreateTime = new DateTime(1900, 1, 1), UpdateTime = new DateTime(1900, 1, 2) } };
             var sql = fsql.Select<Topic>().WithMemory(topics).ToSql();
-            Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" \r\nFROM ( SELECT 1 as \"id\", 0 as \"clicks\", 0 as \"typeguid\", NULL::varchar as \"title\", '1900-01-01 00:00:00.000000'::timestamp as \"createtime\" ) a", sql);
+            Assert.Equal(@"SELECT a.""id"", a.""clicks"", a.""typeguid"", a.""title"", a.""createtime"", a.""updatetime"" 
+FROM ( SELECT 1 as ""id"", 0 as ""clicks"", 0 as ""typeguid"", NULL::varchar as ""title"", '1900-01-01 00:00:00.000000'::timestamp as ""createtime"", '1900-01-02 00:00:00.000000'::timestamp as ""updatetime"" ) a", sql);
         }
 
         [Table(Name = "D_District")]
