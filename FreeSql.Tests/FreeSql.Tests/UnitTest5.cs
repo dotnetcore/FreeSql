@@ -243,7 +243,7 @@ WHERE (`ProductId` = '00000000-0000-0000-0000-000000000000' AND `MerchantId` = '
 FROM ""ts_up_dywhere01"" a", sql);
 
             sql = fsql.Select<ts_up_dywhere01>().Select(a => new { a.status }).Distinct().ToSql();
-            fsql.Select<ts_up_dywhere01>().Select(a => new { a.status }).Distinct().Count(out count);
+            fsql.Select<ts_up_dywhere01>().Select(a => new { a.status }).Distinct().Count(out var lcount);
 
             Assert.Equal(@"SELECT DISTINCT a.""status"" as1 
 FROM ""ts_up_dywhere01"" a", sql);
