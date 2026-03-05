@@ -78,6 +78,12 @@ namespace FreeSql.Firebird
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"mod({left},{right})";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"trunc({left}/{right})";
+        public override string BitAnd(string left, string right) => $"BIN_AND({left},{right})";
+        public override string BitOr(string left, string right) => $"BIN_OR({left},{right})";
+        public override string BitShiftLeft(string left, string right) => $"BIN_SHL({left},{right})";
+        public override string BitShiftRight(string left, string right) => $"BIN_SHR({left},{right})";
+        public override string BitNot(string left) => $"BIN_NOT({left})";
+        public override string BitXor(string left, string right) => $"BIN_XOR({left},{right})";
         public override string Now => "current_timestamp";
         public override string NowUtc => "current_timestamp";
 
