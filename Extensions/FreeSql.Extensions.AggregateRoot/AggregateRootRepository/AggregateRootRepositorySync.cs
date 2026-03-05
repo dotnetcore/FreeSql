@@ -42,7 +42,7 @@ namespace FreeSql
 
                 _statesEditing.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
                 {
-                    AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, item, ov.Value);
+                    AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, item, ov.Value, includeIgnoredColumns: true);
                     ov.Time = DateTime.Now;
                     return ov;
                 });

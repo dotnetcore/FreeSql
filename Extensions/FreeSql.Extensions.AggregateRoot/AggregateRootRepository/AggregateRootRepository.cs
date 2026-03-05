@@ -164,7 +164,7 @@ namespace FreeSql
             if (data == null) throw new ArgumentNullException(nameof(data));
             var key = Orm.GetEntityKeyString(EntityType, data, false);
             var state = new EntityState((TEntity)EntityType.CreateInstanceGetDefaultValue(), key);
-            AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, data, state.Value);
+            AggregateRootUtils.MapEntityValue(_boundaryName, Orm, EntityType, data, state.Value, includeIgnoredColumns: true);
             return state;
         }
         bool? ExistsInStates(object data)

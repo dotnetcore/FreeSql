@@ -355,7 +355,7 @@ namespace FreeSql
             }
         }
 
-        public static void MapEntityValue(string boundaryName, IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo)
+        public static void MapEntityValue(string boundaryName, IFreeSql fsql, Type rootEntityType, object rootEntityFrom, object rootEntityTo, bool includeIgnoredColumns)
         {
             var isDict = rootEntityTo?.GetType() == typeof(Dictionary<string, object>);
             Dictionary<Type, Dictionary<string, bool>> ignores = new Dictionary<Type, Dictionary<string, bool>>();
@@ -378,6 +378,7 @@ namespace FreeSql
                 {
                     if (table.ColumnsByCs.ContainsKey(prop.Name) || table.ColumnsByCsIgnore.ContainsKey(prop.Name))
                     {
+                        if (!includeIgnoredColumns && table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
                         //与 EntityUtilExtensions.MapEntityValue 同步修改规则，Ignore 也需要 Map
                         if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = table.GetPropertyValue(entityFrom, prop.Name);
                         else if (prop.CanWrite) table.SetPropertyValue(entityTo, prop.Name, table.GetPropertyValue(entityFrom, prop.Name));
@@ -401,7 +402,7 @@ namespace FreeSql
                             var propvalTo = isDict ? new Dictionary<string, object>() : tbref.RefEntityType.CreateInstanceGetDefaultValue();
                             SetNavigateRelationshipValue(fsql, tbref, table.Type, entityFrom, propvalFrom);
                             LocalMapEntityValue(tbref.RefEntityType, propvalFrom, propvalTo, boundaryAttr?.BreakThen != true);
-                            if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = null;
+                            if (isDict) (entityTo as Dictionary<string, object>)[prop.Name] = propvalTo;
                             else EntityUtilExtensions.SetEntityValueWithPropertyName(fsql, entityType, entityTo, prop.Name, propvalTo);
                             break;
                         case TableRefType.OneToMany:
