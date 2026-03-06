@@ -803,13 +803,5 @@
             <param name="transaction">外部传入的 DbTransaction</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="assemblies"></param>
-            <returns></returns>
-        </member>
     </members>
 </doc>
