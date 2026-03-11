@@ -97,9 +97,9 @@ namespace FreeSql
             _dbset.Remove(entity);
             return _db.SaveChanges();
         }
-        public virtual int Delete(IEnumerable<TEntity> entitys)
+        public virtual int Delete(IEnumerable<TEntity> entities)
         {
-            _dbset.RemoveRange(entitys);
+            _dbset.RemoveRange(entities);
             return _db.SaveChanges();
         }
         public virtual List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
@@ -115,11 +115,11 @@ namespace FreeSql
             _db.SaveChanges();
             return entity;
         }
-        public virtual List<TEntity> Insert(IEnumerable<TEntity> entitys)
+        public virtual List<TEntity> Insert(IEnumerable<TEntity> entities)
         {
-            _dbset.AddRange(entitys);
+            _dbset.AddRange(entities);
             _db.SaveChanges();
-            return entitys.ToList();
+            return entities.ToList();
         }
 
         public virtual int Update(TEntity entity)
@@ -127,9 +127,9 @@ namespace FreeSql
             _dbset.Update(entity);
             return _db.SaveChanges();
         }
-        public virtual int Update(IEnumerable<TEntity> entitys)
+        public virtual int Update(IEnumerable<TEntity> entities)
         {
-            _dbset.UpdateRange(entitys);
+            _dbset.UpdateRange(entities);
             return _db.SaveChanges();
         }
 
