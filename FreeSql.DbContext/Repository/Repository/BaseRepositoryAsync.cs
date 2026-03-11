@@ -13,9 +13,9 @@ namespace FreeSql
         where TEntity : class
     {
 
-        public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> entities, CancellationToken cancellationToken = default)
+        public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            var delete = _dbset.OrmDeleteInternal(null).Where(entities);
+            var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
             var affrows = await delete.ExecuteAffrowsAsync(cancellationToken);
             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { EntityType = EntityType, Object = sql, Type = DbContext.EntityChangeType.SqlRaw });

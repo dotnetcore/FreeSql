@@ -186,7 +186,7 @@ namespace FreeSql
 
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
-        Task<int> DeleteAsync(Expression<Func<TEntity, bool>> entities, CancellationToken cancellationToken = default);
+        Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
         Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
