@@ -1,7 +1,11 @@
-﻿using System;
-using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace FreeSql.Extensions.LazyLoading
 {
@@ -10,28 +14,80 @@ namespace FreeSql.Extensions.LazyLoading
     {
 
 #if ns20
-        //public static Assembly CompileCode(string cscode)
-        //{
-        //    Natasha.AssemblyComplier complier = new Natasha.AssemblyComplier();
-        //    //complier.Domain = DomainManagment.Random;
-        //    complier.Add(cscode);
-        //    return complier.GetAssembly();
-        //}
+		//public static Assembly CompileCode(string cscode)
+		//{
+		//    Natasha.AssemblyComplier complier = new Natasha.AssemblyComplier();
+		//    //complier.Domain = DomainManagment.Random;
+		//    complier.Add(cscode);
+		//    return complier.GetAssembly();
+		//}
 
-        internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
-        {
-            var compiler = new CSScriptLib.RoslynEvaluator();
-            compiler.DisableReferencingFromCode = false;
-            compiler
-                .ReferenceAssemblyOf<IFreeSql>()
-                .ReferenceDomainAssemblies();
-            return compiler;
-        });
+		/*2026-3-13：应用单文件发布模式，导航功能报错。
+		internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
+		{
+			var compiler = new CSScriptLib.RoslynEvaluator();
+			compiler.DisableReferencingFromCode = false;
+			compiler
+				.ReferenceAssemblyOf<IFreeSql>()
+				.ReferenceDomainAssemblies();
+			return compiler;
+		});
 
-        public static Assembly CompileCode(string cscode)
-        {
-            return _compiler.Value.CompileCode(cscode);
-        }
+		public static Assembly CompileCode(string cscode)
+		{
+			return _compiler.Value.CompileCode(cscode);
+		}
+		*/
+
+		//2026-3-13：删除CS-Script.Core库，改用官方的库 Microsoft.CodeAnalysis.CSharp。
+		private static readonly HashSet<MetadataReference> references = new();
+		static LazyLoadingComplier()
+		{
+			foreach (var eve in AppDomain.CurrentDomain.GetAssemblies().AsParallel())
+			{
+				var ass = CreateMetadataReference(eve);
+				if (ass != null)
+					references.Add(ass);
+			}
+			references.Add(CreateMetadataReference(typeof(String).Assembly));
+			references.Add(CreateMetadataReference(Assembly.GetEntryAssembly()));
+			references.Add(CreateMetadataReference(Assembly.GetCallingAssembly()));
+			references.Add(CreateMetadataReference(Assembly.GetExecutingAssembly()));
+			references.Add(CreateMetadataReference(typeof(FreeSql.FreeSqlBuilder).Assembly));
+		}
+		public static Assembly CompileCode(string cscode)
+		{
+			var tree = CSharpSyntaxTree.ParseText(cscode);
+			using var ms = new MemoryStream();
+			var result = CSharpCompilation.Create("DynamicAssembly")
+				.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, reportSuppressedDiagnostics: false))
+				.AddReferences(references)
+				.AddSyntaxTrees(tree).Emit(ms);
+			if (result.Success)
+			{
+				return Assembly.Load(ms.ToArray());
+			}
+			else
+			{
+				throw new Exception(string.Join(Environment.NewLine, from eve in result.Diagnostics select eve.ToString()));
+			}
+		}
+		public static MetadataReference CreateMetadataReference(Assembly assembly)
+		{
+			if (!string.IsNullOrEmpty(assembly.Location))
+				return MetadataReference.CreateFromFile(assembly.Location);
+
+			unsafe
+			{   // 纯内存 Assembly（.NET 5+）
+				if (assembly.TryGetRawMetadata(out byte* blob, out int length))
+				{
+					var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)blob, length);
+					return AssemblyMetadata.Create(moduleMetadata).GetReference();
+				}
+			}
+			return null;
+		}
+
 #else
 
         public static Assembly CompileCode(string cscode)
