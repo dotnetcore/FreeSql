@@ -197,7 +197,7 @@ public static partial class FreeSqlGlobalExtensions
     static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
     public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>
     {
-        var props = that.GetProperties().GroupBy(p => p.DeclaringType).Reverse().SelectMany(p => p); //将基类的属性位置放在前面 #164
+        var props = that.GetProperties(BindingFlags.Instance | BindingFlags.Public).GroupBy(p => p.DeclaringType).Reverse().SelectMany(p => p); //将基类的属性位置放在前面 #164
         var dict = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
         foreach (var prop in props)
         {

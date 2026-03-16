@@ -23,31 +23,33 @@ namespace FreeSql.Extensions.LazyLoading
 		//    return complier.GetAssembly();
 		//}
 
-		/* 于2026-03-12注释：会导致单文件发布时，导航功能报错。
-        internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
-        {
-            var compiler = new CSScriptLib.RoslynEvaluator();
-            compiler.DisableReferencingFromCode = false;
-            compiler
-                .ReferenceAssemblyOf<IFreeSql>()
-                .ReferenceDomainAssemblies();
-            return compiler;
-        });
+		/*2026-3-13：应用单文件发布模式，导航功能报错。
+		internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
+		{
+			var compiler = new CSScriptLib.RoslynEvaluator();
+			compiler.DisableReferencingFromCode = false;
+			compiler
+				.ReferenceAssemblyOf<IFreeSql>()
+				.ReferenceDomainAssemblies();
+			return compiler;
+		});
 
-        public static Assembly CompileCode(string cscode)
-        {
-            return _compiler.Value.CompileCode(cscode);
-        }
-        */
-		/*
-         * 于2026-03-12：删除CS-Script.Core库，改用官方的库 Microsoft.CodeAnalysis.CSharp。
-         */
-		private static readonly HashSet<MetadataReference> references = new HashSet<MetadataReference>(from eve in AppDomain.CurrentDomain.GetAssemblies().AsParallel()
-																									   let ass = CreateMetadataReference(eve)
-																									   where ass != null
-																									   select ass);
+		public static Assembly CompileCode(string cscode)
+		{
+			return _compiler.Value.CompileCode(cscode);
+		}
+		*/
+
+		//2026-3-13：删除CS-Script.Core库，改用官方的库 Microsoft.CodeAnalysis.CSharp。
+		private static readonly HashSet<MetadataReference> references = new();
 		static LazyLoadingComplier()
 		{
+			foreach (var eve in AppDomain.CurrentDomain.GetAssemblies().AsParallel())
+			{
+				var ass = CreateMetadataReference(eve);
+				if (ass != null)
+					references.Add(ass);
+			}
 			references.Add(CreateMetadataReference(typeof(String).Assembly));
 			references.Add(CreateMetadataReference(Assembly.GetEntryAssembly()));
 			references.Add(CreateMetadataReference(Assembly.GetCallingAssembly()));
@@ -57,20 +59,18 @@ namespace FreeSql.Extensions.LazyLoading
 		public static Assembly CompileCode(string cscode)
 		{
 			var tree = CSharpSyntaxTree.ParseText(cscode);
-			using (var ms = new MemoryStream())
+			using var ms = new MemoryStream();
+			var result = CSharpCompilation.Create("DynamicAssembly")
+				.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, reportSuppressedDiagnostics: false))
+				.AddReferences(references)
+				.AddSyntaxTrees(tree).Emit(ms);
+			if (result.Success)
 			{
-				var result = CSharpCompilation.Create("DynamicAssembly")
-					.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, reportSuppressedDiagnostics: false))
-					.AddReferences(references)
-					.AddSyntaxTrees(tree).Emit(ms);
-				if (result.Success)
-				{
-					return Assembly.Load(ms.ToArray());
-				}
-				else
-				{
-					throw new Exception(string.Join(Environment.NewLine, from eve in result.Diagnostics select eve.ToString()));
-				}
+				return Assembly.Load(ms.ToArray());
+			}
+			else
+			{
+				throw new Exception(string.Join(Environment.NewLine, from eve in result.Diagnostics select eve.ToString()));
 			}
 		}
 		public static MetadataReference CreateMetadataReference(Assembly assembly)
@@ -88,6 +88,7 @@ namespace FreeSql.Extensions.LazyLoading
 			}
 			return null;
 		}
+
 #else
 
         public static Assembly CompileCode(string cscode)
