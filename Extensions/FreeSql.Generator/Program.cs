@@ -11,25 +11,25 @@ namespace FreeSql.Generator
     {
         static void Main(string[] args)
         {
-            if (args != null && args.Length == 0) args = new[] { "?" };
-            
-            // 根据系统语言自动检测
             var culture = CultureInfo.CurrentUICulture.Name.ToLower();
             CoreErrorStrings.Language = (culture.StartsWith("zh") || culture.StartsWith("cn")) ? "cn" : "en";
-            
-            // 处理 -Lang 参数（覆盖系统语言）
-            for (int i = 0; i < args.Length; i++)
+
+            if (args != null && args.Length > 0)
             {
-                if (args[i].Trim().ToLower() == "-lang" && i + 1 < args.Length)
+                var argList = args.ToList();
+                var langIndex = argList.FindIndex(arg => string.Equals(arg, "-lang", StringComparison.OrdinalIgnoreCase));
+                if (langIndex >= 0 && langIndex + 1 < argList.Count)
                 {
-                    var lang = args[i + 1].Trim().ToLower();
+                    var lang = argList[langIndex + 1].Trim().ToLower();
                     CoreErrorStrings.Language = (lang == "cn" || lang == "zh" || lang == "chinese") ? "cn" : "en";
-                    // 移除语言参数
-                    args = args.Where((val, idx) => idx != i && idx != i + 1).ToArray();
-                    break;
+                    argList.RemoveAt(langIndex);
+                    argList.RemoveAt(langIndex);
+                    args = argList.ToArray();
                 }
             }
-            
+
+            if (args != null && args.Length == 0) args = new[] { "?" };
+
             ManualResetEvent wait = new ManualResetEvent(false);
             new Thread(() => {
                 Thread.CurrentThread.Join(TimeSpan.FromSeconds(1));

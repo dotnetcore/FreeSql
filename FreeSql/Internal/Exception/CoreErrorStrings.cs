@@ -15,7 +15,6 @@ namespace FreeSql
 
         static CoreErrorStrings()
         {
-            // 根据系统语言自动检测
             var culture = CultureInfo.CurrentUICulture.Name.ToLower();
             Language = (culture.StartsWith("zh") || culture.StartsWith("cn")) ? "cn" : "en";
         }

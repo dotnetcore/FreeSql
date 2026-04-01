@@ -95,10 +95,10 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      -Razor ""d:\diy.cshtml""    * {ConsoleAppStrings.CustomTemplateFile}
 
      -NameOptions              * {ConsoleAppStrings.NameOptionsDescription}
-                                  {ConsoleAppStrings.FirstLetterUppercase}
-                                  {ConsoleAppStrings.FirstLetterUppercaseOthersLowercase}
-                                  {ConsoleAppStrings.AllLowercase}
-                                  {ConsoleAppStrings.UnderscoreToCamelCase}
+                                 {ConsoleAppStrings.FirstLetterUppercase}
+                                 {ConsoleAppStrings.FirstLetterUppercaseOthersLowercase}
+                                 {ConsoleAppStrings.AllLowercase}
+                                 {ConsoleAppStrings.UnderscoreToCamelCase}
 
      -NameSpace                * {ConsoleAppStrings.NameSpace}
 
