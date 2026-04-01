@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,15 @@ namespace FreeSql
 {
     public static class DbContextErrorStrings
     {
-        public static string Language = "en";
+        public static string Language;
+
+        static DbContextErrorStrings()
+        {
+            // 根据系统语言自动检测
+            var culture = CultureInfo.CurrentUICulture.Name.ToLower();
+            Language = (culture.StartsWith("zh") || culture.StartsWith("cn")) ? "cn" : "en";
+        }
+
         /// <summary>
         /// AddFreeDbContext 发生错误，请检查 {dbContextTypeName} 的构造参数都已正确注入
         /// </summary>

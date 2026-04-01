@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -10,7 +11,15 @@ namespace FreeSql
 {
     public static class CoreErrorStrings
     {
-        public static string Language = "en";
+        public static string Language;
+
+        static CoreErrorStrings()
+        {
+            // 根据系统语言自动检测
+            var culture = CultureInfo.CurrentUICulture.Name.ToLower();
+            Language = (culture.StartsWith("zh") || culture.StartsWith("cn")) ? "cn" : "en";
+        }
+
         /// <summary>
         /// [Table(AsTable = "{asTable}")] 特性值格式错误
         /// </summary>
