@@ -536,6 +536,32 @@
             GlobalFilter 禁用/启用控制
             </summary>
         </member>
+        <member name="P:FreeSql.IBaseRepository`1.Select">
+            <summary>
+            查询数据
+            </summary>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            筛选数据
+            </summary>
+            <param name="exp">Lambda 筛选表达式</param>
+            <returns>筛选后的查询对象</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Insert(`0)">
+            <summary>
+            插入实体
+            </summary>
+            <param name="entity">需要插入的实体对象</param>
+            <returns>插入后的实体对象</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Insert(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            批量插入实体
+            </summary>
+            <param name="entities">需要插入的实体对象集合</param>
+            <returns>插入后的实体对象集合</returns>
+        </member>
         <member name="M:FreeSql.IBaseRepository`1.FlushState">
             <summary>
             清空状态数据
@@ -559,6 +585,53 @@
             </summary>
             <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
             <returns>key: 属性名, value: [旧值, 新值]</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Update(`0)">
+            <summary>
+            更新实体
+            </summary>
+            <param name="entity">需要更新的实体对象</param>
+            <returns>返回受影响的行数</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Update(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            更新实体集合
+            </summary>
+            <param name="entities">需要更新的实体对象集合</param>
+            <returns>返回受影响的行数</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.InsertOrUpdate(`0)">
+            <summary>
+            更新实体，不存在则插入
+            </summary>
+            <param name="entity">需要插入或更新的实体对象</param>
+            <returns>受影响的行数</returns>
+        </member>
+        <member name="P:FreeSql.IBaseRepository`1.UpdateDiy">
+            <summary>
+            DIY 方式更新
+            </summary>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Delete(`0)">
+            <summary>
+            根据主键删除实体
+            </summary>
+            <param name="entity">需要删除的实体</param>
+            <returns>受影响的行数</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Delete(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            批量删除实体，一样是根据主键删除
+            </summary>
+            <param name="entities">需要删除的实体对象集合</param>
+            <returns>受影响的行数</returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.Delete(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据 Lambda 表达式删除实体
+            </summary>
+            <param name="predicate">Lambda 表达式，用于筛选需要删除的实体</param>
+            <returns>受影响的行数</returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.DeleteCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
@@ -801,6 +874,14 @@
             </summary>
             <param name="fsql"></param>
             <param name="transaction">外部传入的 DbTransaction</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
