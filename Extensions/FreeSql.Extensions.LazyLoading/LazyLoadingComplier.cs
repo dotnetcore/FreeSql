@@ -1,12 +1,15 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+#if ns20
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection.Metadata;
+#endif
 
 namespace FreeSql.Extensions.LazyLoading
 {
@@ -41,7 +44,7 @@ namespace FreeSql.Extensions.LazyLoading
 		*/
 
 		//2026-3-13：删除CS-Script.Core库，改用官方的库 Microsoft.CodeAnalysis.CSharp。
-		private static readonly HashSet<MetadataReference> references = new();
+		private static readonly HashSet<MetadataReference> references = new HashSet<MetadataReference>();
 		static LazyLoadingComplier()
 		{
 			foreach (var eve in AppDomain.CurrentDomain.GetAssemblies().AsParallel())
@@ -59,18 +62,20 @@ namespace FreeSql.Extensions.LazyLoading
 		public static Assembly CompileCode(string cscode)
 		{
 			var tree = CSharpSyntaxTree.ParseText(cscode);
-			using var ms = new MemoryStream();
-			var result = CSharpCompilation.Create("DynamicAssembly")
-				.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, reportSuppressedDiagnostics: false))
-				.AddReferences(references)
-				.AddSyntaxTrees(tree).Emit(ms);
-			if (result.Success)
+			using (var ms = new MemoryStream())
 			{
-				return Assembly.Load(ms.ToArray());
-			}
-			else
-			{
-				throw new Exception(string.Join(Environment.NewLine, from eve in result.Diagnostics select eve.ToString()));
+				var result = CSharpCompilation.Create("DynamicAssembly")
+					.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, reportSuppressedDiagnostics: false))
+					.AddReferences(references)
+					.AddSyntaxTrees(tree).Emit(ms);
+				if (result.Success)
+				{
+					return Assembly.Load(ms.ToArray());
+				}
+				else
+				{
+					throw new Exception(string.Join(Environment.NewLine, from eve in result.Diagnostics select eve.ToString()));
+				}
 			}
 		}
 		public static MetadataReference CreateMetadataReference(Assembly assembly)
