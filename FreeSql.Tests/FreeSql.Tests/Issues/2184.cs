@@ -98,7 +98,7 @@ namespace FreeSql.Tests.Issues
                 var res = $"ID: {u.Id}, WorkDuration: {u.WorkDuration}";
                 if (u.Id == 2)
                 {
-                    Xunit.Assert.Equal("ID: 2, WorkDuration: 7.5", res);
+                    Xunit.Assert.Equal("ID: 2, WorkDuration: 7,5", res);
                 }
             }
 
@@ -116,7 +116,7 @@ namespace FreeSql.Tests.Issues
                 var res = $"UserID: {record.UserId},  WorkDuration: {record.WorkDuration}";
                 if (record.UserId == 2)
                 {
-                    Xunit.Assert.Equal("UserID: 2,  WorkDuration: 7.5", res);
+                    Xunit.Assert.Equal("UserID: 2,  WorkDuration: 7,5", res);
                 }
             }
         }
