@@ -2663,7 +2663,7 @@ namespace FreeSql.Internal
                               new[] { tryparseVarExp = Expression.Variable(typeof(float)) },
                                new Expression[] {
                                 Expression.IfThenElse(
-                                    Expression.IsTrue(Expression.Call(MethodFloatTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(null, typeof(IFormatProvider)), tryparseVarExp)),
+                                    Expression.IsTrue(Expression.Call(MethodFloatTryParse, Expression.Convert(valueExp, typeof(string)), Expression.Constant(System.Globalization.NumberStyles.Any), Expression.Constant(CultureInfo.InvariantCulture, typeof(IFormatProvider)), tryparseVarExp)),
                                     Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
                                     Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
                                 )
