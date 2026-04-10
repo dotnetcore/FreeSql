@@ -282,29 +282,26 @@ namespace FreeSql.Internal.CommonProvider
                     InsideField = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
                     InsideAf = new ReadAnonymousTypeAfInfo(InsideMap, "*");
                     field.Clear();
-                    if (InsideMap.Childs.Where(a => a.Childs.Count > 1).Count() > 1)
+                    var childs = InsideMap.GetAllChilds();
+                    var duplicateNames = childs.GroupBy(a => a.DbNestedField).Where(a => a.Count() > 1).ToList();
+                    if (duplicateNames.Count > 0)
                     {
-                        var childs = InsideMap.GetAllChilds();
-                        var duplicateNames = childs.GroupBy(a => a.DbNestedField).Where(a => a.Count() > 1).ToList();
-                        if (duplicateNames.Count > 0)
+                        foreach (var duplicateName in duplicateNames)
                         {
-                            foreach (var duplicateName in duplicateNames)
+                            var dupmapIdx = 0;
+                            foreach (var dupmap in duplicateName)
                             {
-                                var dupmapIdx = 0;
-                                foreach (var dupmap in duplicateName)
-                                {
-                                    if (++dupmapIdx == 1) continue;
-                                    var newfield = insideSelect._commonUtils.TrimQuoteSqlName(dupmap.DbNestedField);
-                                    while (InsideField.Contains($"{newfield}{dupmapIdx}"))
-                                        ++dupmapIdx;
-                                    dupmap.DbNestedField = insideSelect._commonUtils.QuoteSqlName($"{newfield}{dupmapIdx}");
-                                }
+                                if (++dupmapIdx == 1) continue;
+                                var newfield = insideSelect._commonUtils.TrimQuoteSqlName(dupmap.DbNestedField);
+                                while (InsideField.Contains($"{newfield}{dupmapIdx}"))
+                                    ++dupmapIdx;
+                                dupmap.DbNestedField = insideSelect._commonUtils.QuoteSqlName($"{newfield}{dupmapIdx}");
                             }
-                            foreach (var child in childs)
-                                field.Append(", ").Append(child.DbField).Append(InsideSelect._commonExpression.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : InsideSelect._commonUtils.FieldAsAlias(child.DbNestedField));
-                            InsideField = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
-                            field.Clear();
                         }
+                        foreach (var child in childs)
+                            field.Append(", ").Append(child.DbField).Append(InsideSelect._commonExpression.EndsWithDbNestedField(child.DbField, child.DbNestedField) ? "" : InsideSelect._commonUtils.FieldAsAlias(child.DbNestedField));
+                        InsideField = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+                        field.Clear();
                     }
                 }
             }
