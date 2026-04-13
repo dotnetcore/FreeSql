@@ -172,6 +172,7 @@ namespace FreeSql
             }
             finally
             {
+                Enable = false;
                 _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_uowBefore, "释放", null));
                 GC.SuppressFinalize(this);
             }
