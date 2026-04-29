@@ -129,12 +129,14 @@ namespace FreeSql.SonnetDB.Curd
 
         static string RemoveTableAliases(string sql, List<SelectTableInfo> tables)
         {
+            const string quotedIdentifierPattern = "\"(?:[^\"]|\"\")*\"";
+            const string tableNamePattern = "(?:" + quotedIdentifierPattern + "(?:\\." + quotedIdentifierPattern + ")*|\\w+(?:\\.\\w+)*)";
             foreach (var alias in tables.Select(a => a.Alias).Where(a => string.IsNullOrEmpty(a) == false).Distinct().OrderByDescending(a => a.Length))
             {
                 var escapedAlias = Regex.Escape(alias);
                 sql = Regex.Replace(sql, $@"\b{escapedAlias}\.", "", RegexOptions.IgnoreCase);
-                sql = Regex.Replace(sql, $@"(\bFROM\s+(?:""[^""]+""|\w+))\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
-                sql = Regex.Replace(sql, $@"(\bJOIN\s+(?:""[^""]+""|\w+))\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
+                sql = Regex.Replace(sql, $@"(\bFROM\s+{tableNamePattern})\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
+                sql = Regex.Replace(sql, $@"(\bJOIN\s+{tableNamePattern})\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
             }
             return sql;
         }

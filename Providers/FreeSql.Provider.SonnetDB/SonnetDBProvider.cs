@@ -7,8 +7,13 @@ using System.Threading;
 
 namespace FreeSql.SonnetDB
 {
+    /// <summary>
+    /// FreeSql provider for SonnetDB. SonnetDB's current SQL surface supports INSERT, SELECT and DELETE; UPDATE and UPSERT are not supported.
+    /// </summary>
     public class SonnetDBProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        const string UnsupportedUpdateMessage = "FreeSql.Provider.SonnetDB supports INSERT, SELECT and DELETE. SonnetDB SQL does not support UPDATE or UPSERT.";
+
         public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) =>
             new SonnetDBSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
@@ -16,13 +21,13 @@ namespace FreeSql.SonnetDB
             new SonnetDBInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
         public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) =>
-            throw new NotImplementedException($"FreeSql.Provider.SonnetDB {CoreErrorStrings.S_Not_Implemented_Feature}");
+            throw new NotSupportedException(UnsupportedUpdateMessage);
 
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) =>
             new SonnetDBDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() =>
-            throw new NotImplementedException($"FreeSql.Provider.SonnetDB {CoreErrorStrings.S_Not_Implemented_Feature}");
+            throw new NotSupportedException(UnsupportedUpdateMessage);
 
         public SonnetDBProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {

@@ -35,6 +35,23 @@ public class SonnetDBProviderTests
     }
 
     [Fact]
+    public void Select_ToSql_RemovesAliasFromDottedTableName()
+    {
+        using var fsql = CreateFreeSql();
+
+        var sql = fsql.Select<SonnetMetric>()
+            .AsTable((_, _) => "metrics.sonnet_metric")
+            .Where(a => a.Host == "server-01")
+            .ToSql();
+
+        Assert.Equal(
+            "SELECT time, \"Host\", \"Usage\", \"Ok\" \r\n" +
+            "FROM \"metrics\".\"sonnet_metric\" \r\n" +
+            "WHERE (\"Host\" = 'server-01')",
+            sql);
+    }
+
+    [Fact]
     public void Insert_ToSql_GeneratesSonnetDBSql()
     {
         using var fsql = CreateFreeSql();
@@ -64,13 +81,86 @@ public class SonnetDBProviderTests
         Assert.Equal("DELETE FROM \"sonnet_metric\" WHERE (\"Host\" = 'server-01')", sql);
     }
 
-    static IFreeSql CreateFreeSql()
+    [Fact]
+    public void Update_ThrowsClearNotSupported()
+    {
+        using var fsql = CreateFreeSql();
+
+        var ex = Assert.Throws<NotSupportedException>(() => fsql.Update<SonnetMetric>());
+
+        Assert.Contains("supports INSERT, SELECT and DELETE", ex.Message);
+        Assert.Contains("does not support UPDATE or UPSERT", ex.Message);
+    }
+
+    [Fact]
+    public void InsertOrUpdate_ThrowsClearNotSupported()
+    {
+        using var fsql = CreateFreeSql();
+
+        var ex = Assert.Throws<NotSupportedException>(() => fsql.InsertOrUpdate<SonnetMetric>());
+
+        Assert.Contains("supports INSERT, SELECT and DELETE", ex.Message);
+        Assert.Contains("does not support UPDATE or UPSERT", ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteIdentity_ReportsAffrowsToCurdAfter()
+    {
+        using var fsql = CreateFreeSql(autoSyncStructure: true);
+        object? executeResult = null;
+
+        fsql.Aop.CurdAfter += (_, e) =>
+        {
+            if (e.CurdType == Aop.CurdType.Insert)
+                executeResult = e.ExecuteResult;
+        };
+
+        var identity = fsql.Insert(new SonnetMetric
+        {
+            Time = TestTime,
+            Host = "server-01",
+            Usage = 0.71,
+            Ok = true
+        }).ExecuteIdentity();
+
+        Assert.Equal(0, identity);
+        var affrows = Assert.IsType<long>(executeResult);
+        Assert.Equal(1, affrows);
+    }
+
+    [Fact]
+    public async Task ExecuteIdentityAsync_ReportsAffrowsToCurdAfter()
+    {
+        using var fsql = CreateFreeSql(autoSyncStructure: true);
+        object? executeResult = null;
+
+        fsql.Aop.CurdAfter += (_, e) =>
+        {
+            if (e.CurdType == Aop.CurdType.Insert)
+                executeResult = e.ExecuteResult;
+        };
+
+        var identity = await fsql.Insert(new SonnetMetric
+        {
+            Time = TestTime,
+            Host = "server-01",
+            Usage = 0.71,
+            Ok = true
+        }).ExecuteIdentityAsync();
+
+        Assert.Equal(0, identity);
+        var affrows = Assert.IsType<long>(executeResult);
+        Assert.Equal(1, affrows);
+    }
+
+    static IFreeSql CreateFreeSql(bool autoSyncStructure = false)
     {
         var dataPath = Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-Tests", Guid.NewGuid().ToString("N"));
-        return new FreeSqlBuilder()
+        var builder = new FreeSqlBuilder()
             .UseConnectionString(DataType.SonnetDB, $"Data Source={dataPath}")
-            .UseNoneCommandParameter(true)
-            .Build();
+            .UseNoneCommandParameter(true);
+        if (autoSyncStructure) builder.UseAutoSyncStructure(true);
+        return builder.Build();
     }
 
     [Table(Name = "sonnet_metric")]

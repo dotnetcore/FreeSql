@@ -4,7 +4,7 @@
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql provider for SonnetDB based on SonnetDB.Data ADO.NET provider.</Description>
+		<Description>FreeSql provider for SonnetDB based on SonnetDB.Data ADO.NET provider. Supports SonnetDB INSERT, SELECT and DELETE; UPDATE and UPSERT are not supported by SonnetDB SQL.</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

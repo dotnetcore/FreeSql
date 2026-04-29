@@ -32,7 +32,7 @@ namespace FreeSql.SonnetDB.Curd
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -44,7 +44,7 @@ namespace FreeSql.SonnetDB.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            return ret;
+            return 0;
         }
 
         protected override List<T1> RawExecuteInserted() => throw new NotImplementedException($"FreeSql.Provider.SonnetDB {CoreErrorStrings.S_Not_Implemented_Feature}");
@@ -66,7 +66,7 @@ namespace FreeSql.SonnetDB.Curd
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace FreeSql.SonnetDB.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            return ret;
+            return 0;
         }
 
         protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException($"FreeSql.Provider.SonnetDB {CoreErrorStrings.S_Not_Implemented_Feature}");
