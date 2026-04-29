@@ -66,6 +66,10 @@ namespace FreeSql
                     providerType = Type.GetType("FreeSql.ClickHouse.ClickHouseProvider`1,FreeSql.Provider.ClickHouse")?.MakeGenericType(connType);
                     if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("ClickHouse"));
                     break;
+                case "SndbConnection":
+                    providerType = Type.GetType("FreeSql.SonnetDB.SonnetDBProvider`1,FreeSql.Provider.SonnetDB")?.MakeGenericType(connType);
+                    if (providerType == null) throw new Exception(CoreErrorStrings.Missing_FreeSqlProvider_Package("SonnetDB"));
+                    break;
                 default:
                     throw new Exception(CoreErrorStrings.Not_Implemented);
             }
