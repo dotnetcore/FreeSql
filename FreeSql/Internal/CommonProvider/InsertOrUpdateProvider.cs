@@ -296,29 +296,32 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         object val = col.GetDbValue(d);
                         var valsql = _commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
-                        if (didx == 0 && valsql == "NULL")
+                        if (didx == 0)//首行需要类型
                         {
-                            var dbtype = _orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
-                            if (!string.IsNullOrWhiteSpace(dbtype))
+                            if (valsql == "NULL" || col.DbTypeText == "TIMESTAMP")//时间类型转换
                             {
-                                switch (_orm.Ado.DataType)
+                                var dbtype = _orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
+                                if (!string.IsNullOrWhiteSpace(dbtype))
                                 {
-                                    case DataType.Oracle:
-                                    case DataType.OdbcOracle:
-                                    case DataType.CustomOracle:
-                                    case DataType.Dameng:
-                                        break; // Oracle 不支持 cast(null as xxx)，直接用 NULL
-                                    case DataType.MsAccess:
-                                    case DataType.Odbc:
-                                    case DataType.Custom:
-                                        break; // MsAccess 不支持 cast(null as xxx)，直接用 NULL
-                                    case DataType.PostgreSQL:
-                                    case DataType.OdbcPostgreSQL:
-                                    case DataType.CustomPostgreSQL:
-                                    case DataType.KingbaseES:
-                                    case DataType.ShenTong:
-                                        valsql = $"NULL::{_orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype}";
-                                        break; // #2047
+                                    switch (_orm.Ado.DataType)
+                                    {
+                                        case DataType.Oracle:
+                                        case DataType.OdbcOracle:
+                                        case DataType.CustomOracle:
+                                        case DataType.Dameng:
+                                            break; // Oracle 不支持 cast(null as xxx)，直接用 NULL
+                                        case DataType.MsAccess:
+                                        case DataType.Odbc:
+                                        case DataType.Custom:
+                                            break; // MsAccess 不支持 cast(null as xxx)，直接用 NULL
+                                        case DataType.PostgreSQL:
+                                        case DataType.OdbcPostgreSQL:
+                                        case DataType.CustomPostgreSQL:
+                                        case DataType.KingbaseES:
+                                        case DataType.ShenTong:
+                                            valsql = $"{valsql}::{dbtype}";
+                                            break; // #2047
+                                    }
                                 }
                             }
                         }
@@ -344,7 +347,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        byte _SplitSourceByIdentityValueIsNullFlag = 0 ;//防止重复计算 SplitSource
+        byte _SplitSourceByIdentityValueIsNullFlag = 0;//防止重复计算 SplitSource
         /// <summary>
         /// 如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
         /// </summary>
