@@ -375,11 +375,11 @@ namespace FreeSql.Internal
                             // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
                             {
                                 var aExp = a as MemberAssignment;
-                                if (aExp == null) return true;
-                                if (aExp.Expression is MemberExpression aExpRight == false) return true;
+                                if (aExp == null) return false;
+                                if (aExp.Expression is MemberExpression aExpRight == false) return false;
                                 if (aExpRight.Expression == _tables[0].Parameter && 
-                                    aExpRight.Member.Name == a.Member.Name) return false;
-                                return true;
+                                    aExpRight.Member.Name == a.Member.Name) return true;
+                                return false;
                             })
                         ))
                     {
