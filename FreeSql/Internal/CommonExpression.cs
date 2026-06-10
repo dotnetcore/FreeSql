@@ -368,7 +368,20 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
-                    else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
+                    else if (isAllDtoMap && _tables != null && _tables.Any() && 
+                        (
+                            initExp.NewExpression.Type != _tables[0].Table.Type ||
+                            initExp.Bindings.Any(a => 
+                            // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
+                            {
+                                var aExp = a as MemberAssignment;
+                                if (aExp == null) return true;
+                                if (aExp.Expression is MemberExpression aExpRight == false) return true;
+                                if (aExpRight.Expression == _tables[0].Parameter && 
+                                    aExpRight.Member.Name == a.Member.Name) return false;
+                                return true;
+                            })
+                        ))
                     {
                         var dicBindings = initExp.Bindings?.Select(a => a.Member.Name).Distinct().ToDictionary(a => a, a => false);
                         //dto 映射
