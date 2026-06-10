@@ -371,7 +371,7 @@ namespace FreeSql.Internal
                     else if (isAllDtoMap && _tables != null && _tables.Any() && 
                         (
                             initExp.NewExpression.Type != _tables[0].Table.Type ||
-                            initExp.Bindings.Any(a => 
+                            !initExp.Bindings.Any(a => 
                             // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
                             {
                                 var aExp = a as MemberAssignment;
