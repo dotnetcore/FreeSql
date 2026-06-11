@@ -301,7 +301,8 @@ limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a
         [Fact]
         public void ExecuteUpdated()
         {
-
+            var list = g.mysql.Update<Topic>().Set(m => m.Clicks + 1)
+                 .Where(m => m.Id == 1).ExecuteUpdated();
         }
 
         [Fact]
