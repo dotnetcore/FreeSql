@@ -1,11 +1,10 @@
 ﻿using FreeSql.Internal.ObjectPool;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.MsAccess
@@ -123,7 +122,7 @@ namespace FreeSql.MsAccess
 
 #if net40
 #else
-        async public Task OnGetAsync(Object<DbConnection> obj)
+        async public Task OnGetAsync(Object<DbConnection> obj, CancellationToken cancellationToken)
         {
 
             if (_pool.IsAvailable)
@@ -133,7 +132,7 @@ namespace FreeSql.MsAccess
                     throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
-                    await obj.Value.OpenAsync();
+                    await obj.Value.OpenAsync(cancellationToken);
             }
         }
 #endif
@@ -183,23 +182,5 @@ namespace FreeSql.MsAccess
                 return false;
             }
         }
-
-#if net40
-#else
-        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
-        {
-            try
-            {
-                await PingCommand(that).ExecuteNonQueryAsync();
-                return true;
-            }
-            catch
-            {
-                if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
-                if (isThrow) throw;
-                return false;
-            }
-        }
-#endif
     }
 }

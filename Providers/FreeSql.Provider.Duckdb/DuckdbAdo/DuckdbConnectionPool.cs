@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Duckdb
@@ -126,7 +127,7 @@ namespace FreeSql.Duckdb
 
 #if net40
 #else
-        async public Task OnGetAsync(Object<DbConnection> obj)
+        async public Task OnGetAsync(Object<DbConnection> obj, CancellationToken cancellationToken)
         {
 
             if (_pool.IsAvailable)
@@ -135,7 +136,7 @@ namespace FreeSql.Duckdb
                     throw new Exception(CoreErrorStrings.S_ConnectionStringError_Check(this.Name));
 
                 if (obj.Value.State != ConnectionState.Open)
-                    await obj.Value.OpenAndAttachAsync(Attaches);
+                    await obj.Value.OpenAndAttachAsync(Attaches, cancellationToken);
             }
         }
 #endif
@@ -206,26 +207,9 @@ namespace FreeSql.Duckdb
 
 #if net40
 #else
-        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
+        async public static Task OpenAndAttachAsync(this DbConnection that, string[] attach, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                using (var cmd = PingCommand(that))
-                {
-                    await cmd.ExecuteNonQueryAsync();
-                }
-                return true;
-            }
-            catch
-            {
-                if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
-                if (isThrow) throw;
-                return false;
-            }
-        }
-        async public static Task OpenAndAttachAsync(this DbConnection that, string[] attach)
-        {
-            await that.OpenAsync();
+            await that.OpenAsync(cancellationToken);
 
             if (attach?.Any() == true)
             {
@@ -235,7 +219,7 @@ namespace FreeSql.Duckdb
 
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
-                await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
                 cmd.Dispose();
             }
         }

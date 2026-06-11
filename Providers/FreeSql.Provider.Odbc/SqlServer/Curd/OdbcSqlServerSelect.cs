@@ -63,7 +63,7 @@ namespace FreeSql.Odbc.SqlServer
                     if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
                         rownum = $", ROW_NUMBER() OVER({_orderby.Trim('\r', '\n', ' ')}) AS __rownum__";
                 }
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent && a.Type != SelectTableInfoType.WithoutJoin).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 if (string.IsNullOrEmpty(rownum) == false && field == "*")
                     sb.Append(tbsfrom[0].Alias).Append("."); //#1519 bug
@@ -109,6 +109,7 @@ namespace FreeSql.Odbc.SqlServer
                     {
                         case SelectTableInfoType.Parent:
                         case SelectTableInfoType.RawJoin:
+                        case SelectTableInfoType.WithoutJoin:
                             continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");
@@ -191,7 +192,7 @@ namespace FreeSql.Odbc.SqlServer
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
                 sb.Append(field);
                 sb.Append(" \r\nFROM ");
-                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent).ToArray();
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From && a.Type != SelectTableInfoType.Parent && a.Type != SelectTableInfoType.WithoutJoin).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
@@ -233,6 +234,7 @@ namespace FreeSql.Odbc.SqlServer
                     {
                         case SelectTableInfoType.Parent:
                         case SelectTableInfoType.RawJoin:
+                        case SelectTableInfoType.WithoutJoin:
                             continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");

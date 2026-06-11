@@ -366,7 +366,7 @@ namespace FreeSql.Internal.ObjectPool
 
 #if net40
 #else
-        async public Task<Object<T>> GetAsync()
+        async public Task<Object<T>> GetAsync(CancellationToken cancellationToken)
         {
             var obj = GetFree(true);
             if (obj == null)
@@ -400,7 +400,7 @@ namespace FreeSql.Internal.ObjectPool
 
             try
             {
-                await Policy.OnGetAsync(obj);
+                await Policy.OnGetAsync(obj, cancellationToken);
             }
             catch
             {

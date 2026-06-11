@@ -4917,7 +4917,7 @@
             <param name="timeout">超时</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync(System.Threading.CancellationToken)">
             <summary>
             获取资源
             </summary>
@@ -4998,7 +4998,7 @@
             </summary>
             <param name="obj">资源对象</param>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0})">
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0},System.Threading.CancellationToken)">
             <summary>
             从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
             </summary>

@@ -568,9 +568,9 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
                 //.UseNameConvert(NameConvertType.ToLower)
                 .UseMappingPriority(MappingPriorityType.Attribute, MappingPriorityType.FluentApi, MappingPriorityType.Aop)
-                .UseAdoConnectionPool(true)
+                //.UseAdoConnectionPool(true)
 
-                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=123.db")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=:memory:")
                 //.UseConnectionString(DataType.Sqlite, "data source=db1.db;attachs=db2.db")
                 //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
                 //.UseSlaveWeight(10, 1, 1, 5)
@@ -620,6 +620,71 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            Console.WriteLine("--- 正在初始化测试数据 ---");
+
+            // 插入班级
+            var class1Id = (int)fsql.Insert(new ClassesEntity { ClassesName = "高三一班" }).ExecuteIdentity();
+            var class2Id = (int)fsql.Insert(new ClassesEntity { ClassesName = "高三二班" }).ExecuteIdentity();
+
+            // 插入小组信息
+            var groupId1 = (int)fsql.Insert(new BizDingGroupEntity { GroupCode = "G001", GroupName = "数学竞赛组" }).ExecuteIdentity();
+            var groupId2 = (int)fsql.Insert(new BizDingGroupEntity { GroupCode = "G002", GroupName = "英语角" }).ExecuteIdentity();
+            var groupId3 = (int)fsql.Insert(new BizDingGroupEntity { GroupCode = "G003", GroupName = "物理实验组" }).ExecuteIdentity();
+
+            // 插入学生
+            var s1Id = (int)fsql.Insert(new StudentEntity { Name = "张三", ClassId = class1Id, CreatedTime = DateTime.Now }).ExecuteIdentity();
+            var s2Id = (int)fsql.Insert(new StudentEntity { Name = "李四", ClassId = class1Id, CreatedTime = DateTime.Now.AddDays(-1) }).ExecuteIdentity();
+            var s3Id = (int)fsql.Insert(new StudentEntity { Name = "王五", ClassId = class2Id, CreatedTime = DateTime.Now.AddMinutes(-10) }).ExecuteIdentity();
+
+            // 插入学生与小组的关联 (BizStudentGroupEntity)
+            fsql.Insert(new List<BizStudentGroupEntity> {
+                new BizStudentGroupEntity { StudentId = s1Id, GroupId = groupId1 }, // 张三 - 数学
+                new BizStudentGroupEntity { StudentId = s1Id, GroupId = groupId2 }, // 张三 - 英语
+                new BizStudentGroupEntity { StudentId = s2Id, GroupId = groupId1 }, // 李四 - 数学
+                new BizStudentGroupEntity { StudentId = s3Id, GroupId = groupId3 }  // 王五 - 物理
+            }).ExecuteAffrows();
+
+            var _studentRepository = fsql.GetRepository<StudentEntity>();
+            var _filter = new FilterDto { SchoolClassGroupCode = "G001" };
+            var input = new { CurrentPage = 1, PageSize = 10 };
+
+            // 2. 模拟图片中的查询逻辑
+            var listxx2 = fsql.Select<StudentEntity, ClassesEntity>()
+                .LeftJoin((a, b) => a.ClassId == b.Id)
+                .OrderByDescending((a, b) => a.CreatedTime)
+                .Count(out var totalxx2)
+                .Page(input.CurrentPage, input.PageSize)
+                .ToList((a, b) => new StudentGetPageOutput
+                {
+                    ClassName = b.ClassesName,
+
+                    SchoolClassGroups = fsql.Select<BizStudentGroupEntity, BizDingGroupEntity>()
+                        .LeftJoin((f, g) => f.GroupId == g.Id && f.StudentId == a.Id)
+                        .WhereIf(!string.IsNullOrEmpty(_filter.SchoolClassGroupCode),
+                                 (f, g) => g.GroupCode == _filter.SchoolClassGroupCode)
+                        .ToList((f, g) => new IdNameDto
+                        {
+                            Id = g.Id,
+                            Name = g.GroupName
+                        })
+                });
+            Console.WriteLine($"\n查询完成，总学生数: {totalxx2}");
+            foreach (var item in listxx2)
+            {
+                var groups = item.SchoolClassGroups != null
+                             ? string.Join(", ", item.SchoolClassGroups.Select(x => x.Name))
+                             : "无";
+                Console.WriteLine($"班级: {item.ClassName} | 关联小组: {groups}");
+            }
+
+            var orderStatusValue = Order1.OrderStatus.Cancelled;
+            fsql.Select<Order1>().Where(a => a.status == Order1.OrderStatus.Completed).InsertInto(null, a => new Order1
+            {
+                name = a.name,
+                price = a.price,
+                 status = Order1.OrderStatus.Cancelled
+            });
 
             var skdkdk1 = fsql.Select<User1>().LimitBy(a => a.Sort, 1).ToSql();
 
@@ -3727,4 +3792,54 @@ public partial class platactioninuser
     [JsonProperty]
     public int? PlatStatus { get; set; }
 
+}
+
+public class StudentEntity
+{
+    [Column(IsIdentity = true)] public int Id { get; set; }
+    public string Name { get; set; }
+    public int ClassId { get; set; }
+    public DateTime CreatedTime { get; set; }
+}
+
+public class ClassesEntity
+{
+    [Column(IsIdentity = true)] public int Id { get; set; }
+    public string ClassesName { get; set; }
+}
+
+// 关联表：学生与小组
+public class BizStudentGroupEntity
+{
+    [Column(IsIdentity = true)] public int Id { get; set; }
+    public int StudentId { get; set; }
+    public int GroupId { get; set; }
+}
+
+// 小组信息表
+public class BizDingGroupEntity
+{
+    [Column(IsIdentity = true)] public int Id { get; set; }
+    public string GroupCode { get; set; }
+    public string GroupName { get; set; }
+}
+
+// --- DTO 输出类 ---
+
+public class StudentGetPageOutput
+{
+    public string ClassName { get; set; }
+    public List<IdNameDto> SchoolClassGroups { get; set; }
+}
+
+public class IdNameDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+// 模拟过滤器
+public class FilterDto
+{
+    public string SchoolClassGroupCode { get; set; }
 }

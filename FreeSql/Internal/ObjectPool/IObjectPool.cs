@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
@@ -49,7 +50,7 @@ namespace FreeSql.Internal.ObjectPool
         /// 获取资源
         /// </summary>
         /// <returns></returns>
-        Task<Object<T>> GetAsync();
+        Task<Object<T>> GetAsync(CancellationToken cancellationToken = default);
 #endif
 
         /// <summary>

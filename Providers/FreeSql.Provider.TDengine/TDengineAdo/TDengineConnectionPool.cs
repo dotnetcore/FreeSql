@@ -4,10 +4,9 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using TDengine.Data.Client;
-using TDengine.Driver;
-using TDengine.Driver.Client;
 
 namespace FreeSql.TDengine
 {
@@ -141,7 +140,7 @@ namespace FreeSql.TDengine
 
 #if net40
 #else
-        public async Task OnGetAsync(Object<DbConnection> obj)
+        public async Task OnGetAsync(Object<DbConnection> obj, CancellationToken cancellationToken)
         {
             if (InternalPool.IsAvailable)
             {
@@ -154,11 +153,11 @@ namespace FreeSql.TDengine
 
                 if (obj.Value.State != ConnectionState.Open ||
                     DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 &&
-                    (await obj.Value.PingAsync()) == false)
+                    (await obj.Value.PingAsync(false, cancellationToken)) == false)
                 {
                     try
                     {
-                        await obj.Value.OpenAsync();
+                        await obj.Value.OpenAsync(cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -228,11 +227,11 @@ namespace FreeSql.TDengine
 
 #if net40
 #else
-        public static async Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
+        public static async Task<bool> PingAsync(this DbConnection that, bool isThrow = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                await PingCommand(that).ExecuteNonQueryAsync();
+                await PingCommand(that).ExecuteNonQueryAsync(cancellationToken);
                 return true;
             }
             catch

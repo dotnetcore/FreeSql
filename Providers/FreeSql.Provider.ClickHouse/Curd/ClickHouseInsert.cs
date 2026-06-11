@@ -188,7 +188,7 @@ namespace FreeSql.ClickHouse.Curd
                     var columns = new string[_table.ColumnsByPosition.Length];
                     for (var i = 0; i < columns.Length; i++)
                     {
-                        columns[i] = _table.ColumnsByPosition[i].CsName;
+                        columns[i] = _table.ColumnsByPosition[i].Attribute.Name;
                     }
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {

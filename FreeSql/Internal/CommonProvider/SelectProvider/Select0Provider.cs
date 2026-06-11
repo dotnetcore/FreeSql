@@ -67,18 +67,18 @@ namespace FreeSql.Internal.CommonProvider
         ~Select0Provider()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
-            _where.Clear();
-            if (_paramsInit == _params) _params.Clear(); //子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
-            _tables.Clear();
-            _tableRules.Clear();
-            _join.Clear();
+            _where?.Clear();
+            if (_paramsInit == _params) _params?.Clear(); //子查询与主查询共享，并发导致错误清除了主查询参数化信息 https://github.com/dotnetcore/FreeSql/issues/1155
+            _tables?.Clear();
+            _tableRules?.Clear();
+            _join?.Clear();
             _trackToList = null;
-            _includeToList.Clear();
+            _includeToList?.Clear();
 #if net40
 #else
-            _includeToListAsync.Clear();
+            _includeToListAsync?.Clear();
 #endif
-            _includeInfo.Clear();
+            _includeInfo?.Clear();
             _selectExpression = null;
             _whereGlobalFilter?.Clear();
             _cancel = null;
@@ -1001,7 +1001,8 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     return new string[] { tb.Table.DbName };
                 }
-                var tbnames = _tables.Where(a => a.Type != SelectTableInfoType.Parent).GroupBy(a => a.Table.Type).Select(g => _tables.Where(a => a.Table.Type == g.Key).FirstOrDefault()).Select(a => new { Tb = a, Names = LocalGetTableNames(a) }).ToList();
+                var tbnames = _tables.Where(a => a.Type != SelectTableInfoType.Parent && a.Type != SelectTableInfoType.WithoutJoin)
+                    .GroupBy(a => a.Table.Type).Select(g => _tables.Where(a => a.Table.Type == g.Key).FirstOrDefault()).Select(a => new { Tb = a, Names = LocalGetTableNames(a) }).ToList();
                 if (DateTimeAsTableImplStart != null && DateTimeAsTableImplEnd != null && tbnames.Where(a => a.Names.Length > 1).Count() > 1)
                 {
                     tbnames = tbnames.Select(a => new { a.Tb, Names = a.Tb.Table.AsTableImpl?.GetTableNamesByColumnValueRange(DateTimeAsTableImplStart, DateTimeAsTableImplEnd) ?? a.Names }).ToList();
@@ -1060,6 +1061,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var tb in _tables)
                 {
                     if (tb.Type == SelectTableInfoType.Parent) continue;
+                    if (tb.Type == SelectTableInfoType.WithoutJoin) continue;
                     if (dict.ContainsKey(tb.Table.Type)) continue;
                     var tbname = _commonUtils.GetEntityTableAopName(tb.Table, true);
                     var newname = tr?.Invoke(tb.Table.Type, tbname);
