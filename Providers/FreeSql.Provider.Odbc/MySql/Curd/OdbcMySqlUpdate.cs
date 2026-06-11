@@ -35,34 +35,50 @@ namespace FreeSql.Odbc.MySql
         {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
-            StringBuilder sbret = null;
+            StringBuilder sbSelectCols = null;
             ToSqlFetch(sb =>
             {
                 if (dbParms == null)
                 {
                     dbParms = _params.Concat(_paramsSource).ToArray();
-                    sbret = new StringBuilder();
-                    sbret.Append(" RETURNING ");
-
+                    sbSelectCols = new StringBuilder();
                     var colidx = 0;
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sbSelectCols.Append(", ");
+                        sbSelectCols.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
-                var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                var updateSql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, updateSql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-                    var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
-                    ret.AddRange(rettmp);
+                    var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, updateSql, _commandTimeout, dbParms);
+                    ValidateVersionAndThrow(affrows, updateSql, dbParms);
+
+                    if (affrows > 0)
+                    {
+                        var whereIdx = updateSql.LastIndexOf(" \r\nWHERE ");
+                        if (whereIdx >= 0)
+                        {
+                            var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+                            var selectSql = new StringBuilder()
+                                .Append("SELECT ").Append(sbSelectCols)
+                                .Append(" FROM ").Append(tableName).Append(updateSql.Substring(whereIdx))
+                                .ToString();
+
+                            var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, selectSql, dbParms);
+                            _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                            var rettmp = _orm.Ado.Query<TReturn>(queryType, _connection, _transaction, CommandType.Text, selectSql, _commandTimeout, dbParms);
+                            ret.AddRange(rettmp);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -75,7 +91,7 @@ namespace FreeSql.Odbc.MySql
                     _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
             });
-            sbret?.Clear();
+            sbSelectCols?.Clear();
             return ret;
         }
 
@@ -125,34 +141,50 @@ namespace FreeSql.Odbc.MySql
         {
             var ret = new List<TReturn>();
             DbParameter[] dbParms = null;
-            StringBuilder sbret = null;
+            StringBuilder sbSelectCols = null;
             await ToSqlFetchAsync(async sb =>
             {
                 if (dbParms == null)
                 {
                     dbParms = _params.Concat(_paramsSource).ToArray();
-                    sbret = new StringBuilder();
-                    sbret.Append(" RETURNING ");
-
+                    sbSelectCols = new StringBuilder();
                     var colidx = 0;
                     foreach (var col in columns)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sbSelectCols.Append(", ");
+                        sbSelectCols.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
-                var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                var updateSql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, updateSql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
-                    var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
-                    ret.AddRange(rettmp);
+                    var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, updateSql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(affrows, updateSql, dbParms);
+
+                    if (affrows > 0)
+                    {
+                        var whereIdx = updateSql.LastIndexOf(" \r\nWHERE ");
+                        if (whereIdx >= 0)
+                        {
+                            var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+                            var selectSql = new StringBuilder()
+                                .Append("SELECT ").Append(sbSelectCols)
+                                .Append(" FROM ").Append(tableName).Append(updateSql.Substring(whereIdx))
+                                .ToString();
+
+                            var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, selectSql, dbParms);
+                            _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                            var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                            var rettmp = await _orm.Ado.QueryAsync<TReturn>(queryType, _connection, _transaction, CommandType.Text, selectSql, _commandTimeout, dbParms, cancellationToken);
+                            ret.AddRange(rettmp);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -165,7 +197,7 @@ namespace FreeSql.Odbc.MySql
                     _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
             });
-            sbret?.Clear();
+            sbSelectCols?.Clear();
             return ret;
         }
 #endif
