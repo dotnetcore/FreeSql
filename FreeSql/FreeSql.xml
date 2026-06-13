@@ -1097,93 +1097,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder">
-            <summary>
-            动态创建实体类型
-            </summary>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.#ctor(IFreeSql,System.String,System.Attribute[])">
-            <summary>
-            配置Class
-            </summary>
-            <param name="className">类名</param>
-            <param name="attributes">类标记的特性[Table(Name = "xxx")] [Index(xxxx)]</param>
-            <returns></returns>
-        </member>
-        <member name="P:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.TypeBuilder">
-            <summary>
-            获取类型构建器，可作为要构建的Type来引用
-            </summary>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="isOverride">该属性是否重写父类属性</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Property(System.String,System.Type,System.Boolean,System.Object,System.Attribute[])">
-            <summary>
-            配置属性
-            </summary>
-            <param name="propertyName">属性名称</param>
-            <param name="propertyType">属性类型</param>
-            <param name="isOverride">该属性是否重写父类属性</param>
-            <param name="defaultValue">属性默认值</param>
-            <param name="attributes">属性标记的特性-支持多个</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Extend(System.Type)">
-            <summary>
-            配置父类
-            </summary>
-            <param name="superClass">父类类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.OverrideProperty(System.Reflection.Emit.TypeBuilder@,System.Reflection.Emit.MethodBuilder,FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.PropertyMethodEnum,System.String)">
-            <summary>
-            Override属性
-            </summary>
-            <param name="typeBuilder"></param>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.Build">
-            <summary>
-            Emit动态创建出Class - Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.BuildJustType">
-            <summary>
-            Emit动态创建出Class - Type，不附带获取TableInfo
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToLower(System.String)">
-            <summary>
-            首字母小写
-            </summary>
-            <param name="input"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Extensions.DynamicEntity.DynamicCompileBuilder.FirstCharToUpper(System.String)">
-            <summary>
-            首字母大写
-            </summary>
-            <param name="input"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 ""
@@ -6008,28 +5921,6 @@
             <summary>
             对象池
             </summary>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.DynamicEntity(FreeSql.ICodeFirst,System.String,System.Attribute[])">
-            <summary>
-            动态构建Class Type
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateInstance(FreeSql.Internal.Model.TableInfo,System.Collections.Generic.Dictionary{System.String,System.Object})">
-            <summary>
-            根据字典，创建 table 对应的实体对象
-            </summary>
-            <param name="table"></param>
-            <param name="dict"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalDynamicEntityExtensions.CreateDictionary(FreeSql.Internal.Model.TableInfo,System.Object)">
-            <summary>
-            根据实体对象，创建 table 对应的字典
-            </summary>
-            <param name="table"></param>
-            <param name="instance"></param>
-            <returns></returns>
         </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>
