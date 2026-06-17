@@ -67,6 +67,8 @@ namespace FreeSql
 
         DuckDB,
 
-        TDengine
+        TDengine,
+
+        SonnetDB
     }
 }

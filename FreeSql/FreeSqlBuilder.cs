@@ -390,6 +390,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.TDengine.dll", "FreeSql.TDengine.TDengineProvider<>");
                         break;
 
+                    case DataType.SonnetDB:
+                        type = Type.GetType("FreeSql.SonnetDB.SonnetDBProvider`1,FreeSql.Provider.SonnetDB")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.SonnetDB.dll", "FreeSql.SonnetDB.SonnetDBProvider<>");
+                        break;
+
                     default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
