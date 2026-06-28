@@ -46,19 +46,107 @@ namespace FreeSql.TDengine.Curd
 
         public override string ToSql()
         {
-            //处理Insert忽略Tag
-            var ignoreColumnList = _ignoreInsertColumns.GetOrAdd(typeof(T1), s =>
+            if (_customTableRule != null)
             {
-                //如果是超表不处理
-                if (!s.IsDefined(typeof(TDengineSubTableAttribute))) return new List<string>(0);
-                var tableByEntity = _commonUtils.GetTableByEntity(s);
-                var keyValuePairs = tableByEntity.Properties.Where(pair =>
-                    pair.Value.GetCustomAttribute<TDengineTagAttribute>() != null);
-                return keyValuePairs.Select(keyValuePair => keyValuePair.Value.Name).ToList();
+                return ToSTableBatchInsertSql();
+            }
+            else
+            {
+                //处理Insert忽略Tag
+                var ignoreColumnList = _ignoreInsertColumns.GetOrAdd(typeof(T1), s =>
+                {
+                    //如果是超表不处理
+                    if (!s.IsDefined(typeof(TDengineSubTableAttribute))) return new List<string>(0);
+                    var tableByEntity = _commonUtils.GetTableByEntity(s);
+                    var keyValuePairs = tableByEntity.Properties.Where(pair =>
+                        pair.Value.GetCustomAttribute<TDengineTagAttribute>() != null);
+                    return keyValuePairs.Select(keyValuePair => keyValuePair.Value.Name).ToList();
+                });
+                if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
+                var sql = base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
+                return $"INSERT IGNORE INTO {sql.Substring(12)}";
+            }
+        }
+
+        /// <summary>
+        /// Key 为 T1 Type，Value 为 Tuple&lt;超级表名, Tag属性数组, Value属性数组&gt;
+        /// </summary>
+        private static ConcurrentDictionary<Type, Tuple<string, ColumnInfo[], ColumnInfo[]>> _superTableColumns =
+            new ConcurrentDictionary<Type, Tuple<string, ColumnInfo[], ColumnInfo[]>>();
+
+        private string ToSTableBatchInsertSql()
+        {
+            if (_source == null || _source.Count == 0) return null;
+
+            var typePropertiesCached = _superTableColumns.GetOrAdd(typeof(T1), s =>
+            {
+                var tableInfo = _commonUtils.GetTableByEntity(s);
+                var stableName = tableInfo.DbName;
+                var tagColumnNames = tableInfo.Properties
+                    .Where(kvp => kvp.Value.GetCustomAttribute<TDengineTagAttribute>() != null)
+                    .Select(kvp => kvp.Value.Name).ToList();
+                var tagColumns = tableInfo.Columns.Values
+                    .Where(col => tagColumnNames.Contains(col.CsName))
+                    .ToArray();
+
+                var valueColumns = tableInfo.Columns.Values
+                    .Except(tagColumns)
+                    .Where(col => !_ignore.ContainsKey(col.CsName))
+                    .ToArray();              
+                return new Tuple<string, ColumnInfo[], ColumnInfo[]>(stableName, tagColumns, valueColumns);
             });
-            if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
-            var sql = base.ToSqlValuesOrSelectUnionAll(ignoreColumn: ignoreColumnList);
-            return $"INSERT IGNORE INTO {sql.Substring(12)}";
+
+            var tagNames = string.Join(",", typePropertiesCached.Item2.Select(x => x.Attribute.Name));
+            var valueColumnNames = string.Join(",", typePropertiesCached.Item3.Select(x => x.Attribute.Name));
+            var groups = _source.GroupBy(_customTableRule);
+            var sql = new StringBuilder();
+            sql.Append("INSERT INTO ");
+            foreach (var group in groups)
+            {
+                string childTableName = group.Key;
+                var batchList = group.ToList();
+                // 2. 取第一条数据（用于生成 TAGS）
+                var first = batchList.First();
+                var tagValues = typePropertiesCached.Item2
+                    .Select(p => FormatValue(p.GetDbValue(first)))
+                    .ToArray();
+                var itemValueStringList = new List<string>();
+                foreach (var item in batchList)
+                {
+                    var itemValues = typePropertiesCached.Item3.Select(p => FormatValue(p.GetDbValue(item))).ToArray();
+                    var valueString = string.Join(", ", itemValues);
+                    itemValueStringList.Add($"({valueString})");
+                }
+
+                var values = string.Join(" ", itemValueStringList);
+                // TODO 待完善
+                // 4. 拼 TDengine SQL
+                sql.AppendLine().Append($"{childTableName} ") //子表名，不需要使用`包裹，可以忽略大小写
+                          .Append($"USING {typePropertiesCached.Item1} ") //超级表名
+                          .Append($"({tagNames}) ") //超级表名
+                          .Append($"tags({string.Join(", ", tagValues)}) ") //子表tags
+                          .AppendLine($"({valueColumnNames})") //除Tags和Ignored外的字段，不需要使用`包裹，可以忽略大小写
+                          .Append($"values {values}");
+            }
+            return sql.ToString();
+        }
+
+        private static string FormatValue(object v)
+        {
+            if (v == null)
+                return "NULL";
+
+            if (v is string s)
+            {
+                return "'" + s.Replace("'", "''") + "'";
+            }
+
+            if (v is DateTime d)
+            {
+                return $"'{d:O}'";
+            }
+
+            return v.ToString();
         }
 
         private static ConcurrentDictionary<Type, List<string>> _ignoreInsertColumns =
