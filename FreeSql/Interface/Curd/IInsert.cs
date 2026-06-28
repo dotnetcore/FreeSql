@@ -120,6 +120,8 @@ namespace FreeSql
         /// <returns></returns>
         IInsert<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback);
 
+        IInsert<T1> AsTable(Func<T1, string> tableName);
+
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
