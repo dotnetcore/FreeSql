@@ -8,7 +8,6 @@ using System.Collections;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
-
 namespace FreeSql.ClickHouse
 {
     class ClickHouseAdo : FreeSql.Internal.CommonProvider.AdoProvider
@@ -41,7 +40,7 @@ namespace FreeSql.ClickHouse
                 SlavePools.Add(slavePool);
             });
         }
-        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))

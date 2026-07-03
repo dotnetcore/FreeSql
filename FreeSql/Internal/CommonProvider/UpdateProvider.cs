@@ -697,7 +697,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case ExpressionType.Equal:
                     var equalBinaryExp = body as BinaryExpression;
-                    var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, body, null, null);
+                    var eqval = _commonExpression.ExpressionSetLambda(_table, body);
                     if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //#311
                     _set.Append(", ").Append(eqval);
                     return this;

@@ -6,6 +6,7 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using FreeSql.Internal;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -21,7 +22,8 @@ namespace FreeSql.Internal.CommonProvider
             return null;
         }
 
-        public abstract object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn);
+        public abstract object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style = null);
+
         public string Addslashes(string filter, params object[] parms)
         {
             if (filter == null || parms == null) return string.Empty;
@@ -36,9 +38,10 @@ namespace FreeSql.Internal.CommonProvider
             }
             try { string ret = string.Format(CultureInfo.InvariantCulture, filter, nparms); return ret; } catch { return filter; }
         }
+
         static ConcurrentDictionary<int, Regex> _dicAddslashesReplaceIsNull = new ConcurrentDictionary<int, Regex>();
 
-        protected string AddslashesIEnumerable(object param, Type mapType, ColumnInfo mapColumn)
+        protected virtual string AddslashesIEnumerable(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style = null)
         {
             var sb = new StringBuilder();
             var ie = param as IEnumerable;
