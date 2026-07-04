@@ -48,7 +48,7 @@ public class TDengineBatchTest
         data.AddRange(data2);
 
         var insertable = fsql.Insert(data)
-            .AsTable(t => $"child_{t.PointNumber}") // 自定义子表名
+            .AsTdEngineTableName(t => $"child_{t.PointNumber}") // 自定义子表名
             .BatchOptions(5000, 5000, false); // tdengine 关闭事务
 
         //_output.WriteLine($"集合中总数量：{data.Count}");

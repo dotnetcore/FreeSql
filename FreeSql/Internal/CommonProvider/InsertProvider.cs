@@ -41,7 +41,7 @@ namespace FreeSql.Internal.CommonProvider
         internal List<T1> _sourceOld;
         public Action<BatchProgressStatus<T1>> _batchProgress;
 
-        public Func<T1, string> _customTableRule;
+        public Func<T1, string> _tdEngineChildTableRule;
 
         public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -747,9 +747,9 @@ namespace FreeSql.Internal.CommonProvider
             return dt;
         }
 
-        public IInsert<T1> AsTable(Func<T1, string> tableName)
+        public IInsert<T1> AsTdEngineTableName(Func<T1, string> tableNameRule)
         {
-            this._customTableRule = tableName;
+            this._tdEngineChildTableRule = tableNameRule;
             return this;
         }
     }

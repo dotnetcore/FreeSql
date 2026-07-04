@@ -46,7 +46,7 @@ namespace FreeSql.TDengine.Curd
 
         public override string ToSql()
         {
-            if (_customTableRule != null)
+            if (_tdEngineChildTableRule != null)
             {
                 return ToSTableBatchInsertSql();
             }
@@ -98,7 +98,7 @@ namespace FreeSql.TDengine.Curd
 
             var tagNames = string.Join(",", typePropertiesCached.Item2.Select(x => x.Attribute.Name));
             var valueColumnNames = string.Join(",", typePropertiesCached.Item3.Select(x => x.Attribute.Name));
-            var groups = _source.GroupBy(_customTableRule);
+            var groups = _source.GroupBy(_tdEngineChildTableRule);
             var sql = new StringBuilder();
             sql.Append("INSERT INTO ");
             foreach (var group in groups)
@@ -119,8 +119,7 @@ namespace FreeSql.TDengine.Curd
                 }
 
                 var values = string.Join(" ", itemValueStringList);
-                // TODO 待完善
-                // 4. 拼 TDengine SQL
+                // 拼 TDengine SQL
                 sql.AppendLine().Append($"{childTableName} ") //子表名，不需要使用`包裹，可以忽略大小写
                           .Append($"USING {typePropertiesCached.Item1} ") //超级表名
                           .Append($"({tagNames}) ") //超级表名
