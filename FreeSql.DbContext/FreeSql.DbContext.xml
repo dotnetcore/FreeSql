@@ -507,6 +507,11 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.DefaultRepository`3">
+            <summary>
+            Default repository bound to a typed FreeSql marker.
+            </summary>
+        </member>
         <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
             <summary>
             动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
@@ -803,6 +808,11 @@
             以嵌套事务方式执行。
             </summary>
         </member>
+        <member name="T:FreeSql.UnitOfWorkManager`1">
+            <summary>
+            Typed UnitOfWork manager for multi-database scenarios.
+            </summary>
+        </member>
         <member name="M:FreeSqlDbContextExtensions.Entity``1(FreeSql.ICodeFirst,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent{``0}})">
             <summary>
             EFCore 95% 相似的 FluentApi 扩展方法
@@ -819,15 +829,6 @@
             <param name="codeFirst"></param>
             <param name="entityType">实体类型</param>
             <param name="modelBuilder"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlDbContextExtensions.ApplyConfigurationsFromAssembly(FreeSql.ICodeFirst,System.Reflection.Assembly,System.Func{System.Type,System.Boolean})">
-            <summary>
-            根据Assembly扫描所有继承IEntityTypeConfiguration&lt;T&gt;的配置类
-            </summary>
-            <param name="codeFirst"></param>
-            <param name="assembly"></param>
-            <param name="predicate"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">

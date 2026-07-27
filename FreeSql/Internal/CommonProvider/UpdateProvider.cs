@@ -693,52 +693,81 @@ namespace FreeSql.Internal.CommonProvider
                 body = (body as UnaryExpression)?.Operand;
                 nodeType = body?.NodeType;
             }
+            var isPgsqlStyle = false;
+            switch (_orm.Ado.DataType)
+            {
+                case DataType.PostgreSQL:
+                case DataType.OdbcPostgreSQL:
+                case DataType.CustomPostgreSQL:
+                case DataType.KingbaseES:
+                case DataType.ShenTong:
+                    isPgsqlStyle = true;
+                    break;
+            }
             switch (nodeType)
             {
                 case ExpressionType.Equal:
-                    var equalBinaryExp = body as BinaryExpression;
-                    var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, body, null, null);
-                    if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //#311
-                    _set.Append(", ").Append(eqval);
-                    return this;
+                    {
+                        var equalBinaryExp = body as BinaryExpression;
+                        if (isPgsqlStyle && equalBinaryExp.Left is MemberExpression equalBinaryExpLeft &&
+                            _table.ColumnsByCs.TryGetValue(equalBinaryExpLeft.Member.Name, out var col) &&
+                            col.Attribute.MapType.IsArray && equalBinaryExp.Right.CanDynamicInvoke())
+                        {
+                            var memberValue = _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, Expression.Lambda(equalBinaryExp.Right).Compile().DynamicInvoke());
+                            _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                            return this;
+                        }
+                        var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, _table, null, body, null, null);
+                        if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //#311
+                        _set.Append(", ").Append(eqval);
+                        return this;
+                    }
                 case ExpressionType.MemberInit:
-                    var initExp = body as MemberInitExpression;
-                    if (initExp.Bindings?.Count > 0)
                     {
-                        for (var a = 0; a < initExp.Bindings.Count; a++)
+                        var initExp = body as MemberInitExpression;
+                        if (initExp.Bindings?.Count > 0)
                         {
-                            var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
-                            if (initAssignExp == null) continue;
-                            var memberName = initExp.Bindings[a].Member.Name;
-                            if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
-                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreErrorStrings.NotFound_Property(memberName));
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC
+                            for (var a = 0; a < initExp.Bindings.Count; a++)
                             {
-                                isQuoteName = true,
-                                mapType = initAssignExp.Expression is BinaryExpression ? null : col.Attribute.MapType
-                            });
-                            _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                                var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
+                                if (initAssignExp == null) continue;
+                                var memberName = initExp.Bindings[a].Member.Name;
+                                if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
+                                if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreErrorStrings.NotFound_Property(memberName));
+                                var memberValue = isPgsqlStyle && col.Attribute.MapType.IsArray && initAssignExp.Expression.CanDynamicInvoke() ?
+                                    _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, Expression.Lambda(initAssignExp.Expression).Compile().DynamicInvoke()) :
+                                    _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC
+                                    {
+                                        isQuoteName = true,
+                                        mapType = initAssignExp.Expression is BinaryExpression ? null : col.Attribute.MapType
+                                    });
+                                _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                            }
                         }
+                        return this;
                     }
-                    return this;
                 case ExpressionType.New:
-                    var newExp = body as NewExpression;
-                    if (newExp.Members?.Count > 0)
                     {
-                        for (var a = 0; a < newExp.Members.Count; a++)
+                        var newExp = body as NewExpression;
+                        if (newExp.Members?.Count > 0)
                         {
-                            var memberName = newExp.Members[a].Name;
-                            if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
-                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreErrorStrings.NotFound_Property(memberName));
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC
+                            for (var a = 0; a < newExp.Members.Count; a++)
                             {
-                                isQuoteName = true,
-                                mapType = newExp.Arguments[a] is BinaryExpression ? null : col.Attribute.MapType
-                            });
-                            _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                                var memberName = newExp.Members[a].Name;
+                                if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
+                                if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreErrorStrings.NotFound_Property(memberName));
+                                var memberValue = isPgsqlStyle && col.Attribute.MapType.IsArray && newExp.Arguments[a].CanDynamicInvoke() ?
+                                    _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, Expression.Lambda(newExp.Arguments[a]).Compile().DynamicInvoke()) : 
+                                    _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC
+                                    {
+                                        isQuoteName = true,
+                                        mapType = newExp.Arguments[a] is BinaryExpression ? null : col.Attribute.MapType
+                                    });
+                                _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                            }
                         }
+                        return this;
                     }
-                    return this;
             }
             if (body is BinaryExpression == false &&
                 nodeType != ExpressionType.Call) return this;

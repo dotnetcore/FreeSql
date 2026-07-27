@@ -214,15 +214,16 @@ namespace FreeSql.Sqlite
 
             foreach (var db in database)
             {
+                // 修复：读取真实type字段，不再写死'TABLE'
                 var sql = $@"
 select 
 '{db}.' || tbl_name,
 '{db}',
 tbl_name,
 '' Comment,
-'TABLE',
+type,
 sql
-from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignoreCase ? "lower(tbl_name)" : "tbl_name")}={_commonUtils.FormatSql("{0}", tbname[1])}")}";
+from {db}.sqlite_master where (type='table' or type='view') {(tbname == null ? "" : $" and {(ignoreCase ? "lower(tbl_name)" : "tbl_name")}={_commonUtils.FormatSql("{0}", tbname[1])}")}";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) continue;
 
@@ -236,15 +237,27 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                     var schema = string.Concat(row[1]);
                     var table = string.Concat(row[2]);
                     var comment = string.Concat(row[3]);
-                    var type = string.Concat(row[4]) == "VIEW" ? DbTableType.VIEW : DbTableType.TABLE;
+                    // 现在取数据库真实type值，VIEW/Table正常识别
+                    string objType = string.Concat(row[4]);
+                    var tableType = objType.Equals("VIEW", StringComparison.OrdinalIgnoreCase)
+                        ? DbTableType.VIEW
+                        : DbTableType.TABLE;
+
                     if (database.Length == 1)
                     {
                         table_id = table_id.Substring(table_id.IndexOf('.') + 1);
                         schema = "";
                     }
-                    loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
+                    loc2.Add(table_id, new DbTableInfo
+                    {
+                        Id = table_id,
+                        Schema = schema,
+                        Name = table,
+                        Comment = comment,
+                        Type = tableType
+                    });
                     loc3.Add(table_id, new Dictionary<string, DbColumnInfo>());
-                    switch (type)
+                    switch (tableType)
                     {
                         case DbTableType.TABLE:
                         case DbTableType.VIEW:
@@ -265,7 +278,7 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                             break;
                     }
 
-                    if (type == DbTableType.TABLE && table != "sqlite_sequence")
+                    if ((tableType == DbTableType.TABLE || tableType == DbTableType.VIEW) && table != "sqlite_sequence")
                     {
                         var dsql = string.Concat(row[5]);
                         var cols = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".table_info(\"{table}\")");
@@ -274,11 +287,16 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                         {
                             var col_name = string.Concat(col[1]);
                             var is_identity = false;
-                            var dsqlIdx = dsql?.IndexOf($"\"{col_name}\" ");
-                            if (dsqlIdx > 0)
+                            // 视图不解析AUTOINCREMENT，只有表才解析
+                            if (tableType == DbTableType.TABLE)
                             {
-                                var dsqlLastIdx = dsql.IndexOf('\n', dsqlIdx.Value);
-                                if (dsqlLastIdx > 0) is_identity = dsql.Substring(dsqlIdx.Value, dsqlLastIdx - dsqlIdx.Value).Contains("AUTOINCREMENT");
+                                var dsqlIdx = dsql?.IndexOf($"\"{col_name}\" ");
+                                if (dsqlIdx > 0)
+                                {
+                                    var dsqlLastIdx = dsql.IndexOf('\n', dsqlIdx.Value);
+                                    if (dsqlLastIdx > 0)
+                                        is_identity = dsql.Substring(dsqlIdx.Value, dsqlLastIdx - dsqlIdx.Value).Contains("AUTOINCREMENT");
+                                }
                             }
 
                             var ds2item = new object[10];
@@ -294,75 +312,79 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                             addColumn(ds2item, ++position);
                         }
 
-                        Dictionary<string, DbIndexInfo> indexes = new Dictionary<string, DbIndexInfo>();
-                        var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_LIST(\"{table}\")");
-                        foreach (var dbIndex in dbIndexes)
+                        // ========== 索引、唯一键、外键仅TABLE执行，VIEW跳过 ==========
+                        if (tableType == DbTableType.TABLE)
                         {
-                            if (string.Concat(dbIndex[3]) == "pk") continue;
-                            var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_INFO(\"{dbIndex[1]}\")");
-                            var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM \"{db}\".sqlite_master WHERE name = '{dbIndex[1]}'"));
-                            foreach (var dbcolumn in dbIndexesColumns)
+                            Dictionary<string, DbIndexInfo> indexes = new Dictionary<string, DbIndexInfo>();
+                            var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_LIST(\"{table}\")");
+                            foreach (var dbIndex in dbIndexes)
                             {
-                                var column = string.Concat(dbcolumn[2]);
-                                var indexName = string.Concat(dbIndex[1]);
-                                var isDesc = dbIndexesSql.IndexOf($@"{column}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
-                                var isUnique = string.Concat(dbIndex[2]);
-
-                                if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
-                                var loc9 = loc3[table_id][column];
-
-                                if (indexes.TryGetValue(indexName, out var indexInfo) == false)
-                                    indexes.Add(indexName, indexInfo = new DbIndexInfo
-                                    {
-                                        IsUnique = isUnique == "1",
-                                        Name = indexName
-                                    });
-                                if (indexInfo.Columns.Any(a => a.Column.Name == column) == false)
-                                    indexInfo.Columns.Add(new DbIndexColumnInfo
-                                    {
-                                        Column = loc9,
-                                        IsDesc = isDesc == "1"
-                                    });
-                            }
-                        }
-                        foreach (var indexItem in indexes)
-                        {
-                            if (indexItem.Value.IsUnique)
-                                loc2[table_id].UniquesDict.Add(indexItem.Key, indexItem.Value);
-                            else
-                                loc2[table_id].IndexesDict.Add(indexItem.Key, indexItem.Value);
-                        }
-
-                        if (tbname == null)
-                        {
-                            var fks = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".foreign_key_list(\"{table}\")");
-                            if (fks != null && fks.Length > 0)
-                            {
-                                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
-                                foreach (var fk in fks)
+                                if (string.Concat(dbIndex[3]) == "pk") continue;
+                                var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".INDEX_INFO(\"{dbIndex[1]}\")");
+                                var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT sql FROM \"{db}\".sqlite_master WHERE name = '{dbIndex[1]}'"));
+                                foreach (var dbcolumn in dbIndexesColumns)
                                 {
-                                    string column = string.Concat(fk[3]);
-                                    string fk_id = $"{db}.{table}.{fk[0]}";
-                                    string ref_table_id = database.Length == 1 ? string.Concat(fk[2]) : $"{db}.{fk[2]}";
-                                    string referenced_column = string.Concat(fk[4]);
+                                    var column = string.Concat(dbcolumn[2]);
+                                    var indexName = string.Concat(dbIndex[1]);
+                                    var isDesc = dbIndexesSql.IndexOf($@"{column}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
+                                    var isUnique = string.Concat(dbIndex[2]);
+
                                     if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                                     var loc9 = loc3[table_id][column];
-                                    if (loc2.ContainsKey(ref_table_id) == false) continue;
-                                    var loc10 = loc2[ref_table_id];
-                                    var loc11 = loc3[ref_table_id][referenced_column];
 
-                                    Dictionary<string, DbForeignInfo> loc12 = null;
-                                    DbForeignInfo loc13 = null;
-                                    if (!fkColumns.TryGetValue(table_id, out loc12))
-                                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
-                                    if (!loc12.TryGetValue(fk_id, out loc13))
-                                        loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc10 });
-                                    loc13.Columns.Add(loc9);
-                                    loc13.ReferencedColumns.Add(loc11);
+                                    if (indexes.TryGetValue(indexName, out var indexInfo) == false)
+                                        indexes.Add(indexName, indexInfo = new DbIndexInfo
+                                        {
+                                            IsUnique = isUnique == "1",
+                                            Name = indexName
+                                        });
+                                    if (indexInfo.Columns.Any(a => a.Column.Name == column) == false)
+                                        indexInfo.Columns.Add(new DbIndexColumnInfo
+                                        {
+                                            Column = loc9,
+                                            IsDesc = isDesc == "1"
+                                        });
                                 }
-                                foreach (var table_id2 in fkColumns.Keys)
-                                    foreach (var fk in fkColumns[table_id2])
-                                        loc2[table_id2].ForeignsDict.Add(fk.Key, fk.Value);
+                            }
+                            foreach (var indexItem in indexes)
+                            {
+                                if (indexItem.Value.IsUnique)
+                                    loc2[table_id].UniquesDict.Add(indexItem.Key, indexItem.Value);
+                                else
+                                    loc2[table_id].IndexesDict.Add(indexItem.Key, indexItem.Value);
+                            }
+
+                            if (tbname == null)
+                            {
+                                var fks = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".foreign_key_list(\"{table}\")");
+                                if (fks != null && fks.Length > 0)
+                                {
+                                    var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
+                                    foreach (var fk in fks)
+                                    {
+                                        string column = string.Concat(fk[3]);
+                                        string fk_id = $"{db}.{table}.{fk[0]}";
+                                        string ref_table_id = database.Length == 1 ? string.Concat(fk[2]) : $"{db}.{fk[2]}";
+                                        string referenced_column = string.Concat(fk[4]);
+                                        if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
+                                        var loc9 = loc3[table_id][column];
+                                        if (loc2.ContainsKey(ref_table_id) == false) continue;
+                                        var loc10 = loc2[ref_table_id];
+                                        var loc11 = loc3[ref_table_id][referenced_column];
+
+                                        Dictionary<string, DbForeignInfo> loc12 = null;
+                                        DbForeignInfo loc13 = null;
+                                        if (!fkColumns.TryGetValue(table_id, out loc12))
+                                            fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
+                                        if (!loc12.TryGetValue(fk_id, out loc13))
+                                            loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc10 });
+                                        loc13.Columns.Add(loc9);
+                                        loc13.ReferencedColumns.Add(loc11);
+                                    }
+                                    foreach (var table_id2 in fkColumns.Keys)
+                                        foreach (var fk in fkColumns[table_id2])
+                                            loc2[table_id2].ForeignsDict.Add(fk.Key, fk.Value);
+                                }
                             }
                         }
                     }

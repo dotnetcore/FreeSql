@@ -1071,6 +1071,7 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
                 break;
         }
 
+        var sql1cteLevel = "0 as cte_level";
         var sql1ctePath = "";
         string wct2ctePath = null;
         if (pathSelector != null)
@@ -1105,7 +1106,19 @@ JOIN {select._commonUtils.QuoteSqlName(tbDbName)} a ON cte_tbc.cte_id = a.{selec
             }
             sql1ctePath = $"{sql1ctePath} as cte_path, ";
         }
-        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2(false).Field}").Trim();
+        switch (select._orm.Ado.DataType)
+        {
+            case DataType.PostgreSQL:
+            case DataType.OdbcPostgreSQL:
+            case DataType.CustomPostgreSQL:
+                sql1cteLevel = "0::int4 as cte_level";
+                break;
+            case DataType.KingbaseES:
+            case DataType.ShenTong:
+                sql1cteLevel = "0::BIGINT as cte_level";
+                break;
+        }
+        var sql1 = select.ToSql($"{sql1cteLevel}, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2(false).Field}").Trim();
 
         select._where.Clear();
         select.As("wct2");
