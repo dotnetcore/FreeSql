@@ -57,7 +57,7 @@ public static class FreeSqlJsonMapCoreExtensions
             var isJsonMap = e.Property.GetCustomAttributes(typeof(JsonMapAttribute), false).Any() || _dicJsonMapFluentApi.TryGetValue(e.EntityType, out var tryjmfu) && tryjmfu.ContainsKey(e.Property.Name);
             if (isJsonMap)
             {
-                if (_dicTypes.ContainsKey(e.Property.PropertyType) == false &&
+                if (_dicTypes.ContainsKey(e.Property.PropertyType) ||
                     FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(e.Property.PropertyType))
                     return; //基础类型使用 JsonMap 无效
 
@@ -66,7 +66,7 @@ public static class FreeSqlJsonMapCoreExtensions
                     switch (fsql.Ado.DataType)
                     {
                         case DataType.PostgreSQL:
-                            e.ModifyResult.MapType = typeof(JObject);
+                            e.ModifyResult.MapType = e.Property.PropertyType.IsArrayOrList() ? typeof(JArray) : typeof(JObject);
                             break;
                         default:
                             e.ModifyResult.MapType = typeof(string);
