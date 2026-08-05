@@ -212,12 +212,15 @@ namespace FreeSql.Internal
                                 CsType = map[idx].Column.CsType,
                                 MapType = map[idx].Column.Attribute.MapType
                             };
-                            field.Append(", ").Append(_common.RereadColumn(map[idx].Column, child.DbField));
+                            var rereadColumn = _common.RereadColumn(map[idx].Column, child.DbField);
+                            field.Append(", ").Append(rereadColumn);
                             if (index >= 0)
                             {
                                 child.DbNestedField = $"as{++index}";
                                 field.Append(_common.FieldAsAlias(child.DbNestedField));
                             }
+                            else if (index == ReadAnonymousFieldAsCsName && rereadColumn != child.DbField)
+                                field.Append(_common.FieldAsAlias(child.DbNestedField));
                             parent.Childs.Add(child);
                         }
                         if (_tables?.Count > 1)
@@ -1132,6 +1135,10 @@ namespace FreeSql.Internal
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc)})";
                 case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);
+                case ExpressionType.ArrayLength:
+                    if (exp.CanDynamicInvoke())
+                        return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    break;
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);

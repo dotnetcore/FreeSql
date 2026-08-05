@@ -569,13 +569,24 @@ namespace FreeSql.Internal.CommonProvider
             if (table == null && typeof(T1) == typeof(Dictionary<string, object>) && source is IEnumerable<Dictionary<string, object>> dicType)
             {
                 var tempDict = new Dictionary<string, object>();
+                var keyCounts = new Dictionary<string, int>();
+                var nullableKeys = new HashSet<string>();
+                var itemCount = 0;
                 foreach (var item in dicType)
+                {
+                    itemCount++;
                     foreach (string key in item.Keys)
                     {
+                        keyCounts[key] = keyCounts.TryGetValue(key, out var count) ? count + 1 : 1;
+                        if (item[key] == null) nullableKeys.Add(key);
                         if (!tempDict.ContainsKey(key)) tempDict[key] = item[key];
                         else if (!(item[key] is null)) tempDict[key] = item[key];
                     }
+                }
                 UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(tempDict, orm, ref table);
+                foreach (var col in table.ColumnsByCs.Values)
+                    if (nullableKeys.Contains(col.CsName) || keyCounts[col.CsName] < itemCount)
+                        col.Attribute.IsNullable = true;
                 return;
             }
             GetDictionaryTableInfo(source.FirstOrDefault(), orm, ref table);

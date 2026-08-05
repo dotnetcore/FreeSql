@@ -45,6 +45,47 @@ namespace FreeSql.Tests.Sqlite
             public List<TestTypeInfo> Types { get; set; }
         }
 
+        [Table(Name = "reread_sql_gxb")]
+        class RereadSqlGxb
+        {
+            [Column(IsPrimary = true)]
+            public int Id { get; set; }
+            public string ObjectId { get; set; }
+        }
+
+        [Table(Name = "reread_sql_gxb_ysk")]
+        class RereadSqlGxbYsk : RereadSqlGxb { }
+
+        [Table(Name = "reread_sql_geo")]
+        class RereadSqlGeo
+        {
+            [Column(IsPrimary = true)]
+            public int Id { get; set; }
+            public string ObjectId { get; set; }
+            [Column(RereadSql = "substring({0},1,2)")]
+            public string Geometry { get; set; }
+        }
+
+        [Table(Name = "reread_sql_geo_ysk")]
+        class RereadSqlGeoYsk : RereadSqlGeo { }
+
+        [Fact]
+        public void FromQuery_AsType_RereadSql_PreservesColumnAlias()
+        {
+            g.sqlite.CodeFirst.SyncStructure<RereadSqlGxbYsk>();
+            g.sqlite.CodeFirst.SyncStructure<RereadSqlGeoYsk>();
+
+            var selectGxb = g.sqlite.Select<RereadSqlGxb>().AsType(typeof(RereadSqlGxbYsk));
+            var selectGeo = g.sqlite.Select<RereadSqlGeo>().AsType(typeof(RereadSqlGeoYsk));
+            var select = selectGxb.FromQuery(selectGeo)
+                .LeftJoin((gxb, geo) => gxb.ObjectId == geo.ObjectId);
+
+            var sql = select.ToSql((gxb, geo) => new { gxb, geo });
+
+            Assert.Contains("substring(a.\"Geometry\",1,2) \"Geometry\"", sql);
+            select.ToList((gxb, geo) => new { gxb, geo });
+        }
+
         public partial class Song
         {
             [Column(IsIdentity = true)]

@@ -153,7 +153,7 @@ namespace FreeSql.Custom.SqlServer
                 {
                     sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__");
                     if (_limit > 0)
-                        sb.Append(" between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
+                        sb.Append(" between ").Append((long)_skip + 1).Append(" and ").Append((long)_skip + _limit);
                     else
                         sb.Append(" > ").Append(_skip);
                 }

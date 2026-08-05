@@ -441,7 +441,7 @@ public static partial class FreeSqlGlobalExtensions
                         if (oldalias != null) old = oldalias(type, old);
                         if (string.IsNullOrWhiteSpace(indexName) == false && type == selectProvider._tables[0].Table.Type) return LocalAppendMySqlIndex(old, indexName);
                         if (rule == null) return old;
-                        return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendMySqlIndex(old, indexName) : old;
+                        return rule.TryGetValue(type, out var tryidxName) && string.IsNullOrWhiteSpace(tryidxName) == false ? LocalAppendMySqlIndex(old, tryidxName) : old;
                     };
                 }
                 break;

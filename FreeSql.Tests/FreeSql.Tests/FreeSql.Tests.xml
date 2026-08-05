@@ -401,6 +401,18 @@
             用户
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.Issues._2226.UnitOfWorkDispose_ShouldPreventOrphanTransaction">
+            <summary>
+            UnitOfWork.Dispose 后，绑定了该 UoW 的 Repository 执行写操作
+            不应开启孤儿事务，应走 auto-commit 正常持久化
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.Issues._2226.UnitOfWorkDispose_ShouldSetEnableFalse">
+            <summary>
+            UnitOfWork.Dispose 后 Enable 应为 false，
+            GetOrBeginTransaction 应返回 null 而非创建新事务
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
             <summary>
             收款金额
