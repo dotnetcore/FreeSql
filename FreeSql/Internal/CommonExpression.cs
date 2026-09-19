@@ -212,12 +212,15 @@ namespace FreeSql.Internal
                                 CsType = map[idx].Column.CsType,
                                 MapType = map[idx].Column.Attribute.MapType
                             };
-                            field.Append(", ").Append(_common.RereadColumn(map[idx].Column, child.DbField));
+                            var rereadColumn = _common.RereadColumn(map[idx].Column, child.DbField);
+                            field.Append(", ").Append(rereadColumn);
                             if (index >= 0)
                             {
                                 child.DbNestedField = $"as{++index}";
                                 field.Append(_common.FieldAsAlias(child.DbNestedField));
                             }
+                            else if (index == ReadAnonymousFieldAsCsName && rereadColumn != child.DbField)
+                                field.Append(_common.FieldAsAlias(child.DbNestedField));
                             parent.Childs.Add(child);
                         }
                         if (_tables?.Count > 1)
@@ -368,7 +371,20 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
-                    else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
+                    else if (isAllDtoMap && _tables != null && _tables.Any() && 
+                        (
+                            initExp.NewExpression.Type != _tables[0].Table.Type ||
+                            !initExp.Bindings.Any(a => 
+                            // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
+                            {
+                                var aExp = a as MemberAssignment;
+                                if (aExp == null) return false;
+                                if (aExp.Expression is MemberExpression aExpRight == false) return false;
+                                if (aExpRight.Expression == _tables[0].Parameter && 
+                                    aExpRight.Member.Name == a.Member.Name) return true;
+                                return false;
+                            })
+                        ))
                     {
                         var dicBindings = initExp.Bindings?.Select(a => a.Member.Name).Distinct().ToDictionary(a => a, a => false);
                         //dto 映射
@@ -1119,6 +1135,10 @@ namespace FreeSql.Internal
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc)})";
                 case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);
+                case ExpressionType.ArrayLength:
+                    if (exp.CanDynamicInvoke())
+                        return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    break;
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);

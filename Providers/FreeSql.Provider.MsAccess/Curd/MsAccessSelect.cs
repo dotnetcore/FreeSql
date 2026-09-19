@@ -36,7 +36,7 @@ namespace FreeSql.MsAccess.Curd
                 var sbnav = new StringBuilder();
                 sb.Append(_select);
                 if (_distinct) sb.Append("DISTINCT ");
-                if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
+                if (_limit > 0) sb.Append("TOP ").Append((long)_skip + _limit).Append(" ");
                 sb.Append(field);
                 if (_skip > 0)
                     throw new NotImplementedException(CoreErrorStrings.S_NotImplementSkipOffset("MsAccess"));

@@ -22,6 +22,30 @@ namespace FreeSql.Tests.Sqlite
             public DateTime CreateTime { get; set; }
         }
 
+        [Table(Name = "insert_dict_nullable_guid")]
+        class InsertDictNullableGuid
+        {
+            [Column(IsPrimary = true)]
+            public Guid Id { get; set; }
+            public Guid? ParentId { get; set; }
+        }
+
+        [Fact]
+        public void InsertDict_BatchNullableGuid_PreservesNull()
+        {
+            g.sqlite.CodeFirst.SyncStructure<InsertDictNullableGuid>();
+            var rootId = Guid.NewGuid();
+
+            var affrows = g.sqlite.InsertDict(new List<Dictionary<string, object>>
+            {
+                new() { ["Id"] = rootId, ["ParentId"] = null },
+                new() { ["Id"] = Guid.NewGuid(), ["ParentId"] = rootId }
+            }).AsTable("insert_dict_nullable_guid").ExecuteAffrows();
+
+            Assert.Equal(2, affrows);
+            Assert.Null(g.sqlite.Select<InsertDictNullableGuid>().Where(a => a.Id == rootId).ToOne().ParentId);
+        }
+
         [Fact]
         public void AppendData()
         {

@@ -56,6 +56,25 @@ namespace FreeSql.Tests.MySql
             public List<TestTypeInfo> Types { get; set; }
         }
 
+        [Fact]
+        public void WithIndex_UsesTypeSpecificIndex()
+        {
+            var fsql = new FreeSqlBuilder()
+                .UseConnectionString(DataType.MySql, "Server=127.0.0.1;Database=test;User ID=root;Password=root;")
+                .Build();
+            var sql = fsql.Select<Topic, TestTypeInfo>()
+                .InnerJoin((a, b) => a.Id == b.Guid)
+                .WithIndex("idx_topic", new Dictionary<Type, string>
+                {
+                    [typeof(TestTypeInfo)] = "idx_type"
+                })
+                .ToSql(a => a.t1.Id);
+
+            Assert.Equal("SELECT a.`Id` as1 \r\n" +
+                "FROM `tb_topic` a FORCE INDEX(idx_topic) \r\n" +
+                "INNER JOIN `TestTypeInfo` b FORCE INDEX(idx_type) ON a.`Id` = b.`Guid`", sql);
+        }
+
         public partial class Song
         {
             [Column(IsIdentity = true)]

@@ -160,7 +160,7 @@ fsql.Select<Model>()
                     sb.Append(" \r\nlimit ").Append(_skip == 0 ? _limit : _skip);
                 if (_skip > 0)
                     //sb.Append(" \r\noffset ").Append(_skip);
-                    sb.Append(",").Append(_skip + _limit);
+                    sb.Append(",").Append((long)_skip + _limit);
 
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");

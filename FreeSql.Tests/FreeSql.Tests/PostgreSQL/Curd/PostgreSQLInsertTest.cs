@@ -147,16 +147,25 @@ namespace FreeSql.Tests.PostgreSQL
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
+
+            public byte[] RawData { get; set; }
         }
 
         [Fact]
         public void ExecutePgCopy()
         {
+            g.pgsql.Delete<TopicPgCopy>().Where(m => true).ExecuteAffrows();
             var maxId = g.pgsql.Select<TopicPgCopy>().Max(a => a.Id);
             var items = new List<TopicPgCopy>();
-            for (var a = 0; a < 10; a++) items.Add(new TopicPgCopy { Id = maxId + a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
-
-            g.pgsql.Insert(items).InsertIdentity().ExecutePgCopy();
+            for (var a = 0; a < 10; a++) items.Add(new TopicPgCopy
+            {
+                Id = maxId + a + 1,
+                Title = $"newtitle{a}",
+                Clicks = a * 100,
+                CreateTime = DateTime.Now
+            });
+            items[0].RawData = new byte[1024 * 1024 * 512];
+            g.pgsql.Insert(items).InsertIdentity().ExecutePgCopy(timeout: 3600);
 
             items = g.pgsql.Select<TopicPgCopy>().OrderByDescending(a => a.Id).Limit(1000).ToList();
             var sql = g.pgsql.Insert(items).InsertIdentity().NoneParameter().ToSql();

@@ -109,7 +109,7 @@ namespace FreeSql.Odbc.Oracle
                 if (!string.IsNullOrEmpty(_tables[0].Cascade)) sbnav.Append(" AND ").Append(_tables[0].Cascade);
 
                 if (string.IsNullOrEmpty(_orderby) && (_skip > 0 || _limit > 0))
-                    sbnav.Append(" AND ROWNUM < ").Append(_skip + _limit + 1);
+                    sbnav.Append(" AND ROWNUM < ").Append((long)_skip + _limit + 1);
                 if (sbnav.Length > 0)
                     sbunion.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
                 if (string.IsNullOrEmpty(_groupby) == false)
@@ -127,9 +127,9 @@ namespace FreeSql.Odbc.Oracle
                 }
                 else
                 {
-                    if (_skip > 0 && _limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                    if (_skip > 0 && _limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append((long)_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
                     else if (_skip > 0) sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
-                    else if (_limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
+                    else if (_limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE ROWNUM < ").Append((long)_limit + 1);
                 }
 
                 if (tbUnionsGt0) sbunion.Insert(0, $"{_select}* from (").Append(") ftb");
