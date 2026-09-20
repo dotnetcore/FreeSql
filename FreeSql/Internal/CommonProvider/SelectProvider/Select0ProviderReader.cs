@@ -662,7 +662,7 @@ namespace FreeSql.Internal.CommonProvider
                     var propGetSetMethod = prop.GetSetMethod(true);
                     Expression readExpAssign = null; //加速缓存
                     if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) })),
+                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) }), Expression.Constant(_commonUtils)),
                         Expression.Add(dataIndexExp, Expression.Constant(1))
                     );
                     else
@@ -671,7 +671,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
                         if (proptypeGeneric.IsEnum ||
                             Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) })),
+                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp, Expression.Constant(prop) }), Expression.Constant(_commonUtils)),
                                 Expression.Add(dataIndexExp, Expression.Constant(1))
                         );
                         else
@@ -690,7 +690,7 @@ namespace FreeSql.Internal.CommonProvider
                             Expression.IfThenElse(
                                 Expression.NotEqual(readExpValue, Expression.Constant(null)),
                                 Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)),
-                                Expression.Call(retExp, propGetSetMethod, Expression.Convert(Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Constant(null)), prop.PropertyType))
+                                Expression.Call(retExp, propGetSetMethod, Expression.Convert(Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Constant(null), Expression.Constant(_commonUtils)), prop.PropertyType))
                             ) :
                             Expression.IfThen(
                                 Expression.NotEqual(readExpValue, Expression.Constant(null)),
@@ -719,14 +719,22 @@ namespace FreeSql.Internal.CommonProvider
                         var drvalType = col.Attribute.MapType.NullableTypeOrThis();
                         var colprop = tb.Table.Properties[col.CsName];
                         var propGetSetMethod = colprop.GetSetMethod(true);
+                        Dictionary<Type, MethodInfo> drDictOverride = null;
+                        MethodInfo drDictOverrideGetValueMethod = null;
+                        var hasReaderOverride =
+                            _dicMethodDataReaderGetValueOverride.TryGetValue(_orm.Ado.DataType, out drDictOverride) &&
+                            drDictOverride.TryGetValue(drvalType, out drDictOverrideGetValueMethod);
                         if (col.CsType == col.Attribute.MapType &&
                             _orm.Aop.AuditDataReaderHandler == null &&
-                            _dicMethodDataReaderGetValue.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drGetValueMethod))
+                            (_dicMethodDataReaderGetValue.TryGetValue(drvalType, out var drGetValueMethod) ||
+                             hasReaderOverride))
                         {
-                            if (_dicMethodDataReaderGetValueOverride.TryGetValue(_orm.Ado.DataType, out var drDictOverride) && drDictOverride.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drDictOverrideGetValueMethod))
+                            if (hasReaderOverride)
                                 drGetValueMethod = drDictOverrideGetValueMethod;
 
-                            Expression drvalExp = Expression.Call(rowExp, drGetValueMethod, Expression.Constant(colidx));
+                            Expression drvalExp = drGetValueMethod.IsStatic
+                                ? Expression.Call(drGetValueMethod, rowExp, Expression.Constant(colidx))
+                                : Expression.Call(rowExp, drGetValueMethod, Expression.Constant(colidx));
                             if (col.CsType.IsNullableType() || drGetValueMethod.ReturnType != col.CsType) drvalExp = Expression.Convert(drvalExp, col.CsType);
                             drvalExp = Expression.Condition(Expression.Call(rowExp, _MethodDataReaderIsDBNull, Expression.Constant(colidx)), Expression.Default(col.CsType), drvalExp);
 
@@ -734,7 +742,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var drvalExpCatch = Utils.GetDataReaderValueBlockExpression(
                                     col.CsType,
-                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) })
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) }),
+                                    Expression.Constant(_commonUtils)
                                 );
                                 blockExp.Add(Expression.TryCatch(
                                     Expression.Call(retExp, propGetSetMethod, drvalExp),
@@ -759,7 +768,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var drvalExp = Utils.GetDataReaderValueBlockExpression(
                                     col.CsType,
-                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) })
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx), Expression.Constant(colprop) }),
+                                    Expression.Constant(_commonUtils)
                                 );
                                 blockExp.Add(Expression.Call(retExp, propGetSetMethod, Expression.Convert(drvalExp, col.CsType)));
                             }
@@ -920,6 +930,9 @@ namespace FreeSql.Internal.CommonProvider
             var otherAfs = otherAfdic.Select(a => a.Value.First().Item3).ToArray();
             var ret = this.ToListMapReaderPrivate<TReturn>(af, otherAfs);
             if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
+            // 多条外层记录会让读取器把嵌套查询拼成 UNION ALL；先校验，避免逐条生成内层 SQL。
+            if (ret.Count > 1 && otherAfmanys.Any(a => a.Any()))
+                _commonUtils.ValidateUnionAll();
 
             var rmev = new ReplaceMemberExpressionVisitor();
 
@@ -983,6 +996,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected string InternalGetInsertIntoToSql<TTargetEntity>(string tableName, Expression select)
         {
+            _commonUtils.ValidateInsertIntoSelect();
             var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
             if (tb == null) throw new ArgumentException(CoreErrorStrings.InsertInto_TypeError(typeof(TTargetEntity).DisplayCsharp()));
             if (string.IsNullOrEmpty(tableName)) tableName = tb.DbName;
@@ -1454,6 +1468,9 @@ namespace FreeSql.Internal.CommonProvider
             var otherAfs = otherAfdic.Select(a => a.Value.First().Item3).ToArray();
             var ret = await this.ToListMapReaderPrivateAsync<TReturn>(af, otherAfs, cancellationToken);
             if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
+            // 多条外层记录会让读取器把嵌套查询拼成 UNION ALL；先校验，避免逐条生成内层 SQL。
+            if (ret.Count > 1 && otherAfmanys.Any(a => a.Any()))
+                _commonUtils.ValidateUnionAll();
 
             var rmev = new ReplaceMemberExpressionVisitor();
 

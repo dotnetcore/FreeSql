@@ -53,6 +53,12 @@ namespace FreeSql.DataAnnotations
         /// 暂时只有 FreeSql.Provider.PostgreSQL 有效
         /// </summary>
         public IndexMethod IndexMethod { get; set; }
+
+        /// <summary>
+        /// JSON 路径索引的路径表达式。普通索引留空；仅由支持该能力的提供程序使用。
+        /// 例如：<c>[Index("ix_device_site", "Metadata", JsonPath = "$.site")]</c>。
+        /// </summary>
+        public string JsonPath { get; set; }
     }
 
     /// <summary>

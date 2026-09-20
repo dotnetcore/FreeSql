@@ -3,8 +3,9 @@
 	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql provider for SonnetDB based on SonnetDB.Data ADO.NET provider. Supports SonnetDB INSERT, SELECT and DELETE; UPDATE and UPSERT are not supported by SonnetDB SQL.</Description>
+		<Description>FreeSql 的 SonnetDB 3.1 提供程序，支持关系表和时序测量。</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -18,17 +19,17 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
-		<Version>3.5.309</Version>
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<Version>3.5.311</Version>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../../readme.md" Pack="true" PackagePath="\" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SonnetDB" Version="1.1.0" />
+		<PackageReference Include="SonnetDB" Version="3.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>

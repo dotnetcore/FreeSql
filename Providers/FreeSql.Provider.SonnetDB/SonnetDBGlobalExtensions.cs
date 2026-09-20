@@ -1,16 +1,4 @@
-﻿// SonnetDBGlobalExtensions.cs
-// SonnetDB 全局字符串格式化扩展。
-//
-// 提供 FormatSonnetDB 扩展方法，用于将 SQL 模板中的占位符参数安全地转义并格式化，
-// 防止 SQL 注入风险。底层调用 SonnetDBAdo.Addslashes 进行转义处理。
-//
-// 用法示例（手写 SQL 时）：
-//   string sql = "SELECT * FROM \"sensors\" WHERE device = {0}".FormatSonnetDB(deviceId);
-//
-// 注意：FreeSql LINQ 查询（Where / Select 等）会自动完成转义，无需手动调用此方法。
-// SonnetDB 专有函数（PID、时序、向量、地理空间等）请通过 SonnetDBFunctions 类使用，
-// 并在 FreeSqlBuilder 注册时配合 ExpressionCall 机制自动翻译为 SQL。
-
+﻿// SonnetDB 全局扩展。
 using FreeSql.SonnetDB;
 
 public static class FreeSqlSonnetDBGlobalExtensions

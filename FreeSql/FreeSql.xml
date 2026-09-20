@@ -6323,5 +6323,78 @@
             全局过滤设置，可默认附加为 Select/Update/Delete 条件
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.JsonPath">
+            <summary>
+            JSON 路径索引的路径表达式。普通索引留空；仅由支持该能力的提供程序使用。
+            例如：<c>[Index("ix_device_site", "Metadata", JsonPath = "$.site")]</c>。
+            </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent.Index(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            设置带 JSON 路径的关系表索引。仅由支持 JSON 路径索引的提供程序使用。
+            </summary>
+            <param name="name">索引名</param>
+            <param name="fields">索引字段，为属性名以逗号分隔</param>
+            <param name="isUnique">是否唯一</param>
+            <param name="jsonPath">JSON 路径表达式；普通索引留空</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent`1.Index(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            设置带 JSON 路径的关系表索引。仅由支持 JSON 路径索引的提供程序使用。
+            </summary>
+            <param name="name">索引名</param>
+            <param name="fields">索引字段，为属性名以逗号分隔</param>
+            <param name="isUnique">是否唯一</param>
+            <param name="jsonPath">JSON 路径表达式；普通索引留空</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.DatabaseModel.DbIndexInfo.JsonPath">
+            <summary>
+            数据库返回的 JSON 路径索引路径。普通索引留空。
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.WriteSourceSelectUnionAll(IFreeSql,FreeSql.Internal.CommonUtils,FreeSql.Internal.Model.TableInfo,System.Collections.Generic.List{`0},System.Text.StringBuilder,System.Collections.Generic.List{System.Data.Common.DbParameter},System.Boolean)">
+            <summary>
+            生成内存数据对应的 SELECT/UNION ALL 片段。
+            <para>
+            Select.WithMemory 只需要这段 SQL，不应为了借用生成器而创建真正的
+            UPSERT 执行器；将实现放在静态辅助方法中可避免把两种语义耦合起来。
+            </para>
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.ConvertDataReaderValue(System.Type,System.Object)">
+            <summary>
+            将数据读取结果转换为实体或投影需要的 CLR 类型。
+            提供程序可重写此方法处理数据库特有的返回表示，默认沿用 FreeSql 通用转换。
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.ValidateInsertIntoSelect">
+            <summary>
+            校验由 ISelect.InsertInto 生成的 INSERT ... SELECT 语句。
+            提供程序可在生成 SQL 前拒绝数据库不支持的查询插入语法。
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.ValidateSelectOperation(System.String)">
+            <summary>
+            校验 SELECT 派生出的更新、删除、锁定和更新联接入口。
+            提供程序可在 FreeSql 生成数据库不支持的 SQL 之前给出明确异常。
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.ValidateRecursiveCte">
+            <summary>
+            校验递归 CTE 入口。提供程序可拒绝数据库不支持的 WITH 查询。
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.ValidateUnionAll">
+            <summary>
+            校验读取器为多条嵌套查询拼接的 UNION ALL。提供程序可拒绝不支持该语法的数据库。
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.IndexInfo.JsonPath">
+            <summary>
+            JSON 路径索引的路径表达式。普通索引留空；仅由支持该能力的提供程序使用。
+            </summary>
+        </member>
     </members>
 </doc>

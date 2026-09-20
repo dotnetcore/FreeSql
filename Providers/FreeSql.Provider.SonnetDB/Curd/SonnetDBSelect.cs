@@ -1,14 +1,15 @@
-﻿// SonnetDBSelect.cs
+﻿// SonnetDB SELECT 查询实现。
 // SonnetDB 的 SELECT 查询 SQL 生成器。
 //
-// SonnetDB 与标准 SQL 的主要差异：
-//   1. 不支持表别名引用 —— "alias.column" 写法无效，必须直接写 "column"。
-//      通过 RemoveTableAliases 在 SQL 输出前统一消除所有别名引用。
+// SonnetDB 3.1 与标准 SQL 的主要差异：
+//   1. 关系表和时序测量均支持表别名及“别名.列名”限定；
+//      关系表支持 INNER/LEFT JOIN，但发布版参数绑定路径无法执行时序测量 JOIN。
 //   2. ORDER BY 须位于 LIMIT / OFFSET 之前（与标准 SQL 相同，但需严格保证）。
 //   3. FreeSql Count() 查询会生成 "1 as1" 占位符，
 //      SonnetDB 不接受裸 1 作为 SELECT 字段，需通过 NormalizeSelectField
 //      将其改写为 "count(1) as1"。
-//   4. 支持多表 UNION ALL 查询，生成逻辑与其他 Provider 保持一致。
+//   4. 3.1.0 仅支持普通 UNION，不支持 UNION ALL；所有会生成 UNION ALL
+//      的表规则合并和 ISelect.UnionAll 路径都会在 SQL 生成前明确拒绝。
 //
 // 所有多表重载（T1~T16）均复用 SonnetDBSelect<T1>.ToSqlStatic，
 // 以保持 SQL 生成逻辑的单一来源。
@@ -31,12 +32,30 @@ namespace FreeSql.SonnetDB.Curd
         /// <summary>
         /// 生成 SonnetDB SELECT 语句的核心静态方法。
         /// 处理 FROM、JOIN、WHERE、GROUP BY、HAVING、ORDER BY、LIMIT、OFFSET 子句，
-        /// 并在最终 SQL 输出前消除表别名引用（SonnetDB 不支持 alias.column 语法）。
+        /// 并在 SonnetDB 不支持的 JOIN 形态下提前给出明确异常。
         /// </summary>
         internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, List<Dictionary<Type, string>> tbUnions, Func<Type, string, string> _aliasRule, string _tosqlAppendContent, List<GlobalFilter.Item> _whereGlobalFilter, IFreeSql _orm)
         {
+            // 先校验查询能力，避免被拒绝的 JOIN 在自动同步结构前产生 DDL 副作用。
+            ValidateCteCapabilities(_select, tbUnions);
+            ValidateJoinCapabilities(_tables, _join);
+            ValidateUnionCapabilities(tbUnions, _select);
+
             if (_orm.CodeFirst.IsAutoSyncStructure)
-                _orm.CodeFirst.SyncStructure(_tables.Select(a => a.Table.Type).ToArray());
+            {
+                // 表值函数没有可同步的实体表结构。过滤掉对应的 DTO，避免
+                // 自动建出一个与 forecast/knn 结果无关的时序测量。
+                var syncTypes = _tables
+                    .Where(a => a?.Table?.Type != null)
+                    .Where(a => tbUnions?.Any(union =>
+                        union != null && union.TryGetValue(a.Table.Type, out var tableName) &&
+                        SonnetDBUtils.IsTableValuedFunctionExpression(tableName)) != true)
+                    .Select(a => a.Table.Type)
+                    .Distinct()
+                    .ToArray();
+                if (syncTypes.Length > 0)
+                    _orm.CodeFirst.SyncStructure(syncTypes);
+            }
 
             if (_whereGlobalFilter.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
@@ -65,10 +84,10 @@ namespace FreeSql.SonnetDB.Curd
                     sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
                     if (tbsjoin.Length > 0)
                     {
-                        //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
+                        // 如果存在 JOIN 查询，将 from t1, t2 改为 from t1 inner join t2 on 1 = 1。
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            sb.Append(" \r\nINNER JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
 
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) &&
                                  string.IsNullOrEmpty(tbsfrom[b].On) &&
@@ -145,34 +164,87 @@ namespace FreeSql.SonnetDB.Curd
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
             }
-            // 最终消除所有表别名引用，确保输出 SQL 符合 SonnetDB 语法（不支持 alias.col）。
-            return RemoveTableAliases(sb.Append(_tosqlAppendContent).ToString(), _tables);
+            // SonnetDB 3.1 支持关系表和时序测量的表别名。
+            // 保留列限定符，避免同名列产生歧义。
+            return sb.Append(_tosqlAppendContent).ToString();
         }
 
-        /// <summary>
-        /// 消除 SQL 字符串中所有表别名引用。
-        /// <para>SonnetDB 不支持 <c>alias.column</c> 语法，FreeSql 默认生成的列引用携带表别名，
-        /// 此方法通过正则表达式批量去除：</para>
-        /// <list type="bullet">
-        ///   <item>去除列引用前的 <c>alias.</c> 前缀</item>
-        ///   <item>去除 FROM / JOIN 子句中表名后的别名</item>
-        /// </list>
-        /// </summary>
-        static string RemoveTableAliases(string sql, List<SelectTableInfo> tables)
+        static void ValidateJoinCapabilities(List<SelectTableInfo> tables, StringBuilder rawJoin)
         {
-            const string quotedIdentifierPattern = "\"(?:[^\"]|\"\")*\"";
-            const string tableNamePattern = "(?:" + quotedIdentifierPattern + "(?:\\." + quotedIdentifierPattern + ")*|\\w+(?:\\.\\w+)*)";
-            foreach (var alias in tables.Select(a => a.Alias).Where(a => string.IsNullOrEmpty(a) == false).Distinct().OrderByDescending(a => a.Length))
+            if (tables == null || tables.Count == 0) return;
+
+            // Parent（外层引用项）是相关子查询引用的外层表，不是当前 SELECT 的实际数据源；
+            // WithoutJoin（无连接项）也可能只是表达式解析留下的辅助条目。
+            // 只有真实 From/JOIN 条目才参与 SonnetDB 模型能力判断。
+            var sources = tables.Where(a => a != null &&
+                a.Type != SelectTableInfoType.Parent &&
+                a.Type != SelectTableInfoType.WithoutJoin).ToArray();
+            var explicitJoins = sources.Where(a => a.Type == SelectTableInfoType.LeftJoin ||
+                                                   a.Type == SelectTableInfoType.InnerJoin ||
+                                                   a.Type == SelectTableInfoType.RightJoin).ToArray();
+            var hasRawJoin = (rawJoin != null && rawJoin.Length > 0) ||
+                             sources.Any(a => a.Type == SelectTableInfoType.RawJoin);
+
+            // 字符串 JOIN 无法确认参与对象是否都是关系表，也可能包含 SonnetDB 不支持的语法。
+            if (hasRawJoin)
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 已拒绝原始 SQL JOIN：无法确认参与对象是否为关系表，且不支持 RIGHT/FULL 等任意 JOIN 语法。");
+
+            if (explicitJoins.Any(a => a.Type == SelectTableInfoType.RightJoin))
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 的关系表 JOIN 仅支持 INNER JOIN 和 LEFT JOIN，不支持 RIGHT JOIN。");
+
+            // 没有显式 JOIN 时，多个 From 会生成隐式笛卡尔积；发布版关系执行器不接受这种写法。
+            if (explicitJoins.Length == 0 && sources.Count(a => a.Type == SelectTableInfoType.From) > 1)
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 不支持没有显式 JOIN 条件的多根 FROM 查询（隐式笛卡尔积），请使用 INNER JOIN 或 LEFT JOIN 并提供连接条件。");
+
+            if (explicitJoins.Length == 0) return;
+
+            // 参数绑定后，时序 JOIN 的 AST 会被放入 JoinClauses，而时序执行器仍读取旧字段，
+            // 因此当前版本只能安全执行关系表之间的 JOIN。
+            if (sources.Any(a => a.Table != null && SonnetDBModel.IsMeasurement(a.Table)))
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 发布版的参数绑定路径会丢失时序测量 JOIN AST，当前拒绝时序测量参与 JOIN；请改用关系表或拆分查询。");
+        }
+
+        static void ValidateUnionCapabilities(List<Dictionary<Type, string>> tableUnions, string selectPrefix)
+        {
+            // SonnetDB 3.1 的 ParseSelect 在 UNION 后只接受 SELECT，不会消费 ALL。
+            // 表规则分支和 ISelect.UnionAll 都会把 UNION ALL 交给该解析器，必须在
+            // 生成/执行前拒绝，不能静默改写为会去重的普通 UNION。
+            if (tableUnions == null) return;
+            if (tableUnions.Count > 1 ||
+                tableUnions.SelectMany(a => a?.Values ?? Enumerable.Empty<string>())
+                    .Any(ContainsUnionAll) ||
+                ContainsUnionAll(selectPrefix))
             {
-                var escapedAlias = Regex.Escape(alias);
-                // 去除列引用中的 "alias." 前缀。
-                sql = Regex.Replace(sql, $@"\b{escapedAlias}\.", "", RegexOptions.IgnoreCase);
-                // 去除 FROM 子句中表名后的别名。
-                sql = Regex.Replace(sql, $@"(\bFROM\s+{tableNamePattern})\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
-                // 去除 JOIN 子句中表名后的别名。
-                sql = Regex.Replace(sql, $@"(\bJOIN\s+{tableNamePattern})\s+{escapedAlias}\b", "$1", RegexOptions.IgnoreCase);
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 不支持 UNION ALL；当前查询或表规则合并会生成 UNION ALL，" +
+                    "请改用普通 UNION（结果会去重）或等待 SonnetDB 补齐 UNION ALL 解析与执行。");
             }
-            return sql;
+        }
+
+        static void ValidateCteCapabilities(string selectPrefix, List<Dictionary<Type, string>> tableUnions)
+        {
+            if (ContainsCte(selectPrefix) ||
+                tableUnions?.SelectMany(a => a?.Values ?? Enumerable.Empty<string>()).Any(ContainsCte) == true)
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 不支持 WITH/递归 CTE 查询；FreeSql AsTreeCte 或 WithSql 表规则不可用，请改写为普通查询或分步处理。");
+        }
+
+        static bool ContainsCte(string sql)
+        {
+            // WithSql 会把原始 SQL 包在括号中；允许任意空白和一层或多层
+            // 派生表括号，避免 WITH 被当作普通表名继续生成 SQL。
+            return string.IsNullOrEmpty(sql) == false &&
+                Regex.IsMatch(sql, @"(?:^|[\(\s])WITH(?:\s+RECURSIVE)?\s+[A-Za-z_""\[]", RegexOptions.IgnoreCase);
+        }
+
+        static bool ContainsUnionAll(string sql)
+        {
+            return string.IsNullOrEmpty(sql) == false &&
+                Regex.IsMatch(sql, @"\bUNION\s+ALL\b", RegexOptions.IgnoreCase);
         }
 
         /// <summary>
@@ -181,8 +253,8 @@ namespace FreeSql.SonnetDB.Curd
         /// SonnetDB 不接受裸整数作为 SELECT 字段，需将其改写为 <c>count(1) as1</c>。</para>
         /// <para>SonnetDB 1.1.0+ 原生支持 <c>count(1)</c> 等价于 <c>count(*)</c>。</para>
         /// </summary>
-        // SonnetDB 1.1.0+ supports count(1) = count(*) natively.
-        // Only rewrite bare "1 as1" (emitted by FreeSql for Count() queries) to "count(1) as1".
+        // SonnetDB 1.1.0+ 原生支持 count(1)，其语义等同于 count(*)。
+        // 仅将 FreeSql Count() 查询生成的裸 "1 as1" 改写为 "count(1) as1"。
         static string NormalizeSelectField(string field, CommonUtils commonUtils, List<SelectTableInfo> tables)
         {
             field = Regex.Replace(field, @"^\s*1\s+as1\s*$", "count(1) as1", RegexOptions.IgnoreCase);

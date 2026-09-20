@@ -90,8 +90,20 @@ namespace FreeSql.DataAnnotations
         /// <param name="isUnique">是否唯一</param>
         /// <returns></returns>
         public TableFluent Index(string name, string fields, bool isUnique = false)
+            => Index(name, fields, isUnique, null);
+
+        /// <summary>
+        /// 设置带 JSON 路径的关系表索引。仅由支持 JSON 路径索引的提供程序使用。
+        /// </summary>
+        /// <param name="name">索引名</param>
+        /// <param name="fields">索引字段，为属性名以逗号分隔</param>
+        /// <param name="isUnique">是否唯一</param>
+        /// <param name="jsonPath">JSON 路径表达式；普通索引留空</param>
+        /// <returns></returns>
+        public TableFluent Index(string name, string fields, bool isUnique, string jsonPath)
         {
             var idx = new IndexAttribute(name, fields, isUnique);
+            idx.JsonPath = jsonPath;
             _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
             return this;
         }
@@ -202,8 +214,20 @@ namespace FreeSql.DataAnnotations
         /// <param name="isUnique">是否唯一</param>
         /// <returns></returns>
         public TableFluent<T> Index(string name, string fields, bool isUnique = false)
+            => Index(name, fields, isUnique, null);
+
+        /// <summary>
+        /// 设置带 JSON 路径的关系表索引。仅由支持 JSON 路径索引的提供程序使用。
+        /// </summary>
+        /// <param name="name">索引名</param>
+        /// <param name="fields">索引字段，为属性名以逗号分隔</param>
+        /// <param name="isUnique">是否唯一</param>
+        /// <param name="jsonPath">JSON 路径表达式；普通索引留空</param>
+        /// <returns></returns>
+        public TableFluent<T> Index(string name, string fields, bool isUnique, string jsonPath)
         {
             var idx = new IndexAttribute(name, fields, isUnique);
+            idx.JsonPath = jsonPath;
             _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
             return this;
         }

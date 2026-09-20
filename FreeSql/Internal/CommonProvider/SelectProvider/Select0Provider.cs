@@ -472,6 +472,8 @@ namespace FreeSql.Internal.CommonProvider
                     _SameSelectPendingShareData.Add(NativeTuple.Create(sql, _params.ToArray(), csspsod));
                     return true;
                 }
+                if (_SameSelectPendingShareData.Count > 1)
+                    _commonUtils.ValidateUnionAll();
                 _SameSelectPendingShareData[_SameSelectPendingShareData.Count - 1] = NativeTuple.Create(sql, _params.ToArray(), csspsod);
                 var sbSql = new StringBuilder(); //last == null flush flag
                 for (var a = 0; a < _SameSelectPendingShareData.Count; a++)
@@ -852,7 +854,13 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (pks.Length == 1)
-                    return $"{_commonUtils.QuoteSqlName(_tables[0].Table.Primarys[0].Attribute.Name)} in (select * from ({this.ToSql($"{_tables[0].Alias}.{_commonUtils.QuoteSqlName(_tables[0].Table.Primarys[0].Attribute.Name)}")}) {alias})";
+                {
+                    var primaryName = _commonUtils.QuoteSqlName(_tables[0].Table.Primarys[0].Attribute.Name);
+                    var projection = _orm.Ado.DataType == DataType.SonnetDB
+                        ? $"{alias}.{primaryName}"
+                        : "*";
+                    return $"{primaryName} in (select {projection} from ({this.ToSql($"{_tables[0].Alias}.{primaryName}")}) {alias})";
+                }
                 else
                 {
                     var concatTypes = new Type[pks.Length * 2 - 1];
@@ -871,7 +879,10 @@ namespace FreeSql.Internal.CommonProvider
                             concatInCols[a * 2 + 1] = concatSplit;
                         }
                     }
-                    return $"{_commonUtils.StringConcat(concatMainCols, concatTypes)} in (select * from ({this.ToSql($"{_commonUtils.StringConcat(concatInCols, concatTypes)} as as1")}) {alias})";
+                    var projection = _orm.Ado.DataType == DataType.SonnetDB
+                        ? $"{alias}.as1"
+                        : "*";
+                    return $"{_commonUtils.StringConcat(concatMainCols, concatTypes)} in (select {projection} from ({this.ToSql($"{_commonUtils.StringConcat(concatInCols, concatTypes)} as as1")}) {alias})";
                 }
             }
             finally
@@ -881,6 +892,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IDelete<T1> ToDelete()
         {
+            _commonUtils.ValidateSelectOperation("ToDelete");
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("ToDelete", _tables[0].Table.CsName));
             var del = (_orm as BaseDbProvider).CreateDeleteProvider<T1>(null) as DeleteProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) del.AsType(_tables[0].Table.Type);
@@ -915,6 +927,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> ToUpdate()
         {
+            _commonUtils.ValidateSelectOperation("ToUpdate");
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreErrorStrings.Entity_Must_Primary_Key("ToUpdate", _tables[0].Table.CsName));
             var upd = (_orm as BaseDbProvider).CreateUpdateProvider<T1>(null) as UpdateProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) upd.AsType(_tables[0].Table.Type);
@@ -1360,6 +1373,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect ForUpdate(bool noawait = false, bool skipLocked = false)
         {
+            _commonUtils.ValidateSelectOperation("ForUpdate");
             if (_transaction == null && _orm.Ado.TransactionCurrentThread != null) this.WithTransaction(_orm.Ado.TransactionCurrentThread);
             if (_transaction == null && _resolveHookTransaction != null) this.WithTransaction(_resolveHookTransaction());
             if (_transaction == null) throw new Exception($"{CoreErrorStrings.Begin_Transaction_Then_ForUpdate}");

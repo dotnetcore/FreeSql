@@ -972,6 +972,7 @@ public static partial class FreeSqlGlobalExtensions
         int level = -1) where T1 : class
     {
         var select = that as Select1Provider<T1>;
+        select._commonUtils.ValidateRecursiveCte();
         select._is_AsTreeCte = true;
         var tb = select._tables[0].Table;
         var navs = tb.GetAllTableRef().Where(a => a.Value.Exception == null).Select(a => a.Value)

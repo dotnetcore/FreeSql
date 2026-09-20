@@ -27,6 +27,13 @@ namespace FreeSql.Internal
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
 
+        /// <summary>
+        /// 将数据读取结果转换为实体或投影需要的 CLR 类型。
+        /// 提供程序可重写此方法处理数据库特有的返回表示，默认沿用 FreeSql 通用转换。
+        /// </summary>
+        public virtual object ConvertDataReaderValue(Type type, object value) =>
+            Utils.GetDataReaderValue(type, value);
+
         public bool IsQuoteSqlName = true;
         public string QuoteSqlName(params string[] name) {
             if (IsQuoteSqlName) return QuoteSqlNameAdapter(name);
@@ -61,6 +68,24 @@ namespace FreeSql.Internal
         public virtual string BitShiftRight(string left, string right) => $"({left} >> {right})";
         public virtual string BitNot(string left) => $"~{left}";
         public virtual string BitXor(string left, string right) => $"({left} ^ {right})";
+        /// <summary>
+        /// 校验由 ISelect.InsertInto 生成的 INSERT ... SELECT 语句。
+        /// 提供程序可在生成 SQL 前拒绝数据库不支持的查询插入语法。
+        /// </summary>
+        public virtual void ValidateInsertIntoSelect() { }
+        /// <summary>
+        /// 校验 SELECT 派生出的更新、删除、锁定和更新联接入口。
+        /// 提供程序可在 FreeSql 生成数据库不支持的 SQL 之前给出明确异常。
+        /// </summary>
+        public virtual void ValidateSelectOperation(string operation) { }
+        /// <summary>
+        /// 校验递归 CTE 入口。提供程序可拒绝数据库不支持的 WITH 查询。
+        /// </summary>
+        public virtual void ValidateRecursiveCte() { }
+        /// <summary>
+        /// 校验读取器为多条嵌套查询拼接的 UNION ALL。提供程序可拒绝不支持该语法的数据库。
+        /// </summary>
+        public virtual void ValidateUnionAll() { }
         public abstract string Now { get; }
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamterAdapter(Type type, string paramterName);
@@ -205,7 +230,12 @@ namespace FreeSql.Internal
                                 if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                                 {
                                     if (indexs.ContainsKey(idxattr.Name)) indexs.Remove(idxattr.Name);
-                                    indexs.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                                    indexs.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields)
+                                    {
+                                        _IsUnique = idxattr._IsUnique,
+                                        IndexMethod = idxattr.IndexMethod,
+                                        JsonPath = idxattr.JsonPath
+                                    });
                                 }
                             dicAopConfigEntityIndex.AddOrUpdate(type, indexs, (_, old) => indexs);
                         }
@@ -453,7 +483,12 @@ namespace FreeSql.Internal
                                 if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                                 {
                                     if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields)
+                                    {
+                                        _IsUnique = idxattr._IsUnique,
+                                        IndexMethod = idxattr.IndexMethod,
+                                        JsonPath = idxattr.JsonPath
+                                    });
                                 }
                         }
                         break;
@@ -464,7 +499,12 @@ namespace FreeSql.Internal
                                 if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                                 {
                                     if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
+                                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields)
+                                    {
+                                        _IsUnique = idxattr._IsUnique,
+                                        IndexMethod = idxattr.IndexMethod,
+                                        JsonPath = idxattr.JsonPath
+                                    });
                                 }
                         }
                         break;
@@ -477,7 +517,12 @@ namespace FreeSql.Internal
                             if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                             {
                                 if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique, IndexMethod = idxattr.IndexMethod });
+                                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields)
+                                {
+                                    _IsUnique = idxattr._IsUnique,
+                                    IndexMethod = idxattr.IndexMethod,
+                                    JsonPath = idxattr.JsonPath
+                                });
                             }
                         }
                         break;

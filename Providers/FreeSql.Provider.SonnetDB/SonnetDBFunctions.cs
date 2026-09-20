@@ -1,38 +1,9 @@
-﻿// SonnetDBFunctions.cs
-// SonnetDB 专有 SQL 函数扩展类，供 FreeSql Lambda 表达式中调用。
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// SonnetDB 核心概念速查
-// ─────────────────────────────────────────────────────────────────────────────
-// • MEASUREMENT  相当于关系型数据库中的"表"（Table）。
-// • TAG          带索引的字符串维度列，用于过滤和分组（GROUP BY），不存储数值观测。
-// • FIELD        数值或布尔类型的观测列（Observation），是实际分析的数据列。
-// • time         每行隐式携带的时间戳列（Unix 毫秒整数），不需要在 Schema 中单独声明。
-// • series       measurement + 所有 tag 值的有序组合，形成唯一的逻辑时间序列。
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// 使用方法
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. 在 FreeSql Select 的 Where / ToList 的 Lambda 表达式里直接调用本类方法。
-// 2. 调用形式：SonnetDBFunctions.Pid(row.Temperature, 25.0, 0.5, 0.1, 0.05)
-//    FreeSql 会借助 [ExpressionCall] 机制将其翻译为对应的 SonnetDB SQL 片段。
-// 3. 聚合函数（如 pid / spread / percentile）须配合 GROUP BY time(1m) 子句使用。
-// 4. 窗口函数（如 difference / moving_average）会逐行输出结果，无需 GROUP BY。
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// 示例
-// ─────────────────────────────────────────────────────────────────────────────
-// // 查询温度的30秒移动平均，按1分钟分桶
-// fsql.Select<Sensor>()
-//     .GroupByRaw("time(1m)")
-//     .ToList(row => new {
-//         Bucket   = SonnetDBFunctions.TimeBucket("1m", row.Time),
-//         MAvg     = SonnetDBFunctions.MovingAverage(row.Temperature, 30),
-//         PidOut   = SonnetDBFunctions.Pid(row.Temperature, 25.0, 0.5, 0.1, 0.05)
-//     });
-// ─────────────────────────────────────────────────────────────────────────────
-
+﻿// SonnetDB 专有函数定义。
 using FreeSql.DataAnnotations;
+using SonnetDB.Model;
+using System;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace FreeSql.SonnetDB
@@ -45,16 +16,9 @@ namespace FreeSql.SonnetDB
     [ExpressionCall]
     public static class SonnetDBFunctions
     {
-        // FreeSql ExpressionCall 必须字段，用于在翻译时传递上下文。
-        // 每次表达式翻译在独立线程中完成，ThreadLocal 保证线程安全。
+        // ExpressionCall 的表达式翻译上下文。
         static readonly ThreadLocal<ExpressionCallContext> context =
             new ThreadLocal<ExpressionCallContext>();
-
-        // =====================================================================
-        // 一、PID 工业过程控制函数
-        // SonnetDB 1.1.0 新增，面向工业控制场景，实现增量式 PID 控制律。
-        // PID 控制输出：u(t) = Kp·e(t) + Ki·∫e dt + Kd·de/dt
-        // =====================================================================
 
         /// <summary>
         /// <b>PID 聚合函数</b>（SonnetDB 独有）。
@@ -63,11 +27,11 @@ namespace FreeSql.SonnetDB
         /// <para>SQL：<c>pid(field, setpoint, kp, ki, kd)</c></para>
         /// <para>典型用途：实时闭环控制仿真、控制性能分析。</para>
         /// </summary>
-        /// <param name="field">过程变量（Process Variable），如传感器测量值。</param>
-        /// <param name="setpoint">目标设定值（Setpoint）。</param>
-        /// <param name="kp">比例增益 Kp（Proportional）。</param>
-        /// <param name="ki">积分增益 Ki（Integral）。</param>
-        /// <param name="kd">微分增益 Kd（Derivative）。</param>
+        /// <param name="field">过程变量，如传感器测量值。</param>
+        /// <param name="setpoint">目标设定值。</param>
+        /// <param name="kp">比例增益 Kp。</param>
+        /// <param name="ki">积分增益 Ki。</param>
+        /// <param name="kd">微分增益 Kd。</param>
         /// <returns>PID 控制律输出值（FreeSql 表达式解析结果，运行时返回 <c>default</c>）。</returns>
         public static double Pid(double field, double setpoint, double kp, double ki, double kd)
         {
@@ -90,6 +54,7 @@ namespace FreeSql.SonnetDB
         public static double PidSeries(double field, double setpoint, double kp, double ki, double kd)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "pid_series");
             ctx.Result = $"pid_series({ctx.ParsedContent["field"]}, {ctx.ParsedContent["setpoint"]}, " +
                          $"{ctx.ParsedContent["kp"]}, {ctx.ParsedContent["ki"]}, {ctx.ParsedContent["kd"]})";
             return default;
@@ -100,23 +65,49 @@ namespace FreeSql.SonnetDB
         /// <para>对 <paramref name="field"/> 列的阶跃响应数据进行 FOPDT 模型辨识，
         /// 然后按指定方法自动计算最优 Kp/Ki/Kd，返回 JSON 字符串
         /// <c>{"kp":...,"ki":...,"kd":...}</c>。</para>
-        /// <para>SQL：<c>pid_estimate(field, method)</c></para>
+        /// <para>SQL：<c>pid_estimate(field, method, step_magnitude, initial_fraction,
+        /// final_fraction, imc_lambda)</c></para>，参数名称保持与 SonnetDB 函数一致。
         /// </summary>
         /// <param name="field">过程变量列（阶跃响应历史数据）。</param>
-        /// <param name="method">整定方法：<c>'zn'</c>（Ziegler-Nichols）、
-        /// <c>'cc'</c>（Cohen-Coon）、<c>'imc'</c>（Internal Model Control）。</param>
+        /// <param name="method">整定方法：<c>'zn'</c>（齐格勒-尼科尔斯法）、
+        /// <c>'cc'</c>（科恩-库恩法）、<c>'imc'</c>（内部模型控制），也可传入
+        /// <c>null</c> 使用默认的 ZN 方法。该参数必须是字符串字面量或 NULL。</param>
+        /// <param name="stepMagnitude">输入阶跃幅值；传入 <c>null</c> 时按 1.0 处理。
+        /// 必须是数值字面量或 NULL。</param>
+        /// <param name="initialFraction">初始响应分位点，通常为 0.1；传入 <c>null</c> 时使用默认值。
+        /// 必须是数值字面量或 NULL，取值范围为 (0, 0.5)。</param>
+        /// <param name="finalFraction">最终响应分位点，通常为 0.1；传入 <c>null</c> 时使用默认值。
+        /// 必须是数值字面量或 NULL，取值范围为 (0, 0.5)。</param>
+        /// <param name="imcLambda">IMC 滤波时间常数；传入 <c>null</c> 时按过程滞后时间处理。
+        /// 必须是数值字面量或 NULL。</param>
         /// <returns>JSON 字符串（含 kp/ki/kd 参数），FreeSql 翻译结果。</returns>
-        public static string PidEstimate(double field, string method)
+        public static string PidEstimate(
+            double field,
+            string method,
+            double? stepMagnitude,
+            double? initialFraction,
+            double? finalFraction,
+            double? imcLambda)
         {
             var ctx = context.Value;
-            ctx.Result = $"pid_estimate({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]})";
+            ctx.Result = $"pid_estimate({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, " +
+                         $"{ctx.ParsedContent["stepMagnitude"]}, {ctx.ParsedContent["initialFraction"]}, " +
+                         $"{ctx.ParsedContent["finalFraction"]}, {ctx.ParsedContent["imcLambda"]})";
             return default;
         }
 
-        // =====================================================================
-        // 二、时序差分与变化率函数
-        // 用于计算相邻数据点之间的变化，是时序分析的基础算子。
-        // =====================================================================
+        /// <summary>
+        /// 旧版两参数入口。SonnetDB 3.1 要求完整的六参数形式，缺省参数统一传入
+        /// <c>NULL</c>，由数据库使用默认整定选项。
+        /// </summary>
+        [Obsolete("SonnetDB 3.1 建议使用包含六个参数的 PidEstimate 重载。")]
+        public static string PidEstimate(double field, string method)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"pid_estimate({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, NULL, NULL, NULL, NULL)";
+            return default;
+        }
+
 
         /// <summary>
         /// <b>差分</b>：返回当前值与上一个值的差 <c>value[t] - value[t-1]</c>。
@@ -126,20 +117,44 @@ namespace FreeSql.SonnetDB
         public static double Difference(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "difference");
             ctx.Result = $"difference({ctx.ParsedContent["field"]})";
             return default;
         }
 
         /// <summary>
-        /// <b>非负差分</b>：与 <see cref="Difference"/> 相同，但负值结果强制置 NULL。
-        /// <para>适用于单调递增计数器（如网络流量字节数）发生溢出回绕时的处理。</para>
-        /// <para>SQL：<c>non_negative_difference(field)</c></para>
+        /// <b>增量</b>：返回当前值与上一值的有符号差值。
+        /// <para>SQL：<c>delta(field)</c></para>
+        /// </summary>
+        public static double Delta(double field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "delta");
+            ctx.Result = $"delta({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>计数器增长量</b>：只累计正向变化，忽略计数器重置产生的负差值。
+        /// <para>SQL：<c>increase(field)</c></para>
+        /// </summary>
+        public static double Increase(double field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "increase");
+            ctx.Result = $"increase({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>非负差分</b>为旧版兼容入口。SonnetDB 3.1 没有
+        /// <c>non_negative_difference</c> 函数；<see cref="Increase"/> 的计数器增长语义
+        /// 也不能替代原有 API，因此翻译时会明确拒绝。
         /// </summary>
         public static double NonNegativeDifference(double field)
         {
-            var ctx = context.Value;
-            ctx.Result = $"non_negative_difference({ctx.ParsedContent["field"]})";
-            return default;
+            throw new NotSupportedException(
+                "SonnetDB 3.1 不支持 non_negative_difference；请根据业务语义改用 Increase，或在应用层处理负差值。");
         }
 
         /// <summary>
@@ -149,6 +164,7 @@ namespace FreeSql.SonnetDB
         public static double Derivative(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "derivative");
             ctx.Result = $"derivative({ctx.ParsedContent["field"]})";
             return default;
         }
@@ -161,6 +177,7 @@ namespace FreeSql.SonnetDB
         public static double NonNegativeDerivative(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "non_negative_derivative");
             ctx.Result = $"non_negative_derivative({ctx.ParsedContent["field"]})";
             return default;
         }
@@ -172,6 +189,7 @@ namespace FreeSql.SonnetDB
         public static double Rate(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "rate");
             ctx.Result = $"rate({ctx.ParsedContent["field"]})";
             return default;
         }
@@ -183,13 +201,10 @@ namespace FreeSql.SonnetDB
         public static double Irate(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "irate");
             ctx.Result = $"irate({ctx.ParsedContent["field"]})";
             return default;
         }
-
-        // =====================================================================
-        // 三、时序累积与积分函数
-        // =====================================================================
 
         /// <summary>
         /// <b>累积和</b>：从第一行到当前行的滚动前缀和。
@@ -198,7 +213,44 @@ namespace FreeSql.SonnetDB
         public static double CumulativeSum(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "cumulative_sum");
             ctx.Result = $"cumulative_sum({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>滚动求和</b>：按窗口顺序返回截至当前行的累计和。
+        /// <para>SQL：<c>running_sum(field)</c></para>
+        /// </summary>
+        public static double RunningSum(double field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "running_sum");
+            ctx.Result = $"running_sum({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>滚动最小值</b>：返回截至当前行的最小值。
+        /// <para>SQL：<c>running_min(field)</c></para>
+        /// </summary>
+        public static double RunningMin(double field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "running_min");
+            ctx.Result = $"running_min({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>滚动最大值</b>：返回截至当前行的最大值。
+        /// <para>SQL：<c>running_max(field)</c></para>
+        /// </summary>
+        public static double RunningMax(double field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "running_max");
+            ctx.Result = $"running_max({ctx.ParsedContent["field"]})";
             return default;
         }
 
@@ -209,13 +261,10 @@ namespace FreeSql.SonnetDB
         public static double Integral(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "integral");
             ctx.Result = $"integral({ctx.ParsedContent["field"]})";
             return default;
         }
-
-        // =====================================================================
-        // 四、时序平滑函数
-        // =====================================================================
 
         /// <summary>
         /// <b>简单移动平均（SMA）</b>：对最近 <paramref name="n"/> 个样本求均值。
@@ -226,6 +275,7 @@ namespace FreeSql.SonnetDB
         public static double MovingAverage(double field, int n)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "moving_average");
             ctx.Result = $"moving_average({ctx.ParsedContent["field"]}, {ctx.ParsedContent["n"]})";
             return default;
         }
@@ -240,6 +290,7 @@ namespace FreeSql.SonnetDB
         public static double Ewma(double field, double alpha)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "ewma");
             ctx.Result = $"ewma({ctx.ParsedContent["field"]}, {ctx.ParsedContent["alpha"]})";
             return default;
         }
@@ -254,14 +305,10 @@ namespace FreeSql.SonnetDB
         public static double HoltWinters(double field, double alpha, double beta)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "holt_winters");
             ctx.Result = $"holt_winters({ctx.ParsedContent["field"]}, {ctx.ParsedContent["alpha"]}, {ctx.ParsedContent["beta"]})";
             return default;
         }
-
-        // =====================================================================
-        // 五、缺失值填充函数
-        // 时序数据常因设备离线、采集延迟出现空缺，以下函数用于插值/填充。
-        // =====================================================================
 
         /// <summary>
         /// <b>常数填充</b>：用指定常数替换 NULL 值。
@@ -270,18 +317,20 @@ namespace FreeSql.SonnetDB
         public static double Fill(double field, double value)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "fill");
             ctx.Result = $"fill({ctx.ParsedContent["field"]}, {ctx.ParsedContent["value"]})";
             return default;
         }
 
         /// <summary>
-        /// <b>最近值前向填充（LOCF，Last Observation Carried Forward）</b>：
+        /// <b>最近值前向填充（LOCF）</b>：
         /// 用最近一次非 NULL 值填充当前 NULL 行。
         /// <para>SQL：<c>locf(field)</c></para>
         /// </summary>
         public static double Locf(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "locf");
             ctx.Result = $"locf({ctx.ParsedContent["field"]})";
             return default;
         }
@@ -293,14 +342,10 @@ namespace FreeSql.SonnetDB
         public static double Interpolate(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "interpolate");
             ctx.Result = $"interpolate({ctx.ParsedContent["field"]})";
             return default;
         }
-
-        // =====================================================================
-        // 六、状态分析函数
-        // 用于分析布尔/离散状态序列的变化情况。
-        // =====================================================================
 
         /// <summary>
         /// <b>状态变更标记</b>：当前行的值与上一行不同时输出 1，相同时输出 0。
@@ -309,6 +354,25 @@ namespace FreeSql.SonnetDB
         public static long StateChanges(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_changes");
+            ctx.Result = $"state_changes({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>统计字符串状态列的变更次数，生成 <c>state_changes(field)</c>。</summary>
+        public static long StateChanges(string field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_changes");
+            ctx.Result = $"state_changes({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>统计布尔状态列的变更次数，生成 <c>state_changes(field)</c>。</summary>
+        public static long StateChanges(bool field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_changes");
             ctx.Result = $"state_changes({ctx.ParsedContent["field"]})";
             return default;
         }
@@ -320,18 +384,31 @@ namespace FreeSql.SonnetDB
         public static long StateDuration(double field)
         {
             var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_duration");
             ctx.Result = $"state_duration({ctx.ParsedContent["field"]})";
             return default;
         }
 
-        // =====================================================================
-        // 七、扩展统计聚合函数
-        // SonnetDB 在标准 COUNT/SUM/AVG/MIN/MAX 之外提供的额外聚合函数。
-        // 这些函数在 GROUP BY time(...) 聚合查询中使用。
-        // =====================================================================
+        /// <summary>计算字符串状态列的持续时长，生成 <c>state_duration(field)</c>。</summary>
+        public static long StateDuration(string field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_duration");
+            ctx.Result = $"state_duration({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>计算布尔状态列的持续时长，生成 <c>state_duration(field)</c>。</summary>
+        public static long StateDuration(bool field)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "state_duration");
+            ctx.Result = $"state_duration({ctx.ParsedContent["field"]})";
+            return default;
+        }
 
         /// <summary>
-        /// <b>极差（Spread）</b>：窗口内最大值 - 最小值，反映数据波动范围。
+        /// <b>极差</b>：窗口内最大值 - 最小值，反映数据波动范围。
         /// <para>SQL：<c>spread(field)</c></para>
         /// </summary>
         public static double Spread(double field)
@@ -342,7 +419,7 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
-        /// <b>标准差（StdDev）</b>：样本标准差 √( Σ(xi-x̄)² / (n-1) )。
+        /// <b>标准差</b>：样本标准差 √( Σ(xi-x̄)² / (n-1) )。
         /// <para>SQL：<c>stddev(field)</c></para>
         /// </summary>
         public static double Stddev(double field)
@@ -353,7 +430,7 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
-        /// <b>方差（Variance）</b>：样本方差。
+        /// <b>方差</b>：样本方差。
         /// <para>SQL：<c>variance(field)</c></para>
         /// </summary>
         public static double Variance(double field)
@@ -364,7 +441,7 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
-        /// <b>众数（Mode）</b>：出现频次最多的值；若多个值并列则返回最小者。
+        /// <b>众数</b>：出现频次最多的值；若多个值并列则返回最小者。
         /// <para>SQL：<c>mode(field)</c></para>
         /// </summary>
         public static double Mode(double field)
@@ -374,8 +451,24 @@ namespace FreeSql.SonnetDB
             return default;
         }
 
+        /// <summary>返回字符串 FIELD 列的众数，生成 <c>mode(field)</c>。</summary>
+        public static string Mode(string field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"mode({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>返回布尔 FIELD 列的众数，生成 <c>mode(field)</c>。</summary>
+        public static bool Mode(bool field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"mode({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
         /// <summary>
-        /// <b>中位数（Median）</b>：相当于 percentile(field, 50)。
+        /// <b>中位数</b>：相当于 percentile(field, 50)。
         /// <para>SQL：<c>median(field)</c></para>
         /// </summary>
         public static double Median(double field)
@@ -386,7 +479,7 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
-        /// <b>任意分位数（Percentile）</b>：返回第 <paramref name="p"/> 百分位的值。
+        /// <b>任意分位数</b>：返回第 <paramref name="p"/> 百分位的值。
         /// <para>SQL：<c>percentile(field, p)</c></para>
         /// </summary>
         /// <param name="field">FIELD 列。</param>
@@ -453,8 +546,24 @@ namespace FreeSql.SonnetDB
             return default;
         }
 
+        /// <summary>统计字符串 FIELD 列的不重复值数量，生成 <c>distinct_count(field)</c>。</summary>
+        public static long DistinctCount(string field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"distinct_count({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>统计布尔 FIELD 列的不重复值数量，生成 <c>distinct_count(field)</c>。</summary>
+        public static long DistinctCount(bool field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"distinct_count({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
         /// <summary>
-        /// <b>频率直方图（Histogram）</b>：将值域按 <paramref name="binWidth"/> 分桶，
+        /// <b>频率直方图</b>：将值域按 <paramref name="binWidth"/> 分桶，
         /// 返回每个桶的计数，结果为 JSON 数组。
         /// <para>SQL：<c>histogram(field, binWidth)</c></para>
         /// </summary>
@@ -467,47 +576,113 @@ namespace FreeSql.SonnetDB
             return default;
         }
 
-        // =====================================================================
-        // 八、预测与异常检测函数（SonnetDB 独有）
-        // =====================================================================
-
         /// <summary>
-        /// <b>异常检测（Anomaly）</b>：对每个样本打标（0=正常 / 1=异常）。
-        /// <para>SQL：<c>anomaly(field, method, k)</c></para>
+        /// <b>TDigest 聚合</b>：返回当前窗口的 TDigest JSON 摘要。
+        /// <para>SQL：<c>tdigest_agg(field)</c></para>
         /// </summary>
-        /// <param name="field">FIELD 列。</param>
-        /// <param name="method">检测方法：<c>'zscore'</c>（Z-Score）或 <c>'iqr'</c>（四分位距）。</param>
-        /// <param name="k">敏感度系数（Z-Score 阈值或 IQR 倍数，通常取 2~3）。</param>
-        /// <returns>0 或 1（正常 / 异常标记）。</returns>
-        public static int Anomaly(double field, string method, double k)
+        public static string TDigestAgg(double field)
         {
             var ctx = context.Value;
-            ctx.Result = $"anomaly({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, {ctx.ParsedContent["k"]})";
+            ctx.Result = $"tdigest_agg({ctx.ParsedContent["field"]})";
             return default;
         }
 
         /// <summary>
-        /// <b>变点检测（Changepoint）</b>：使用 CUSUM 算法识别均值漂移点。
+        /// TDigest 聚合的简写入口，生成与 <see cref="TDigestAgg"/> 相同的 SQL。
+        /// </summary>
+        public static string TDigest(double field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"tdigest_agg({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>向量质心</b>：计算窗口内 VECTOR 列逐维平均值。
+        /// <para>SQL：<c>centroid(field)</c></para>
+        /// </summary>
+        public static object Centroid(object field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"centroid({GetVectorSql(ctx, "field")})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>异常检测</b>旧版兼容入口。SonnetDB 3.1 实际返回布尔值，
+        /// 新代码请使用 <see cref="IsAnomaly"/>。
+        /// <para>SQL：<c>anomaly(field, method, k)</c></para>
+        /// </summary>
+        /// <param name="field">FIELD 列。</param>
+        /// <param name="method">检测方法：<c>'zscore'</c>（标准分数）、<c>'mad'</c>（绝对中位差）或
+        /// <c>'iqr'</c>（四分位距）。</param>
+        /// <param name="k">敏感度系数（标准分数阈值、MAD 阈值或 IQR 倍数，通常取 2~3）。</param>
+        /// <returns>不返回结果；调用时会提示改用布尔入口。</returns>
+        [Obsolete("SonnetDB 3.1 的 anomaly 返回布尔值，请改用 IsAnomaly。")]
+        public static int Anomaly(double field, string method, double k)
+        {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 的 anomaly 返回布尔值，旧版 int 入口会导致结果类型不匹配；请改用 IsAnomaly。");
+        }
+
+        /// <summary>
+        /// <b>异常检测</b>：对每个样本返回是否异常的布尔值。
+        /// <para>SQL：<c>anomaly(field, method, threshold)</c>；method 必须是字符串字面量，
+        /// threshold 必须是正数值字面量。</para>
+        /// <para>非空样本不足或输入值为 NULL 时，SonnetDB 可能返回 NULL；如需保留该语义，
+        /// 请在 DTO 中使用可空布尔类型。</para>
+        /// </summary>
+        public static bool IsAnomaly(double field, string method, double threshold)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "anomaly");
+            ctx.Result = $"anomaly({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, {ctx.ParsedContent["threshold"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>变点检测</b>旧版兼容入口。SonnetDB 3.1 实际返回布尔值，
+        /// 新代码请使用 <see cref="IsChangepoint(double, string, double)"/>。
         /// <para>SQL：<c>changepoint(field, method, k, drift)</c></para>
         /// </summary>
         /// <param name="field">FIELD 列。</param>
         /// <param name="method">检测方法，目前支持 <c>'cusum'</c>。</param>
-        /// <param name="k">允许的参考偏差（CUSUM 的 slack 参数）。</param>
+        /// <param name="k">允许的参考偏差（CUSUM 的松弛参数）。</param>
         /// <param name="drift">漂移阈值，超过此值时发出变点信号。</param>
-        /// <returns>CUSUM 统计量，超过漂移阈值的点即为变点。</returns>
+        /// <returns>不返回结果；调用时会提示改用布尔入口。</returns>
+        [Obsolete("SonnetDB 3.1 的 changepoint 返回布尔值，请改用 IsChangepoint。")]
         public static double Changepoint(double field, string method, double k, double drift)
         {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 的 changepoint 返回布尔值，旧版 double 入口会导致结果类型不匹配；请改用 IsChangepoint。");
+        }
+
+        /// <summary>
+        /// <b>变点检测</b>：使用 CUSUM 算法返回当前样本是否为变点。
+        /// <para>SQL：<c>changepoint(field, method, threshold)</c>；method 必须为
+        /// <c>'cusum'</c> 字符串字面量，threshold 必须是正数值字面量。</para>
+        /// </summary>
+        public static bool IsChangepoint(double field, string method, double threshold)
+        {
             var ctx = context.Value;
-            ctx.Result = $"changepoint({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, " +
-                         $"{ctx.ParsedContent["k"]}, {ctx.ParsedContent["drift"]})";
+            EnsureWindowFunctionSupported(ctx, "changepoint");
+            ctx.Result = $"changepoint({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, {ctx.ParsedContent["threshold"]})";
             return default;
         }
 
-        // =====================================================================
-        // 九、向量距离函数（配合 VECTOR(N) 列使用）
-        // SonnetDB 原生支持高维浮点向量，兼容 pgvector 运算符语义。
-        // VECTOR(N) 列用于存储 N 维嵌入向量（Embedding），支持 KNN 近邻检索。
-        // =====================================================================
+        /// <summary>
+        /// <b>变点检测</b>：使用指定漂移参数的 CUSUM 算法返回当前样本是否为变点。
+        /// <para>SQL：<c>changepoint(field, method, threshold, drift)</c>；method 必须为
+        /// <c>'cusum'</c> 字符串字面量，threshold 必须为正数值字面量，drift 必须为非负数值字面量。</para>
+        /// </summary>
+        public static bool IsChangepoint(double field, string method, double threshold, double drift)
+        {
+            var ctx = context.Value;
+            EnsureWindowFunctionSupported(ctx, "changepoint");
+            ctx.Result = $"changepoint({ctx.ParsedContent["field"]}, {ctx.ParsedContent["method"]}, " +
+                         $"{ctx.ParsedContent["threshold"]}, {ctx.ParsedContent["drift"]})";
+            return default;
+        }
 
         /// <summary>
         /// <b>余弦距离</b>：1 - cosine_similarity(a, b)，范围 [0, 2]；0 表示完全相同方向。
@@ -516,7 +691,7 @@ namespace FreeSql.SonnetDB
         public static double CosineDistance(object a, object b)
         {
             var ctx = context.Value;
-            ctx.Result = $"cosine_distance({ctx.ParsedContent["a"]}, {ctx.ParsedContent["b"]})";
+            ctx.Result = $"cosine_distance({GetVectorSql(ctx, "a")}, {GetVectorSql(ctx, "b")})";
             return default;
         }
 
@@ -527,19 +702,19 @@ namespace FreeSql.SonnetDB
         public static double L2Distance(object a, object b)
         {
             var ctx = context.Value;
-            ctx.Result = $"l2_distance({ctx.ParsedContent["a"]}, {ctx.ParsedContent["b"]})";
+            ctx.Result = $"l2_distance({GetVectorSql(ctx, "a")}, {GetVectorSql(ctx, "b")})";
             return default;
         }
 
         /// <summary>
-        /// <b>内积（负相似度）</b>：-( Σ ai·bi )。
-        /// <para>SQL：<c>inner_product(a, b)</c>（等价运算符 <c>&lt;#&gt;</c>）</para>
-        /// <para>注意：SonnetDB 返回的是负内积，数值越小表示越相似。</para>
+        /// <b>内积</b>：Σ ai·bi。
+        /// <para>SQL：<c>inner_product(a, b)</c></para>
+        /// <para>SonnetDB 返回普通内积；同维归一化向量的结果越大表示方向越相近。</para>
         /// </summary>
         public static double InnerProduct(object a, object b)
         {
             var ctx = context.Value;
-            ctx.Result = $"inner_product({ctx.ParsedContent["a"]}, {ctx.ParsedContent["b"]})";
+            ctx.Result = $"inner_product({GetVectorSql(ctx, "a")}, {GetVectorSql(ctx, "b")})";
             return default;
         }
 
@@ -550,21 +725,257 @@ namespace FreeSql.SonnetDB
         public static double VectorNorm(object a)
         {
             var ctx = context.Value;
-            ctx.Result = $"vector_norm({ctx.ParsedContent["a"]})";
+            ctx.Result = $"vector_norm({GetVectorSql(ctx, "a")})";
             return default;
         }
 
-        // =====================================================================
-        // 十、地理空间函数（配合 GEOPOINT 列使用）
-        // GEOPOINT 列存储 (latitude, longitude) 坐标对，格式为 "lat,lon"（字符串）。
-        // 距离计算使用 Haversine 球面公式，单位为米。
-        // =====================================================================
+        /// <summary>读取向量检索结果的距离伪列。</summary>
+        public static double VectorDistance()
+        {
+            var ctx = context.Value;
+            ctx.Result = "vector_distance()";
+            return default;
+        }
+
+        /// <summary>读取向量检索结果的归一化分数伪列。</summary>
+        public static double VectorScore()
+        {
+            var ctx = context.Value;
+            ctx.Result = "vector_score()";
+            return default;
+        }
+
+        /// <summary>读取文档全文检索结果的 BM25 分数伪列。</summary>
+        public static double Bm25Score()
+        {
+            var ctx = context.Value;
+            ctx.Result = "bm25_score()";
+            return default;
+        }
+
+        /// <summary>读取文档全文与向量融合结果的综合分数伪列。</summary>
+        public static double HybridScore()
+        {
+            var ctx = context.Value;
+            ctx.Result = "hybrid_score()";
+            return default;
+        }
+
+        /// <summary>读取时序测量 KNN 与文档融合结果的时序测量距离伪列。</summary>
+        public static double MeasurementDistance()
+        {
+            var ctx = context.Value;
+            ctx.Result = "measurement_distance()";
+            return default;
+        }
+
+        /// <summary>读取时序测量 KNN 与文档融合结果的时序测量得分伪列。</summary>
+        public static double MeasurementScore()
+        {
+            var ctx = context.Value;
+            ctx.Result = "measurement_score()";
+            return default;
+        }
+
+        /// <summary>读取文档向量距离伪列。</summary>
+        public static double DocumentVectorDistance()
+        {
+            var ctx = context.Value;
+            ctx.Result = "document_vector_distance()";
+            return default;
+        }
+
+        /// <summary>读取文档向量分数伪列。</summary>
+        public static double DocumentVectorScore()
+        {
+            var ctx = context.Value;
+            ctx.Result = "document_vector_score()";
+            return default;
+        }
+
+        /// <summary>读取融合检索结果的文本分数伪列。</summary>
+        public static double TextScore()
+        {
+            var ctx = context.Value;
+            ctx.Result = "text_score()";
+            return default;
+        }
+
+        /// <summary>
+        /// 将两个 16 位 Modbus 寄存器按指定字节序解码为有符号 32 位整数。
+        /// <para>SQL：<c>modbus_int32(first_register, second_register, byte_order)</c>。</para>
+        /// <para>字节序支持 <c>ABCD</c>、<c>BADC</c>、<c>CDAB</c> 和 <c>DCBA</c>；
+        /// 输入为 NULL 时数据库返回 NULL。</para>
+        /// </summary>
+        public static long ModbusInt32(object firstRegister, object secondRegister, string byteOrder)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"modbus_int32({ctx.ParsedContent["firstRegister"]}, " +
+                         $"{ctx.ParsedContent["secondRegister"]}, {ctx.ParsedContent["byteOrder"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// 将两个 16 位 Modbus 寄存器按指定字节序解码为无符号 32 位整数。
+        /// <para>SQL：<c>modbus_uint32(first_register, second_register, byte_order)</c>；
+        /// 结果以 SonnetDB 的 64 位整数返回。</para>
+        /// </summary>
+        public static long ModbusUInt32(object firstRegister, object secondRegister, string byteOrder)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"modbus_uint32({ctx.ParsedContent["firstRegister"]}, " +
+                         $"{ctx.ParsedContent["secondRegister"]}, {ctx.ParsedContent["byteOrder"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// 将两个 16 位 Modbus 寄存器按指定字节序解码为 IEEE-754 单精度值。
+        /// <para>SQL：<c>modbus_float32(first_register, second_register, byte_order)</c>；
+        /// 结果以 SonnetDB 的 64 位浮点数返回。</para>
+        /// </summary>
+        public static double ModbusFloat32(object firstRegister, object secondRegister, string byteOrder)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"modbus_float32({ctx.ParsedContent["firstRegister"]}, " +
+                         $"{ctx.ParsedContent["secondRegister"]}, {ctx.ParsedContent["byteOrder"]})";
+            return default;
+        }
+
+        static string GetVectorSql(ExpressionCallContext ctx, string name)
+        {
+            string sql = null;
+            if (ctx == null || ctx.ParsedContent.TryGetValue(name, out sql) == false || sql == null)
+                return sql;
+
+            if (ctx.RawExpression.TryGetValue(name, out var expression) == false || IsVectorExpression(expression) == false)
+                return sql;
+
+            var trimmed = sql.Trim();
+            if (trimmed.StartsWith("(", StringComparison.Ordinal) && trimmed.EndsWith(")", StringComparison.Ordinal))
+            {
+                // 参数化数组没有 SonnetDB 3.1 的 ADO.NET 绑定协议，不能把它误写成普通字符串。
+                if (trimmed.IndexOf('@') >= 0 || trimmed.IndexOf('?') >= 0)
+                    throw new NotSupportedException(
+                        "SonnetDB 3.1 的 ADO.NET 参数绑定不支持 VECTOR 参数；请启用 UseNoneCommandParameter(true) 生成向量字面量，或升级 SonnetDB。" );
+                var elements = trimmed.Substring(1, trimmed.Length - 2);
+                return "[" + Regex.Replace(elements, @",\s*", ", ") + "]";
+            }
+            return sql;
+        }
+
+        static bool IsVectorExpression(Expression expression)
+        {
+            while (expression is UnaryExpression unary &&
+                   (unary.NodeType == ExpressionType.Convert || unary.NodeType == ExpressionType.ConvertChecked || unary.NodeType == ExpressionType.Quote))
+                expression = unary.Operand;
+            var type = expression?.Type;
+            return type == typeof(float[]) || type == typeof(Memory<float>) ||
+                type == typeof(ReadOnlyMemory<float>) || type == typeof(System.Collections.Generic.IReadOnlyList<float>);
+        }
+
+        /// <summary>
+        /// 从关系表 JSON 列中提取 JSON 路径对应的标量值。
+        /// <para>SQL：<c>json_value(json_column, '$.path')</c></para>
+        /// <para><paramref name="path"/> 会经过 FreeSql 表达式解析和 SQL 转义；不要把用户输入直接拼接到 SQL。</para>
+        /// </summary>
+        /// <param name="json">关系表中的 JSON 文本列。</param>
+        /// <param name="path">SonnetDB JSON 路径表达式，例如 <c>$.device.name</c>。</param>
+        public static string JsonValue(object json, string path)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"json_value({ctx.ParsedContent["json"]}, {RequireJsonPathLiteral(ctx)})";
+            return default;
+        }
+
+        /// <summary>字符串 JSON 列的 <see cref="JsonValue(object, string)"/> 重载。</summary>
+        public static string JsonValue(string json, string path)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"json_value({ctx.ParsedContent["json"]}, {RequireJsonPathLiteral(ctx)})";
+            return default;
+        }
+
+        /// <summary>调用 SonnetDB 的正则匹配标量函数。</summary>
+        public static bool RegexpLike(string value, string pattern)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"regexp_like({ctx.ParsedContent["value"]}, {ctx.ParsedContent["pattern"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// 调用 SonnetDB 文档集合的全文索引匹配谓词。
+        /// <para>索引名必须是调用时可确定的单个标识符；<paramref name="mode"/> 仅支持
+        /// <c>exact</c> 或 <c>fuzzy</c>。</para>
+        /// </summary>
+        /// <param name="indexName">全文索引名。</param>
+        /// <param name="field">索引字段、JSON 路径或 <c>*</c>。</param>
+        /// <param name="query">全文检索文本。</param>
+        /// <param name="topK">候选结果上限；传入 <c>null</c> 或零时使用 SonnetDB 默认值。</param>
+        /// <param name="mode">可选匹配模式：<c>exact</c> 或 <c>fuzzy</c>。</param>
+        public static bool Match([RawValue] string indexName, string field, string query,
+            [RawValue] int? topK = null, [RawValue] string mode = null)
+        {
+            var ctx = context.Value;
+            var sql = $"match({QuoteMatchIndexName(indexName)}, {ctx.ParsedContent["field"]}, " +
+                      $"{ctx.ParsedContent["query"]}";
+            if (topK.GetValueOrDefault() > 0)
+                sql += $", {topK.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            if (string.IsNullOrWhiteSpace(mode) == false)
+            {
+                var normalizedMode = mode.Trim().ToLowerInvariant();
+                if (normalizedMode != "exact" && normalizedMode != "fuzzy")
+                    throw new ArgumentException("SonnetDB match 的 mode 只支持 exact 或 fuzzy。", nameof(mode));
+                sql += $", {ctx.FormatSql(normalizedMode)}";
+            }
+            ctx.Result = sql + ")";
+            return default;
+        }
+
+        static string QuoteMatchIndexName(string indexName)
+        {
+            if (string.IsNullOrWhiteSpace(indexName))
+                throw new ArgumentException("SonnetDB match 的全文索引名不能为空。", nameof(indexName));
+            return $"\"{indexName.Trim().Replace("\"", "\"\"")}\"";
+        }
+
+        /// <summary>
+        /// SonnetDB 3.1 要求 json_value 的路径参数必须是字符串字面量，不能使用列值或其他动态表达式。
+        /// </summary>
+        static string RequireJsonPathLiteral(ExpressionCallContext ctx)
+        {
+            if (ctx == null || !ctx.ParsedContent.TryGetValue("path", out var path)
+                || IsSqlStringLiteral(path) == false)
+            {
+                throw new NotSupportedException(
+                    "SonnetDB 3.1 的 json_value 路径必须是字符串字面量，不支持动态路径。" );
+            }
+
+            return path;
+        }
+
+        static bool IsSqlStringLiteral(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            var text = value.Trim();
+            if (text.Length >= 2 && text[0] == '\'' && text[text.Length - 1] == '\'') return true;
+            return text.Length >= 3 && (text[0] == 'N' || text[0] == 'n')
+                && text[1] == '\'' && text[text.Length - 1] == '\'';
+        }
 
         /// <summary>
         /// <b>提取纬度</b>：从 GEOPOINT 列中解析出纬度值（十进制度）。
         /// <para>SQL：<c>lat(field)</c></para>
         /// </summary>
         public static double Lat(string field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"lat({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>从强类型 GEOPOINT 表达式提取纬度。</summary>
+        public static double Lat(GeoPoint field)
         {
             var ctx = context.Value;
             ctx.Result = $"lat({ctx.ParsedContent["field"]})";
@@ -582,34 +993,65 @@ namespace FreeSql.SonnetDB
             return default;
         }
 
+        /// <summary>从强类型 GEOPOINT 表达式提取经度。</summary>
+        public static double Lon(GeoPoint field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"lon({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
         /// <summary>
-        /// <b>球面距离</b>：计算 GEOPOINT 列中坐标与目标点之间的 Haversine 距离，单位：米。
-        /// <para>SQL：<c>geo_distance(field, lat, lon)</c></para>
+        /// <b>球面距离</b>：使用半正矢公式计算两个 GEOPOINT 的距离，单位：米。
+        /// <para>SQL：<c>geo_distance(point1, point2)</c></para>
         /// </summary>
-        /// <param name="field">GEOPOINT 列。</param>
-        /// <param name="lat">目标点纬度（十进制度）。</param>
-        /// <param name="lon">目标点经度（十进制度）。</param>
+        /// <param name="point1">第一个 GEOPOINT 表达式。</param>
+        /// <param name="point2">第二个 GEOPOINT 表达式。</param>
+        public static double GeoDistance(object point1, object point2)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_distance({ctx.ParsedContent["point1"]}, {ctx.ParsedContent["point2"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// 旧版“字段到目标坐标”入口。目标坐标改为 SonnetDB 要求的
+        /// <c>POINT(lat, lon)</c> 字面量，而不是字符串字面量。
+        /// </summary>
+        [Obsolete("SonnetDB 3.1 建议使用 GeoDistance(point1, point2) 重载。")]
         public static double GeoDistance(string field, double lat, double lon)
         {
             var ctx = context.Value;
-            ctx.Result = $"geo_distance({ctx.ParsedContent["field"]}, {ctx.ParsedContent["lat"]}, {ctx.ParsedContent["lon"]})";
+            ctx.Result = $"geo_distance({ctx.ParsedContent["field"]}, POINT({ctx.ParsedContent["lat"]}, {ctx.ParsedContent["lon"]}))";
             return default;
         }
 
         /// <summary>
-        /// <b>方位角</b>：从 GEOPOINT 列中坐标到目标点的方向角（0~360 度，北为 0）。
-        /// <para>SQL：<c>geo_bearing(field, lat, lon)</c></para>
+        /// <b>方位角</b>：从第一个 GEOPOINT 指向第二个 GEOPOINT 的初始方向角
+        /// （0~360 度，北为 0）。
+        /// <para>SQL：<c>geo_bearing(point1, point2)</c></para>
         /// </summary>
+        /// <param name="point1">起始 GEOPOINT 表达式。</param>
+        /// <param name="point2">目标 GEOPOINT 表达式。</param>
+        public static double GeoBearing(object point1, object point2)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_bearing({ctx.ParsedContent["point1"]}, {ctx.ParsedContent["point2"]})";
+            return default;
+        }
+
+        /// <summary>旧版“字段到目标坐标”方位角入口，目标坐标生成 POINT 字面量。</summary>
+        [Obsolete("SonnetDB 3.1 建议使用 GeoBearing(point1, point2) 重载。")]
         public static double GeoBearing(string field, double lat, double lon)
         {
             var ctx = context.Value;
-            ctx.Result = $"geo_bearing({ctx.ParsedContent["field"]}, {ctx.ParsedContent["lat"]}, {ctx.ParsedContent["lon"]})";
+            ctx.Result = $"geo_bearing({ctx.ParsedContent["field"]}, POINT({ctx.ParsedContent["lat"]}, {ctx.ParsedContent["lon"]}))";
             return default;
         }
 
         /// <summary>
-        /// <b>圆形地理围栏</b>：判断 GEOPOINT 列坐标是否在以 (centerLat, centerLon)
-        /// 为圆心、<paramref name="radiusM"/> 米为半径的圆形区域内，满足条件返回 1。
+        /// <b>圆形地理围栏</b>旧版兼容入口。SonnetDB 3.1 实际返回布尔值，
+        /// 新代码请使用 <see cref="IsGeoWithin"/>。
         /// <para>SQL：<c>geo_within(field, centerLat, centerLon, radiusM)</c></para>
         /// <para>典型用途：地理围栏告警、车辆进出场检测。</para>
         /// </summary>
@@ -617,35 +1059,165 @@ namespace FreeSql.SonnetDB
         /// <param name="centerLat">围栏中心纬度。</param>
         /// <param name="centerLon">围栏中心经度。</param>
         /// <param name="radiusM">围栏半径（米）。</param>
+        [Obsolete("SonnetDB 3.1 的 geo_within 返回布尔值，请改用 IsGeoWithin。")]
         public static int GeoWithin(string field, double centerLat, double centerLon, double radiusM)
         {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 的 geo_within 返回布尔值，旧版 int 入口会导致结果类型不匹配；请改用 IsGeoWithin。");
+        }
+
+        /// <summary>
+        /// 判断 GEOPOINT 是否位于圆形围栏内。
+        /// <para>SQL：<c>geo_within(point, lat, lon, radius)</c></para>
+        /// </summary>
+        public static bool IsGeoWithin(object point, double centerLat, double centerLon, double radiusM)
+        {
             var ctx = context.Value;
-            ctx.Result = $"geo_within({ctx.ParsedContent["field"]}, {ctx.ParsedContent["centerLat"]}, " +
+            ctx.Result = $"geo_within({ctx.ParsedContent["point"]}, {ctx.ParsedContent["centerLat"]}, " +
                          $"{ctx.ParsedContent["centerLon"]}, {ctx.ParsedContent["radiusM"]})";
             return default;
         }
 
         /// <summary>
-        /// <b>矩形地理围栏</b>：判断 GEOPOINT 列坐标是否在给定经纬度矩形内，满足条件返回 1。
+        /// <b>矩形地理围栏</b>旧版兼容入口。SonnetDB 3.1 实际返回布尔值，
+        /// 新代码请使用 <see cref="IsGeoBbox"/>。
         /// <para>SQL：<c>geo_bbox(field, minLat, minLon, maxLat, maxLon)</c></para>
         /// </summary>
+        [Obsolete("SonnetDB 3.1 的 geo_bbox 返回布尔值，请改用 IsGeoBbox。")]
         public static int GeoBbox(string field, double minLat, double minLon, double maxLat, double maxLon)
         {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 的 geo_bbox 返回布尔值，旧版 int 入口会导致结果类型不匹配；请改用 IsGeoBbox。");
+        }
+
+        /// <summary>
+        /// 判断 GEOPOINT 是否位于经纬度矩形内。
+        /// <para>SQL：<c>geo_bbox(point, min_lat, min_lon, max_lat, max_lon)</c></para>
+        /// </summary>
+        public static bool IsGeoBbox(object point, double minLat, double minLon, double maxLat, double maxLon)
+        {
             var ctx = context.Value;
-            ctx.Result = $"geo_bbox({ctx.ParsedContent["field"]}, {ctx.ParsedContent["minLat"]}, " +
+            ctx.Result = $"geo_bbox({ctx.ParsedContent["point"]}, {ctx.ParsedContent["minLat"]}, " +
                          $"{ctx.ParsedContent["minLon"]}, {ctx.ParsedContent["maxLat"]}, {ctx.ParsedContent["maxLon"]})";
             return default;
         }
 
         /// <summary>
-        /// <b>移动速度</b>：基于相邻两个 GEOPOINT 样本之间的距离与时间差计算速度（米/秒）。
-        /// <para>SQL：<c>geo_speed(field)</c></para>
+        /// <b>移动速度</b>：基于两个 GEOPOINT 样本之间的距离与毫秒时间差计算速度（米/秒）。
+        /// <para>SQL：<c>geo_speed(point1, point2, elapsed_ms)</c></para>
         /// <para>典型用途：车辆/设备超速检测、轨迹平均速度分析。</para>
         /// </summary>
-        public static double GeoSpeed(string field)
+        /// <param name="point1">起始 GEOPOINT 表达式。</param>
+        /// <param name="point2">结束 GEOPOINT 表达式。</param>
+        /// <param name="elapsedMs">两点之间的时间间隔（毫秒），必须大于零。</param>
+        public static double GeoSpeed(object point1, object point2, double elapsedMs)
         {
             var ctx = context.Value;
-            ctx.Result = $"geo_speed({ctx.ParsedContent["field"]})";
+            ctx.Result = $"geo_speed({ctx.ParsedContent["point1"]}, {ctx.ParsedContent["point2"]}, " +
+                         $"{ctx.ParsedContent["elapsedMs"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// 旧版单字段速度入口。SonnetDB 3.1 要求两个点和明确的时间间隔，无法
+        /// 从单列调用安全推导 elapsed_ms，因此保留入口并在翻译时明确拒绝。
+        /// </summary>
+        [Obsolete("SonnetDB 3.1 的 GeoSpeed 需要两个 GEOPOINT 和 elapsed_ms，请改用三参数重载。")]
+        public static double GeoSpeed(string field)
+        {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 的 geo_speed 需要两个 GEOPOINT 和大于零的 elapsed_ms，旧版单字段入口无法安全迁移。");
+        }
+
+        /// <summary>
+        /// <b>坐标系转换</b>：在 WGS84、GCJ02、BD09 之间转换 GEOPOINT。
+        /// <para>SQL：<c>geo_transform(point, from_system, to_system)</c></para>
+        /// </summary>
+        public static object GeoTransform(object point, string fromSystem, string toSystem)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_transform({ctx.ParsedContent["point"]}, " +
+                         $"{ctx.ParsedContent["fromSystem"]}, {ctx.ParsedContent["toSystem"]})";
+            return default;
+        }
+
+        /// <summary>将 WGS84 坐标转换为 GCJ02，生成 <c>geo_wgs84_to_gcj02</c>。</summary>
+        public static object GeoWgs84ToGcj02(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_wgs84_to_gcj02({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>将 GCJ02 坐标转换为 WGS84，生成 <c>geo_gcj02_to_wgs84</c>。</summary>
+        public static object GeoGcj02ToWgs84(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_gcj02_to_wgs84({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>将 GCJ02 坐标转换为 BD09，生成 <c>geo_gcj02_to_bd09</c>。</summary>
+        public static object GeoGcj02ToBd09(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_gcj02_to_bd09({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>将 BD09 坐标转换为 GCJ02，生成 <c>geo_bd09_to_gcj02</c>。</summary>
+        public static object GeoBd09ToGcj02(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_bd09_to_gcj02({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>将 WGS84 坐标转换为 BD09，生成 <c>geo_wgs84_to_bd09</c>。</summary>
+        public static object GeoWgs84ToBd09(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_wgs84_to_bd09({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>将 BD09 坐标转换为 WGS84，生成 <c>geo_bd09_to_wgs84</c>。</summary>
+        public static object GeoBd09ToWgs84(object point)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"geo_bd09_to_wgs84({ctx.ParsedContent["point"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// PostGIS 风格距离别名，生成 <c>st_distance(point1, point2)</c>。
+        /// </summary>
+        public static double StDistance(object point1, object point2)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"st_distance({ctx.ParsedContent["point1"]}, {ctx.ParsedContent["point2"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// PostGIS 风格圆形围栏别名，生成 <c>st_within(point, lat, lon, radius)</c>。
+        /// </summary>
+        public static bool StWithin(object point, double centerLat, double centerLon, double radiusM)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"st_within({ctx.ParsedContent["point"]}, {ctx.ParsedContent["centerLat"]}, " +
+                         $"{ctx.ParsedContent["centerLon"]}, {ctx.ParsedContent["radiusM"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// PostGIS 风格距离围栏别名，生成 <c>st_dwithin(point, lat, lon, radius)</c>。
+        /// </summary>
+        public static bool StDWithin(object point, double centerLat, double centerLon, double radiusM)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"st_dwithin({ctx.ParsedContent["point"]}, {ctx.ParsedContent["centerLat"]}, " +
+                         $"{ctx.ParsedContent["centerLon"]}, {ctx.ParsedContent["radiusM"]})";
             return default;
         }
 
@@ -662,8 +1234,28 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
+        /// <b>轨迹总长度（聚合）</b>的 GEOPOINT 入口。
+        /// <para>SonnetDB 要求参数为 GEOPOINT FIELD；使用 <c>object</c> 形参可直接传入
+        /// <c>SonnetDB.Model.GeoPoint</c> 实体属性，同时保留旧版字符串入口的源码兼容性。</para>
+        /// </summary>
+        public static double TrajectoryLength(object field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_length({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>接受强类型 <c>GeoPoint</c> 的轨迹总长度入口。</summary>
+        public static double TrajectoryLength(GeoPoint field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_length({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
         /// <b>轨迹质心（聚合）</b>：返回时间窗口内所有 GEOPOINT 点的几何质心，
-        /// 结果格式同 GEOPOINT（"lat,lon" 字符串）。
+        /// 结果为 SonnetDB 原生 GEOPOINT。
         /// <para>SQL：<c>trajectory_centroid(field)</c></para>
         /// </summary>
         public static string TrajectoryCentroid(string field)
@@ -673,27 +1265,124 @@ namespace FreeSql.SonnetDB
             return default;
         }
 
-        // =====================================================================
-        // 十一、时间函数
-        // SonnetDB 的 time 列存储 Unix 毫秒整数，以下函数用于时间对齐与提取。
-        // =====================================================================
-
         /// <summary>
-        /// <b>时间桶对齐（TimeBucket）</b>：将时间戳按固定步长 <paramref name="duration"/> 对齐，
-        /// 常用于 SELECT 子句中生成等间隔时间序列，与 PostgreSQL <c>date_trunc</c> 行为一致。
-        /// <para>SQL：<c>time_bucket(duration, time)</c></para>
-        /// <para>示例：<c>time_bucket('1m', time)</c> 将时间戳截断到分钟边界。</para>
+        /// <b>轨迹质心（聚合）</b>的 GEOPOINT 入口。
+        /// <para>SonnetDB 3.1 返回 <c>GeoPoint</c>；结果读取到实体时请使用
+        /// <c>SonnetDB.Model.GeoPoint</c> 或 <c>object</c> 属性。</para>
         /// </summary>
-        /// <param name="duration">时间桶步长，支持单位：<c>ms</c>（毫秒）、<c>s</c>（秒）、
-        /// <c>m</c>（分钟）、<c>h</c>（小时）、<c>d</c>（天）。字符串字面量需加单引号，
-        /// 例如 <c>"'1m'"</c>。</param>
-        /// <param name="time">时间戳列或表达式（Unix 毫秒整数）。</param>
-        /// <returns>对齐后的时间桶起始时间戳（Unix 毫秒整数）。</returns>
-        public static long TimeBucket(string duration, long time)
+        public static object TrajectoryCentroid(object field)
         {
             var ctx = context.Value;
-            ctx.Result = $"time_bucket({ctx.ParsedContent["duration"]}, {ctx.ParsedContent["time"]})";
+            ctx.Result = $"trajectory_centroid({ctx.ParsedContent["field"]})";
             return default;
+        }
+
+        /// <summary>接受强类型 <c>GeoPoint</c> 并保留原生返回类型的轨迹质心入口。</summary>
+        public static GeoPoint TrajectoryCentroid(GeoPoint field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_centroid({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>轨迹包围盒（聚合）</b>：返回窗口内轨迹的最小外接矩形 JSON。
+        /// <para>SQL：<c>trajectory_bbox(field)</c></para>
+        /// </summary>
+        public static string TrajectoryBbox(object field)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_bbox({ctx.ParsedContent["field"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>轨迹最大速度（聚合）</b>：按相邻点时间差计算窗口内最大速度。
+        /// <para>SQL：<c>trajectory_speed_max(field, time)</c></para>
+        /// </summary>
+        public static double TrajectorySpeedMax(object field, object time)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_speed_max({ctx.ParsedContent["field"]}, {ctx.ParsedContent["time"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>轨迹平均速度（聚合）</b>：按相邻点时间差计算窗口内平均速度。
+        /// <para>SQL：<c>trajectory_speed_avg(field, time)</c></para>
+        /// </summary>
+        public static double TrajectorySpeedAvg(object field, object time)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_speed_avg({ctx.ParsedContent["field"]}, {ctx.ParsedContent["time"]})";
+            return default;
+        }
+
+        /// <summary>
+        /// <b>轨迹 P95 速度（聚合）</b>：返回窗口内速度的第 95 百分位。
+        /// <para>SQL：<c>trajectory_speed_p95(field, time)</c></para>
+        /// </summary>
+        public static double TrajectorySpeedP95(object field, object time)
+        {
+            var ctx = context.Value;
+            ctx.Result = $"trajectory_speed_p95({ctx.ParsedContent["field"]}, {ctx.ParsedContent["time"]})";
+            return default;
+        }
+
+        static void EnsureWindowFunctionSupported(ExpressionCallContext ctx, string functionName)
+        {
+            if (ctx == null) return;
+
+            foreach (var expression in ctx.RawExpression.Values)
+            {
+                if (ContainsRelationshipEntity(ctx, expression) == false) continue;
+                throw new NotSupportedException(
+                    $"SonnetDB 3.1 的窗口函数 {functionName} 仅支持时序测量，关系表不支持窗口函数；" +
+                    "请改写为聚合/标量查询或在应用层处理。");
+            }
+        }
+
+        static bool ContainsRelationshipEntity(ExpressionCallContext ctx, Expression expression)
+        {
+            if (expression == null) return false;
+            var visitor = new RelationshipEntityVisitor(ctx);
+            visitor.Visit(expression);
+            return visitor.IsRelationship;
+        }
+
+        sealed class RelationshipEntityVisitor : ExpressionVisitor
+        {
+            readonly ExpressionCallContext _context;
+
+            public RelationshipEntityVisitor(ExpressionCallContext context)
+            {
+                _context = context;
+            }
+
+            public bool IsRelationship { get; private set; }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (IsRelationship == false && node.Type != typeof(string) && node.Type != typeof(object))
+                {
+                    var table = _context.Utility.GetTableByEntity(node.Type);
+                    IsRelationship = table != null && SonnetDBModel.IsTable(table);
+                }
+                return base.VisitParameter(node);
+            }
+        }
+
+        /// <summary>
+        /// <b>时间桶对齐</b>在 SonnetDB 3.1 中不是标量函数。请调用
+        /// <c>GroupByRaw("time(1m)")</c>，而不是在 Select Lambda 中调用此方法。
+        /// </summary>
+        /// <param name="duration">保留的兼容参数。</param>
+        /// <param name="time">保留的兼容参数。</param>
+        /// <exception cref="NotSupportedException">SonnetDB 3.1 没有对应的标量 SQL 函数。</exception>
+        public static long TimeBucket(string duration, long time)
+        {
+            throw new NotSupportedException(
+                "SonnetDB 3.1 不支持 time_bucket 标量函数；请使用 GroupByRaw(\"time(1m)\") 进行时序分桶。");
         }
     }
 }
