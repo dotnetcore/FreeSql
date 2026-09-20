@@ -66,7 +66,7 @@ public static class FreeSqlJsonMapCoreExtensions
                     switch (fsql.Ado.DataType)
                     {
                         case DataType.PostgreSQL:
-                            e.ModifyResult.MapType = typeof(JObject);
+                            e.ModifyResult.MapType = e.Property.PropertyType.IsArrayOrList() ? typeof(JArray) : typeof(JObject);
                             break;
                         default:
                             e.ModifyResult.MapType = typeof(string);
