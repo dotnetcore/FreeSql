@@ -12,7 +12,7 @@ namespace FreeSql.Tests.Provider.SonnetDB;
 public class SonnetDBJsonIndexTests
 {
     [Fact]
-    public void CodeFirst_CreatesJsonPathIndex_AndDbFirstPreservesPath()
+    public void CodeFirst_CreatesJsonPathIndex_AndDbFirstListsIndex()
     {
         using var fsql = CreateFreeSql();
 
@@ -26,7 +26,6 @@ public class SonnetDBJsonIndexTests
         var index = Assert.Single(table.Indexes);
         Assert.Equal("ix_sonnet_json_site", index.Name);
         Assert.False(index.IsUnique);
-        Assert.Equal("$.site", index.JsonPath);
         Assert.Single(index.Columns);
         Assert.Equal("Metadata", index.Columns[0].Column.Name);
         Assert.Null(fsql.CodeFirst.GetComparisonDDLStatements<JsonIndexRow>());
@@ -64,7 +63,7 @@ public class SonnetDBJsonIndexTests
 
     [SonnetDBTable]
     [Table(Name = "sonnet_json_index")]
-    [Index("ix_sonnet_json_site", nameof(Metadata), JsonPath = "$['site']")]
+    [SonnetDBJsonIndex("ix_sonnet_json_site", nameof(Metadata), "$['site']")]
     sealed class JsonIndexRow
     {
         [Column(IsPrimary = true, IsIdentity = true)]
@@ -75,7 +74,7 @@ public class SonnetDBJsonIndexTests
 
     [SonnetDBTable]
     [Table(Name = "sonnet_json_unique_index")]
-    [Index("ix_sonnet_json_unique", nameof(Metadata), true, JsonPath = "$.site")]
+    [SonnetDBJsonIndex("ix_sonnet_json_unique", nameof(Metadata), "$.site", IsUnique = true)]
     sealed class UniqueJsonIndexRow
     {
         [Column(IsPrimary = true, IsIdentity = true)]
@@ -86,7 +85,7 @@ public class SonnetDBJsonIndexTests
 
     [SonnetDBTable]
     [Table(Name = "sonnet_invalid_json_index")]
-    [Index("ix_sonnet_invalid_json", nameof(Name), JsonPath = "$.site")]
+    [SonnetDBJsonIndex("ix_sonnet_invalid_json", nameof(Name), "$.site")]
     sealed class InvalidJsonIndexRow
     {
         [Column(IsPrimary = true, IsIdentity = true)]

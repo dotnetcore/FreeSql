@@ -20,11 +20,22 @@ namespace FreeSql.SonnetDB
     {
         readonly IFreeSql _orm;
         readonly CommonUtils _commonUtils;
+        readonly Dictionary<string, string> _jsonIndexPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public SonnetDBDbFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
             _orm = orm;
             _commonUtils = commonUtils;
         }
+
+        internal string GetJsonIndexPath(DbTableInfo table, string indexName)
+        {
+            if (table == null || string.IsNullOrWhiteSpace(indexName)) return null;
+            _jsonIndexPaths.TryGetValue(GetIndexPathKey(table, indexName), out var path);
+            return path;
+        }
+
+        static string GetIndexPathKey(DbTableInfo table, string indexName) =>
+            string.Concat(table.Id ?? table.Name ?? string.Empty, "|", indexName);
 
         public int GetDbType(DbColumnInfo column)
         {
@@ -558,13 +569,13 @@ namespace FreeSql.SonnetDB
             table.Columns.Add(column);
         }
 
-        static void AddIndex(DbTableInfo table, string name, bool unique, DbColumnInfo column, string jsonPath = null)
+        void AddIndex(DbTableInfo table, string name, bool unique, DbColumnInfo column, string jsonPath = null)
         {
             var target = unique ? table.UniquesDict : table.IndexesDict;
             if (!target.TryGetValue(name, out var index)) target.Add(name, index = new DbIndexInfo { Name = name, IsUnique = unique });
-            if (!string.IsNullOrWhiteSpace(jsonPath) && string.IsNullOrWhiteSpace(index.JsonPath))
-                index.JsonPath = jsonPath.Trim();
             if (!index.Columns.Any(a => string.Equals(a.Column.Name, column.Name, StringComparison.OrdinalIgnoreCase))) index.Columns.Add(new DbIndexColumnInfo { Column = column, IsDesc = false });
+            if (!string.IsNullOrWhiteSpace(jsonPath))
+                _jsonIndexPaths[GetIndexPathKey(table, name)] = jsonPath.Trim();
         }
 
         static void FinalizeTable(DbTableInfo table)

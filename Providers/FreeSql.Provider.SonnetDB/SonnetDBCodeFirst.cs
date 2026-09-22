@@ -285,7 +285,11 @@ namespace FreeSql.SonnetDB
                     continue;
                 var indexName = ReplaceIndexName(index.Name, tbname);
                 var existingIndex = FindIndex(existingTable, indexName);
-                if (existingIndex != null && !IsSameIndex(existingIndex, index))
+                var jsonPath = GetJsonIndexPath(tb, index);
+                var existingJsonPath = existingIndex == null
+                    ? null
+                    : (this._orm.DbFirst as SonnetDBDbFirst)?.GetJsonIndexPath(existingTable, indexName);
+                if (existingIndex != null && !IsSameIndex(existingIndex, index, jsonPath, existingJsonPath))
                 {
                     AppendDdlSeparator(sb);
                     sb.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(indexName))
@@ -293,7 +297,7 @@ namespace FreeSql.SonnetDB
                     existingIndex = null;
                 }
                 if (existingIndex == null)
-                    AppendCreateIndexDDL(sb, tbname, indexName, index);
+                    AppendCreateIndexDDL(sb, tbname, indexName, index, jsonPath);
             }
         }
 
@@ -368,10 +372,10 @@ namespace FreeSql.SonnetDB
                 .Append(";");
         }
 
-        void AppendCreateIndexDDL(StringBuilder sb, string tbname, string indexName, IndexInfo index)
+        void AppendCreateIndexDDL(StringBuilder sb, string tbname, string indexName, IndexInfo index, string jsonPath)
         {
             AppendDdlSeparator(sb);
-            if (!string.IsNullOrWhiteSpace(index.JsonPath))
+            if (!string.IsNullOrWhiteSpace(jsonPath))
             {
                 if (index.IsUnique)
                     throw new NotSupportedException("SonnetDB JSON 路径索引不支持唯一约束；请去掉 IsUnique。");
@@ -386,7 +390,7 @@ namespace FreeSql.SonnetDB
                 sb.Append("CREATE JSON INDEX IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(indexName))
                     .Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" (")
                     .Append(_commonUtils.QuoteSqlName(jsonColumn.Attribute.Name)).Append(", ")
-                    .Append(QuoteSqlString(NormalizeJsonPath(index.JsonPath))).Append(");");
+                    .Append(QuoteSqlString(NormalizeJsonPath(jsonPath))).Append(");");
                 return;
             }
 
@@ -406,10 +410,10 @@ namespace FreeSql.SonnetDB
             .Concat(table.Uniques ?? new List<DbIndexInfo>())
             .FirstOrDefault(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase));
 
-        static bool IsSameIndex(DbIndexInfo existing, IndexInfo expected)
+        static bool IsSameIndex(DbIndexInfo existing, IndexInfo expected, string jsonPath, string existingJsonPath)
         {
             if (existing.IsUnique != expected.IsUnique || existing.Columns.Count != expected.Columns.Length) return false;
-            if (!string.Equals(NormalizeJsonPath(existing.JsonPath), NormalizeJsonPath(expected.JsonPath), StringComparison.Ordinal)) return false;
+            if (!string.Equals(NormalizeJsonPath(existingJsonPath), NormalizeJsonPath(jsonPath), StringComparison.Ordinal)) return false;
             for (var a = 0; a < existing.Columns.Count; a++)
             {
                 var expectedColumn = expected.Columns[a].Column.Attribute;
@@ -418,6 +422,15 @@ namespace FreeSql.SonnetDB
                     !string.Equals(actualName, expectedColumn.OldName, StringComparison.OrdinalIgnoreCase)) return false;
             }
             return true;
+        }
+
+        static string GetJsonIndexPath(TableInfo table, IndexInfo index)
+        {
+            if (table?.Type == null || index == null) return null;
+            var attrs = table.Type.GetCustomAttributes(typeof(SonnetDBJsonIndexAttribute), true)
+                .OfType<SonnetDBJsonIndexAttribute>();
+            var match = attrs.FirstOrDefault(a => string.Equals(a.Name, index.Name, StringComparison.OrdinalIgnoreCase));
+            return match == null ? null : NormalizeJsonPath(match.JsonPath);
         }
 
         static string NormalizeJsonPath(string path)

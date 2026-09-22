@@ -62,7 +62,6 @@ namespace FreeSql.Extensions.ZeroEntity
 			public string Fields { get; set; }
 			public bool IsUnique { get; set; }
 			public IndexMethod IndexMethod { get; set; }
-			public string JsonPath { get; set; }
 		}
 		public class NavigateDescriptor
 		{

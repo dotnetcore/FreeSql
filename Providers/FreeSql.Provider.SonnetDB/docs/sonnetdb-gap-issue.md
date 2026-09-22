@@ -20,6 +20,11 @@ FreeSql 提供程序已按 SonnetDB 3.1.0 发布版（NuGet 包 `SonnetDB` 3.1.0
 - [#191：`UPDATE ... JOIN` 的关系表语义](https://github.com/IoTSharp/SonnetDB/issues/191)
 - [#192：`ceil`、`floor`、`exp`、`power` 数学标量函数](https://github.com/IoTSharp/SonnetDB/issues/192)
 - [#193：关系表 `VECTOR`/`GEOPOINT` 的产品边界或支持合同](https://github.com/IoTSharp/SonnetDB/issues/193)
+- [#194：`UPDATE ... RETURNING` 与 `DELETE ... RETURNING`](https://github.com/IoTSharp/SonnetDB/issues/194)
+- [#195：`INSERT ... SELECT` 查询插入](https://github.com/IoTSharp/SonnetDB/issues/195)
+- [#196：时序测量与关系表 JOIN 的参数绑定执行](https://github.com/IoTSharp/SonnetDB/issues/196)
+- [#197：`INSERT ... RETURNING` 的跨协议结果合同](https://github.com/IoTSharp/SonnetDB/issues/197)
+- [#198：`BigInteger` 或任意精度整数边界](https://github.com/IoTSharp/SonnetDB/issues/198)
 
 以下已存在的上游 Issue 已覆盖本草案中的对应部分，因此本轮不重复创建：
 [#171](https://github.com/IoTSharp/SonnetDB/issues/171)（非递归 CTE）、
@@ -73,7 +78,7 @@ FreeSql 提供程序已按 SonnetDB 3.1.0 发布版（NuGet 包 `SonnetDB` 3.1.0
 - `ForUpdate` 和 `UpdateJoin` 在生成或创建执行器前给出中文不支持提示；关系表可使用事务和 `ROWVERSION`，或先查主键再执行单表更新。
 - 时序测量的 `float[]` 属性可通过 `Column(DbType = "FIELD VECTOR(N)", MapType = typeof(float[]))` 映射为原生 VECTOR；非参数化 SQL 会生成 `[v1, v2, ...]` 字面量，并在读取端还原为 `float[]`。关系表的 VECTOR 仍在 SonnetDB 3.1 解析器层明确不支持，提供程序会在生成 DDL 前抛出中文异常。
 - SonnetDB 3.1.0 的 ADO.NET 参数绑定不支持 `float[]` VECTOR 参数。提供程序不会把它静默转成字符串或普通 `(v1, v2)` 列表；参数化写入会在发送前给出中文提示，调用方可暂时启用 `UseNoneCommandParameter(true)` 使用原生向量字面量。
-- `FreeSql.Extensions.JsonMap` 已增加 `DataType.SonnetDB` 分支；调用 `UseJsonMap()` 后，关系表上的 `[JsonMap]` 普通对象会映射为 `JSON` 列，读写沿用 Newtonsoft.Json 序列化链，嵌套属性访问会翻译为 `json_value(column, '$.path')`。当前回归测试覆盖 JSON 列识别、中文内容往返、嵌套路径 SQL 生成和实际过滤；数组下标、动态路径和 JSON 路径索引仍需使用显式辅助方法或索引声明。
+- 通用 `FreeSql.Extensions.JsonMap` 不属于本 provider 的兼容层；SonnetDB provider 只维护关系表 JSON/DOM 类型、`SonnetDBFunctions.JsonValue` 和 `SonnetDBJsonIndexAttribute`。对象序列化、嵌套属性映射以及 JsonMap 的行为由通用扩展自行维护，不在本 provider 的版本合同内。
 - SonnetDB 的 JSON DOM 在关系表中按 `JSON` 列使用，在时序测量中按 `FIELD STRING` 保存；DbFirst 返回 `string` 是当前兼容合同，不能把时序 FIELD 自动还原为 JSON DOM。
 - `SonnetDBTableValuedFunctions` 已补充 `forecast`、`knn`、`json_each`/`json_table`、
   `vector_search` 和 `hybrid_search` 的安全 SQL 生成及强类型 DTO 查询入口；`SelectJsonEach<T>` 与
@@ -139,14 +144,16 @@ FreeSql 的共享 `DbTableInfo` 只有表名、类型和列等结构字段，没
 SonnetDB 3.1.0 已提供关系表 JSON 路径索引能力，语法为
 `CREATE JSON INDEX idx_devices_site ON devices (metadata, '$.site')`；当前合同限制为一列一个路径，并且只有
 `json_value(json_col, '$.path') = literal` 形式会做等值下推。SonnetDB ADO.NET 的
-`GetSchema("Indexes")` 已返回 `JSON_PATH` 列。FreeSql 现已在 `IndexInfo`、`DbIndexInfo` 和
-`IndexAttribute` 增加可选 `JsonPath` 元数据：CodeFirst 可用
-`[Index("ix_device_site", "Metadata", JsonPath = "$.site")]` 生成 JSON 路径索引，DbFirst 会读取并保留
-`JSON_PATH`，差异比较也会检查路径。提供程序只生成 SonnetDB 当前支持的单列、非唯一 JSON 路径索引；唯一索引、复合路径和额外索引选项会明确抛出中文异常。
+`GetSchema("Indexes")` 已返回 `JSON_PATH` 列。提供程序使用专属的
+`SonnetDBJsonIndexAttribute` 声明路径：
+`[SonnetDBJsonIndex("ix_device_site", "Metadata", "$.site")]`。它只在
+`FreeSql.Provider.SonnetDB` 内部参与 CodeFirst/DbFirst，JSON 路径不会写入 FreeSql
+通用的 `IndexInfo`、`DbIndexInfo` 或 `IndexAttribute`。提供程序只生成 SonnetDB 当前支持
+的单列、非唯一 JSON 路径索引；唯一索引、复合路径和额外索引选项会明确抛出中文异常。
 
-`FreeSql.Extensions.JsonMap` 已声明 SonnetDB 支持，但仍有以下边界需要保持清晰：
+通用 `FreeSql.Extensions.JsonMap` 不属于 SonnetDB provider 的兼容层，仍有以下边界需要保持清晰：
 
-- JsonMap 只负责普通对象序列化和静态嵌套成员访问，不自动声明 JSON 路径索引；索引请使用 `IndexAttribute.JsonPath` 或迁移 DDL；
+- provider 特性只负责 JSON 路径索引声明，不自动改变通用 JsonMap 的序列化行为；索引请使用 `SonnetDBJsonIndexAttribute` 或迁移 DDL；
 - 数组下标和复杂 JSON 谓词请使用 `SonnetDBFunctions.JsonValue`；路径仍须是经过 SQL 字面量转义的静态字符串，不能使用动态路径；
 - 如果 SonnetDB 后续版本或不同连接模式不再返回 `JSON_PATH`，请保持嵌入式和远程驱动的元数据列、路径规范化和空值语义一致。
 
@@ -162,8 +169,8 @@ SonnetDB 3.1.0 已提供关系表 JSON 路径索引能力，语法为
 | 能力 | SonnetDB 3.1.0 合同 | FreeSql SonnetDB 提供程序 | 当前结论 |
 | --- | --- | --- | --- |
 | 关系表 JSON 列读写 | JSON 按 UTF-8 文本存储 | 字符串和 `System.Text.Json` DOM 均可读写 | 已支持 |
-| `json_value` 路径投影/过滤 | 支持属性、数组下标和对象/数组结果 | `SonnetDBFunctions.JsonValue` 返回 JSON 文本；JsonMap 支持静态普通对象嵌套成员翻译 | 已支持；动态路径和复杂谓词需显式辅助方法，DOM 需应用层反序列化 |
-| 关系表 JSON 路径索引 | `CREATE JSON INDEX ... (json_col, '$.path')`；`GetSchema("Indexes")` 返回 `JSON_PATH` | `IndexAttribute.JsonPath` 声明；CodeFirst 生成并比较单列非唯一索引；DbFirst 保留路径 | 已支持当前合同；唯一/复合/额外选项不支持 |
+| `json_value` 路径投影/过滤 | 支持属性、数组下标和对象/数组结果 | `SonnetDBFunctions.JsonValue` 返回 JSON 文本；通用对象序列化/JsonMap 不由 provider 扩展 | 已支持；动态路径和复杂谓词需显式辅助方法，DOM 需应用层反序列化 |
+| 关系表 JSON 路径索引 | `CREATE JSON INDEX ... (json_col, '$.path')`；`GetSchema("Indexes")` 返回 `JSON_PATH` | `SonnetDBJsonIndexAttribute` 声明；CodeFirst 生成并比较单列非唯一索引；DbFirst 在 provider 内保留路径 | 已支持当前合同；唯一/复合/额外选项不支持 |
 | 时序测量 JSON | 不支持 `FIELD JSON`，应使用 `FIELD STRING` | JSON DOM 映射为字符串 FIELD | 已按合同处理 |
 | 文档集合 | 独立文档模型和 JSON 路径索引 | FreeSql SonnetDB 提供程序暂无文档集合模型 | 不在当前关系/时序 ORM 范围 |
 

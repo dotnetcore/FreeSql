@@ -68,14 +68,6 @@ public static class FreeSqlJsonMapCoreExtensions
                         case DataType.PostgreSQL:
                             e.ModifyResult.MapType = typeof(JObject);
                             break;
-                        case DataType.SonnetDB:
-                            // SonnetDB 关系表使用原生 JSON 列；读写仍通过字符串完成序列化，
-                            // 这样可以复用 JsonMap 现有的 Newtonsoft.Json 转换链。
-                            e.ModifyResult.MapType = typeof(string);
-                            if (string.IsNullOrEmpty(e.ModifyResult.DbType))
-                                e.ModifyResult.DbType = "JSON";
-                            e.ModifyResult.StringLength = -2;
-                            break;
                         default:
                             e.ModifyResult.MapType = typeof(string);
                             e.ModifyResult.StringLength = -2;
@@ -117,7 +109,6 @@ public static class FreeSqlJsonMapCoreExtensions
             case DataType.CustomPostgreSQL:
             case DataType.KingbaseES:
             case DataType.ShenTong:
-            case DataType.SonnetDB:
                 fsql.Aop.ParseExpression += (_, e) =>
                 {
                     //if (e.Expression is MethodCallExpression callExp)
@@ -286,9 +277,6 @@ public static class FreeSqlJsonMapCoreExtensions
                                         case DataType.DuckDB:
                                             StyleDotAccess();
                                             return true;
-                                        case DataType.SonnetDB:
-                                            StyleSonnetJsonValue();
-                                            return true;
                                     }
                                     StylePgJson();
                                     return true;
@@ -319,18 +307,6 @@ public static class FreeSqlJsonMapCoreExtensions
                                             result = $"{result}['{memExp.Member.Name}']";
                                         }
                                         e.Result = result;
-                                    }
-                                    void StyleSonnetJsonValue()
-                                    {
-                                        while (parentMemExps.Any())
-                                        {
-                                            memExp = parentMemExps.Pop();
-                                            jsonPath = $"{jsonPath}.{memExp.Member.Name}";
-                                        }
-                                        var escapedPath = jsonPath
-                                            .Replace("\\", "\\\\")
-                                            .Replace("'", "''");
-                                        e.Result = $"json_value({result}, '${escapedPath}')";
                                     }
                                     void StylePgJson()
                                     {

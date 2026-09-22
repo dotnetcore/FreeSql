@@ -103,6 +103,74 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
+        /// The older FreeSql core rejects TimeSpan method/member nodes before
+        /// dispatching to <see cref="ExpressionLambdaToSqlOther"/>. Keep the
+        /// compatibility bridge in the provider so the common expression
+        /// parser does not need a SonnetDB-specific branch.
+        /// </summary>
+        internal static bool TryTranslateAopExpression(Expression expression,
+            Func<Expression, string> parse, out string result)
+        {
+            result = null;
+            if (expression is MemberExpression member &&
+                (member.Member.DeclaringType == typeof(TimeSpan) || member.Member.Name == "TimeOfDay"))
+            {
+                if (member.Expression is BinaryExpression binary &&
+                    binary.NodeType == ExpressionType.Subtract &&
+                    binary.Type.NullableTypeOrThis() == typeof(TimeSpan))
+                {
+                    var leftType = binary.Left.Type.NullableTypeOrThis();
+                    var rightType = binary.Right.Type.NullableTypeOrThis();
+                    if (IsDateType(leftType) && IsDateType(rightType))
+                    {
+                        result = ToSqlDateDifference(member.Member.Name,
+                            parse(binary.Left), parse(binary.Right));
+                        return true;
+                    }
+                }
+
+                if (member.Expression is MethodCallExpression subtract &&
+                    subtract.Method.Name == "Subtract" &&
+                    subtract.Arguments.Count == 1 &&
+                    IsDateType(subtract.Object?.Type.NullableTypeOrThis()) &&
+                    IsDateType(subtract.Arguments[0].Type.NullableTypeOrThis()))
+                {
+                    result = ToSqlDateDifference(member.Member.Name,
+                        parse(subtract.Object), parse(subtract.Arguments[0]));
+                    return true;
+                }
+
+                if (member.Member.Name == "TimeOfDay" && member.Expression != null)
+                {
+                    var sourceType = member.Expression.Type.NullableTypeOrThis();
+                    if (sourceType == typeof(DateTime) || sourceType == typeof(DateTimeOffset))
+                    {
+                        result = ToSqlTimeOfDay(parse(member.Expression));
+                        return true;
+                    }
+                }
+
+                throw UnsupportedTimeSpanMember(member.Member.Name);
+            }
+
+            if (expression is MethodCallExpression call &&
+                call.Method.DeclaringType == typeof(TimeSpan) &&
+                call.Arguments.All(a => a.CanDynamicInvoke()))
+            {
+                var value = Expression.Lambda(call).Compile().DynamicInvoke();
+                if (value is TimeSpan timeSpan)
+                {
+                    result = timeSpan.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool IsDateType(Type type) => type == typeof(DateTime) || type == typeof(DateTimeOffset);
+
+        /// <summary>
         /// 处理其他类型表达式节点（Convert 类型转换、Contains IN 展开、数组/列表字面量）。
         /// </summary>
         public override string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc)

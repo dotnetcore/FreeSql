@@ -14,7 +14,7 @@ namespace FreeSql.Internal
         {
             this.Table = table;
             this.Sql = sql;
-            this.DbParams = dbParms;
+            this.DbParams = DbParams;
             this.Affrows = affrows;
             this.EntitySource = source;
             this.EntitySourceCount = source.Count();

@@ -678,16 +678,16 @@ namespace FreeSql.Internal
                 {
                     ++index;
                     if (parent.Property != null)
-                        return _common.ConvertDataReaderValue(parent.Property.PropertyType, null);
-                    return _common.ConvertDataReaderValue(parent.CsType, null);
+                        return Utils.GetDataReaderValue(parent.Property.PropertyType, null);
+                    return Utils.GetDataReaderValue(parent.CsType, null);
                 }
                 object objval = Utils.InternalDataReaderGetValue(_common, dr, ++index, parent.Property); // dr.GetValue(++index);
                 if (dbValue != null) dbValue.DbValue = objval == DBNull.Value ? null : objval;
                 if (parent.CsType != parent.MapType)
-                    objval = _common.ConvertDataReaderValue(parent.MapType, objval);
-                objval = _common.ConvertDataReaderValue(parent.CsType, objval);
+                    objval = Utils.GetDataReaderValue(parent.MapType, objval);
+                objval = Utils.GetDataReaderValue(parent.CsType, objval);
                 if (parent.Property != null && parent.CsType != parent.Property.PropertyType)
-                    objval = _common.ConvertDataReaderValue(parent.Property.PropertyType, objval);
+                    objval = Utils.GetDataReaderValue(parent.Property.PropertyType, objval);
                 if (objval == DBNull.Value) objval = null;
                 return objval;
             }
@@ -1280,11 +1280,7 @@ namespace FreeSql.Internal
                         case "System.String": other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); break;
                         case "System.Math": other3Exp = ExpressionLambdaToSqlCallMath(exp3, tsc); break;
                         case "System.DateTime": other3Exp = ExpressionLambdaToSqlCallDateTime(exp3, tsc); break;
-                        case "System.TimeSpan":
-                            // 允许提供程序处理 TimeSpan 工厂方法（例如 FromDays）。
-                            // 未实现时仍保持原有的统一异常行为。
-                            other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
-                            break;
+                        case "System.TimeSpan": throw new Exception(CoreErrorStrings.Unable_Parse_ExpressionMethod(callType.FullName));
                         case "System.Convert": other3Exp = ExpressionLambdaToSqlCallConvert(exp3, tsc); break;
                     }
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
@@ -1987,25 +1983,7 @@ namespace FreeSql.Internal
                     if (exp4 != null)
                     {
                         if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.IsNullableType())
-                        {
-                            // 可空日期的 Year/Date/TimeOfDay 等成员仍需要由方言翻译；
-                            // 不能像普通 Nullable 成员一样直接透传底层列。
-                            if (exp4.Member.Name != "HasValue" && exp4.Member.Name != "Value")
-                            {
-                                var nullableType = exp4.Expression.Type.NullableTypeOrThis();
-                                if (nullableType == typeof(DateTime))
-                                {
-                                    var nullableDateTimeSql = ExpressionLambdaToSqlMemberAccessDateTime(exp4, tsc);
-                                    if (string.IsNullOrEmpty(nullableDateTimeSql) == false) return nullableDateTimeSql;
-                                }
-                                else if (nullableType == typeof(DateTimeOffset))
-                                {
-                                    var nullableDateTimeOffsetSql = ExpressionLambdaToSqlOther(exp4, tsc);
-                                    if (string.IsNullOrEmpty(nullableDateTimeOffsetSql) == false) return nullableDateTimeOffsetSql;
-                                }
-                            }
                             return exp4.Member.Name == "HasValue" ? $"{ExpressionLambdaToSql(exp4.Expression, tsc)} IS NOT NULL" : ExpressionLambdaToSql(exp4.Expression, tsc);
-                        }
                         var extRet = "";
                         var memberType = exp4.Expression?.Type ?? exp4.Type;
                         switch (memberType.FullName)
@@ -2055,12 +2033,6 @@ namespace FreeSql.Internal
                                         }
                                     }
                                 }
-                                // DateTimeOffset.Subtract 和其他提供程序特有的
-                                // TimeSpan 表达式由方言自行翻译；无法翻译时再给出
-                                // 原有的统一异常。
-                                var otherTimeSpanExp = ExpressionLambdaToSqlOther(exp4, tsc);
-                                if (string.IsNullOrEmpty(otherTimeSpanExp) == false)
-                                    return otherTimeSpanExp;
                                 throw new Exception(CoreErrorStrings.Unable_Parse_Expression(exp4));
                         }
                         if (string.IsNullOrEmpty(extRet) == false) return extRet;

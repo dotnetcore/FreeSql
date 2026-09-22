@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.SonnetDB\FreeSql.Provider.SonnetDB.csproj" />
-    <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.JsonMap\FreeSql.Extensions.JsonMap.csproj" />
   </ItemGroup>
 
   <ItemGroup>

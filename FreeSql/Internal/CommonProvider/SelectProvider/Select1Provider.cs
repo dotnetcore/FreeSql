@@ -635,8 +635,9 @@ namespace FreeSql.Internal.CommonProvider
 
                 try
                 {
-                    InsertOrUpdateProvider<object>.WriteSourceSelectUnionAll(
-                        _orm, _commonUtils, ret._tables[0].Table, list, sb, _params, true);
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = ret._tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
                     ret.WithSql(sb.ToString());
                     return ret;
                 }
@@ -647,8 +648,9 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
                 try
                 {
-                    InsertOrUpdateProvider<object>.WriteSourceSelectUnionAll(
-                        _orm, _commonUtils, _tables[0].Table, list, sb, _params, true);
+                    var upset = _orm.InsertOrUpdate<object>() as InsertOrUpdateProvider<object>;
+                    upset._table = _tables[0].Table;
+                    upset.WriteSourceSelectUnionAll(list, sb, _params, true);
                     return WithSql(sb.ToString()) as ISelect<TDto>;
                 }
                 finally { sb.Clear(); }

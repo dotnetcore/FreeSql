@@ -88,7 +88,12 @@ namespace FreeSql.SonnetDB.Curd
         public override string ToSql()
         {
             EnsureRelationshipTable();
-            return base.ToSql();
+            var sql = base.ToSql();
+            if (_table?.Primarys == null || _table.Primarys.Length == 0) return sql;
+            var projection = _table.Primarys.Length == 1
+                ? "ftb_upd." + _commonUtils.QuoteSqlName(_table.Primarys[0].Attribute.Name)
+                : "ftb_upd.as1";
+            return SonnetDBMutationSql.RewritePrimaryKeySubquery(sql, projection);
         }
 
 #if net40
@@ -189,6 +194,17 @@ namespace FreeSql.SonnetDB.Curd
             try
             {
                 base.ToSqlExtension110(sb, isAsTableSplited);
+                if (_table?.Primarys == null || _table.Primarys.Length == 0)
+                {
+                    _lastSql = sb.ToString();
+                    _lastDbParams = _params?.Concat(_paramsSource ?? new List<DbParameter>()).ToArray();
+                    return;
+                }
+                var projection = _table.Primarys.Length == 1
+                    ? "ftb_upd." + _commonUtils.QuoteSqlName(_table.Primarys[0].Attribute.Name)
+                    : "ftb_upd.as1";
+                var rewritten = SonnetDBMutationSql.RewritePrimaryKeySubquery(sb.ToString(), projection);
+                sb.Clear().Append(rewritten);
                 _lastSql = sb.ToString();
                 _lastDbParams = _params.Concat(_paramsSource).ToArray();
             }

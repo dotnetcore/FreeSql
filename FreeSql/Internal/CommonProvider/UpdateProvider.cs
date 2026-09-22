@@ -223,7 +223,6 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdateJoin<T1, T2> Join<T2>(Expression<Func<T1, T2, bool>> on) where T2 : class => Join<T2>(_orm.Select<T2>(), on);
         public IUpdateJoin<T1, T2> Join<T2>(ISelect<T2> query, Expression<Func<T1, T2, bool>> on) where T2 : class
         {
-            _commonUtils.ValidateSelectOperation("UpdateJoin");
             var ctor = typeof(UpdateJoinProvider<,>).MakeGenericType(typeof(T1), typeof(T2))
                 .GetConstructor(new[] { typeof(IUpdate<T1>), typeof(ISelect<T2>), typeof(Expression<Func<T1, T2, bool>>) });
             if (ctor == null) throw new Exception(CoreErrorStrings.Type_Cannot_Access_Constructor("UpdateJoinProvider<>"));

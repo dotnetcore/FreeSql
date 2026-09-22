@@ -23,41 +23,6 @@ namespace FreeSql.SonnetDB
         public SonnetDBUtils(IFreeSql orm) : base(orm) { }
 
         /// <summary>
-        /// SonnetDB 3.1.0 的解析器只接受 INSERT ... VALUES，不支持 INSERT ... SELECT。
-        /// </summary>
-        public override void ValidateInsertIntoSelect() => throw new NotSupportedException(
-            "SonnetDB 3.1 不支持 INSERT ... SELECT；FreeSql ISelect.InsertInto 不可用，请改用分批 INSERT。");
-
-        /// <summary>
-        /// SonnetDB 3.1.0 没有可执行的递归 CTE 语法合同。
-        /// </summary>
-        public override void ValidateRecursiveCte() => throw new NotSupportedException(
-            "SonnetDB 3.1 不支持 WITH/递归 CTE 查询；FreeSql AsTreeCte 不可用，请改写为普通查询或分步处理。");
-
-        /// <summary>
-        /// FreeSql 读取器会将多条嵌套查询合并为 UNION ALL；SonnetDB 3.1 尚不支持该语法。
-        /// </summary>
-        public override void ValidateUnionAll() => throw new NotSupportedException(
-            "SonnetDB 3.1 不支持 UNION ALL；当前嵌套查询会生成 UNION ALL，请改为单条查询或等待 SonnetDB 补齐支持。");
-
-        /// <summary>
-        /// 校验 SonnetDB 3.1 不支持的查询派生操作。
-        /// 关系表的 ToUpdate/ToDelete 由公共实现生成明确的单列主键投影，允许继续执行。
-        /// </summary>
-        public override void ValidateSelectOperation(string operation)
-        {
-            switch (operation)
-            {
-                case "ForUpdate":
-                    throw new NotSupportedException(
-                        "SonnetDB 3.1 不支持 SELECT ... FOR UPDATE；请使用关系表事务并依靠 ROWVERSION 乐观并发控制。" );
-                case "UpdateJoin":
-                    throw new NotSupportedException(
-                        "SonnetDB 3.1 不支持 UPDATE JOIN；请先查询主键，再执行关系表 UPDATE。" );
-            }
-        }
-
-        /// <summary>
         /// 特殊 C# 类型 → 数据库兼容值的转换函数表。
         /// 无符号整型、char、BigInteger 等需要在绑定参数前转换为 SonnetDB 驱动接受的类型。
         /// </summary>
@@ -226,24 +191,6 @@ namespace FreeSql.SonnetDB
 
         static long ToUnixTimeMilliseconds(DateTime value) =>
             new DateTimeOffset(NormalizeUtc(value)).ToUnixTimeMilliseconds();
-
-        /// <summary>
-        /// SonnetDB 的时序测量将时间列返回为 Unix 毫秒整数；关系表 DATETIME
-        /// 可能返回原生时间对象。按目标 CLR 类型在提供程序范围内统一还原，
-        /// 不改变其他数据库提供程序的读取语义。
-        /// </summary>
-        public override object ConvertDataReaderValue(Type type, object value)
-        {
-            if (value != null && value != DBNull.Value)
-            {
-                var targetType = type?.NullableTypeOrThis();
-                if (targetType == typeof(DateTimeOffset))
-                    return ConvertDateTimeOffsetValue(value);
-                if (targetType == typeof(DateTime))
-                    return ConvertDateTimeValue(value);
-            }
-            return base.ConvertDataReaderValue(type, value);
-        }
 
         internal static DateTimeOffset ConvertDateTimeOffsetValue(object value)
         {

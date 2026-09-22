@@ -215,10 +215,20 @@ DbFirst 可以读取关系表、时序测量和视图的列结构。视图通过
 专有特性。时序测量的 JSON DOM 按 `FIELD STRING` 返回 `string`，不会自动还原为
 JSON DOM 类型。
 
-关系表的 `JSON` 列支持字符串以及 `System.Text.Json` DOM。需要对象序列化和嵌套
-属性查询时，可另外安装 `FreeSql.Extensions.JsonMap` 并调用 `UseJsonMap()`。
-`SonnetDBFunctions.JsonValue` 的结果按数据库返回的 JSON 文本读取；对象或数组结果
+关系表的 `JSON` 列支持字符串以及 `System.Text.Json` DOM。提供程序不修改
+`FreeSql.Extensions.JsonMap` 等通用扩展；需要对象序列化时请在应用层使用自己的
+序列化器。`SonnetDBFunctions.JsonValue` 的结果按数据库返回的 JSON 文本读取；对象或数组结果
 需要由调用方再反序列化为目标 DOM 类型。
+
+JSON 路径索引使用 provider 专属特性，不会扩展 FreeSql 的通用索引模型：
+
+```csharp
+[SonnetDBJsonIndex("ix_device_site", nameof(Metadata), "$.site")]
+public JsonDocument Metadata { get; set; }
+```
+
+当前 SonnetDB 3.1 只支持单个 JSON 列、单一路径和非唯一索引；唯一索引、复合路径
+和额外索引选项会在 CodeFirst 阶段明确拒绝。
 
 ## 3.1.0 的明确边界
 

@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,16 @@ namespace FreeSql.SonnetDB.Curd
         public override List<T1> ExecuteDeleted() => throw new NotSupportedException(
             "SonnetDB 3.1 不支持 DELETE ... RETURNING；FreeSql ExecuteDeleted 不可用。");
 
+        public override string ToSql()
+        {
+            var sql = base.ToSql();
+            if (_table?.Primarys == null || _table.Primarys.Length == 0) return sql;
+            var projection = _table.Primarys.Length == 1
+                ? "ftb_del." + _commonUtils.QuoteSqlName(_table.Primarys[0].Attribute.Name)
+                : "ftb_del.as1";
+            return SonnetDBMutationSql.RewritePrimaryKeySubquery(sql, projection);
+        }
+
         public override int ExecuteAffrows()
         {
             EnsureMeasurementTransactionIsNotUsed();
@@ -30,7 +41,7 @@ namespace FreeSql.SonnetDB.Curd
             ToSqlFetch(sb =>
             {
                 if (dbParms == null) dbParms = _params.ToArray();
-                var sql = sb.ToString();
+                var sql = RewriteMutationSql(sb);
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
@@ -76,7 +87,7 @@ namespace FreeSql.SonnetDB.Curd
             await ToSqlFetchAsync(async sb =>
             {
                 if (dbParms == null) dbParms = _params.ToArray();
-                var sql = sb.ToString();
+                var sql = RewriteMutationSql(sb);
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
@@ -120,6 +131,15 @@ namespace FreeSql.SonnetDB.Curd
             if (_transaction != null || _orm.Ado.TransactionCurrentThread != null)
                 throw new NotSupportedException(
                     "SonnetDB 时序测量删除不能在事务中执行；请先提交或回滚当前事务，或改用关系表。");
+        }
+
+        string RewriteMutationSql(StringBuilder sql)
+        {
+            if (_table?.Primarys == null || _table.Primarys.Length == 0) return sql.ToString();
+            var projection = _table.Primarys.Length == 1
+                ? "ftb_del." + _commonUtils.QuoteSqlName(_table.Primarys[0].Attribute.Name)
+                : "ftb_del.as1";
+            return SonnetDBMutationSql.RewritePrimaryKeySubquery(sql.ToString(), projection);
         }
 
         string BuildCountSql(string deleteSql)

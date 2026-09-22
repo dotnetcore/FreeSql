@@ -274,38 +274,20 @@ namespace FreeSql.Internal.CommonProvider
                 sb.Append(_sourceSql).Append("\r\n");
                 return;
             }
-            WriteSourceSelectUnionAll(_orm, _commonUtils, _table, source, sb, dbParams, disableInsertValueSql);
-        }
 
-        /// <summary>
-        /// 生成内存数据对应的 SELECT/UNION ALL 片段。
-        /// <para>
-        /// Select.WithMemory 只需要这段 SQL，不应为了借用生成器而创建真正的
-        /// UPSERT 执行器；将实现放在静态辅助方法中可避免把两种语义耦合起来。
-        /// </para>
-        /// </summary>
-        internal static void WriteSourceSelectUnionAll(
-            IFreeSql orm,
-            CommonUtils commonUtils,
-            TableInfo table,
-            List<T1> source,
-            StringBuilder sb,
-            List<DbParameter> dbParams,
-            bool disableInsertValueSql = false)
-        {
             var didx = 0;
             foreach (var d in source)
             {
                 if (didx > 0) sb.Append(" \r\nUNION ALL\r\n ");
                 sb.Append("SELECT ");
-                switch (orm.Ado.DataType)
+                switch (_orm.Ado.DataType)
                 {
                     case DataType.Firebird:
                         sb.Append("FIRST 1 ");
                         break;
                 }
                 var colidx2 = 0;
-                foreach (var col in table.Columns.Values)
+                foreach (var col in _table.Columns.Values)
                 {
                     if (colidx2 > 0) sb.Append(", ");
                     if (disableInsertValueSql == false && string.IsNullOrEmpty(col.DbInsertValue) == false)
@@ -313,15 +295,15 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         object val = col.GetDbValue(d);
-                        var valsql = commonUtils.RewriteColumn(col, commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
+                        var valsql = _commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
                         if (didx == 0)//首行需要类型
                         {
                             if (valsql == "NULL" || col.DbTypeText?.IndexOf("TIMESTAMP", StringComparison.OrdinalIgnoreCase) >= 0)//时间类型转换
                             {
-                                var dbtype = orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
+                                var dbtype = _orm.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
                                 if (!string.IsNullOrWhiteSpace(dbtype))
                                 {
-                                    switch (orm.Ado.DataType)
+                                    switch (_orm.Ado.DataType)
                                     {
                                         case DataType.Oracle:
                                         case DataType.OdbcOracle:
@@ -345,10 +327,10 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         sb.Append(valsql);
                     }
-                    if (didx == 0) sb.Append(" as ").Append(commonUtils.QuoteSqlName(col.Attribute.Name));
+                    if (didx == 0) sb.Append(" as ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                     ++colidx2;
                 }
-                switch (orm.Ado.DataType)
+                switch (_orm.Ado.DataType)
                 {
                     case DataType.OdbcOracle:
                     case DataType.Oracle:

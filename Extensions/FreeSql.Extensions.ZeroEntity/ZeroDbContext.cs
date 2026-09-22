@@ -157,7 +157,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 var tabindexs = dtd.Indexes.Select(a => new IndexAttribute(a.Name, a.Fields, a.IsUnique)
                 {
                     IndexMethod = a.IndexMethod,
-                    JsonPath = a.JsonPath,
                 });
                 var tab = new ZeroTableInfo();
                 tab.Comment = dtd.Comment;
@@ -346,7 +345,6 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             {
                 Name = a.Name,
                 IsUnique = a.IsUnique,
-                JsonPath = a.JsonPath,
                 Fields = string.Join(",", a.Columns.Select(b => b.Column.Name)),
             }));
             if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, true) == 0))
