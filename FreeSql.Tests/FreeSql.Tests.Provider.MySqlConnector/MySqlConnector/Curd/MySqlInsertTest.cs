@@ -153,9 +153,9 @@ namespace FreeSql.Tests.MySqlConnector
         public void ExecuteInserted()
         {
             var items = new List<Topic>();
-            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
-
-            //insert.AppendData(items.First()).ExecuteInserted();
+            for (var a = 0; a < 3; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+            var list = g.mysql.Insert(items).ExecuteInserted();
+            Assert.True(list.Count == 3);
         }
 
         [Fact]
