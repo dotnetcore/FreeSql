@@ -15,7 +15,7 @@
 	<ItemGroup>
 		<PackageReference Include="Confluent.Kafka" Version="2.2.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="MessagePack" Version="3.1.1" />
+		<PackageReference Include="MessagePack" Version="3.1.7" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.5" />
 	</ItemGroup>
 
