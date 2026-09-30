@@ -372,6 +372,40 @@ namespace FreeSql.Tests.PostgreSQL
             g.pgsql.Select<TableAllType>();
         }
 
+        [Theory]
+        [InlineData("my-schema")]
+        [InlineData("schema with spaces")]
+        public void CreateSchemaQuotesName(string schemaPrefix)
+        {
+            var schema = $"{schemaPrefix}-{Guid.NewGuid():N}";
+            var tableName = $"{schema}.schema_quote_test";
+            var ddl = g.pgsql.CodeFirst.GetComparisonDDLStatements(typeof(SchemaQuoteTest), tableName);
+            var schemaDdl = ddl.Substring(0, ddl.IndexOf(";\r\n", StringComparison.Ordinal) + 1);
+
+            Assert.Equal($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", schemaDdl);
+            Assert.Contains($"CREATE TABLE IF NOT EXISTS \"{schema}\".\"schema_quote_test\"", ddl);
+
+            using (var connection = new NpgsqlConnection(g.pgsql.Ado.ConnectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    using (var command = new NpgsqlCommand(schemaDdl, connection, transaction))
+                        command.ExecuteNonQuery();
+                    using (var command = new NpgsqlCommand("select nspname from pg_namespace where nspname = @schema", connection, transaction))
+                    {
+                        command.Parameters.AddWithValue("schema", schema);
+                        Assert.Equal(schema, command.ExecuteScalar());
+                    }
+                    transaction.Rollback();
+                }
+            }
+        }
+        class SchemaQuoteTest
+        {
+            public int Id { get; set; }
+        }
+
         IInsert<TableAllType> insert => g.pgsql.Insert<TableAllType>();
         ISelect<TableAllType> select => g.pgsql.Select<TableAllType>();
 

@@ -168,7 +168,7 @@ namespace FreeSql.PostgreSQL
                 //codefirst 不支持表名、模式名、数据库名中带 .
 
                 if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from pg_namespace where nspname={0}", tbname[0])) == null) //创建模式
-                    sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
+                    sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\n");
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
