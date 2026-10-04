@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using XuguClient;
-
 namespace FreeSql.Xugu
 {
     class XuguAdo : FreeSql.Internal.CommonProvider.AdoProvider
@@ -42,7 +41,7 @@ namespace FreeSql.Xugu
             });
         }
 
-        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || param is JToken || param is JObject || param is JArray))

@@ -48,7 +48,7 @@ namespace FreeSql.TDengine
             });
         }
 
-        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
 

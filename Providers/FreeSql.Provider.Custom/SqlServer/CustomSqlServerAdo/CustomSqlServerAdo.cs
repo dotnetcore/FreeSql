@@ -29,7 +29,7 @@ namespace FreeSql.Custom.SqlServer
         }
 
         string[] ncharDbTypes = new[] { "NVARCHAR", "NCHAR", "NTEXT" };
-        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
