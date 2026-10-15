@@ -847,16 +847,18 @@ namespace FreeSql.SonnetDB
             if (ctx == null || ctx.ParsedContent.TryGetValue(name, out sql) == false || sql == null)
                 return sql;
 
-            if (ctx.RawExpression.TryGetValue(name, out var expression) == false || IsVectorExpression(expression) == false)
-                return sql;
+            return ctx.RawExpression.TryGetValue(name, out var expression) ? NormalizeVectorSql(expression, sql) : sql;
+        }
+
+        internal static string NormalizeVectorSql(Expression expression, string sql)
+        {
+            if (sql == null || IsVectorExpression(expression) == false) return sql;
 
             var trimmed = sql.Trim();
             if (trimmed.StartsWith("(", StringComparison.Ordinal) && trimmed.EndsWith(")", StringComparison.Ordinal))
             {
-                // 参数化数组没有 SonnetDB 3.1 的 ADO.NET 绑定协议，不能把它误写成普通字符串。
-                if (trimmed.IndexOf('@') >= 0 || trimmed.IndexOf('?') >= 0)
-                    throw new NotSupportedException(
-                        "SonnetDB 3.1 的 ADO.NET 参数绑定不支持 VECTOR 参数；请启用 UseNoneCommandParameter(true) 生成向量字面量，或升级 SonnetDB。" );
+                // 表达式内的浮点数组可能已由公共解析器展开为标量参数。
+                // 这些元素仍组成原生 VECTOR 字面量，驱动会绑定各自的参数值。
                 var elements = trimmed.Substring(1, trimmed.Length - 2);
                 return "[" + Regex.Replace(elements, @",\s*", ", ") + "]";
             }
@@ -940,7 +942,7 @@ namespace FreeSql.SonnetDB
         }
 
         /// <summary>
-        /// SonnetDB 3.1 要求 json_value 的路径参数必须是字符串字面量，不能使用列值或其他动态表达式。
+        /// json_value 的路径参数必须是字符串字面量，不能使用列值或其他动态表达式。
         /// </summary>
         static string RequireJsonPathLiteral(ExpressionCallContext ctx)
         {
@@ -948,7 +950,7 @@ namespace FreeSql.SonnetDB
                 || IsSqlStringLiteral(path) == false)
             {
                 throw new NotSupportedException(
-                    "SonnetDB 3.1 的 json_value 路径必须是字符串字面量，不支持动态路径。" );
+                    "SonnetDB 的 json_value 路径必须是字符串字面量，不支持动态路径。" );
             }
 
             return path;
@@ -1337,8 +1339,8 @@ namespace FreeSql.SonnetDB
             {
                 if (ContainsRelationshipEntity(ctx, expression) == false) continue;
                 throw new NotSupportedException(
-                    $"SonnetDB 3.1 的窗口函数 {functionName} 仅支持时序测量，关系表不支持窗口函数；" +
-                    "请改写为聚合/标量查询或在应用层处理。");
+                    $"SonnetDB 的时序窗口函数 {functionName} 仅支持时序测量，不能用于关系表；" +
+                    "关系表排名和聚合窗口请使用 SqlExt 的 OVER 接口。");
             }
         }
 

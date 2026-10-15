@@ -57,6 +57,12 @@ namespace FreeSql.SonnetDB
             {
                 if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeof(GeoPoint)) == false)
                     Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(GeoPoint), true);
+                // The shared reader already converts these CLR types; older
+                // FreeSql builds need them registered as scalar columns.
+                if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeof(DateOnly)) == false)
+                    Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(DateOnly), true);
+                if (Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeof(TimeOnly)) == false)
+                    Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(TimeOnly), true);
             }
         }
 

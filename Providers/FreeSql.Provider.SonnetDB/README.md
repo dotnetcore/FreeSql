@@ -1,41 +1,25 @@
 # FreeSql SonnetDB 提供程序
 
-本包为 FreeSql 提供 SonnetDB 3.1.0 的 ADO.NET ORM 适配。它同时支持关系表
-（`TABLE`）和时序测量（`MEASUREMENT`）。当前 SonnetDB 3.1.0 仅发布
-`net10.0` 目标框架，因此本提供程序也仅面向 .NET 10。
+当前分支面向 **.NET 10**，依赖已公开发布的 **SonnetDB 4.5.0-preview.ef266.5**。提供程序 PR 仍为 Draft；本文描述当前分支的实现，不代表这些改动已作为新的 FreeSql NuGet 包发布。
 
-## 安装
+适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。当前验收覆盖嵌入式连接；远程 REST 与帧协议尚未完成端到端验收，不能仅凭上游 Issue 关闭或本地测试通过将其标记为完成。剩余依赖及验收条件见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
 
-```bash
-dotnet add package FreeSql.Provider.SonnetDB --version 3.5.311
-```
-
-## 建立连接
+## 连接与实体模型
 
 ```csharp
 using FreeSql;
+using FreeSql.DataAnnotations;
+using FreeSql.Provider.SonnetDB.Attributes;
 
 using var fsql = new FreeSqlBuilder()
-    .UseConnectionString(
-        DataType.SonnetDB,
-        "Data Source=./sonnet-data")
+    .UseConnectionString(DataType.SonnetDB, "Data Source=./sonnet-data")
     .UseAutoSyncStructure(true)
     .Build();
 ```
 
-`Data Source` 可以是本地嵌入式数据库目录，也可以使用 SonnetDB 远程连接字符串，
-例如 `sonnetdb+http://127.0.0.1:5080/metrics`。远程数据库名称以连接字符串为准；
-默认连接池为每次请求创建独立连接，不能依赖临时连接上的 `USE` 或
-`ChangeDatabase` 影响后续请求。
-
-## 关系表
-
-使用 `[SonnetDBTable]` 将实体声明为关系表；未标记的实体沿用时序测量映射。
+带有 `[SonnetDBTable]` 的实体使用关系表。未标记的实体继续使用时序测量映射；从 DbFirst 生成关系实体时，也需要保留这个标记。
 
 ```csharp
-using FreeSql.DataAnnotations;
-using FreeSql.Provider.SonnetDB.Attributes;
-
 [SonnetDBTable]
 [Table(Name = "devices")]
 public sealed class Device
@@ -50,35 +34,17 @@ public sealed class Device
 }
 
 var device = new Device { Name = "pump-01" };
-fsql.Insert(device).ExecuteAffrows();
-var loaded = fsql.Select<Device>()
-    .Where(a => a.Name == "pump-01")
-    .ToOne();
+device.Id = fsql.Insert(device).ExecuteIdentity();
+var loaded = fsql.Select<Device>().Where(a => a.Id == device.Id).ToOne();
+loaded.Name = "pump-02";
+fsql.Update<Device>().SetSource(loaded).ExecuteAffrows();
 ```
 
-关系表支持 CodeFirst、DbFirst、主键、自增列、`ROWVERSION`、索引、事务、
-参数化 CRUD、`INNER JOIN`、`LEFT JOIN`、`JSON` 列和 `INSERT ... RETURNING`。
-这里的事务边界是关系表 DML；SonnetDB 3.1 不允许 DDL，或时序测量写入/删除，
-在事务中执行。
+`ROWVERSION` 由 SonnetDB 生成。提供程序保留 FreeSql 的旧版本匹配与 `DbUpdateVersionException` 行为，不向版本列赋值。事务用于关系表 DML；DDL 和时序测量写入、修改、删除仍遵循 SonnetDB 的事务限制。
 
-FreeSql 的 `InsertDict`、`UpdateDict`、`DeleteDict` 动态字典入口也按关系表处理；
-`UpdateDict` 仍须按 FreeSql 约定调用 `WherePrimary` 指定主键。`InsertOrUpdateDict`
-依赖数据库原子 UPSERT，受 SonnetDB 3.1 能力限制而提前拒绝。
-
-`ISelect.WithMemory()` 的单行数据会生成普通派生查询，可直接用于关系表查询；
-多行数据需要 FreeSql 生成 `UNION ALL`，而 SonnetDB 3.1.0 尚不支持该语法，
-因此提供程序会在生成 SQL 时给出中文不支持提示。`WithMemory` 不会因为该限制
-去调用公开的 `InsertOrUpdate` 执行器。
-
-## 时序测量
-
-时序实体使用 `[SonnetDBTag]` 和 `[SonnetDBField]` 标注维度与观测值；写入采用
-追加语义，查询和删除沿用 SonnetDB 的时间序列规则。
+时序测量通过 TAG 描述维度，通过 FIELD 保存观测值。`time` 是数据库内置时间列，按 Unix 毫秒保存。
 
 ```csharp
-using FreeSql.DataAnnotations;
-using FreeSql.Provider.SonnetDB.Attributes;
-
 [Table(Name = "cpu")]
 public sealed class CpuMetric
 {
@@ -100,166 +66,60 @@ fsql.Insert(new CpuMetric
 }).ExecuteAffrows();
 ```
 
-## 窗口函数
+## 当前已实现的映射
 
-SonnetDB 3.1 的窗口函数面向时序 `MEASUREMENT`，按每个序列的时间顺序逐行计算。
-提供程序保留以下函数的原生 SQL 翻译：
-
-| 类别 | 函数 |
+| 范围 | FreeSql 接口与行为 |
 | --- | --- |
-| 差分与变化率 | `difference`、`delta`、`increase`、`derivative`、`non_negative_derivative`、`rate`、`irate` |
-| 累计与积分 | `cumulative_sum`、`running_sum`、`running_min`、`running_max`、`integral` |
-| 平滑 | `moving_average`、`ewma`、`holt_winters` |
-| 缺失值处理 | `fill`、`locf`、`interpolate` |
-| 状态与控制 | `state_changes`、`state_duration`、`pid_series` |
-| 异常与变点 | `anomaly`、`changepoint` |
+| 关系表写入 | 参数化 CRUD、批量更新、`AsType` 动态实体，以及字典 CRUD |
+| 原子 UPSERT | `InsertOrUpdate` / `InsertOrUpdateDict` 映射到原生 `ON CONFLICT`，支持主键或唯一索引目标、选择更新列、`UpdateSet` 和 `IfExistsDoNothing` |
+| DML 结果 | 插入、更新、删除的实体返回及异步入口使用原生 `RETURNING`；`ExecuteUpdated` 额外支持既有标量/匿名投影，保留重命名列、NULL 与行版本 |
+| 查询组合 | CTE、`AsTreeCte` 递归查询、`UnionAll`、多行 `WithMemory`、`WithSql`、派生查询和 `InsertInto` / `InsertIntoAsync` |
+| JOIN | 关系表 `INNER` / `LEFT` / `RIGHT JOIN`、原始 `FULL JOIN`、多源 `CROSS JOIN`，以及现有 `Update.Join` |
+| 时序测量 | 追加写入、查询、删除，以及测量作为主数据源与一个关系维表的 `INNER JOIN` |
+| VECTOR | 显式维度 `FIELD VECTOR(N)` 的 `float[]` 参数与字面量读写；现有 `Update` 接口可单次替换一个 VECTOR FIELD |
+| 结构映射 | 关系表 CodeFirst / DbFirst、主键、自增、普通及唯一索引、已支持的表列重命名与列索引迁移，以及视图列结构读取 |
 
-这些函数不能作用于关系 `TABLE`。提供程序会在 SQL 生成阶段抛出中文异常，不会把关系表窗口 SQL 发送给 SonnetDB；关系表应改用受支持的标量/聚合查询或在应用层计算。
+字典更新和 UPSERT 按 FreeSql 约定使用 `WherePrimary("Id")` 指定冲突或匹配列。UPSERT 的唯一索引目标保留数据库自增主键的生成行为；不会以“先查询再写入”模拟原子性。
 
-```csharp
-var sql = fsql.Select<CpuMetric>()
-    .ToSql(a => new { a.Time, Change = SonnetDBFunctions.Delta(a.Usage) });
-```
+时序测量的普通 FIELD 与 TAG 更新、关系表的 VECTOR/GEOPOINT 列，以及 `SELECT ... FOR UPDATE` 尚不具备当前映射所需的数据库能力。提供程序会明确拒绝；锁定读依赖上游 #233。
 
-## Modbus 标量函数
+## 类型与表达式语义
 
-SonnetDB 3.1 的 `modbus_int32`、`modbus_uint32` 和 `modbus_float32` 已通过
-`SonnetDBFunctions.ModbusInt32`、`ModbusUInt32`、`ModbusFloat32` 暴露。三个函数
-均接收两个 16 位寄存器和 `ABCD`、`BADC`、`CDAB` 或 `DCBA` 字节序字符串，分别
-返回有符号整数、无符号整数（以 `long` 承载）和 `double`。寄存器范围、空值传播
-和字节序校验由 SonnetDB 执行。
+| CLR 类型 | 关系表映射 |
+| --- | --- |
+| `decimal` | 原生 `DECIMAL`，支持 `Column(Precision = ..., Scale = ...)` 或显式 `DECIMAL(p,s)`，保留精度元数据和差异迁移 |
+| `DateTime` / `DateTimeOffset` | `DATETIME`；按驱动返回值转换，不将关系表时间误当作时序毫秒值 |
+| `DateOnly` | `DATETIME`，以日期值写入并读回 `DateOnly` |
+| `TimeOnly` | 原生 `TIME` |
+| `TimeSpan` | `INT` ticks，支持负值、跨日时长、完整 Int64 范围和可空值；`TIME` 列应使用 `TimeOnly` |
+| `byte[]` | `BLOB` |
+| `System.Text.Json` DOM | `JSON`；时序测量中沿用 `FIELD STRING` |
 
-## 表值函数和向量检索
+SonnetDB 的 `INT` 为 Int64。`ulong` 只支持不超过 `long.MaxValue` 的值；`BigInteger` 尚不支持。关系表的精确 DECIMAL 映射不改变时序 FLOAT FIELD 的数值语义。
 
-SonnetDB 3.1 的 `forecast`、时序测量 `knn`、`json_each`/`json_table`、
-文档集合的 `vector_search` 和 `hybrid_search` 是 `FROM` 子句中的表值函数，
-不能当作普通标量函数放在实体属性表达式中。提供程序增加了
-`SonnetDBTableValuedFunctions`，会校验标识符、向量、算法和检索度量，并把函数包在
-派生查询中：
+已有字符串表达式已映射到数据库函数，包括 UTF-16 长度和索引、`Trim` 系列、`Substring`、`IndexOf`、`Replace`、填充，以及静态或动态的 `Contains` / `StartsWith` / `EndsWith`。模式值按普通文本处理，保留百分号、下划线和引号的含义；带 `StringComparison` 的重载仅翻译能够保持语义的形式。
 
-```csharp
-using FreeSql.DataAnnotations;
-using FreeSql.SonnetDB;
+数值转换区分显式整数截断与 `Convert.ToInt64` 的中点取偶；整数位运算和位移保留 CLR 位宽及移位计数规则。日期加减、日期差、`TimeSpan` 的 ticks、组件与 `Total*` 成员使用相应日期或整数函数。
 
-public sealed class ForecastRow
-{
-    [Column(Name = "time")]
-    public DateTime Time { get; set; }
+DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate` 与整数转换保持精确运算。`Math.Round(decimal)` 仍被拒绝，因为当前数据库 `round` 会先转为 Float64；带 `MidpointRounding` 的重载也不静默忽略舍入模式。其他没有等价数据库语义的重载同样给出明确异常。
 
-    [Column(Name = "value")]
-    public double Value { get; set; }
+## JSON、函数与表值查询
 
-    [Column(Name = "lower")]
-    public double Lower { get; set; }
+关系表 JSON 列支持字符串和 `System.Text.Json` DOM。已有 `SonnetDBFunctions.JsonValue` 接收静态 JSON 路径，结果按数据库返回的 JSON 文本读取；对象和数组结果可由应用反序列化。JSON 路径索引沿用提供程序专属的 `SonnetDBJsonIndex` 特性，当前为单列、单路径、非唯一索引。
 
-    [Column(Name = "upper")]
-    public double Upper { get; set; }
-}
+关系表可使用现有 `SqlExt` 的 ANSI 基础聚合窗口、`RowNumber` / `Rank` / `DenseRank` 排名窗口及 `Ntile` 分桶窗口，支持 `Over`、`PartitionBy` 和 `OrderBy` 组合。字符串聚合通过现有 `SqlExt.StringAgg` 入口映射到数据库函数。
 
-public sealed class KnnRow
-{
-    [Column(Name = "distance")]
-    public double Distance { get; set; }
-}
+`SonnetDBFunctions` 保留时序窗口函数、PID、Modbus 和查询结果伪列等已有入口；差分、变化率、平滑等时序专有窗口仅用于 MEASUREMENT。
 
-public sealed class JsonFileRow
-{
-    [Column(Name = "id")]
-    public string Id { get; set; } = "";
-}
+`SonnetDBTableValuedFunctions` 已提供以下强类型查询入口，DTO 查询会跳过自动建表：
 
-public sealed class DocumentSearchRow
-{
-    [Column(Name = "id")]
-    public string Id { get; set; } = "";
-}
+- `SelectForecast<T>`、`SelectKnn<T>`：预测与时序向量检索。
+- `SelectJsonEach<T>`、`SelectJsonTable<T>`：JSON 文件表值查询。
+- `SelectVectorSearch<T>`、`SelectHybridSearch<T>`：文档向量及全文融合检索。
+- `SelectMeasurementHybridSearch<T>`：时序 KNN 与关联文档融合检索。
 
-public sealed class MeasurementKnowledgeRow
-{
-    [Column(Name = "document_id")]
-    public string DocumentId { get; set; } = "";
-}
+文档集合、全文索引和向量索引的完整 ORM 结构迁移不属于当前关系表/测量映射。物理外键也不会由 `Navigate` 自动创建；DbFirst 读取数据库中已有的外键信息。视图定义等无法由 FreeSql 共享模型承载的信息，不会放入其他字段冒充完整元数据。
 
-var rows = fsql.SelectForecast<ForecastRow>("cpu", "usage", 5, "linear").ToList();
-var nearest = fsql.SelectKnn<KnnRow>("documents", "embedding", new[] { 1f, 0f, 0f }, 5)
-    .ToList();
-var imported = fsql.SelectJsonTable<JsonFileRow>("D:\\data\\devices.json", "array", "$.id")
-    .ToList();
-var documentRows = fsql.SelectHybridSearch<DocumentSearchRow>(
-        "knowledge", new[] { 1f, 0f, 0f }, "pump alarm", textIndex: "ft_knowledge_body")
-    .ToList();
-var knowledgeRows = fsql.SelectMeasurementHybridSearch<MeasurementKnowledgeRow>(
-        measurement: "incidents", documents: "knowledge", vectorField: "embedding",
-        queryVector: new[] { 1f, 0f, 0f }, measurementJoinTag: "device_id",
-        documentJoinPath: "$.device_id", text: "pump alarm", textIndex: "ft_knowledge_body")
-    .ToList();
-```
+## 待验收项
 
-向量表值函数使用 SonnetDB 原生 `[v1, v2, ...]` 字面量；3.1.0 的 ADO.NET 参数协议
-仍不接受 `float[]` VECTOR 参数。`SelectJsonEach` 与 `SelectJsonTable` 是同一 JSON
-文件 TVF 的两个入口。文档集合的 `SelectHybridSearch` 对应“全文 + 文档向量”模式，
-必须同时提供非空 `text` 和查询向量；`SelectMeasurementHybridSearch` 对应“measurement
-KNN + 关联文档”模式，覆盖 `measurement_top_k`、全文、文档向量、关联 JSON 索引和三类权重，
-其中全文与文档向量均可省略。当前提供程序不负责文档集合的 CodeFirst、DbFirst、全文索引或
-向量索引迁移；这些模型仍需使用 SonnetDB 原生 DDL/管理 API。
-`SonnetDBFunctions.VectorDistance`、`VectorScore`、`Bm25Score`、`HybridScore`、
-`MeasurementDistance`、`MeasurementScore`、`DocumentVectorDistance`、
-`DocumentVectorScore` 和 `TextScore` 用于投影表值函数返回的结果伪列。
-
-## DbFirst 和 JSON
-
-DbFirst 可以读取关系表、时序测量和视图的列结构。视图通过 `SHOW VIEWS` 枚举，
-再用零行查询推断列；SonnetDB 3.1.0 尚未通过 ADO.NET 提供完整的视图定义、依赖
-关系和创建时间，因此这些信息不会出现在共享 `DbTableInfo` 中。关系表生成实体
-需要手工保留 `[SonnetDBTable]`；共享 DbFirst 模型不会自动携带这个 SonnetDB
-专有特性。时序测量的 JSON DOM 按 `FIELD STRING` 返回 `string`，不会自动还原为
-JSON DOM 类型。
-
-关系表的 `JSON` 列支持字符串以及 `System.Text.Json` DOM。提供程序不修改
-`FreeSql.Extensions.JsonMap` 等通用扩展；需要对象序列化时请在应用层使用自己的
-序列化器。`SonnetDBFunctions.JsonValue` 的结果按数据库返回的 JSON 文本读取；对象或数组结果
-需要由调用方再反序列化为目标 DOM 类型。
-
-JSON 路径索引使用 provider 专属特性，不会扩展 FreeSql 的通用索引模型：
-
-```csharp
-[SonnetDBJsonIndex("ix_device_site", nameof(Metadata), "$.site")]
-public JsonDocument Metadata { get; set; }
-```
-
-当前 SonnetDB 3.1 只支持单个 JSON 列、单一路径和非唯一索引；唯一索引、复合路径
-和额外索引选项会在 CodeFirst 阶段明确拒绝。
-
-## 3.1.0 的明确边界
-
-以下能力在 SonnetDB 3.1.0 没有稳定的 SQL 或 ADO.NET 合同，提供程序会在 SQL
-生成前抛出中文 `NotSupportedException`：
-
-- 原子 `UPSERT`（`InsertOrUpdate`）；
-- `UPDATE ... RETURNING`、`DELETE ... RETURNING` 和 `INSERT ... SELECT`；
-- 递归 CTE、`SELECT ... FOR UPDATE`、`UPDATE ... JOIN` 和 `UNION ALL`；
-- `RIGHT JOIN`、`FULL JOIN`；
-- 时序测量参与的 JOIN（发布版参数绑定路径存在缺陷）。
-- 关系表上的窗口函数；窗口函数只适用于时序测量。
-- `BigInteger`/任意精度整数；SonnetDB 3.1 的 `INT` 只有 int64 范围，提供程序会在建模或参数绑定前给出中文提示。
-- `string.Length`、带 `StringComparison` 的字符串重载、动态 `LIKE` 模式和
-  `Trim` 系列；静态 `StartsWith`、`EndsWith`、`Contains` 只生成大小写敏感的
-  `LIKE`，模式中的通配符会在生成阶段转义。
-- 日期差结果的 `TimeSpan.Days`、`Hours`、`Minutes`、`Seconds`、`Milliseconds`、
-  `Ticks` 等组件；直接对已得到的毫秒差使用 `Total*` 或已明确支持的日期加减函数
-  仍可用，不能把日期差组件值当作完整 `date_diff` 语义。
-- 位运算 `&`、`|`、`^`、`~`、`<<`、`>>`；SonnetDB 3.1 没有稳定的等价 SQL 函数。
-- 时序 `FIELD VECTOR(N)` 仅支持显式维度和非参数化向量字面量；`float[]` 的 ADO.NET
-  参数化，以及远程 REST/NDJSON 的数组结果，在 3.1 发布版不能闭环。关系表 `VECTOR`
-  和 `GEOPOINT` 列也会被明确拒绝。
-- JSON 路径索引仅支持单个 JSON 列、单一路径、非唯一默认 B-tree；唯一、复合或其他
-  索引选项会被拒绝。`json_value` 路径必须是静态字符串，不能使用动态路径。
-- `ulong` 只能使用不超过 `long.MaxValue` 的值；`decimal` 映射为 `FLOAT`，不保证任意
-  精度。视图定义/依赖、远程外键元数据以及 `SupportedJoinOperators` 的完整合同仍需
-  SonnetDB 上游统一。
-- 文档集合的完整 ORM 模型、全文索引/向量索引 CodeFirst、DbFirst，以及
-  远程 `TableDirect`/帧协议批量写入尚未纳入 FreeSql 提供程序；当前仅提供表值函数查询入口。
-
-不能把这些操作静默改写为语义不同的 SQL。已核对的上游缺口、复现 SQL 和建议的
-SonnetDB 问题单内容见仓库中的
-[`docs/sonnetdb-gap-issue.md`](https://github.com/2881099/FreeSql/blob/master/Providers/FreeSql.Provider.SonnetDB/docs/sonnetdb-gap-issue.md)。
+发布门禁、远程连接一致性、schema 限定名、注释、字符串长度约束、降序索引、关系表锁定读、结构迁移边界及其他数据库缺口，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。PR 的依赖状态以实现、可复现的执行结果和发布合同共同验收，不以 Issue 的开关状态代替验证。

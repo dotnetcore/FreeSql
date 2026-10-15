@@ -83,6 +83,17 @@ namespace FreeSql.SonnetDB
             {
                 return dto.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
             }
+            if (param is DateOnly dateOnly)
+                return "'" + dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "'";
+            if (param is TimeOnly timeOnly)
+                return "'" + timeOnly.ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture) + "'";
+            if (param is TimeSpan timeSpan)
+            {
+                if (!SonnetDBUtils.IsTimeColumn(mapColumn)) return timeSpan.Ticks;
+                if (timeSpan < TimeSpan.Zero || timeSpan >= TimeSpan.FromDays(1))
+                    throw new ArgumentOutOfRangeException(nameof(param), "SonnetDB TIME 必须落在 [00:00:00, 24:00:00) 范围内。");
+                return "'" + TimeOnly.FromTimeSpan(timeSpan).ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture) + "'";
+            }
             if (param is byte[] bytes) return string.Concat("'", Convert.ToBase64String(bytes).Replace("'", "''"), "'");
             if (param is JsonDocument document) return string.Concat("'", document.RootElement.GetRawText().Replace("'", "''"), "'");
             if (param is JsonElement element)

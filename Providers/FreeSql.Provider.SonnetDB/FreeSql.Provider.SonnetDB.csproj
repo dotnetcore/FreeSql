@@ -5,7 +5,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 的 SonnetDB 3.1 提供程序，支持关系表和时序测量。</Description>
+		<Description>FreeSql 的 SonnetDB 提供程序，支持关系表和时序测量。</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SonnetDB" Version="3.1.0" />
+		<PackageReference Include="SonnetDB" Version="4.5.0-preview.ef266.5" />
 	</ItemGroup>
 
 	<ItemGroup>

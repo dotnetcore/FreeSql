@@ -1,29 +1,25 @@
-using System;
-using System.Text;
+using SonnetDB.Sql;
 
 namespace FreeSql.SonnetDB.Curd
 {
     static class SonnetDBMutationSql
     {
-        const string SelectStarFromDerived = "select * from (";
-
         internal static string RewritePrimaryKeySubquery(string sql, string projection)
         {
             if (string.IsNullOrEmpty(sql) || string.IsNullOrEmpty(projection)) return sql;
-            var first = sql.IndexOf(SelectStarFromDerived, StringComparison.OrdinalIgnoreCase);
-            if (first < 0) return sql;
-
-            var result = new StringBuilder(sql.Length);
-            var offset = 0;
-            while (first >= 0)
+            var tokens = SqlLexer.Tokenize(sql);
+            for (var index = tokens.Count - 4; index >= 0; index--)
             {
-                result.Append(sql, offset, first - offset);
-                result.Append("SELECT ").Append(projection).Append(" FROM (");
-                offset = first + SelectStarFromDerived.Length;
-                first = sql.IndexOf(SelectStarFromDerived, offset, StringComparison.OrdinalIgnoreCase);
+                if (tokens[index].Kind != TokenKind.KeywordSelect ||
+                    tokens[index + 1].Kind != TokenKind.Star ||
+                    tokens[index + 2].Kind != TokenKind.KeywordFrom ||
+                    tokens[index + 3].Kind != TokenKind.LeftParen) continue;
+                // Only replace the projection token; literals, comments and
+                // whitespace retain their exact text in UPDATE and DELETE.
+                var position = tokens[index + 1].Position;
+                sql = sql.Remove(position, 1).Insert(position, projection);
             }
-            result.Append(sql, offset, sql.Length - offset);
-            return result.ToString();
+            return sql;
         }
     }
 }

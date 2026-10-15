@@ -1,15 +1,14 @@
 ﻿// SonnetDB SELECT 查询实现。
 // SonnetDB 的 SELECT 查询 SQL 生成器。
 //
-// SonnetDB 3.1 与标准 SQL 的主要差异：
+// SonnetDB 4.0 与标准 SQL 的主要差异：
 //   1. 关系表和时序测量均支持表别名及“别名.列名”限定；
-//      关系表支持 INNER/LEFT JOIN，但发布版参数绑定路径无法执行时序测量 JOIN。
+//      关系表支持标准 JOIN，时序测量支持与一个关系维表的 INNER JOIN。
 //   2. ORDER BY 须位于 LIMIT / OFFSET 之前（与标准 SQL 相同，但需严格保证）。
 //   3. FreeSql Count() 查询会生成 "1 as1" 占位符，
 //      SonnetDB 不接受裸 1 作为 SELECT 字段，需通过 NormalizeSelectField
 //      将其改写为 "count(1) as1"。
-//   4. 3.1.0 仅支持普通 UNION，不支持 UNION ALL；所有会生成 UNION ALL
-//      的表规则合并和 ISelect.UnionAll 路径都会在 SQL 生成前明确拒绝。
+//   4. CTE、递归 CTE 和 UNION ALL 使用数据库原生实现。
 //
 // 所有多表重载（T1~T16）均复用 SonnetDBSelect<T1>.ToSqlStatic，
 // 以保持 SQL 生成逻辑的单一来源。
@@ -22,11 +21,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using SonnetDB.Sql;
 
 namespace FreeSql.SonnetDB.Curd
 {
 
-    class SonnetDBSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1>
+    class SonnetDBSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1>, ISelect<T1>
     {
 
         /// <summary>
@@ -37,9 +39,21 @@ namespace FreeSql.SonnetDB.Curd
         internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, List<Dictionary<Type, string>> tbUnions, Func<Type, string, string> _aliasRule, string _tosqlAppendContent, List<GlobalFilter.Item> _whereGlobalFilter, IFreeSql _orm)
         {
             // 先校验查询能力，避免被拒绝的 JOIN 在自动同步结构前产生 DDL 副作用。
-            ValidateCteCapabilities(_select, tbUnions);
             ValidateJoinCapabilities(_tables, _join);
-            ValidateUnionCapabilities(tbUnions, _select);
+
+            // FreeSql 的公共 AsTreeCte 实现为未知方言生成 WITH；SonnetDB
+            // 的递归语法要求 RECURSIVE，仅调整该已有入口生成的前缀。
+            if (Regex.IsMatch(_select ?? string.Empty, @"^\s*WITH\s+""?as_tree_cte""?\s+as\s*\(", RegexOptions.IgnoreCase))
+                _select = Regex.Replace(_select, @"^(\s*WITH)\s+", "$1 RECURSIVE ", RegexOptions.IgnoreCase);
+
+            // WithSql wraps its SQL in a derived table. SonnetDB accepts WITH
+            // at statement scope, so move definitions out of derived sources
+            // while retaining their SELECT and the caller's filters.
+            var cteDefinitions = new List<string>();
+            var recursiveCte = false;
+            tbUnions = tbUnions.Select(union => union.ToDictionary(item => item.Key,
+                item => HoistCteDefinitions(item.Value, cteDefinitions, ref recursiveCte))).ToList();
+            field = EnsureMeasurementSortTime(field, _orderby, _tables);
 
             if (_orm.CodeFirst.IsAutoSyncStructure)
             {
@@ -109,7 +123,7 @@ namespace FreeSql.SonnetDB.Curd
                         if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
                         if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND ").Append(tbsfrom[a].Cascade);
                     }
-                    if (a < tbsfrom.Length - 1) sb.Append(", ");
+                    if (a < tbsfrom.Length - 1) sb.Append(" \r\nCROSS JOIN ");
                 }
                 foreach (var tb in tbsjoin)
                 {
@@ -164,9 +178,133 @@ namespace FreeSql.SonnetDB.Curd
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
             }
-            // SonnetDB 3.1 支持关系表和时序测量的表别名。
+            // 保留关系表和时序测量的表别名。
             // 保留列限定符，避免同名列产生歧义。
-            return sb.Append(_tosqlAppendContent).ToString();
+            var sql = sb.Append(_tosqlAppendContent).ToString();
+            if (cteDefinitions.Count > 0)
+            {
+                var definitions = string.Join(", ", cteDefinitions.Distinct(StringComparer.Ordinal));
+                var match = Regex.Match(sql, @"^\s*WITH(?:\s+RECURSIVE)?\s+", RegexOptions.IgnoreCase);
+                if (match.Success)
+                    sql = "WITH " + (recursiveCte || match.Value.IndexOf("RECURSIVE", StringComparison.OrdinalIgnoreCase) >= 0 ? "RECURSIVE " : "") + definitions + ", " + sql.Substring(match.Length);
+                else sql = "WITH " + (recursiveCte ? "RECURSIVE " : "") + definitions + "\r\n" + sql;
+            }
+            return sql;
+        }
+
+        static string HoistCteDefinitions(string source, List<string> definitions, ref bool recursive)
+        {
+            if (string.IsNullOrWhiteSpace(source) || source.IndexOf("WITH", StringComparison.OrdinalIgnoreCase) < 0) return source;
+            while (true)
+            {
+                var tokens = SqlLexer.Tokenize(source);
+                var withIndex = -1;
+                for (var index = 0; index < tokens.Count; index++)
+                    if (tokens[index].Kind == TokenKind.KeywordWith)
+                    { withIndex = index; break; }
+                if (withIndex < 0) return source;
+                var depth = 0;
+                var selectIndex = -1;
+                for (var index = withIndex + 1; index < tokens.Count; index++)
+                {
+                    if (tokens[index].Kind == TokenKind.LeftParen) depth++;
+                    else if (tokens[index].Kind == TokenKind.RightParen) depth--;
+                    else if (depth == 0 && tokens[index].Kind == TokenKind.KeywordSelect) { selectIndex = index; break; }
+                }
+                if (selectIndex < 0) return source;
+                var start = withIndex + 1;
+                if (string.Equals(tokens[start].Text, "RECURSIVE", StringComparison.OrdinalIgnoreCase))
+                { recursive = true; start++; }
+                definitions.Add(source.Substring(tokens[start].Position, tokens[selectIndex].Position - tokens[start].Position).Trim());
+                source = source.Remove(tokens[withIndex].Position, tokens[selectIndex].Position - tokens[withIndex].Position);
+            }
+        }
+
+        static string EnsureMeasurementSortTime(string field, string orderBy, List<SelectTableInfo> tables)
+        {
+            if (string.IsNullOrWhiteSpace(field) || string.IsNullOrWhiteSpace(orderBy) ||
+                field.IndexOf("to_utc_datetime", StringComparison.OrdinalIgnoreCase) < 0) return field;
+            var from = tables.FirstOrDefault(table => table.Type == SelectTableInfoType.From);
+            if (from?.Table == null || !SonnetDBModel.IsMeasurement(from.Table) ||
+                tables.Any(table => table.Type == SelectTableInfoType.InnerJoin || table.Type == SelectTableInfoType.LeftJoin ||
+                    table.Type == SelectTableInfoType.RightJoin || table.Type == SelectTableInfoType.RawJoin)) return field;
+            if (!Regex.IsMatch(orderBy, @"\btime\b", RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(field, @"\bAS\s+""time""(?:\s*,|\s*$)", RegexOptions.IgnoreCase)) return field;
+
+            // The measurement sorter requires the integer timestamp in the
+            // result under its native name. Typed readers consume their known
+            // projection first, leaving this final value for server ordering.
+            return field + ", " + from.Alias + ".time AS \"time\"";
+        }
+
+        public new List<TTuple> ToList<TTuple>(string field) => base.ToList<TTuple>(NormalizeScalarField<TTuple>(field));
+
+        public new Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken = default) =>
+            base.ToListAsync<TTuple>(NormalizeScalarField<TTuple>(field), cancellationToken);
+
+        public new List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select)
+        {
+            if (select == null) return base.ToList(select);
+            if (typeof(TReturn) == typeof(TimeSpan))
+            {
+                var ticks = Expression.Lambda<Func<T1, long>>(
+                    Expression.Property(select.Body, nameof(TimeSpan.Ticks)), select.Parameters);
+                return base.ToList(ticks).ConvertAll(value => (TReturn)(object)TimeSpan.FromTicks(value));
+            }
+            if (typeof(TReturn) == typeof(TimeSpan?))
+                return base.ToList(DurationTicksSelector(select)).ConvertAll(value =>
+                    (TReturn)(object)(value.HasValue ? TimeSpan.FromTicks(value.Value) : (TimeSpan?)null));
+            using (SonnetDBExpression.BeginDurationProjection(select))
+                return base.ToList(select);
+        }
+
+        public new async Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select,
+            CancellationToken cancellationToken = default)
+        {
+            if (select == null) return await base.ToListAsync(select, cancellationToken);
+            if (typeof(TReturn) == typeof(TimeSpan))
+            {
+                var ticks = Expression.Lambda<Func<T1, long>>(
+                    Expression.Property(select.Body, nameof(TimeSpan.Ticks)), select.Parameters);
+                return (await base.ToListAsync(ticks, cancellationToken))
+                    .ConvertAll(value => (TReturn)(object)TimeSpan.FromTicks(value));
+            }
+            if (typeof(TReturn) == typeof(TimeSpan?))
+                return (await base.ToListAsync(DurationTicksSelector(select), cancellationToken)).ConvertAll(value =>
+                    (TReturn)(object)(value.HasValue ? TimeSpan.FromTicks(value.Value) : (TimeSpan?)null));
+            using (SonnetDBExpression.BeginDurationProjection(select))
+                return await base.ToListAsync(select, cancellationToken);
+        }
+
+        public new string ToSql<TReturn>(Expression<Func<T1, TReturn>> select,
+            FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+        {
+            using (SonnetDBExpression.BeginDurationProjection(select))
+                return base.ToSql(select, fieldAlias);
+        }
+
+        internal static IDisposable BeginProjection(LambdaExpression select, List<SelectTableInfo> tables)
+        {
+            if (select != null)
+                for (var index = 0; index < select.Parameters.Count; index++) tables[index].Parameter = select.Parameters[index];
+            return SonnetDBExpression.BeginDurationProjection(select);
+        }
+
+        static Expression<Func<T1, long?>> DurationTicksSelector<TReturn>(Expression<Func<T1, TReturn>> select)
+        {
+            // Read scalar durations as their stored Int64 value. Formatting
+            // the projected column as text can change ORDER BY alias semantics.
+            var ticks = Expression.Property(Expression.Property(select.Body, "Value"), nameof(TimeSpan.Ticks));
+            return Expression.Lambda<Func<T1, long?>>(Expression.Condition(
+                Expression.Property(select.Body, "HasValue"), Expression.Convert(ticks, typeof(long?)),
+                Expression.Constant(null, typeof(long?))), select.Parameters);
+        }
+
+        static string NormalizeScalarField<TTuple>(string field)
+        {
+            var type = typeof(TTuple).NullableTypeOrThis();
+            if (type == typeof(TimeSpan)) return SonnetDBUtils.FormatTimeSpanReadSql(field);
+            return type == typeof(DateTime) || type == typeof(DateTimeOffset) ? $"to_utc_datetime({field})" : field;
         }
 
         static void ValidateJoinCapabilities(List<SelectTableInfo> tables, StringBuilder rawJoin)
@@ -185,66 +323,16 @@ namespace FreeSql.SonnetDB.Curd
             var hasRawJoin = (rawJoin != null && rawJoin.Length > 0) ||
                              sources.Any(a => a.Type == SelectTableInfoType.RawJoin);
 
-            // 字符串 JOIN 无法确认参与对象是否都是关系表，也可能包含 SonnetDB 不支持的语法。
-            if (hasRawJoin)
+            // 原始 JOIN 的具体形态由数据库校验；也用于 AsTreeCte 的递归成员。
+            if (hasRawJoin || sources.All(a => a.Table == null || !SonnetDBModel.IsMeasurement(a.Table))) return;
+            if (sources.Length == 1) return;
+
+            var from = sources.Where(a => a.Type == SelectTableInfoType.From).ToArray();
+            if (from.Length != 1 || !SonnetDBModel.IsMeasurement(from[0].Table) ||
+                explicitJoins.Length != 1 || explicitJoins[0].Type != SelectTableInfoType.InnerJoin ||
+                !SonnetDBModel.IsTable(explicitJoins[0].Table))
                 throw new NotSupportedException(
-                    "SonnetDB 3.1 已拒绝原始 SQL JOIN：无法确认参与对象是否为关系表，且不支持 RIGHT/FULL 等任意 JOIN 语法。");
-
-            if (explicitJoins.Any(a => a.Type == SelectTableInfoType.RightJoin))
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 的关系表 JOIN 仅支持 INNER JOIN 和 LEFT JOIN，不支持 RIGHT JOIN。");
-
-            // 没有显式 JOIN 时，多个 From 会生成隐式笛卡尔积；发布版关系执行器不接受这种写法。
-            if (explicitJoins.Length == 0 && sources.Count(a => a.Type == SelectTableInfoType.From) > 1)
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 不支持没有显式 JOIN 条件的多根 FROM 查询（隐式笛卡尔积），请使用 INNER JOIN 或 LEFT JOIN 并提供连接条件。");
-
-            if (explicitJoins.Length == 0) return;
-
-            // 参数绑定后，时序 JOIN 的 AST 会被放入 JoinClauses，而时序执行器仍读取旧字段，
-            // 因此当前版本只能安全执行关系表之间的 JOIN。
-            if (sources.Any(a => a.Table != null && SonnetDBModel.IsMeasurement(a.Table)))
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 发布版的参数绑定路径会丢失时序测量 JOIN AST，当前拒绝时序测量参与 JOIN；请改用关系表或拆分查询。");
-        }
-
-        static void ValidateUnionCapabilities(List<Dictionary<Type, string>> tableUnions, string selectPrefix)
-        {
-            // SonnetDB 3.1 的 ParseSelect 在 UNION 后只接受 SELECT，不会消费 ALL。
-            // 表规则分支和 ISelect.UnionAll 都会把 UNION ALL 交给该解析器，必须在
-            // 生成/执行前拒绝，不能静默改写为会去重的普通 UNION。
-            if (tableUnions == null) return;
-            if (tableUnions.Count > 1 ||
-                tableUnions.SelectMany(a => a?.Values ?? Enumerable.Empty<string>())
-                    .Any(ContainsUnionAll) ||
-                ContainsUnionAll(selectPrefix))
-            {
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 不支持 UNION ALL；当前查询或表规则合并会生成 UNION ALL，" +
-                    "请改用普通 UNION（结果会去重）或等待 SonnetDB 补齐 UNION ALL 解析与执行。");
-            }
-        }
-
-        static void ValidateCteCapabilities(string selectPrefix, List<Dictionary<Type, string>> tableUnions)
-        {
-            if (ContainsCte(selectPrefix) ||
-                tableUnions?.SelectMany(a => a?.Values ?? Enumerable.Empty<string>()).Any(ContainsCte) == true)
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 不支持 WITH/递归 CTE 查询；FreeSql AsTreeCte 或 WithSql 表规则不可用，请改写为普通查询或分步处理。");
-        }
-
-        static bool ContainsCte(string sql)
-        {
-            // WithSql 会把原始 SQL 包在括号中；允许任意空白和一层或多层
-            // 派生表括号，避免 WITH 被当作普通表名继续生成 SQL。
-            return string.IsNullOrEmpty(sql) == false &&
-                Regex.IsMatch(sql, @"(?:^|[\(\s])WITH(?:\s+RECURSIVE)?\s+[A-Za-z_""\[]", RegexOptions.IgnoreCase);
-        }
-
-        static bool ContainsUnionAll(string sql)
-        {
-            return string.IsNullOrEmpty(sql) == false &&
-                Regex.IsMatch(sql, @"\bUNION\s+ALL\b", RegexOptions.IgnoreCase);
+                    "SonnetDB 时序测量仅支持作为 FROM 数据源，与一个关系维表进行 INNER JOIN；其他 JOIN 组合请使用关系表。");
         }
 
         /// <summary>
@@ -280,80 +368,365 @@ namespace FreeSql.SonnetDB.Curd
         public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(_orm, _commonUtils, _commonExpression, null); SonnetDBSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
         public override string ToSql(string field = null) => ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2> where T2 : class
+    class SonnetDBSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2>, ISelect<T1, T2> where T2 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2>.ToList<TReturn>(Expression<Func<T1, T2, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2>.ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3> : FreeSql.Internal.CommonProvider.Select3Provider<T1, T2, T3> where T2 : class where T3 : class
+    class SonnetDBSelect<T1, T2, T3> : FreeSql.Internal.CommonProvider.Select3Provider<T1, T2, T3>, ISelect<T1, T2, T3> where T2 : class where T3 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3>.ToList<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3>.ToSql<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4> : FreeSql.Internal.CommonProvider.Select4Provider<T1, T2, T3, T4> where T2 : class where T3 : class where T4 : class
+    class SonnetDBSelect<T1, T2, T3, T4> : FreeSql.Internal.CommonProvider.Select4Provider<T1, T2, T3, T4>, ISelect<T1, T2, T3, T4> where T2 : class where T3 : class where T4 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5> : FreeSql.Internal.CommonProvider.Select5Provider<T1, T2, T3, T4, T5> where T2 : class where T3 : class where T4 : class where T5 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5> : FreeSql.Internal.CommonProvider.Select5Provider<T1, T2, T3, T4, T5>, ISelect<T1, T2, T3, T4, T5> where T2 : class where T3 : class where T4 : class where T5 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6> : FreeSql.Internal.CommonProvider.Select6Provider<T1, T2, T3, T4, T5, T6> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6> : FreeSql.Internal.CommonProvider.Select6Provider<T1, T2, T3, T4, T5, T6>, ISelect<T1, T2, T3, T4, T5, T6> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7> : FreeSql.Internal.CommonProvider.Select7Provider<T1, T2, T3, T4, T5, T6, T7> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7> : FreeSql.Internal.CommonProvider.Select7Provider<T1, T2, T3, T4, T5, T6, T7>, ISelect<T1, T2, T3, T4, T5, T6, T7> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8> : FreeSql.Internal.CommonProvider.Select8Provider<T1, T2, T3, T4, T5, T6, T7, T8> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8> : FreeSql.Internal.CommonProvider.Select8Provider<T1, T2, T3, T4, T5, T6, T7, T8>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> : FreeSql.Internal.CommonProvider.Select9Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> : FreeSql.Internal.CommonProvider.Select9Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : FreeSql.Internal.CommonProvider.Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : FreeSql.Internal.CommonProvider.Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
 
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : FreeSql.Internal.CommonProvider.Select11Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : FreeSql.Internal.CommonProvider.Select11Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : FreeSql.Internal.CommonProvider.Select12Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : FreeSql.Internal.CommonProvider.Select12Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : FreeSql.Internal.CommonProvider.Select13Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : FreeSql.Internal.CommonProvider.Select13Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : FreeSql.Internal.CommonProvider.Select14Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : FreeSql.Internal.CommonProvider.Select14Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : FreeSql.Internal.CommonProvider.Select15Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : FreeSql.Internal.CommonProvider.Select15Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
-    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : FreeSql.Internal.CommonProvider.Select16Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class
+    class SonnetDBSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : FreeSql.Internal.CommonProvider.Select16Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class where T14 : class where T15 : class where T16 : class
     {
         public SonnetDBSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToList<TReturn>(select?.Body);
+        }
+
+        async Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToListAsync<TReturn>(
+            Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, CancellationToken cancellationToken)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return await InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            using (SonnetDBSelect<T1>.BeginProjection(select, _tables))
+                return InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
         public override string ToSql(string field = null) => SonnetDBSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, this.GetTableRuleUnions(), _aliasRule, _tosqlAppendContent, _whereGlobalFilter, _orm);
     }
 }

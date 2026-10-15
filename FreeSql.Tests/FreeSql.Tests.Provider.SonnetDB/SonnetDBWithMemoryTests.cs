@@ -26,20 +26,19 @@ public sealed class SonnetDBWithMemoryTests
     }
 
     [Fact]
-    public void WithMemory_MultipleRows_ReportsUnionAllCapability()
+    public void WithMemory_MultipleRows_ExecutesUnionAllAndPreservesRows()
     {
         using var fsql = CreateFreeSql();
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<MemoryRow>()
+        var rows = fsql.Select<MemoryRow>()
                 .WithMemory(new[]
                 {
                     new MemoryRow { Id = 7, Name = "一" },
                     new MemoryRow { Id = 8, Name = "二" },
                 })
-                .ToSql());
-
-        Assert.Contains("UNION ALL", exception.Message, StringComparison.OrdinalIgnoreCase);
+                .OrderBy(a => a.Id).ToList();
+        Assert.Equal(new long[] { 7, 8 }, rows.Select(a => a.Id));
+        Assert.Equal(new[] { "一", "二" }, rows.Select(a => a.Name));
     }
 
     [Fact]

@@ -7,7 +7,7 @@ namespace FreeSql.Tests.Provider.SonnetDB;
 public class SonnetDBNullableDateTimeTests
 {
     [Fact]
-    public void DateTimeOffsetBinarySubtract_UsesUnixMillisecondDifference()
+    public void DateTimeOffsetBinarySubtract_UsesNativeTickDifference()
     {
         using var fsql = CreateFreeSql();
 
@@ -15,8 +15,8 @@ public class SonnetDBNullableDateTimeTests
             .Where(a => (a.OccurredAt - DateTimeOffset.UtcNow).TotalSeconds < 0)
             .ToSql();
 
-        Assert.Contains("to_unix_milliseconds", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 1000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000000.0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

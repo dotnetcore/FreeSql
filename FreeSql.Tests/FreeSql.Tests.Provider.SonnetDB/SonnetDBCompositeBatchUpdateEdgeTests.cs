@@ -28,25 +28,47 @@ public sealed class SonnetDBCompositeBatchUpdateEdgeTests
     }
 
     [Fact]
-    public void BitwisePredicate_IsRejectedBeforeSendingUnsupportedSql()
+    public void BitwisePredicate_ExecutesAndPreservesIntegralResults()
     {
         using var fsql = CreateFreeSql();
-        var exception = Assert.Throws<NotSupportedException>(() => fsql.Select<SingleRow>()
+        var source = Enumerable.Range(1, 4).Select(id => new SingleRow { Id = id, Name = id.ToString() }).ToArray();
+        Assert.Equal(source.Length, fsql.Insert(source).ExecuteAffrows());
+
+        var selected = fsql.Select<SingleRow>()
             .Where(row => (row.Id & 1) == 0)
-            .ToSql());
-        Assert.Contains("位运算符", exception.Message, StringComparison.Ordinal);
+            .OrderBy(row => row.Id)
+            .ToList(row => new { row.Id, Or = row.Id | 8, Xor = row.Id ^ 3, Not = ~row.Id });
+
+        Assert.Equal(new[] { 2L, 4L }, selected.Select(row => row.Id));
+        Assert.All(selected, row =>
+        {
+            Assert.Equal(row.Id | 8, row.Or);
+            Assert.Equal(row.Id ^ 3, row.Xor);
+            Assert.Equal(~row.Id, row.Not);
+        });
     }
 
     [Fact]
-    public void StringLengthPredicate_IsRejectedBeforeSendingUnsupportedSql()
+    public void StringLengthPredicate_ExecutesWithUtf16Length()
     {
         using var fsql = CreateFreeSql();
-        var exception = Record.Exception(() => fsql.Select<SingleRow>()
+        Assert.Equal(4, fsql.Insert(new[]
+        {
+            new SingleRow { Id = 1, Name = "" },
+            new SingleRow { Id = 2, Name = "中" },
+            new SingleRow { Id = 3, Name = "🙂" },
+            new SingleRow { Id = 4, Name = "中🙂" }
+        }).ExecuteAffrows());
+
+        var selected = fsql.Select<SingleRow>()
             .Where(row => row.Name.Length > 2)
-            .ToList());
-        Assert.NotNull(exception);
-        Assert.Contains("length", exception!.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("未注册", exception.Message, StringComparison.Ordinal);
+            .ToList(row => new { row.Id, row.Name.Length });
+
+        var row = Assert.Single(selected);
+        Assert.Equal(4, row.Id);
+        Assert.Equal(3, row.Length);
+        Assert.Equal(new[] { 0, 1, 2, 3 }, fsql.Select<SingleRow>()
+            .OrderBy(item => item.Id).ToList(item => item.Name.Length));
     }
 
     [Fact]

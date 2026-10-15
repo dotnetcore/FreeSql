@@ -10,7 +10,7 @@ namespace FreeSql.Tests.Provider.SonnetDB;
 public class SonnetDBCompatibilityGapTests
 {
     [Fact]
-    public void Metadata_DeclaresOnlyInnerWhileProviderSupportsLeftJoin()
+    public void Metadata_DeclaresTheRelationalJoinCapabilities()
     {
         var dataPath = Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-MetadataTests", Guid.NewGuid().ToString("N"));
         using (var connection = new SndbConnection($"Data Source={dataPath}"))
@@ -20,8 +20,10 @@ public class SonnetDBCompatibilityGapTests
             var declaredJoins = (SupportedJoinOperators)Convert.ToInt32(
                 metadata.Rows[0][DbMetaDataColumnNames.SupportedJoinOperators]);
 
-            // 3.1.0 的驱动元数据暂时只声明 INNER；上游修复后允许扩展为 Inner | LeftOuter。
-            Assert.Equal(SupportedJoinOperators.Inner, declaredJoins);
+            Assert.True(declaredJoins.HasFlag(SupportedJoinOperators.Inner));
+            Assert.True(declaredJoins.HasFlag(SupportedJoinOperators.LeftOuter));
+            Assert.True(declaredJoins.HasFlag(SupportedJoinOperators.RightOuter));
+            Assert.True(declaredJoins.HasFlag(SupportedJoinOperators.FullOuter));
         }
 
         using var fsql = CreateFreeSql();
@@ -34,15 +36,9 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void UnsupportedSelectMutationEntrypoints_AreValidatedBeforeSqlGeneration()
+    public void SelectMutationEntrypoints_ProjectKeysAndRejectUnsupportedLockingReads()
     {
         using var fsql = CreateFreeSql();
-
-        var insertInto = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
-                .InsertInto<CompatibilityTextRow>("sonnet_compatibility_text",
-                    a => new CompatibilityTextRow { Id = a.Id, Name = a.Name, OtherName = a.OtherName }));
-        Assert.Contains("INSERT ... SELECT", insertInto.Message, StringComparison.Ordinal);
 
         var toUpdate = fsql.Select<CompatibilityTemporal>()
             .Where(a => a.Id > 0)
@@ -57,34 +53,38 @@ public class SonnetDBCompatibilityGapTests
         Assert.DoesNotContain("select * from", toDeleteSql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("select ftb_del.\"Id\"", toDeleteSql, StringComparison.OrdinalIgnoreCase);
 
+        using var connection = fsql.Ado.MasterPool.Get();
+        using var transaction = connection.Value.BeginTransaction();
         var forUpdate = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>().ForUpdate());
+            fsql.Select<CompatibilityTextRow>().WithTransaction(transaction).ForUpdate());
         Assert.Contains("FOR UPDATE", forUpdate.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("#233", forUpdate.Message, StringComparison.Ordinal);
+        transaction.Rollback();
     }
 
     [Fact]
-    public async Task InsertIntoAsync_IsRejectedBeforeOpeningAConnection()
+    public async Task InsertIntoAsync_InsertsIntoAnExistingRelationalTable()
     {
         using var fsql = CreateFreeSql();
 
-        var exception = await Assert.ThrowsAsync<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
-                .InsertIntoAsync<CompatibilityTextRow>("sonnet_compatibility_text",
-                    a => new CompatibilityTextRow { Id = a.Id, Name = a.Name, OtherName = a.OtherName }));
-
-        Assert.Contains("INSERT ... SELECT", exception.Message, StringComparison.Ordinal);
+        fsql.CodeFirst.SyncStructure<CompatibilityTextRow>();
+        Assert.Equal(0, await fsql.Select<CompatibilityTextRow>()
+            .InsertIntoAsync<CompatibilityTextRow>("sonnet_compatibility_text",
+                a => new CompatibilityTextRow { Id = a.Id, Name = a.Name, OtherName = a.OtherName }));
     }
 
     [Fact]
-    public void UpdateJoin_IsRejectedBeforeCreatingTheJoinProvider()
+    public void UpdateJoin_UsesRelationalInnerJoin()
     {
         using var fsql = CreateFreeSql();
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Update<CompatibilityTemporal>()
-                .Join<CompatibilityTemporal>((left, right) => left.Id == right.Id));
+        var sql = fsql.Update<CompatibilityTemporal>()
+            .Join<CompatibilityTemporal>((left, right) => left.Id == right.Id)
+            .Set((left, right) => left.StartedAt == right.FinishedAt)
+            .ToSql();
 
-        Assert.Contains("UPDATE JOIN", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("INNER JOIN", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("UPDATE", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -130,16 +130,15 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void LikeDynamicPattern_IsRejectedBeforeIncorrectSqlIsGenerated()
+    public void DynamicStringPattern_UsesLiteralStringPredicate()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
+        var sql = fsql.Select<CompatibilityTextRow>()
                 .Where(a => a.Name.Contains(a.OtherName))
-                .ToSql());
+                .ToSql();
 
-        Assert.Contains("动态模式", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("contains(a.\"Name\", a.\"OtherName\")", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -160,7 +159,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void DateTimeSubtract_UsesUnixMillisecondDifference()
+    public void DateTimeSubtract_UsesNativeTickDifference()
     {
         using var fsql = CreateFreeSql();
 
@@ -168,8 +167,8 @@ public class SonnetDBCompatibilityGapTests
             .Where(a => a.FinishedAt.Subtract(a.StartedAt).TotalSeconds > 1)
             .ToSql();
 
-        Assert.Contains("to_unix_milliseconds", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 1000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000000.0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -185,25 +184,24 @@ public class SonnetDBCompatibilityGapTests
                         a.FinishedAt.Subtract(a.StartedAt).TotalSeconds > 0)
             .ToSql();
 
-        Assert.Contains("/ 86400000.0", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 3600000.0", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 60000.0", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 1000.0", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("to_unix_milliseconds", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 864000000000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 36000000000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 600000000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void DateTimeSubtract_ComponentMembers_AreRejectedWithChineseMessage()
+    public void DateTimeSubtract_ComponentMembers_UseNativeDateDifference()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTemporal>()
+        var sql = fsql.Select<CompatibilityTemporal>()
                 .Where(a => a.FinishedAt.Subtract(a.StartedAt).Days > 0)
-                .ToSql());
+                .ToSql();
 
-        Assert.Contains("TimeSpan.Days", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("日期差函数", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("date_diff('day', a.\"StartedAt\", a.\"FinishedAt\")", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -217,7 +215,7 @@ public class SonnetDBCompatibilityGapTests
 
         Assert.Contains("date_part('hour'", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("date_part('millisecond'", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("3600000", sql, StringComparison.Ordinal);
+        Assert.Contains("36000000000", sql, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -234,7 +232,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void DateTimeOffsetSubtract_TotalMembers_UseUnixMillisecondDifference()
+    public void DateTimeOffsetSubtract_TotalMembers_UseNativeTickDifference()
     {
         using var fsql = CreateFreeSql();
 
@@ -243,47 +241,45 @@ public class SonnetDBCompatibilityGapTests
                         a.OccurredAt.Subtract(DateTimeOffset.UtcNow).TotalMilliseconds < 0)
             .ToSql();
 
-        Assert.Contains("to_unix_milliseconds", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 1000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 10000.0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void DateTimeOffsetSubtract_ComponentMembers_AreRejectedWithChineseMessage()
+    public void DateTimeOffsetSubtract_ComponentMembers_UseNativeDateDifference()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityOffset>()
+        var sql = fsql.Select<CompatibilityOffset>()
                 .Where(a => a.OccurredAt.Subtract(DateTimeOffset.UtcNow).Days > 0)
-                .ToSql());
+                .ToSql();
 
-        Assert.Contains("TimeSpan.Days", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("date_diff('day'", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void DateTimeSubtract_Ticks_AreRejectedWithChineseMessage()
+    public void DateTimeSubtract_Ticks_UseNativeDateDifference()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTemporal>()
+        var sql = fsql.Select<CompatibilityTemporal>()
                 .Where(a => a.FinishedAt.Subtract(a.StartedAt).Ticks > 0)
-                .ToSql());
+                .ToSql();
 
-        Assert.Contains("TimeSpan.Ticks", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void DateTimeOffsetSubtract_Ticks_AreRejectedWithChineseMessage()
+    public void DateTimeOffsetSubtract_Ticks_UseNativeDateDifference()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityOffset>()
+        var sql = fsql.Select<CompatibilityOffset>()
                 .Where(a => a.OccurredAt.Subtract(DateTimeOffset.UtcNow).Ticks > 0)
-                .ToSql());
+                .ToSql();
 
-        Assert.Contains("TimeSpan.Ticks", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -295,9 +291,9 @@ public class SonnetDBCompatibilityGapTests
             .Where(a => a.Time.Subtract(DateTime.UtcNow).TotalMinutes > 1)
             .ToSql();
 
-        Assert.Contains("a.time -", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("date_diff('tick'", sql, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("to_unix_milliseconds", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/ 60000.0", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/ 600000000.0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -332,14 +328,15 @@ public class SonnetDBCompatibilityGapTests
         Assert.Equal(1, current!.Version);
 
         current.Name = "current";
-        Assert.Equal(1, fsql.Update<CompatibilityVersionedRow>().SetSource(current).ExecuteAffrows());
+        Assert.Equal(1, fsql.Update<CompatibilityVersionedRow>().NoneParameter(false).SetSource(current).ExecuteAffrows());
         Assert.Equal(2, current.Version);
 
         stale!.Name = "stale";
         var conflict = Assert.Throws<DbUpdateVersionException>(() =>
-            fsql.Update<CompatibilityVersionedRow>().SetSource(stale).ExecuteAffrows());
+            fsql.Update<CompatibilityVersionedRow>().NoneParameter(false).SetSource(stale).ExecuteAffrows());
         Assert.Contains("UPDATE", conflict.Sql, StringComparison.OrdinalIgnoreCase);
         Assert.NotNull(conflict.DbParams);
+        Assert.Contains(conflict.DbParams, parameter => Equals("stale", parameter.Value));
         Assert.Contains(stale, conflict.EntitySource);
 
         var persisted = fsql.Select<CompatibilityVersionedRow>().Where(a => a.Id == source.Id).ToOne();
@@ -374,64 +371,56 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void UnionAll_IsRejectedBeforeSendingUnsupportedSql()
+    public void UnionAll_IsGeneratedWithoutDeduplicatingBranches()
     {
         using var fsql = CreateFreeSql();
 
         var first = fsql.Select<CompatibilityTextRow>().Where(a => a.Id > 0);
         var second = fsql.Select<CompatibilityTextRow>().Where(a => a.Id < 0);
-        var ex = Assert.Throws<NotSupportedException>(() => first.UnionAll(second).ToSql());
-
-        Assert.Contains("UNION ALL", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("3.1", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("UNION ALL", first.UnionAll(second).ToSql(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void InsertIntoSelect_IsRejectedWithChineseMessage()
+    public void InsertIntoSelect_ExecutesForRelationalModels()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
+        fsql.CodeFirst.SyncStructure<CompatibilityTextRow>();
+        Assert.Equal(0, fsql.Select<CompatibilityTextRow>()
                 .InsertInto(null, a => new CompatibilityTextRow
                 {
                     Name = a.Name,
                     OtherName = a.OtherName
                 }));
 
-        Assert.Contains("INSERT ... SELECT", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("分批 INSERT", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task InsertIntoSelectAsync_IsRejectedWithChineseMessage()
+    public async Task InsertIntoSelectAsync_ExecutesForRelationalModels()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = await Assert.ThrowsAsync<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
+        fsql.CodeFirst.SyncStructure<CompatibilityTextRow>();
+        Assert.Equal(0, await fsql.Select<CompatibilityTextRow>()
                 .InsertIntoAsync(null, a => new CompatibilityTextRow
                 {
                     Name = a.Name,
                     OtherName = a.OtherName
                 }));
 
-        Assert.Contains("INSERT ... SELECT", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void RecursiveCte_IsRejectedWithChineseMessage()
+    public void RecursiveCte_UsesTheNativeRecursiveSyntax()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTreeRow>()
+        var sql = fsql.Select<CompatibilityTreeRow>()
                 .Where(a => a.Id == 1)
                 .AsTreeCte()
-                .ToSql());
-
-        Assert.Contains("CTE", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("AsTreeCte", ex.Message, StringComparison.Ordinal);
+                .ToSql();
+        Assert.Contains("WITH RECURSIVE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("UNION ALL", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -449,20 +438,18 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void TableRuleUnionAll_IsRejectedBeforeSqlGeneration()
+    public void TableRuleUnionAll_IsRetainedInGeneratedSql()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>()
+        var sql = fsql.Select<CompatibilityTextRow>()
                 .AsTable((_, _) => "(SELECT 1 AS \"Id\" UNION ALL SELECT 2 AS \"Id\")")
-                .ToSql());
-
-        Assert.Contains("UNION ALL", ex.Message, StringComparison.OrdinalIgnoreCase);
+                .ToSql();
+        Assert.Contains("UNION ALL", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void NestedCollectionProjection_RejectsReaderGeneratedUnionAll()
+    public void NestedCollectionProjection_UsesReaderGeneratedUnionAll()
     {
         var dataPath = Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-NestedUnionTests", Guid.NewGuid().ToString("N"));
         using var fsql = new FreeSqlBuilder()
@@ -481,8 +468,7 @@ public class SonnetDBCompatibilityGapTests
             new NestedUnionChild { Id = 21, ParentId = 2, Name = "子二" }
         }).ExecuteAffrows();
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<NestedUnionParent>()
+        var rows = fsql.Select<NestedUnionParent>()
                 .OrderBy(a => a.Id)
                 .ToList(a => new NestedUnionProjection
                 {
@@ -490,10 +476,9 @@ public class SonnetDBCompatibilityGapTests
                     Children = fsql.Select<NestedUnionChild>()
                         .Where(child => child.ParentId == a.Id)
                         .ToList(child => child.Name)
-                }));
-
-        Assert.Contains("UNION ALL", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("嵌套查询", ex.Message, StringComparison.Ordinal);
+                });
+        Assert.Equal(new[] { "子一" }, rows[0].Children);
+        Assert.Equal(new[] { "子二" }, rows[1].Children);
     }
 
     [Fact]
@@ -521,7 +506,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public async Task NestedCollectionProjectionAsync_RejectsReaderGeneratedUnionAll()
+    public async Task NestedCollectionProjectionAsync_UsesReaderGeneratedUnionAll()
     {
         var dataPath = Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-NestedUnionAsyncTests", Guid.NewGuid().ToString("N"));
         using var fsql = new FreeSqlBuilder()
@@ -540,8 +525,7 @@ public class SonnetDBCompatibilityGapTests
             new NestedUnionChild { Id = 21, ParentId = 2, Name = "子二" }
         }).ExecuteAffrowsAsync();
 
-        var ex = await Assert.ThrowsAsync<NotSupportedException>(() =>
-            fsql.Select<NestedUnionParent>()
+        var rows = await fsql.Select<NestedUnionParent>()
                 .OrderBy(a => a.Id)
                 .ToListAsync(a => new NestedUnionProjection
                 {
@@ -549,9 +533,9 @@ public class SonnetDBCompatibilityGapTests
                     Children = fsql.Select<NestedUnionChild>()
                         .Where(child => child.ParentId == a.Id)
                         .ToList(child => child.Name)
-                }));
-
-        Assert.Contains("UNION ALL", ex.Message, StringComparison.OrdinalIgnoreCase);
+                });
+        Assert.Equal(new[] { "子一" }, rows[0].Children);
+        Assert.Equal(new[] { "子二" }, rows[1].Children);
     }
 
     static IFreeSql CreateFreeSql()
@@ -563,6 +547,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Table(Name = "sonnet_compatibility_text")]
+    [SonnetDBTable]
     sealed class CompatibilityTextRow
     {
         [Column(IsPrimary = true)]
@@ -622,6 +607,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Table(Name = "sonnet_compatibility_tree")]
+    [SonnetDBTable]
     sealed class CompatibilityTreeRow
     {
         [Column(IsPrimary = true)]

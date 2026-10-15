@@ -41,14 +41,14 @@ namespace FreeSql.SonnetDB
             type?.NullableTypeOrThis() == typeof(BigInteger);
 
         internal static NotSupportedException UnsupportedBigInteger(Type type) => new NotSupportedException(
-            $"SonnetDB 3.1 不支持 BigInteger/任意精度整数（{type?.FullName ?? typeof(BigInteger).FullName}）；" +
+            $"SonnetDB 4.0 不支持 BigInteger/任意精度整数（{type?.FullName ?? typeof(BigInteger).FullName}）；" +
             "请改用 long/ulong（SonnetDB INT 为 int64），或等待 SonnetDB 提供任意精度数值类型。" );
 
         internal static long ConvertUInt64ToInt64(ulong value)
         {
             if (value > long.MaxValue)
                 throw new NotSupportedException(
-                    $"SonnetDB 3.1 的 INT 仅支持有符号 int64；ulong 值 {value.ToString(CultureInfo.InvariantCulture)} " +
+                    $"SonnetDB 4.0 的 INT 仅支持有符号 int64；ulong 值 {value.ToString(CultureInfo.InvariantCulture)} " +
                     $"超过 long.MaxValue（{long.MaxValue.ToString(CultureInfo.InvariantCulture)}），无法保存。" +
                     "请改用不大于 long.MaxValue 的值。");
             return (long)value;
@@ -82,6 +82,10 @@ namespace FreeSql.SonnetDB
             IsRelationshipTable(col) &&
             ((col?.Attribute?.DbType?.IndexOf("JSON", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
              (col?.DbTypeText?.IndexOf("JSON", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0);
+
+        internal static bool IsTimeColumn(ColumnInfo col) => Regex.IsMatch(
+            col?.Attribute?.DbType ?? col?.DbTypeText ?? string.Empty,
+            @"^(?:FIELD\s+)?TIME\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         static bool IsJsonValue(object value) =>
             value is JsonDocument || value is JsonElement || value is JsonNode;
@@ -155,10 +159,6 @@ namespace FreeSql.SonnetDB
             }
             return $"[{string.Join(", ", values)}]";
         }
-
-        static NotSupportedException UnsupportedVectorParameter(Type type) => new NotSupportedException(
-            $"SonnetDB 3.1.0 的 ADO.NET 参数绑定不支持 VECTOR 参数（{type?.FullName ?? "未知类型"}）；" +
-            "请启用 UseNoneCommandParameter(true) 生成原生 [v1, v2] 字面量，或升级到提供原生向量参数协议的 SonnetDB 版本。");
 
         static NotSupportedException UnsupportedVectorValue(ColumnInfo col, object value) => new NotSupportedException(
             $"SonnetDB VECTOR 列 '{col?.Attribute?.Name ?? "未知列"}' 需要 float[]/ReadOnlyMemory<float> 值，" +
@@ -265,15 +265,28 @@ namespace FreeSql.SonnetDB
             var valueType = GetValueType(type, value);
             if (IsBigInteger(valueType) || value is BigInteger)
                 throw UnsupportedBigInteger(valueType ?? value.GetType());
-            // 原生 ADO 参数没有列元数据，float[] 只能被驱动解释为 VECTOR；
-            // 驱动 3.1 不支持这种参数绑定，必须在发送前给出兼容性提示。
-            // 普通 IN 条件的数组会在表达式格式化阶段展开，不会进入此路径。
-            if (TryGetVectorValue(value, out _) && (col == null || IsVectorColumn(col)))
-                throw UnsupportedVectorParameter(valueType ?? value.GetType());
+            // 普通 IN 数组由表达式层展开；原生 ADO 和显式 VECTOR 列
+            // 使用 4.0 已发布的 float[] 参数合同。
+            if (TryGetVectorValue(value, out var vector) && (col == null || IsVectorColumn(col)))
+            {
+                FormatVectorLiteral(vector); // Validate dimensions and finite components before binding.
+                return vector;
+            }
             if (IsVectorColumn(col) && value is Array)
                 throw UnsupportedVectorValue(col, value);
             if (value is byte[])
                 return value;
+            if (value is DateOnly dateOnly)
+                return dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            if (value is TimeOnly timeOnly)
+                return timeOnly.ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture);
+            if (value is TimeSpan timeSpan)
+            {
+                if (!IsTimeColumn(col)) return timeSpan.Ticks;
+                if (timeSpan < TimeSpan.Zero || timeSpan >= TimeSpan.FromDays(1))
+                    throw new ArgumentOutOfRangeException(nameof(value), "SonnetDB TIME 必须落在 [00:00:00, 24:00:00) 范围内。");
+                return TimeOnly.FromTimeSpan(timeSpan).ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture);
+            }
             if (IsJsonColumn(col) || IsJsonType(type) || IsJsonValue(value))
                 return GetJsonText(value, IsJsonColumn(col));
 
@@ -291,7 +304,12 @@ namespace FreeSql.SonnetDB
         DbType? GetParameterDbType(ColumnInfo col, Type type, object value)
         {
             if (value is SndbGeoPoint) return DbType.Object;
+            if (TryGetVectorValue(value, out _) && (col == null || IsVectorColumn(col))) return DbType.Object;
             if (value is byte[]) return DbType.Binary;
+            var declaredType = type?.NullableTypeOrThis();
+            if (declaredType == typeof(DateOnly)) return DbType.Date;
+            if (declaredType == typeof(TimeOnly)) return DbType.Time;
+            if (declaredType == typeof(TimeSpan)) return IsTimeColumn(col) ? DbType.Time : DbType.Int64;
             if (IsJsonColumn(col) || IsJsonType(type) || IsJsonValue(value)) return DbType.String;
             // 测量的 DateTime/DateTimeOffset 已在 GetParameterValue 中转换为 Unix 毫秒。
             // 参数 DbType 也必须同步为 Int64，避免驱动按日期类型再次解释整数。
@@ -362,22 +380,25 @@ namespace FreeSql.SonnetDB
 
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
         public override string QuoteParamterName(string name) => $"@{name}";
+        public override string FieldAsAlias(string alias)
+        {
+            // A converted time projection must not replace the measurement's
+            // integer timestamp in SonnetDB's ORDER BY time resolver.
+            if (string.Equals(alias.Trim('"'), "time", StringComparison.OrdinalIgnoreCase))
+                return " AS \"__freesql_time\"";
+            return " AS " + (alias.StartsWith("\"", StringComparison.Ordinal)
+                ? alias : $"\"{alias.Replace("\"", "\"\"")}\"");
+        }
         /// <summary>空值替换，生成 <c>coalesce(sql, value)</c>。SonnetDB 不支持 ISNULL/IFNULL，统一用 coalesce。</summary>
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
         /// <summary>字符串拼接，生成 <c>concat(a, b, ...)</c>。</summary>
         public override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
-        // SonnetDB 3.1 的 SQL 词法器没有位与、位或、异或和移位运算符。
-        // 不能沿用 CommonUtils 的默认符号输出，否则会把不可解析的 SQL
-        // 发送到数据库；在表达式翻译阶段给出明确的中文提示。
-        public override string BitAnd(string left, string right) => throw UnsupportedBitwise("&");
-        public override string BitOr(string left, string right) => throw UnsupportedBitwise("|");
-        public override string BitShiftLeft(string left, string right) => throw UnsupportedBitwise("<<");
-        public override string BitShiftRight(string left, string right) => throw UnsupportedBitwise(">>");
-        public override string BitNot(string value) => throw UnsupportedBitwise("~");
-        public override string BitXor(string left, string right) => throw UnsupportedBitwise("^");
-
-        static NotSupportedException UnsupportedBitwise(string operation) => new NotSupportedException(
-            $"SonnetDB 3.1 不支持位运算符 {operation}；FreeSql 当前表达式无法翻译，请改为数据库支持的函数或在应用层计算。");
+        public override string BitAnd(string left, string right) => $"({left} & {right})";
+        public override string BitOr(string left, string right) => $"({left} | {right})";
+        public override string BitShiftLeft(string left, string right) => $"shift_left({left}, {right})";
+        public override string BitShiftRight(string left, string right) => $"shift_right({left}, {right})";
+        public override string BitNot(string value) => $"(-1 - {value})";
+        public override string BitXor(string left, string right) => $"(({left} | {right}) - ({left} & {right}))";
 
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
@@ -386,7 +407,29 @@ namespace FreeSql.SonnetDB
         /// <summary>当前 UTC 时间，输出为 Unix 毫秒整数字符串。</summary>
         public override string NowUtc => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
         public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
-        protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
+        protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName)
+        {
+            var targetType = type.NullableTypeOrThis();
+            return targetType == typeof(DateTime) || targetType == typeof(DateTimeOffset) || targetType == typeof(DateOnly)
+                ? $"to_utc_datetime({columnName})"
+                : columnName;
+        }
+
+        // Return invariant duration text through the existing FreeSql reader.
+        // Decimal division preserves the day count at both Int64 limits; all
+        // remaining divisions operate on small exact integer remainders.
+        internal static string FormatTimeSpanReadSql(string ticks)
+        {
+            string Part(long unit, long modulus, int width) =>
+                $"lpad(CAST(abs(CAST(({ticks} % {modulus}) / {unit} AS INT)) AS STRING), {width}, '0')";
+            return $"CASE WHEN {ticks} IS NULL THEN NULL ELSE concat(" +
+                $"CASE WHEN {ticks} < 0 THEN '-' ELSE '' END, " +
+                $"CAST(abs(CAST(CAST({ticks} AS DECIMAL) / 864000000000 AS INT)) AS STRING), '.', " +
+                Part(TimeSpan.TicksPerHour, TimeSpan.TicksPerDay, 2) + ", ':', " +
+                Part(TimeSpan.TicksPerMinute, TimeSpan.TicksPerHour, 2) + ", ':', " +
+                Part(TimeSpan.TicksPerSecond, TimeSpan.TicksPerMinute, 2) + ", '.', " +
+                $"lpad(CAST(abs({ticks} % 10000000) AS STRING), 7, '0')) END";
+        }
 
         /// <summary>
         /// 将值转换为非参数化 SQL 字面量。
@@ -436,6 +479,12 @@ namespace FreeSql.SonnetDB
                 return ToUnixTimeMilliseconds(dateTime).ToString(CultureInfo.InvariantCulture);
             if (value is DateTimeOffset dateTimeOffset)
                 return dateTimeOffset.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+            if (value is DateOnly dateOnly)
+                return FormatSql("{0}", dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            if (value is TimeOnly timeOnly)
+                return FormatSql("{0}", timeOnly.ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture));
+            if (value is TimeSpan)
+                return FormatSql("{0}", GetParameterValue(col, type, value));
             if (value is ulong unsignedValue)
                 return ConvertUInt64ToInt64(unsignedValue).ToString(CultureInfo.InvariantCulture);
             if (valueType != null && valueType.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);

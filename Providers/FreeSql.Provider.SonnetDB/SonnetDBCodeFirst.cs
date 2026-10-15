@@ -31,7 +31,7 @@ namespace FreeSql.SonnetDB
 
         /// <summary>
         /// C# 完整类型名 → SonnetDB 类型映射表。
-        /// <para>DateTime / DateTimeOffset 映射为 INT（Unix 毫秒），不使用 SonnetDB 原生时间类型。</para>
+        /// <para>测量时间按 Unix 毫秒映射；关系表在生成列定义时使用原生 DATETIME。</para>
         /// <para>所有整型（含无符号）均映射为 INT，SonnetDB 内部存储为 int64。</para>
         /// </summary>
         static readonly Dictionary<string, CsToDb<DbType>> _dicCsToDb = new Dictionary<string, CsToDb<DbType>>
@@ -58,8 +58,14 @@ namespace FreeSql.SonnetDB
             { typeof(float?).FullName,          CsToDb.New(DbType.Double,  "FLOAT", "FLOAT", false, true,  null) },
             { typeof(double).FullName,          CsToDb.New(DbType.Double,  "FLOAT", "FLOAT", false, false, 0) },
             { typeof(double?).FullName,         CsToDb.New(DbType.Double,  "FLOAT", "FLOAT", false, true,  null) },
-            { typeof(decimal).FullName,         CsToDb.New(DbType.Double,  "FLOAT", "FLOAT", false, false, 0) },
-            { typeof(decimal?).FullName,        CsToDb.New(DbType.Double,  "FLOAT", "FLOAT", false, true,  null) },
+            { typeof(decimal).FullName,         CsToDb.New(DbType.Decimal, "DECIMAL", "DECIMAL", false, false, 0m) },
+            { typeof(decimal?).FullName,        CsToDb.New(DbType.Decimal, "DECIMAL", "DECIMAL", false, true, null) },
+            { typeof(TimeSpan).FullName,        CsToDb.New(DbType.Int64, "INT", "INT", false, false, TimeSpan.Zero) },
+            { typeof(TimeSpan?).FullName,       CsToDb.New(DbType.Int64, "INT", "INT", false, true, null) },
+            { typeof(TimeOnly).FullName,        CsToDb.New(DbType.Time, "TIME", "TIME", false, false, TimeOnly.MinValue) },
+            { typeof(TimeOnly?).FullName,       CsToDb.New(DbType.Time, "TIME", "TIME", false, true, null) },
+            { typeof(DateOnly).FullName,        CsToDb.New(DbType.DateTime, "DATETIME", "DATETIME", false, false, DateOnly.MinValue) },
+            { typeof(DateOnly?).FullName,       CsToDb.New(DbType.DateTime, "DATETIME", "DATETIME", false, true, null) },
             { typeof(string).FullName,          CsToDb.New(DbType.String,  "STRING","STRING",false, true,  null) },
             { typeof(char).FullName,            CsToDb.New(DbType.String,  "STRING","STRING",false, true,  null) },
             { typeof(char?).FullName,           CsToDb.New(DbType.String,  "STRING","STRING",false, true,  null) },
@@ -119,7 +125,7 @@ namespace FreeSql.SonnetDB
 
         /// <summary>
         /// 为实体生成 SonnetDB DDL。未标记的实体沿用历史时序测量模型；
-        /// 标记 <c>[SonnetDBTable]</c> 的实体使用 SonnetDB 3.1 关系表模型。
+        /// 标记 <c>[SonnetDBTable]</c> 的实体使用 SonnetDB 关系表模型。
         /// </summary>
         protected override string GetComparisonDDLStatements(params TypeSchemaAndName[] objects)
         {
@@ -133,6 +139,8 @@ namespace FreeSql.SonnetDB
 
                 var tbname = string.IsNullOrEmpty(obj.tableName) ? tb.DbName : obj.tableName;
                 var tableParts = _commonUtils.SplitTableName(tbname);
+                if (tableParts.Length > 1)
+                    throw new NotSupportedException("SonnetDB 尚不支持 schema.table 限定表名；请使用当前连接数据库中的单个对象名。");
                 tbname = tableParts.LastOrDefault() ?? tbname;
 
                 // 模型标记必须显式指定。没有标记的实体（包括含字符串属性的实体）
@@ -143,7 +151,7 @@ namespace FreeSql.SonnetDB
                     continue;
                 }
 
-                // 若时序测量已存在则跳过（SonnetDB CodeFirst 仅支持建表，不支持 ALTER）。
+                // 时序测量尚不提供结构差异迁移；关系表走上面的 ALTER 分支。
                 if (ExistsMeasurement(tbname)) continue;
 
                 var fieldCount = 0;
@@ -283,6 +291,8 @@ namespace FreeSql.SonnetDB
             {
                 if (index == null || index.Columns == null || index.Columns.Length == 0 || string.IsNullOrWhiteSpace(index.Name))
                     continue;
+                if (index.Columns.Any(column => column.IsDesc))
+                    throw new NotSupportedException($"SonnetDB 尚不支持索引 '{index.Name}' 的 DESC 排序；不能将降序索引静默改为升序。");
                 var indexName = ReplaceIndexName(index.Name, tbname);
                 var existingIndex = FindIndex(existingTable, indexName);
                 var jsonPath = GetJsonIndexPath(tb, index);
@@ -351,6 +361,8 @@ namespace FreeSql.SonnetDB
             var expectedNullable = attr.IsNullable && !attr.IsPrimary && !attr.IsIdentity && !attr.IsVersion;
             var expectedDefault = GetTableDefaultExpression(col);
             var actualType = NormalizeTableTypeAlias(existing.DbTypeTextFull) ?? NormalizeTableTypeAlias(existing.DbTypeText);
+            if (actualType == "DECIMAL" && existing.Precision > 0)
+                actualType = $"DECIMAL({existing.Precision},{existing.Scale})";
             var actualVersion = (existing.DbTypeTextFull ?? string.Empty).IndexOf("ROWVERSION", StringComparison.OrdinalIgnoreCase) >= 0;
             var structuralMismatch = !string.Equals(expectedType, actualType, StringComparison.OrdinalIgnoreCase)
                 || expectedNullable != existing.IsNullable;
@@ -637,6 +649,14 @@ namespace FreeSql.SonnetDB
             // 日期时间和二进制 .NET 类型在本提供程序中有不同的历史映射，
             // 因此先处理它们，再读取生成的 DbType。
             if (mapType == typeof(DateTime) || mapType == typeof(DateTimeOffset)) return "DATETIME";
+            if (mapType == typeof(TimeOnly)) return "TIME";
+            if (mapType == typeof(TimeSpan))
+            {
+                if (string.Equals(StripTableModifiers(attr.DbType), "TIME", StringComparison.OrdinalIgnoreCase))
+                    throw new NotSupportedException("SonnetDB TIME 列请使用 TimeOnly；TimeSpan 默认以 INT ticks 保存，支持负值与跨日时长。");
+                return "INT";
+            }
+            if (mapType == typeof(DateOnly)) return "DATETIME";
             if (mapType == typeof(byte[])) return "BLOB";
 
             var raw = StripTableModifiers(attr.DbType);
@@ -646,15 +666,16 @@ namespace FreeSql.SonnetDB
                 if (explicitType == "VECTOR" || explicitType == "GEOPOINT")
                     throw new NotSupportedException(
                         $"SonnetDB 关系表不支持 {explicitType} 列 '{attr.Name}'。");
+                if (explicitType == "DECIMAL" && attr.Precision > 0)
+                    return $"DECIMAL({attr.Precision},{attr.Scale})";
                 return explicitType;
             }
 
             if (mapType == typeof(bool)) return "BOOL";
             if (mapType == typeof(string) || mapType == typeof(char) || mapType == typeof(Guid)) return "STRING";
             if (mapType.IsEnum || mapType.IsNumberType()) return
-                mapType == typeof(float) || mapType == typeof(double) || mapType == typeof(decimal)
-                    ? "FLOAT"
-                    : "INT";
+                mapType == typeof(decimal) ? "DECIMAL" :
+                mapType == typeof(float) || mapType == typeof(double) ? "FLOAT" : "INT";
 
             if (mapType.IsArray)
                 throw new NotSupportedException(
@@ -686,7 +707,14 @@ namespace FreeSql.SonnetDB
             if (normalized.Contains("JSON")) return "JSON";
             if (normalized.Contains("BLOB") || normalized.Contains("BYTEA") || normalized.Contains("VARBINARY")) return "BLOB";
             if (normalized.Contains("DATETIME") || normalized.Contains("TIMESTAMP")) return "DATETIME";
-            if (normalized.Contains("FLOAT") || normalized.Contains("DOUBLE") || normalized.Contains("REAL") || normalized.Contains("DECIMAL") || normalized.Contains("NUMERIC")) return "FLOAT";
+            if (normalized.Contains("DECIMAL") || normalized.Contains("NUMERIC"))
+            {
+                var precision = Regex.Match(normalized, @"(?:DECIMAL|NUMERIC)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)");
+                return precision.Success ? $"DECIMAL({precision.Groups[1].Value},{precision.Groups[2].Value})" : "DECIMAL";
+            }
+            if (normalized.Contains("FLOAT") || normalized.Contains("DOUBLE") || normalized.Contains("REAL")) return "FLOAT";
+            if (normalized == "TIME" || normalized.StartsWith("TIME ")) return "TIME";
+            if (normalized == "DATE" || normalized.StartsWith("DATE ")) return "DATETIME";
             if (normalized.Contains("BOOL") || normalized.Contains("BOOLEAN")) return "BOOL";
             if (normalized.Contains("BIGINT") || normalized.Contains("INTEGER") || normalized.Contains("INT64") || normalized == "INT" || normalized.StartsWith("INT ")) return "INT";
             if (normalized.Contains("STRING") || normalized.Contains("VARCHAR") || normalized.Contains("TEXT") || normalized.Contains("CHAR")) return "STRING";

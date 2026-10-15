@@ -3,18 +3,19 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SonnetDB.Sql;
 
 namespace FreeSql.SonnetDB.Curd
 {
     /// <summary>
-    /// SonnetDB 关系表实体的 UPDATE 实现。
-    /// SonnetDB 时序测量保持追加写入语义，构造函数通过
-    /// <see cref="SonnetDBModel"/> 拒绝此类操作。
+    /// 关系表 UPDATE，以及时序测量的单个 VECTOR FIELD 替换。
     /// </summary>
     class SonnetDBUpdate<T1> : UpdateProvider<T1>, IUpdate<T1>
     {
@@ -32,7 +33,7 @@ namespace FreeSql.SonnetDB.Curd
             // 因此与 Update<object>() 一样延迟到生成 SQL 时校验。
             if (typeof(T1) != typeof(object) &&
                 typeof(T1) != typeof(Dictionary<string, object>))
-                SonnetDBModel.EnsureTable(_table, "UPDATE");
+                EnsureUpdateModel(_table);
             // ROWVERSION 由 SonnetDB 维护。保留 FreeSql 生成的乐观锁条件，
             // 但绝不输出对该列的赋值。
             if (_table?.VersionColumn != null)
@@ -44,7 +45,7 @@ namespace FreeSql.SonnetDB.Curd
             EnsureAsTypeTarget(entityType);
             var result = base.AsType(entityType);
             if (_table?.Type != typeof(object))
-                SonnetDBModel.EnsureTable(_table, "UPDATE");
+                EnsureUpdateModel(_table);
             return result;
         }
 
@@ -52,11 +53,25 @@ namespace FreeSql.SonnetDB.Curd
         // 通过 IUpdate<T1> 调用 AsType 时也先执行 SonnetDB 模型校验。
         IUpdate<T1> IUpdate<T1>.AsType(Type entityType) => AsType(entityType);
 
+        // The shared implementation resolves selected names only through
+        // ColumnsByCs. A renamed Column can be returned by its database name;
+        // retain it when selecting a subset for RETURNING.
+        public new List<TReturn> ExecuteUpdated<TReturn>(Expression<Func<T1, TReturn>> returnColumns) =>
+            ExecuteUpdated<TReturn>(GetReturningColumns(returnColumns));
+
+        public new Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(Expression<Func<T1, TReturn>> returnColumns,
+            CancellationToken cancellationToken = default) => ExecuteUpdatedAsync<TReturn>(GetReturningColumns(returnColumns), cancellationToken);
+
+        ColumnInfo[] GetReturningColumns<TReturn>(Expression<Func<T1, TReturn>> returnColumns) =>
+            _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, null, returnColumns?.Body, false, null)
+                .Select(name => _table.ColumnsByCs.TryGetValue(name, out var column) ? column :
+                    _table.Columns.TryGetValue(name, out column) ? column : null).Where(column => column != null).ToArray();
+
         void EnsureAsTypeTarget(Type entityType)
         {
             if (entityType == null || entityType == typeof(object)) return;
             var target = _commonUtils.GetTableByEntity(entityType);
-            if (target != null) SonnetDBModel.EnsureTable(target, "UPDATE");
+            if (target != null) EnsureUpdateModel(target);
         }
 
         public override int ExecuteAffrows() =>
@@ -64,7 +79,7 @@ namespace FreeSql.SonnetDB.Curd
 
         int ExecuteAffrowsCore()
         {
-            EnsureRelationshipTable();
+            EnsureUpdateOperation();
             var expectedVersionRows = _table?.VersionColumn != null && _source?.Count > 0
                 ? _source.Count
                 : 0;
@@ -87,7 +102,7 @@ namespace FreeSql.SonnetDB.Curd
 
         public override string ToSql()
         {
-            EnsureRelationshipTable();
+            EnsureUpdateOperation();
             var sql = base.ToSql();
             if (_table?.Primarys == null || _table.Primarys.Length == 0) return sql;
             var projection = _table.Primarys.Length == 1
@@ -100,7 +115,7 @@ namespace FreeSql.SonnetDB.Curd
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
-            EnsureRelationshipTable();
+            EnsureUpdateOperation();
             return ExecuteAffrowsAsyncCore(cancellationToken);
         }
 
@@ -128,25 +143,46 @@ namespace FreeSql.SonnetDB.Curd
 
         protected override List<TReturn> ExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
         {
-            EnsureRelationshipTable();
-            throw new NotSupportedException(
-                "SonnetDB 3.1 不支持 UPDATE ... RETURNING；FreeSql ExecuteUpdated 不可用。");
+            SonnetDBModel.EnsureTable(_table, "UPDATE ... RETURNING");
+            _lastSql = null;
+            _lastDbParams = null;
+            try
+            {
+                return base.SplitExecuteUpdated<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                    _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns);
+            }
+            catch (Exception ex)
+            {
+                var converted = ConvertConcurrencyConflict(ex);
+                if (!ReferenceEquals(converted, ex)) throw converted;
+                throw;
+            }
         }
 
-        protected override Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
+        protected override async Task<List<TReturn>> ExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
             CancellationToken cancellationToken = default)
         {
-            EnsureRelationshipTable();
-            throw new NotSupportedException(
-                "SonnetDB 3.1 不支持 UPDATE ... RETURNING；FreeSql ExecuteUpdated 不可用。");
+            SonnetDBModel.EnsureTable(_table, "UPDATE ... RETURNING");
+            _lastSql = null;
+            _lastDbParams = null;
+            try
+            {
+                return await base.SplitExecuteUpdatedAsync<TReturn>(_batchRowsLimit > 0 ? _batchRowsLimit : 500,
+                    _batchParameterLimit > 0 ? _batchParameterLimit : 3000, columns, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                var converted = ConvertConcurrencyConflict(ex);
+                if (!ReferenceEquals(converted, ex)) throw converted;
+                throw;
+            }
         }
 #endif
 
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
-            // SonnetDB 3.1 的 CASE 解析器只接受搜索式 CASE，
-            // 即 CASE WHEN ... THEN ... END，不接受 CASE <表达式> WHEN ...。
-            // 单主键和复合主键都使用逐列条件，避免拼接主键值或改变列类型。
+            // 单主键和复合主键均使用搜索式 CASE 的逐列条件，避免拼接主键值
+            // 造成冲突，或把原有键转换成另一种类型。
         }
 
         protected override void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d)
@@ -165,7 +201,7 @@ namespace FreeSql.SonnetDB.Curd
         {
             // AsType 可以在构造后替换 _table，因此每次生成 SQL 都要依据当前
             // 映射重新校验，不能只依赖构造函数中的检查。
-            EnsureRelationshipTable();
+            EnsureUpdateOperation();
 
             // FreeSql 允许显式调用 Set(x => x.Version, ...)，但 SonnetDB 的
             // ROWVERSION 只能由数据库生成。先检查并拒绝该赋值，避免通用
@@ -173,9 +209,8 @@ namespace FreeSql.SonnetDB.Curd
             // 和更新后的版本号递增处理。
             if (_table.VersionColumn != null)
             {
-                var versionName = _commonUtils.QuoteSqlName(_table.VersionColumn.Attribute.Name);
-                if (_set.ToString().IndexOf(versionName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    _setIncr.ToString().IndexOf(versionName, StringComparison.OrdinalIgnoreCase) >= 0)
+                var versionName = _table.VersionColumn.Attribute.Name;
+                if (AssignsColumn(_set.ToString(), versionName) || AssignsColumn(_setIncr.ToString(), versionName))
                 {
                     throw new NotSupportedException(
                         "SonnetDB ROWVERSION 由数据库自动生成，FreeSql UPDATE 不能为其赋值。");
@@ -194,6 +229,7 @@ namespace FreeSql.SonnetDB.Curd
             try
             {
                 base.ToSqlExtension110(sb, isAsTableSplited);
+                ValidateMeasurementAssignments(sb.ToString());
                 if (_table?.Primarys == null || _table.Primarys.Length == 0)
                 {
                     _lastSql = sb.ToString();
@@ -216,6 +252,30 @@ namespace FreeSql.SonnetDB.Curd
             }
         }
 
+        static bool AssignsColumn(string assignments, string columnName)
+        {
+            if (string.IsNullOrWhiteSpace(assignments)) return false;
+            var tokens = SqlLexer.Tokenize(assignments);
+            var depth = 0;
+            var assignmentStart = true;
+            for (var index = 0; index < tokens.Count - 1; index++)
+            {
+                var token = tokens[index];
+                if (token.Kind == TokenKind.LeftParen || token.Kind == TokenKind.LeftBracket) depth++;
+                else if (token.Kind == TokenKind.RightParen || token.Kind == TokenKind.RightBracket) depth--;
+                else if (depth == 0 && token.Kind == TokenKind.Comma)
+                {
+                    assignmentStart = true;
+                    continue;
+                }
+                if (depth == 0 && assignmentStart && token.Kind == TokenKind.IdentifierLiteral &&
+                    tokens[index + 1].Kind == TokenKind.Equal &&
+                    string.Equals(token.Text, columnName, StringComparison.OrdinalIgnoreCase)) return true;
+                assignmentStart = false;
+            }
+            return false;
+        }
+
         public override void ToSqlWhere(StringBuilder sb)
         {
             base.ToSqlWhere(sb);
@@ -228,25 +288,103 @@ namespace FreeSql.SonnetDB.Curd
 
         protected override List<TReturn> RawExecuteUpdated<TReturn>(IEnumerable<ColumnInfo> columns)
         {
-            EnsureRelationshipTable();
-            throw new NotSupportedException(
-                "SonnetDB 3.1 不支持 UPDATE ... RETURNING；FreeSql ExecuteUpdated 不可用。");
+            SonnetDBModel.EnsureTable(_table, "UPDATE ... RETURNING");
+            var result = new List<TReturn>();
+            var returning = BuildReturningClause(columns);
+            ToSqlFetch(sb =>
+            {
+                var sql = sb.Append(returning).ToString();
+                var parameters = _params.Concat(_paramsSource).ToArray();
+                _lastSql = sql;
+                _lastDbParams = parameters;
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, parameters);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                Exception exception = null;
+                try
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rows = SonnetDBReturning.Query<TReturn>(_orm, _commonUtils, _table, queryType, _connection, _transaction,
+                        sql, _commandTimeout, parameters);
+                    ValidateVersionAndThrow(rows.Count, sql, parameters);
+                    result.AddRange(rows);
+                }
+                catch (Exception ex) { exception = ex; throw; }
+                finally
+                {
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, new Aop.CurdAfterEventArgs(before, exception, result));
+                }
+            });
+            return result;
         }
+
+        string BuildReturningClause(IEnumerable<ColumnInfo> columns) =>
+            " RETURNING " + string.Join(", ", columns.Select(column => _commonUtils.QuoteSqlName(column.Attribute.Name)));
 
         // UpdateProvider 的异步基类实现会调用上面的提供程序重写。
         // 在抽象成员被编译到异步部分类的目标框架中，显式保留此实现。
 #if net40
 #else
-        protected override Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
+        protected override async Task<List<TReturn>> RawExecuteUpdatedAsync<TReturn>(IEnumerable<ColumnInfo> columns,
             CancellationToken cancellationToken = default)
         {
-            EnsureRelationshipTable();
-            throw new NotSupportedException(
-                "SonnetDB 3.1 不支持 UPDATE ... RETURNING；FreeSql ExecuteUpdatedAsync 不可用。");
+            SonnetDBModel.EnsureTable(_table, "UPDATE ... RETURNING");
+            var result = new List<TReturn>();
+            var returning = BuildReturningClause(columns);
+            await ToSqlFetchAsync(async sb =>
+            {
+                var sql = sb.Append(returning).ToString();
+                var parameters = _params.Concat(_paramsSource).ToArray();
+                _lastSql = sql;
+                _lastDbParams = parameters;
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, parameters);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                Exception exception = null;
+                try
+                {
+                    var queryType = typeof(TReturn) == typeof(T1) ? (_table.TypeLazy ?? _table.Type) : null;
+                    var rows = await SonnetDBReturning.QueryAsync<TReturn>(_orm, _commonUtils, _table, queryType, _connection, _transaction,
+                        sql, _commandTimeout, parameters, cancellationToken);
+                    ValidateVersionAndThrow(rows.Count, sql, parameters);
+                    result.AddRange(rows);
+                }
+                catch (Exception ex) { exception = ex; throw; }
+                finally
+                {
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, new Aop.CurdAfterEventArgs(before, exception, result));
+                }
+            });
+            return result;
         }
 #endif
 
-        void EnsureRelationshipTable() => SonnetDBModel.EnsureTable(_table, "UPDATE");
+        void EnsureUpdateOperation()
+        {
+            EnsureUpdateModel(_table);
+            if (!SonnetDBModel.IsMeasurement(_table)) return;
+            if (_transaction != null || _orm.Ado.TransactionCurrentThread != null)
+                throw new NotSupportedException("SonnetDB 时序测量 VECTOR UPDATE 不能在事务中执行。");
+            _batchAutoTransaction = false;
+        }
+
+        static void EnsureUpdateModel(TableInfo table)
+        {
+            if (SonnetDBModel.IsTable(table)) return;
+            if (table?.Columns.Values.Any(IsVectorColumn) == true) return;
+            throw new NotSupportedException("SonnetDB 时序测量 UPDATE 仅支持已声明的 VECTOR FIELD；普通 FIELD 和 TAG 不支持更新。");
+        }
+
+        static bool IsVectorColumn(ColumnInfo column) =>
+            column.Attribute.MapType.NullableTypeOrThis() == typeof(float[]) ||
+            (column.Attribute.DbType ?? string.Empty).IndexOf("VECTOR", StringComparison.OrdinalIgnoreCase) >= 0;
+
+        void ValidateMeasurementAssignments(string sql)
+        {
+            if (!SonnetDBModel.IsMeasurement(_table) || string.IsNullOrWhiteSpace(sql)) return;
+            var update = global::SonnetDB.Sql.SqlParser.Parse(sql) as global::SonnetDB.Sql.Ast.UpdateStatement;
+            if (update == null || update.Assignments.Count != 1 ||
+                !_table.Columns.TryGetValue(update.Assignments[0].ColumnName, out var column) || !IsVectorColumn(column))
+                throw new NotSupportedException("SonnetDB 时序测量 UPDATE 每次只能替换一个已声明的 VECTOR FIELD。");
+        }
 
         Exception ConvertConcurrencyConflict(Exception exception)
         {

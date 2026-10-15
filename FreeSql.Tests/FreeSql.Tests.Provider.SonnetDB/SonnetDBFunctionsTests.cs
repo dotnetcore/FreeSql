@@ -8,6 +8,43 @@ namespace FreeSql.Tests.Provider.SonnetDB;
 public class SonnetDBFunctionsTests
 {
     [Fact]
+    public void VectorScalars_ExecuteWithGeneratedLambdaParameters()
+    {
+        using var fsql = new FreeSqlBuilder()
+            .UseConnectionString(DataType.SonnetDB,
+                $"Data Source={Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-VectorScalarParameterTests", Guid.NewGuid().ToString("N"))}")
+            .UseNoneCommandParameter(false)
+            .UseGenerateCommandParameterWithLambda(true)
+            .UseAutoSyncStructure(true)
+            .Build();
+        var first = new[] { 1f, 0f };
+        var second = new[] { 0f, 1f };
+        Assert.Equal(1, fsql.Insert(new VectorFunctionMetric
+        {
+            Time = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc),
+            Embedding = first
+        }).ExecuteAffrows());
+        var parameters = new List<System.Data.Common.DbParameter>();
+        fsql.Aop.CurdBefore += (_, args) => parameters.AddRange(args.DbParms ?? []);
+
+        var result = Assert.Single(fsql.Select<VectorFunctionMetric>()
+            .ToList(a => new
+            {
+                Cosine = SonnetDBFunctions.CosineDistance(a.Embedding, second),
+                L2 = SonnetDBFunctions.L2Distance(a.Embedding, second),
+                InnerProduct = SonnetDBFunctions.InnerProduct(a.Embedding, second),
+                Norm = SonnetDBFunctions.VectorNorm(a.Embedding)
+            }));
+
+        Assert.Equal(1, result.Cosine, 12);
+        Assert.Equal(Math.Sqrt(2), result.L2, 12);
+        Assert.Equal(0, result.InnerProduct, 12);
+        Assert.Equal(1, result.Norm, 12);
+        Assert.Contains(parameters, parameter => parameter.Value is float[] vector &&
+            vector.SequenceEqual(second) && parameter.DbType == System.Data.DbType.Object);
+    }
+
+    [Fact]
     public void ToSql_UsesSonnetDB31WindowAndAggregateFunctions()
     {
         using var fsql = CreateFreeSql();
@@ -315,21 +352,19 @@ public class SonnetDBFunctionsTests
     }
 
     [Fact]
-    public void UnsupportedScalarFunctions_AreRejectedBeforeSqlGeneration()
+    public void StringAndMathScalarFunctions_GenerateNativeSql()
     {
         using var fsql = CreateFreeSql();
 
-        var trim = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<FunctionMetric>().ToSql(a => a.State.Trim()));
-        Assert.Contains("不支持", trim.Message);
-
-        var exp = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<FunctionMetric>().ToSql(a => Math.Exp(a.Value)));
-        Assert.Contains("不支持", exp.Message);
-
-        var power = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<FunctionMetric>().ToSql(a => Math.Pow(a.Value, 2)));
-        Assert.Contains("不支持", power.Message);
+        var sql = fsql.Select<FunctionMetric>().ToSql(a => new
+        {
+            Trim = a.State.Trim(),
+            Exp = Math.Exp(a.Value),
+            Power = Math.Pow(a.Value, 2)
+        });
+        Assert.Contains("trim(a.\"State\")", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("exp(a.\"Value\")", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("power(a.\"Value\", 2)", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -381,6 +416,16 @@ public class SonnetDBFunctionsTests
         public string Position { get; set; } = "";
         public string State { get; set; } = "";
         public bool Active { get; set; }
+    }
+
+    [Table(Name = "sonnet_vector_function_metric")]
+    sealed class VectorFunctionMetric
+    {
+        [Column(Name = "time")]
+        public DateTime Time { get; set; }
+
+        [Column(DbType = "FIELD VECTOR(2)", MapType = typeof(float[]))]
+        public float[] Embedding { get; set; } = [];
     }
 
     [Table(Name = "sonnet_json_path_metric")]

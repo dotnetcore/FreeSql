@@ -27,7 +27,7 @@ public sealed class SonnetDBDictionaryCrudTests
     }
 
     [Fact]
-    public void DictionaryUpsert_RemainsRejectedWithChineseMessage()
+    public async Task DictionaryUpsert_UsesAtomicConflictClauseAndUpdatesTheExistingRow()
     {
         using var fsql = new FreeSqlBuilder()
             .UseConnectionString(DataType.SonnetDB,
@@ -40,9 +40,18 @@ public sealed class SonnetDBDictionaryCrudTests
             ["Name"] = "动态表"
         };
 
-        var exception = Assert.Throws<NotSupportedException>(() => fsql.InsertOrUpdateDict(row));
-        Assert.Contains("原子", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("InsertOrUpdate", exception.Message, StringComparison.Ordinal);
+        fsql.Ado.ExecuteNonQuery(
+            "CREATE TABLE \"sonnet_dictionary_upsert\" (\"Id\" INT, \"Name\" STRING, PRIMARY KEY (\"Id\"))");
+        var insert = fsql.InsertOrUpdateDict(row).AsTable("sonnet_dictionary_upsert").WherePrimary("Id");
+        Assert.Contains("ON CONFLICT (\"Id\") DO UPDATE", insert.ToSql(), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, insert.ExecuteAffrows());
+
+        var changed = new Dictionary<string, object> { ["Id"] = 7L, ["Name"] = "冲突后更新" };
+        Assert.Equal(1, await fsql.InsertOrUpdateDict(changed)
+            .AsTable("sonnet_dictionary_upsert").WherePrimary("Id").ExecuteAffrowsAsync());
+        Assert.Equal("冲突后更新", fsql.Ado.ExecuteScalar(
+            "SELECT \"Name\" FROM \"sonnet_dictionary_upsert\" WHERE \"Id\" = 7")?.ToString());
+        Assert.Equal(1L, Convert.ToInt64(fsql.Ado.ExecuteScalar("SELECT COUNT(*) FROM \"sonnet_dictionary_upsert\"")));
     }
 
     [Fact]

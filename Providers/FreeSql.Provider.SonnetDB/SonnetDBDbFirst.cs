@@ -1,6 +1,6 @@
 // SonnetDB DbFirst 实现。
 //
-// SonnetDB 有两种 SQL 数据模型：关系表的元数据通过 SonnetDB 3.1
+// SonnetDB 有两种 SQL 数据模型：关系表的元数据通过
 // ADO.NET GetSchema 合同提供，时序测量的元数据继续通过
 // SHOW/DESCRIBE 命令提供。
 
@@ -44,8 +44,11 @@ namespace FreeSql.SonnetDB
             // 其 CLR 类型在下面的专门映射中保留为 GeoPoint。
             if (type.Contains("geopoint")) return (int)DbType.Object;
             if (type.Contains("rowversion")) return (int)DbType.Int64;
-            if (type.Contains("datetime") || type.Contains("timestamp") || type == "date" || type.StartsWith("date ")) return (int)DbType.DateTime;
-            if (type.Contains("float") || type.Contains("double") || type.Contains("real") || type.Contains("decimal")) return (int)DbType.Double;
+            if (type.Contains("datetime") || type.Contains("timestamp")) return (int)DbType.DateTime;
+            if (type == "date" || type.StartsWith("date ")) return (int)DbType.Date;
+            if (type == "time" || type.StartsWith("time ")) return (int)DbType.Time;
+            if (type.Contains("decimal") || type.Contains("numeric")) return (int)DbType.Decimal;
+            if (type.Contains("float") || type.Contains("double") || type.Contains("real")) return (int)DbType.Double;
             if (type.Contains("int") || type.Contains("bigint") || type.Contains("long") || string.Equals(column?.Name, "time", StringComparison.OrdinalIgnoreCase)) return (int)DbType.Int64;
             if (type.Contains("bool")) return (int)DbType.Boolean;
             if (type.Contains("blob") || type.Contains("binary")) return (int)DbType.Binary;
@@ -59,6 +62,9 @@ namespace FreeSql.SonnetDB
         {
             { (int)DbType.Int64, new DbToCs("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
             { (int)DbType.Double, new DbToCs("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
+            { (int)DbType.Decimal, new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
+            { (int)DbType.Time, new DbToCs("(TimeOnly?)", "TimeOnly.Parse({0})", "{0}.ToString()", "TimeOnly?", typeof(TimeOnly), typeof(TimeOnly?), "{0}.Value", "GetValue") },
+            { (int)DbType.Date, new DbToCs("(DateOnly?)", "DateOnly.Parse({0})", "{0}.ToString()", "DateOnly?", typeof(DateOnly), typeof(DateOnly?), "{0}.Value", "GetValue") },
             { (int)DbType.Boolean, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
             { (int)DbType.DateTime, new DbToCs("(DateTime?)", "DateTime.Parse({0})", "{0}.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
             { (int)DbType.Binary, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
@@ -752,8 +758,11 @@ namespace FreeSql.SonnetDB
         {
             if (type == typeof(bool)) return "boolean";
             if (type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) || type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong)) return "int64";
-            if (type == typeof(float) || type == typeof(double) || type == typeof(decimal)) return "float64";
+            if (type == typeof(float) || type == typeof(double)) return "float64";
             if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return "datetime";
+            if (type == typeof(decimal)) return "decimal";
+            if (type == typeof(TimeOnly) || type == typeof(TimeSpan)) return "time";
+            if (type == typeof(DateOnly)) return "date";
             if (type == typeof(byte[])) return "blob";
             return "string";
         }

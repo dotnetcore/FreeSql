@@ -1390,6 +1390,8 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.Sqlite:
                     break;
+                case DataType.SonnetDB:
+                    throw new NotSupportedException("SonnetDB 不支持 SELECT ... FOR UPDATE；上游 #233 跟踪关系表锁定读。");
                 case DataType.GBase:
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";

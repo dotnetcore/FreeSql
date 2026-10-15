@@ -52,24 +52,28 @@ public sealed class SonnetDBVectorTests
     }
 
     [Fact]
-    public void VectorParameter_ThrowsChineseCompatibilityError()
+    public void VectorParameter_RoundTripsWithNativeFloatArrayBinding()
     {
         using var fsql = new FreeSqlBuilder()
             .UseConnectionString(DataType.SonnetDB,
                 $"Data Source={Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-VectorParameterTests", Guid.NewGuid().ToString("N"))}")
             .UseNoneCommandParameter(false)
             .UseGenerateCommandParameterWithLambda(true)
+            .UseAutoSyncStructure(true)
             .Build();
 
-        var exception = Assert.Throws<NotSupportedException>(() => fsql.Insert(new VectorMetric
+        var source = new VectorMetric
         {
             Time = new DateTime(2026, 9, 20, 8, 0, 0, DateTimeKind.Utc),
             Embedding = [1f, 0.5f, -2f]
-        }).ToSql());
+        };
+        var parameters = new List<System.Data.Common.DbParameter>();
+        fsql.Aop.CurdBefore += (_, args) => parameters.AddRange(args.DbParms ?? []);
 
-        Assert.Contains("VECTOR", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("参数绑定", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("UseNoneCommandParameter", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(1, fsql.Insert(source).ExecuteAffrows());
+        Assert.Equal(source.Embedding, fsql.Select<VectorMetric>().ToOne().Embedding);
+        Assert.Contains(parameters, parameter => parameter.Value is float[] vector &&
+            vector.SequenceEqual(source.Embedding) && parameter.DbType == System.Data.DbType.Object);
     }
 
     [Fact]

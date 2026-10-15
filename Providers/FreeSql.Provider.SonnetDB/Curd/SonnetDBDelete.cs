@@ -20,8 +20,32 @@ namespace FreeSql.SonnetDB.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted() => throw new NotSupportedException(
-            "SonnetDB 3.1 不支持 DELETE ... RETURNING；FreeSql ExecuteDeleted 不可用。");
+        public override List<T1> ExecuteDeleted()
+        {
+            SonnetDBModel.EnsureTable(_table, "DELETE ... RETURNING");
+            var result = new List<T1>();
+            DbParameter[] parameters = null;
+            ToSqlFetch(sb =>
+            {
+                if (parameters == null) parameters = _params.ToArray();
+                var sql = RewriteMutationSql(sb) + " RETURNING *";
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, parameters);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                Exception exception = null;
+                try
+                {
+                    result.AddRange(SonnetDBReturning.Query<T1>(_orm, _commonUtils, _table, _table.TypeLazy ?? _table.Type, _connection, _transaction,
+                        sql, _commandTimeout, parameters));
+                }
+                catch (Exception ex) { exception = ex; throw; }
+                finally
+                {
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, new Aop.CurdAfterEventArgs(before, exception, result));
+                }
+            });
+            if (parameters != null) ClearData();
+            return result;
+        }
 
         public override string ToSql()
         {
@@ -121,8 +145,32 @@ namespace FreeSql.SonnetDB.Curd
             return affrows;
         }
 
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException(
-            "SonnetDB 3.1 不支持 DELETE ... RETURNING；FreeSql ExecuteDeletedAsync 不可用。");
+        public override async Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
+        {
+            SonnetDBModel.EnsureTable(_table, "DELETE ... RETURNING");
+            var result = new List<T1>();
+            DbParameter[] parameters = null;
+            await ToSqlFetchAsync(async sb =>
+            {
+                if (parameters == null) parameters = _params.ToArray();
+                var sql = RewriteMutationSql(sb) + " RETURNING *";
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, parameters);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                Exception exception = null;
+                try
+                {
+                    result.AddRange(await SonnetDBReturning.QueryAsync<T1>(_orm, _commonUtils, _table, _table.TypeLazy ?? _table.Type, _connection, _transaction,
+                        sql, _commandTimeout, parameters, cancellationToken));
+                }
+                catch (Exception ex) { exception = ex; throw; }
+                finally
+                {
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, new Aop.CurdAfterEventArgs(before, exception, result));
+                }
+            });
+            if (parameters != null) ClearData();
+            return result;
+        }
 #endif
 
         void EnsureMeasurementTransactionIsNotUsed()

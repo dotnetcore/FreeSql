@@ -112,8 +112,8 @@ namespace FreeSql.SonnetDB.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction,
-                    CommandType.Text, sql, _commandTimeout, _params);
+                ret = SonnetDBReturning.Query<T1>(_orm, _commonUtils, _table, _table.TypeLazy ?? _table.Type, _connection, _transaction,
+                    sql, _commandTimeout, _params);
                 return ret;
             }
             catch (Exception ex)
@@ -210,8 +210,8 @@ namespace FreeSql.SonnetDB.Curd
             List<T1> ret = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction,
-                    CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                ret = await SonnetDBReturning.QueryAsync<T1>(_orm, _commonUtils, _table, _table.TypeLazy ?? _table.Type, _connection, _transaction,
+                    sql, _commandTimeout, _params, cancellationToken);
                 return ret;
             }
             catch (Exception ex)

@@ -60,18 +60,25 @@ public sealed class SonnetDBParameterTypeTests
     }
 
     [Fact]
-    public void RawAdo_FloatArrayParameter_IsRejectedBeforeDriverBinding()
+    public void RawAdo_FloatArrayParameter_ExecutesMeasurementDistance()
     {
         using var fsql = new FreeSqlBuilder()
             .UseConnectionString(DataType.SonnetDB,
                 $"Data Source={Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-RawVectorParameterTests", Guid.NewGuid().ToString("N"))}")
+            .UseAutoSyncStructure(true)
+            .UseNoneCommandParameter(false)
             .Build();
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Ado.ExecuteNonQuery("SELECT @vector", new { vector = new[] { 1f, 2f } }));
+        fsql.Insert(new VectorParameterRow
+        {
+            Time = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc),
+            Embedding = [1f, 0f]
+        }).ExecuteAffrows();
+        var distance = fsql.Ado.ExecuteScalar(
+            "SELECT cosine_distance(\"Embedding\", @vector) FROM \"sonnet_raw_vector_parameter\"",
+            new { vector = new[] { 1f, 0f } });
 
-        Assert.Contains("VECTOR", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("参数绑定", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(0d, Convert.ToDouble(distance));
     }
 
     [Fact]
@@ -143,6 +150,16 @@ public sealed class SonnetDBParameterTypeTests
         public char Code { get; set; }
 
         public string Name { get; set; } = string.Empty;
+    }
+
+    [Table(Name = "sonnet_raw_vector_parameter")]
+    private sealed class VectorParameterRow
+    {
+        [Column(Name = "time")]
+        public DateTime Time { get; set; }
+
+        [Column(DbType = "FIELD VECTOR(2)", MapType = typeof(float[]))]
+        public float[] Embedding { get; set; } = [];
     }
 
     [SonnetDBTable]

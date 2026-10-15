@@ -27,7 +27,7 @@ public class SonnetDBProviderTests
             .ToSql();
 
         Assert.Equal(
-            "SELECT a.time, a.\"Host\", a.\"Usage\", a.\"Ok\" \r\n" +
+            "SELECT to_utc_datetime(a.time) AS \"__freesql_time\", a.\"Host\", a.\"Usage\", a.\"Ok\" \r\n" +
             "FROM \"sonnet_metric\" a \r\n" +
             "WHERE (a.\"Host\" = 'server-01' AND a.time >= 1777536000000) \r\n" +
             "limit 10",
@@ -45,7 +45,7 @@ public class SonnetDBProviderTests
             .ToSql();
 
         Assert.Equal(
-            "SELECT a.time, a.\"Host\", a.\"Usage\", a.\"Ok\" \r\n" +
+            "SELECT to_utc_datetime(a.time) AS \"__freesql_time\", a.\"Host\", a.\"Usage\", a.\"Ok\" \r\n" +
             "FROM \"metrics\".\"sonnet_metric\" a \r\n" +
             "WHERE (a.\"Host\" = 'server-01')",
             sql);
@@ -89,7 +89,7 @@ public class SonnetDBProviderTests
         var ex = Assert.Throws<NotSupportedException>(() => fsql.Update<SonnetMetric>());
 
         Assert.Contains("UPDATE", ex.Message);
-        Assert.Contains("关系表", ex.Message);
+        Assert.Contains("VECTOR FIELD", ex.Message);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class SonnetDBProviderTests
             .Where("1 = 1")
             .AsType(typeof(SonnetMetric)));
         Assert.Contains("UPDATE", ex.Message);
-        Assert.Contains("关系表", ex.Message);
+        Assert.Contains("VECTOR FIELD", ex.Message);
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public class SonnetDBProviderTests
 
         var ex = Assert.Throws<NotSupportedException>(() => fsql.InsertOrUpdate<SonnetMetric>());
 
-        Assert.Contains("原子", ex.Message);
-        Assert.Contains("InsertOrUpdate", ex.Message);
+        Assert.Contains("关系表", ex.Message);
+        Assert.Contains("ON CONFLICT", ex.Message);
     }
 
     [Fact]
@@ -598,46 +598,45 @@ public class SonnetDBProviderTests
     }
 
     [Fact]
-    public void MeasurementJoins_ThrowChineseNotSupported()
+    public void MeasurementJoin_ExecutesAgainstOneRelationshipDimension()
     {
-        using var fsql = CreateFreeSql();
+        using var fsql = CreateFreeSql(autoSyncStructure: true, noneCommandParameter: false,
+            generateCommandParameterWithLambda: true);
+        fsql.Insert(new SonnetDevice { Name = "joined-host" }).ExecuteAffrows();
+        fsql.Insert(new SonnetMetric { Time = TestTime, Host = "joined-host", Usage = 0.75 }).ExecuteAffrows();
 
-        var ex = Assert.Throws<NotSupportedException>(() => fsql.Select<SonnetMetric>()
+        var rows = fsql.Select<SonnetMetric>()
             .InnerJoin<SonnetDevice>((a, b) => a.Host == b.Name)
-            .ToSql());
-
-        Assert.Contains("参数绑定", ex.Message);
-        Assert.Contains("JOIN", ex.Message);
-        Assert.Contains("拒绝", ex.Message);
+            .Where(a => a.Host == "joined-host")
+            .ToList(a => new { a.Host, a.Usage });
+        Assert.Equal(0.75, Assert.Single(rows).Usage);
 
         var reverse = Assert.Throws<NotSupportedException>(() => fsql.Select<SonnetDevice, SonnetMetric>()
             .LeftJoin((a, b) => a.Name == b.Host)
             .ToSql());
         Assert.Contains("时序测量", reverse.Message);
-        Assert.Contains("参数绑定", reverse.Message);
+        Assert.Contains("INNER JOIN", reverse.Message);
     }
 
     [Fact]
-    public void UnsupportedJoinShapes_ThrowChineseNotSupported()
+    public void RelationshipJoinShapes_UseNativeSql()
     {
         using var fsql = CreateFreeSql();
 
-        var rightJoin = Assert.Throws<NotSupportedException>(() => fsql.Select<SonnetDevice, SonnetDevicePeer>()
+        var rightJoin = fsql.Select<SonnetDevice, SonnetDevicePeer>()
             .RightJoin((a, b) => a.Id == b.Id)
-            .ToSql());
-        Assert.Contains("RIGHT JOIN", rightJoin.Message);
-        Assert.Contains("仅支持", rightJoin.Message);
+            .ToSql();
+        Assert.Contains("RIGHT JOIN", rightJoin, StringComparison.OrdinalIgnoreCase);
 
-        var rawOuterJoin = Assert.Throws<NotSupportedException>(() => fsql.Select<SonnetDevice, SonnetDevicePeer>()
+        var rawOuterJoin = fsql.Select<SonnetDevice, SonnetDevicePeer>()
             .RawJoin("FULL JOIN \"sonnet_device_peer\" b ON a.\"Id\" = b.\"Id\"")
-            .ToSql());
-        Assert.Contains("拒绝", rawOuterJoin.Message);
+            .ToSql();
+        Assert.Contains("FULL JOIN", rawOuterJoin, StringComparison.OrdinalIgnoreCase);
 
-        var multipleRoots = Assert.Throws<NotSupportedException>(() => fsql.Select<SonnetDevice>()
+        var multipleRoots = fsql.Select<SonnetDevice>()
             .From<SonnetDevicePeer>((a, b) => a)
-            .ToSql());
-        Assert.Contains("多根 FROM", multipleRoots.Message);
-        Assert.Contains("笛卡尔积", multipleRoots.Message);
+            .ToSql();
+        Assert.Contains("CROSS JOIN", multipleRoots, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

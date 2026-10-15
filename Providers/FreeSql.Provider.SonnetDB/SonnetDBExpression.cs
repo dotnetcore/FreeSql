@@ -1,4 +1,4 @@
-﻿// SonnetDB 表达式翻译实现。
+// SonnetDB 表达式翻译实现。
 // SonnetDB 提供程序的 C# Lambda 表达式 → SQL 片段翻译器。
 //
 // 继承 FreeSql.Internal.CommonExpression，按需重写各类节点的翻译方法：
@@ -10,16 +10,19 @@
 //   ExpressionLambdaToSqlCallConvert  — 翻译 Convert 静态方法（ToBoolean/ToDouble 等）
 //
 // SonnetDB 特有说明：
-//   • time 列存储 Unix 毫秒整数，DateTime 运算以毫秒为单位做整数加减。
-//   • SonnetDB 不支持 CAST，数值类型转换直接透传原始 SQL 列名即可。
+//   • 测量的 time 列存储 Unix 毫秒；关系表 DATETIME 保留原生时间精度。
+//   • TimeSpan 的列值、参数和运算统一使用 ticks，结果投影按需适配公共读取器。
+//   • SQL CAST 映射 SonnetDB 的 INT、FLOAT、DECIMAL、STRING 和 BOOL 类型。
 
 using FreeSql.Internal;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 
 namespace FreeSql.SonnetDB
 {
@@ -29,6 +32,54 @@ namespace FreeSql.SonnetDB
     class SonnetDBExpression : CommonExpression
     {
         public SonnetDBExpression(CommonUtils common) : base(common) { }
+
+        static readonly AsyncLocal<DurationProjectionScope> _durationProjection = new AsyncLocal<DurationProjectionScope>();
+
+        internal static IDisposable BeginDurationProjection(LambdaExpression selector) =>
+            new DurationProjectionScope(selector?.Body);
+
+        sealed class DurationProjectionScope : IDisposable
+        {
+            readonly DurationProjectionScope _previous;
+            internal readonly HashSet<Expression> Leaves = new HashSet<Expression>();
+
+            internal DurationProjectionScope(Expression expression)
+            {
+                _previous = _durationProjection.Value;
+                Collect(expression);
+                _durationProjection.Value = this;
+            }
+
+            void Collect(Expression expression)
+            {
+                if (expression == null) return;
+                if (expression.Type.NullableTypeOrThis() == typeof(TimeSpan))
+                {
+                    Leaves.Add(expression);
+                    // ReadAnonymousField removes conversions and folds constant
+                    // conditionals before invoking the expression parser.
+                    if (expression is UnaryExpression unary) Collect(unary.Operand);
+                    if (expression is ConditionalExpression conditional && conditional.Test.CanDynamicInvoke())
+                    {
+                        Collect(conditional.IfTrue);
+                        Collect(conditional.IfFalse);
+                    }
+                    return;
+                }
+                if (expression is NewExpression constructor)
+                    foreach (var argument in constructor.Arguments) Collect(argument);
+                else if (expression is MemberInitExpression initializer)
+                {
+                    foreach (var argument in initializer.NewExpression.Arguments) Collect(argument);
+                    foreach (var assignment in initializer.Bindings.OfType<MemberAssignment>()) Collect(assignment.Expression);
+                }
+                else if (expression is UnaryExpression conversion &&
+                    (conversion.NodeType == ExpressionType.Convert || conversion.NodeType == ExpressionType.ConvertChecked))
+                    Collect(conversion.Operand);
+            }
+
+            public void Dispose() => _durationProjection.Value = _previous;
+        }
 
         static bool IsRelationshipTable(ExpTSC tsc)
         {
@@ -68,37 +119,37 @@ namespace FreeSql.SonnetDB
             }
         }
 
-        // SonnetDB 的日期函数返回日期分量，TimeOfDay 统一换算为当天经过的毫秒数。
+        // TimeSpan 在 SQL 表达式中统一用 ticks 表示，与实体列和常量绑定一致。
         // 关系表和时序测量都按这个单位比较，避免引入数据库端时间类型。
         static string ToSqlTimeOfDay(string left)
         {
-            return $"((date_part('hour', {left}) * 3600000) + " +
-                $"(date_part('minute', {left}) * 60000) + " +
-                $"(date_part('second', {left}) * 1000) + " +
-                $"date_part('millisecond', {left}))";
+            return $"((date_part('hour', {left}) * 36000000000) + " +
+                $"(date_part('minute', {left}) * 600000000) + " +
+                $"(date_part('second', {left}) * 10000000) + " +
+                $"(date_part('millisecond', {left}) * 10000) + " +
+                $"(date_part('microsecond', {left}) * 10) + " +
+                $"(date_part('nanosecond', {left}) / 100))";
         }
 
         static string ToSqlDateDifference(string memberName, string left, string right)
         {
-            var difference = $"(to_unix_milliseconds({left}) - to_unix_milliseconds({right}))";
+            // date_diff 返回向零截断的 Int64 差值，与 TimeSpan 负数组件一致。
+            // 先取 tick 再换算 Total*，保留关系表 DATETIME 的亚毫秒精度。
+            var ticks = $"date_diff('tick', {right}, {left})";
             switch (memberName)
             {
-                case "TotalDays": return $"({difference} / 86400000.0)";
-                case "TotalHours": return $"({difference} / 3600000.0)";
-                case "TotalMinutes": return $"({difference} / 60000.0)";
-                case "TotalSeconds": return $"({difference} / 1000.0)";
-                case "TotalMilliseconds": return difference;
-                // SonnetDB 3.1 没有 floor/date_diff，无法保持负数和跨日
-                // TimeSpan 组件（Days/Hours 等）的 .NET 语义，不能生成近似 SQL。
-                case "Days":
-                case "Hours":
-                case "Minutes":
-                case "Seconds":
-                case "Milliseconds":
-                case "Ticks":
-                    throw UnsupportedTimeSpanMember(memberName);
-                default:
-                    throw UnsupportedTimeSpanMember(memberName);
+                case "TotalDays": return $"({ticks} / 864000000000.0)";
+                case "TotalHours": return $"({ticks} / 36000000000.0)";
+                case "TotalMinutes": return $"({ticks} / 600000000.0)";
+                case "TotalSeconds": return $"({ticks} / 10000000.0)";
+                case "TotalMilliseconds": return $"({ticks} / 10000.0)";
+                case "Days": return $"date_diff('day', {right}, {left})";
+                case "Hours": return $"(date_diff('hour', {right}, {left}) % 24)";
+                case "Minutes": return $"(date_diff('minute', {right}, {left}) % 60)";
+                case "Seconds": return $"(date_diff('second', {right}, {left}) % 60)";
+                case "Milliseconds": return $"(date_diff('millisecond', {right}, {left}) % 1000)";
+                case "Ticks": return ticks;
+                default: throw UnsupportedTimeSpanMember(memberName);
             }
         }
 
@@ -112,6 +163,73 @@ namespace FreeSql.SonnetDB
             Func<Expression, string> parse, out string result)
         {
             result = null;
+            var projection = _durationProjection.Value;
+            if (projection?.Leaves.Contains(expression) == true)
+            {
+                // Only result leaves need invariant text for the existing core
+                // reader. Every expression below the leaf keeps numeric ticks.
+                _durationProjection.Value = null;
+                try { result = SonnetDBUtils.FormatTimeSpanReadSql(parse(expression)); }
+                finally { _durationProjection.Value = projection; }
+                return true;
+            }
+            if (expression is MethodCallExpression vectorCall && vectorCall.Method.DeclaringType == typeof(SonnetDBFunctions))
+            {
+                string function = null;
+                switch (vectorCall.Method.Name)
+                {
+                    case nameof(SonnetDBFunctions.CosineDistance): function = "cosine_distance"; break;
+                    case nameof(SonnetDBFunctions.L2Distance): function = "l2_distance"; break;
+                    case nameof(SonnetDBFunctions.InnerProduct): function = "inner_product"; break;
+                    case nameof(SonnetDBFunctions.VectorNorm): function = "vector_norm"; break;
+                }
+                if (function != null)
+                {
+                    // The older ExpressionCall adapter attempts to convert SQL
+                    // parameter names back to CLR arrays before calling a helper.
+                    // Parse the arguments directly so native VECTOR bindings survive.
+                    result = function + "(" + string.Join(", ", vectorCall.Arguments.Select(argument =>
+                        SonnetDBFunctions.NormalizeVectorSql(argument, parse(argument)))) + ")";
+                    return true;
+                }
+            }
+            if (expression is UnaryExpression conversion &&
+                (conversion.NodeType == ExpressionType.Convert || conversion.NodeType == ExpressionType.ConvertChecked))
+            {
+                var targetType = conversion.Type.NullableTypeOrThis();
+                var sourceType = conversion.Operand.Type.NullableTypeOrThis();
+                // 此版本公共解析器直接剥离 Convert，必须在提供程序 AOP 桥接中保留
+                // 显式数值 CAST，才能在条件和嵌套算术内执行转换。
+                if (targetType != sourceType && targetType.IsNumberType() && sourceType.IsNumberType())
+                {
+                    var sqlType = targetType == typeof(decimal) ? "DECIMAL" :
+                        targetType == typeof(float) || targetType == typeof(double) ? "FLOAT" : "INT";
+                    result = $"cast({parse(conversion.Operand)} as {sqlType})";
+                    return true;
+                }
+            }
+            if (expression is BinaryExpression shift &&
+                (shift.NodeType == ExpressionType.LeftShift || shift.NodeType == ExpressionType.RightShift))
+            {
+                var type = shift.Type.NullableTypeOrThis();
+                var countMask = type == typeof(long) || type == typeof(ulong) ? 63 : 31;
+                var function = shift.NodeType == ExpressionType.LeftShift ? "shift_left" : "shift_right";
+                var shifted = $"{function}({parse(shift.Left)}, ({parse(shift.Right)} & {countMask}))";
+                // SQL 位移按 Int64 执行；CLR Int32 左移必须丢弃高 32 位并保留符号。
+                result = type == typeof(int)
+                    ? $"(({shifted} & 2147483647) - ({shifted} & 2147483648))"
+                    : type == typeof(uint) ? $"({shifted} & 4294967295)" : shifted;
+                return true;
+            }
+            if (expression is BinaryExpression dateDifference &&
+                dateDifference.NodeType == ExpressionType.Subtract &&
+                dateDifference.Type.NullableTypeOrThis() == typeof(TimeSpan) &&
+                IsDateType(dateDifference.Left.Type.NullableTypeOrThis()) &&
+                IsDateType(dateDifference.Right.Type.NullableTypeOrThis()))
+            {
+                result = $"date_diff('tick', {parse(dateDifference.Right)}, {parse(dateDifference.Left)})";
+                return true;
+            }
             if (expression is MemberExpression member &&
                 (member.Member.DeclaringType == typeof(TimeSpan) || member.Member.Name == "TimeOfDay"))
             {
@@ -150,19 +268,40 @@ namespace FreeSql.SonnetDB
                     }
                 }
 
-                throw UnsupportedTimeSpanMember(member.Member.Name);
+                if (member.Member.DeclaringType == typeof(TimeSpan))
+                {
+                    if (member.Expression == null && expression.CanDynamicInvoke())
+                    {
+                        var constant = Expression.Lambda(expression).Compile().DynamicInvoke();
+                        result = constant is TimeSpan span
+                            ? span.Ticks == long.MinValue ? "(-9223372036854775807 - 1)" :
+                                span.Ticks.ToString(CultureInfo.InvariantCulture)
+                            : Convert.ToString(constant, CultureInfo.InvariantCulture);
+                    }
+                    else result = ToSqlTimeSpanValueMember(member.Member.Name, parse(member.Expression));
+                    return true;
+                }
             }
 
             if (expression is MethodCallExpression call &&
-                call.Method.DeclaringType == typeof(TimeSpan) &&
-                call.Arguments.All(a => a.CanDynamicInvoke()))
+                call.Method.DeclaringType == typeof(TimeSpan))
             {
-                var value = Expression.Lambda(call).Compile().DynamicInvoke();
-                if (value is TimeSpan timeSpan)
+                if (call.CanDynamicInvoke())
                 {
-                    result = timeSpan.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
+                    var value = Expression.Lambda(call).Compile().DynamicInvoke();
+                    if (value is TimeSpan timeSpan)
+                    {
+                        result = timeSpan.Ticks == long.MinValue ? "(-9223372036854775807 - 1)" :
+                            timeSpan.Ticks.ToString(CultureInfo.InvariantCulture);
+                        return true;
+                    }
+                }
+                if (call.Object == null && call.Arguments.Count == 1)
+                {
+                    result = ToSqlTimeSpanFactory(call.Method.Name, parse(call.Arguments[0]));
                     return true;
                 }
+                throw UnsupportedTimeSpanMethod(call.Method.Name);
             }
 
             return false;
@@ -216,22 +355,20 @@ namespace FreeSql.SonnetDB
                         return ToSqlDateTimeOffsetMember(memberExp, tsc, getExp);
                     break;
                 case ExpressionType.Convert:
-                    // 处理 C# 隐式/显式类型转换表达式。
-                    // SonnetDB 不支持 CAST，数值类型直接透传原始列 SQL；
-                    // Boolean 转换使用 NOT IN ('0','false') 模拟；
-                    // DateTime 转换尝试提取常量时间戳，否则直接透传。
+                    // 显式数值转换必须在数据库执行，尤其在 WHERE/算术表达式中
+                    // 不能依赖最终结果物化时的 CLR 类型转换。
                     var operandExp = (exp as UnaryExpression)?.Operand;
                     var gentype = exp.Type.NullableTypeOrThis();
                     if (operandExp != null && gentype != operandExp.Type.NullableTypeOrThis())
                     {
                         switch (gentype.ToString())
                         {
-                            case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
-                            case "System.String": return $"{getExp(operandExp)}";
+                            case "System.Boolean": return $"cast({getExp(operandExp)} as BOOL)";
+                            case "System.String": return $"cast({getExp(operandExp)} as STRING)";
                             case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? getExp(operandExp);
-                            case "System.Decimal":
+                            case "System.Decimal": return $"cast({getExp(operandExp)} as DECIMAL)";
                             case "System.Double":
-                            case "System.Single":
+                            case "System.Single": return $"cast({getExp(operandExp)} as FLOAT)";
                             case "System.Int16":
                             case "System.Int32":
                             case "System.Int64":
@@ -240,8 +377,7 @@ namespace FreeSql.SonnetDB
                             case "System.UInt16":
                             case "System.UInt32":
                             case "System.UInt64":
-                                // SonnetDB 中数值类型之间可直接比较，无需 CAST，透传原列即可。
-                                return getExp(operandExp);
+                                return $"cast({getExp(operandExp)} as INT)";
                         }
                     }
                     break;
@@ -349,8 +485,7 @@ namespace FreeSql.SonnetDB
         {
             if (exp.Expression == null && exp.Member.Name == "Empty") return "''";
             if (string.Equals(exp.Member.Name, "Length", StringComparison.Ordinal))
-                throw new NotSupportedException(
-                    "SonnetDB 3.1 未注册 string.Length 所需的 length 函数；请在应用层计算字符串长度，或等待 SonnetDB 补齐该函数。");
+                return $"length({ExpressionLambdaToSql(exp.Expression, tsc)})";
             return null;
         }
 
@@ -424,8 +559,8 @@ namespace FreeSql.SonnetDB
                 switch (exp.Member.Name)
                 {
                     case "Zero": return "0";
-                    case "MinValue": return "(-9223372036854775807 / 10000.0)";
-                    case "MaxValue": return "(9223372036854775807 / 10000.0)";
+                    case "MinValue": return "(-9223372036854775807 - 1)";
+                    case "MaxValue": return "9223372036854775807";
                     case "TicksPerMillisecond": return "10000";
                     case "TicksPerSecond": return "10000000";
                     case "TicksPerMinute": return "600000000";
@@ -435,23 +570,27 @@ namespace FreeSql.SonnetDB
                 throw UnsupportedTimeSpanMember(exp.Member.Name);
             }
 
-            var left = getExp(exp.Expression);
-            switch (exp.Member.Name)
+            return ToSqlTimeSpanValueMember(exp.Member.Name, getExp(exp.Expression));
+        }
+
+        static string ToSqlTimeSpanValueMember(string memberName, string ticks)
+        {
+            // DECIMAL 整数商避免 Int64 ticks 先转 Double 后在组件边界产生误差。
+            string quotient(long divisor) => $"cast((cast({ticks} as DECIMAL) / {divisor}) as INT)";
+            switch (memberName)
             {
-                case "TotalDays": return $"({left} / 86400000.0)";
-                case "TotalHours": return $"({left} / 3600000.0)";
-                case "TotalMinutes": return $"({left} / 60000.0)";
-                case "TotalSeconds": return $"({left} / 1000.0)";
-                case "TotalMilliseconds": return left;
-                case "Ticks": return $"({left} * 10000)";
-                case "Days":
-                case "Hours":
-                case "Minutes":
-                case "Seconds":
-                case "Milliseconds":
-                    throw UnsupportedTimeSpanMember(exp.Member.Name);
-                default:
-                    throw UnsupportedTimeSpanMember(exp.Member.Name);
+                case "TotalDays": return $"({ticks} / 864000000000.0)";
+                case "TotalHours": return $"({ticks} / 36000000000.0)";
+                case "TotalMinutes": return $"({ticks} / 600000000.0)";
+                case "TotalSeconds": return $"({ticks} / 10000000.0)";
+                case "TotalMilliseconds": return $"({ticks} / 10000.0)";
+                case "Ticks": return $"({ticks} + 0)";
+                case "Days": return quotient(TimeSpan.TicksPerDay);
+                case "Hours": return $"({quotient(TimeSpan.TicksPerHour)} % 24)";
+                case "Minutes": return $"({quotient(TimeSpan.TicksPerMinute)} % 60)";
+                case "Seconds": return $"({quotient(TimeSpan.TicksPerSecond)} % 60)";
+                case "Milliseconds": return $"({quotient(TimeSpan.TicksPerMillisecond)} % 1000)";
+                default: throw UnsupportedTimeSpanMember(memberName);
             }
         }
 
@@ -461,33 +600,36 @@ namespace FreeSql.SonnetDB
             if (exp.Object != null || exp.Arguments.Count != 1)
                 throw UnsupportedTimeSpanMethod(exp.Method.Name);
 
-            var argument = getExp(exp.Arguments[0]);
-            switch (exp.Method.Name)
+            return ToSqlTimeSpanFactory(exp.Method.Name, getExp(exp.Arguments[0]));
+        }
+
+        static string ToSqlTimeSpanFactory(string methodName, string argument)
+        {
+            switch (methodName)
             {
-                case "FromDays": return $"({argument} * 86400000.0)";
-                case "FromHours": return $"({argument} * 3600000.0)";
-                case "FromMinutes": return $"({argument} * 60000.0)";
-                case "FromSeconds": return $"({argument} * 1000.0)";
-                case "FromMilliseconds": return argument;
-                case "FromMicroseconds": return $"({argument} / 1000.0)";
-                case "FromTicks": return $"({argument} / 10000.0)";
-                default: throw UnsupportedTimeSpanMethod(exp.Method.Name);
+                case "FromDays": return $"cast(({argument} * 864000000000.0) as INT)";
+                case "FromHours": return $"cast(({argument} * 36000000000.0) as INT)";
+                case "FromMinutes": return $"cast(({argument} * 600000000.0) as INT)";
+                case "FromSeconds": return $"cast(({argument} * 10000000.0) as INT)";
+                case "FromMilliseconds": return $"cast(({argument} * 10000.0) as INT)";
+                case "FromMicroseconds": return $"cast(({argument} * 10.0) as INT)";
+                case "FromTicks": return argument;
+                default: throw UnsupportedTimeSpanMethod(methodName);
             }
         }
 
         /// <summary>
         /// 翻译 <see cref="string"/> 实例方法调用。
         /// <para>支持：ToLower、ToUpper、Equals、
-        /// StartsWith、EndsWith、Contains（常量模式翻译为已转义的 LIKE 表达式）、
-        /// IsNullOrEmpty、IsNullOrWhiteSpace、Concat（→ concat(...)）。SonnetDB 3.1 的方法名。
-        /// 没有 trim/ltrim/rtrim，Trim 系列会在翻译阶段明确拒绝；
-        /// StringComparison 和无法静态取得的动态 LIKE 模式也会明确拒绝。</para>
+        /// StartsWith、EndsWith、Contains、Substring、IndexOf、Replace、Trim 系列、
+        /// IsNullOrEmpty、IsNullOrWhiteSpace、Concat。带文化或 StringComparison 的重载
+        /// 不能保持 .NET 语义时在翻译阶段明确拒绝。</para>
         /// </summary>
         public override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 
-            // SonnetDB 3.1 只有大小写敏感的字符串比较，没有 StringComparison 参数语义。
+            // SonnetDB 的字符串函数使用 Ordinal 规则，没有 StringComparison 参数语义。
             // 不能忽略该参数，否则 OrdinalIgnoreCase 等调用会被错误翻译成大小写敏感比较。
             if (exp.Method.GetParameters().Any(a => a.ParameterType == typeof(StringComparison)))
                 throw UnsupportedStringMethod(exp.Method.Name, "StringComparison 重载");
@@ -525,22 +667,63 @@ namespace FreeSql.SonnetDB
                     case "Trim":
                     case "TrimStart":
                     case "TrimEnd":
-                        throw UnsupportedScalarFunction(exp.Method.Name, "trim/ltrim/rtrim");
+                    {
+                        var function = exp.Method.Name == "Trim" ? "trim" :
+                            exp.Method.Name == "TrimStart" ? "ltrim" : "rtrim";
+                        if (exp.Arguments.Count == 0) return $"{function}({left})";
+                        if (exp.Arguments.Count == 1)
+                        {
+                            var trimCharacters = ExpressionGetValue(exp.Arguments[0], out var success);
+                            if (success)
+                            {
+                                var characters = trimCharacters is char[] array ? new string(array) :
+                                    trimCharacters is char character ? character.ToString() : null;
+                                // 空字符数组和 null 均采用 .NET 的空白裁剪规则。
+                                if (string.IsNullOrEmpty(characters)) return $"{function}({left})";
+                                return $"{function}({left}, {formatSql(characters, typeof(string), null, null)})";
+                            }
+                            if (exp.Arguments[0].Type == typeof(char))
+                                return $"{function}({left}, {getExp(exp.Arguments[0])})";
+                        }
+                        throw UnsupportedStringMethod(exp.Method.Name, "动态字符数组重载");
+                    }
+                    case "Substring":
+                        if (exp.Arguments.Count == 1)
+                            return $"substring({left}, ({getExp(exp.Arguments[0])} + 1))";
+                        if (exp.Arguments.Count == 2)
+                            return $"substring({left}, ({getExp(exp.Arguments[0])} + 1), {getExp(exp.Arguments[1])})";
+                        throw UnsupportedStringMethod(exp.Method.Name, "当前重载");
+                    case "IndexOf":
+                        if (exp.Arguments.Count == 1)
+                            return $"(position({getExp(exp.Arguments[0])} IN {left}) - 1)";
+                        throw UnsupportedStringMethod(exp.Method.Name, "起始位置或长度重载");
+                    case "Replace":
+                        if (exp.Arguments.Count == 2)
+                            return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                        throw UnsupportedStringMethod(exp.Method.Name, "当前重载");
+                    case "PadLeft":
+                    case "PadRight":
+                        var paddingFunction = exp.Method.Name == "PadLeft" ? "lpad" : "rpad";
+                        if (exp.Arguments.Count == 1)
+                            return $"{paddingFunction}({left}, {getExp(exp.Arguments[0])})";
+                        if (exp.Arguments.Count == 2 && exp.Arguments[1].Type == typeof(char))
+                            return $"{paddingFunction}({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                        throw UnsupportedStringMethod(exp.Method.Name, "当前重载");
                     case "Equals":
                         if (exp.Arguments.Count != 1)
                             throw UnsupportedStringMethod(exp.Method.Name, "参数数量不是 1 的重载");
                         return $"({left} = {getExp(exp.Arguments[0])})";
                     case "StartsWith":
                     {
-                        return BuildLikeExpression(left, exp, LikePatternKind.StartsWith);
+                        return BuildLikeExpression(left, exp, LikePatternKind.StartsWith, getExp);
                     }
                     case "EndsWith":
                     {
-                        return BuildLikeExpression(left, exp, LikePatternKind.EndsWith);
+                        return BuildLikeExpression(left, exp, LikePatternKind.EndsWith, getExp);
                     }
                     case "Contains":
                     {
-                        return BuildLikeExpression(left, exp, LikePatternKind.Contains);
+                        return BuildLikeExpression(left, exp, LikePatternKind.Contains, getExp);
                     }
                 }
             }
@@ -554,19 +737,22 @@ namespace FreeSql.SonnetDB
             Contains
         }
 
-        static string BuildLikeExpression(string left, MethodCallExpression exp, LikePatternKind kind)
+        static string BuildLikeExpression(string left, MethodCallExpression exp, LikePatternKind kind,
+            Func<Expression, string> getExp)
         {
             if (exp.Arguments.Count != 1)
                 throw UnsupportedStringMethod(exp.Method.Name, "参数数量不是 1 的重载");
 
-            // SonnetDB 的 LIKE 匹配器把反斜杠作为转义字符，但 3.1 没有
-            // replace/ESCAPE 语法可用于运行时参数；动态模式若直接拼接会把
-            // 参数中的 % 或 _ 错当成通配符，因此必须在翻译阶段明确拒绝。
+            // 常量继续使用已转义 LIKE；动态模式使用字符串谓词，避免把
+            // 数据中的 %、_ 或反斜杠解释为模式字符。
             var value = ExpressionGetValue(exp.Arguments[0], out var success);
-            if (!success || value == null)
-                throw new NotSupportedException(
-                    $"SonnetDB 3.1 无法安全翻译 string.{exp.Method.Name} 的动态模式；" +
-                    "LIKE 模式中的 %、_ 和反斜杠需要在应用层先转义。");
+            if (!success)
+            {
+                var function = kind == LikePatternKind.StartsWith ? "starts_with" :
+                    kind == LikePatternKind.EndsWith ? "ends_with" : "contains";
+                return $"{function}({left}, {getExp(exp.Arguments[0])})";
+            }
+            if (value == null) throw UnsupportedStringMethod(exp.Method.Name, "null 模式参数");
 
             var escaped = EscapeLikeLiteral(Convert.ToString(value, CultureInfo.InvariantCulture));
             var pattern = kind switch
@@ -591,17 +777,35 @@ namespace FreeSql.SonnetDB
         static NotSupportedException UnsupportedStringMethod(string method, string detail)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 string.{method} 的{detail}，无法保持 .NET 字符串比较语义；请在应用层处理。");
+                $"SonnetDB 不支持 string.{method} 的{detail}，无法保持 .NET 字符串比较语义；请在应用层处理。");
         }
 
         /// <summary>
         /// 翻译 <see cref="Math"/> 静态方法调用。
-        /// <para>支持：Abs、Round（可选精度）、Sqrt、Log（可选底数）。SonnetDB 3.1
-        /// 未注册 Exp、Ceiling、Floor、Pow，调用时会在翻译阶段明确拒绝。</para>
+        /// <para>支持：Abs、Round（可选精度）、Sqrt、Log（可选底数）、
+        /// Exp、Ceiling、Floor、Pow。</para>
         /// </summary>
         public override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc)
         {
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
+            if (exp.Arguments.Count > 0 && exp.Arguments[0].Type.NullableTypeOrThis() == typeof(decimal))
+            {
+                var value = getExp(exp.Arguments[0]);
+                var remainder = $"({value} % 1)";
+                var truncated = $"({value} - {remainder})";
+                switch (exp.Method.Name)
+                {
+                    case "Abs": return $"(case when {value} < 0 then -({value}) else {value} end)";
+                    case "Truncate": return truncated;
+                    case "Floor": return $"({truncated} - (case when {remainder} < 0 then 1 else 0 end))";
+                    case "Ceiling": return $"({truncated} + (case when {remainder} > 0 then 1 else 0 end))";
+                    case "Sign": return $"(case when {value} < 0 then -1 when {value} > 0 then 1 else 0 end)";
+                    case "Round":
+                        throw new NotSupportedException(
+                            "SonnetDB 的 round 函数会将 DECIMAL 转为 Float64，无法保证 Math.Round(decimal) 的精度；" +
+                            "请在应用层舍入，等待上游提供保留 DECIMAL 精度的 round 实现。");
+                }
+            }
             switch (exp.Method.Name)
             {
                 case "Abs": return $"abs({getExp(exp.Arguments[0])})";
@@ -618,11 +822,20 @@ namespace FreeSql.SonnetDB
                     // Math.Log(x, base) → log(x, base)；单参数版 → log(x)（自然对数）。
                     if (exp.Arguments.Count > 1) return $"log({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     return $"log({getExp(exp.Arguments[0])})";
-                case "Exp":
-                case "Ceiling":
-                case "Floor":
-                case "Pow":
-                    throw UnsupportedScalarFunction(exp.Method.Name, "exp/ceil/floor/power");
+                case "Exp": return $"exp({getExp(exp.Arguments[0])})";
+                case "Ceiling": return $"ceil({getExp(exp.Arguments[0])})";
+                case "Floor": return $"floor({getExp(exp.Arguments[0])})";
+                case "Pow": return $"power({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                case "Sin": return $"sin({getExp(exp.Arguments[0])})";
+                case "Cos": return $"cos({getExp(exp.Arguments[0])})";
+                case "Tan": return $"tan({getExp(exp.Arguments[0])})";
+                case "Asin": return $"asin({getExp(exp.Arguments[0])})";
+                case "Acos": return $"acos({getExp(exp.Arguments[0])})";
+                case "Atan": return $"atan({getExp(exp.Arguments[0])})";
+                case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                case "Truncate":
+                    var truncateValue = getExp(exp.Arguments[0]);
+                    return $"(case when {truncateValue} < 0 then ceil({truncateValue}) else floor({truncateValue}) end)";
             }
             return null;
         }
@@ -630,13 +843,7 @@ namespace FreeSql.SonnetDB
         static NotSupportedException UnsupportedMathMethod(string method, string detail)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 Math.{method} 的{detail}，无法保持 .NET 数学语义；请在应用层处理。");
-        }
-
-        static NotSupportedException UnsupportedScalarFunction(string method, string functions)
-        {
-            return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 {functions} 标量函数，无法翻译 Math.{method} 或字符串 Trim；请改用已支持函数或在应用层处理。");
+                $"SonnetDB 不支持 Math.{method} 的{detail}，无法保持 .NET 数学语义；请在应用层处理。");
         }
 
         /// <summary>
@@ -696,6 +903,10 @@ namespace FreeSql.SonnetDB
                     return $"to_unix_milliseconds(date_add_datetime({left}, {args1}, '{dateAddPart}'))";
                 switch (exp.Method.Name)
                 {
+                    case "ToString":
+                        if (exp.Arguments.Count == 1 && exp.Arguments[0].Type == typeof(string))
+                            return $"date_format({left}, {args1})";
+                        throw UnsupportedDateTimeMethod("ToString 当前重载");
                     case "AddMilliseconds": return $"({left} + {args1})";
                     case "AddSeconds":      return $"({left} + ({args1} * 1000))";
                     case "AddMinutes":      return $"({left} + ({args1} * 60000))";
@@ -709,9 +920,7 @@ namespace FreeSql.SonnetDB
                             : $"({left} - {args1})";
                     case "Subtract":
                         if (exp.Arguments.Count == 1 && exp.Arguments[0].Type == typeof(DateTime))
-                            return relationshipTable
-                                ? $"(to_unix_milliseconds({left}) - to_unix_milliseconds({args1}))"
-                                : $"({left} - {args1})";
+                            return $"date_diff('tick', {args1}, {left})";
                         throw UnsupportedDateTimeMethod(exp.Method.Name);
                     case "ToUniversalTime":
                         return relationshipTable
@@ -793,42 +1002,31 @@ namespace FreeSql.SonnetDB
         {
             var left = ExpressionLambdaToSql(date1, tsc);
             var right = ExpressionLambdaToSql(date2, tsc);
-            var difference = IsRelationshipTable(tsc)
-                ? $"(to_unix_milliseconds({left}) - to_unix_milliseconds({right}))"
-                : $"({left} - {right})";
-            switch (memberName)
-            {
-                case "TotalDays": return $"({difference} / 86400000.0)";
-                case "TotalHours": return $"({difference} / 3600000.0)";
-                case "TotalMinutes": return $"({difference} / 60000.0)";
-                case "TotalSeconds": return $"({difference} / 1000.0)";
-                case "TotalMilliseconds": return difference;
-                default: throw UnsupportedTimeSpanMember(memberName);
-            }
+            return ToSqlDateDifference(memberName, left, right);
         }
 
         static NotSupportedException UnsupportedDateTimeMethod(string method)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 DateTime.{method} 的当前翻译，无法保证时间语义；请改用已支持的日期函数或在应用层处理。");
+                $"SonnetDB 不支持 DateTime.{method} 的当前翻译，无法保证时间语义；请改用已支持的日期函数或在应用层处理。");
         }
 
         static NotSupportedException UnsupportedDateTimeMember(string member)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 DateTime.{member} 的当前翻译，无法保证时间语义；请改用已支持的日期成员或在应用层处理。");
+                $"SonnetDB 不支持 DateTime.{member} 的当前翻译，无法保证时间语义；请改用已支持的日期成员或在应用层处理。");
         }
 
         static NotSupportedException UnsupportedTimeSpanMember(string member)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 TimeSpan.{member} 的当前翻译；数据库缺少可保持 .NET 组件语义的日期差函数，请改用 TotalDays、TotalHours、TotalMinutes、TotalSeconds 或 TotalMilliseconds。");
+                $"SonnetDB 不支持 TimeSpan.{member} 的当前翻译；请从 DateTime 或 DateTimeOffset 的差值访问该成员，或在应用层处理。");
         }
 
         static NotSupportedException UnsupportedTimeSpanMethod(string method)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 TimeSpan.{method} 的当前翻译，无法保证时间语义；请在应用层处理。");
+                $"SonnetDB 不支持 TimeSpan.{method} 的当前翻译，无法保证时间语义；请在应用层处理。");
         }
 
         static string ToSqlDateTimeOffsetMember(MemberExpression exp, ExpTSC tsc,
@@ -873,10 +1071,13 @@ namespace FreeSql.SonnetDB
                 throw UnsupportedDateTimeOffsetMethod(exp.Method.Name);
 
             var left = getExp(exp.Object);
+            if (exp.Method.Name == "ToString" && exp.Arguments.Count == 1 &&
+                exp.Arguments[0].Type == typeof(string))
+                return $"date_format({left}, {getExp(exp.Arguments[0])})";
             if (exp.Method.Name == "Subtract")
             {
                 if (exp.Arguments.Count == 1 && exp.Arguments[0].Type == typeof(DateTimeOffset))
-                    return $"(to_unix_milliseconds({left}) - to_unix_milliseconds({getExp(exp.Arguments[0])}))";
+                    return $"date_diff('tick', {getExp(exp.Arguments[0])}, {left})";
                 throw UnsupportedDateTimeOffsetMethod(exp.Method.Name);
             }
             var dateAddPart = GetDateAddPart(exp.Method.Name);
@@ -894,19 +1095,19 @@ namespace FreeSql.SonnetDB
         static NotSupportedException UnsupportedDateTimeOffsetMethod(string method)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 DateTimeOffset.{method} 的当前翻译，无法保证时间语义；请改用已支持的日期函数或在应用层处理。");
+                $"SonnetDB 不支持 DateTimeOffset.{method} 的当前翻译，无法保证时间语义；请改用已支持的日期函数或在应用层处理。");
         }
 
         static NotSupportedException UnsupportedDateTimeOffsetMember(string member)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 DateTimeOffset.{member} 的当前翻译，无法保证时间语义；请改用已支持的日期成员或在应用层处理。");
+                $"SonnetDB 不支持 DateTimeOffset.{member} 的当前翻译，无法保证时间语义；请改用已支持的日期成员或在应用层处理。");
         }
 
         /// <summary>
         /// 翻译 <see cref="Convert"/> 静态方法调用。
-        /// <para>SonnetDB 不支持 CAST，数值类型转换直接透传原列 SQL 即可。
-        /// ToBoolean 使用 NOT IN ('0','false') 模拟。</para>
+        /// <para>映射到 SonnetDB CAST；Convert 的浮点到整数转换先按
+        /// .NET 默认的 ToEven 模式舍入，再执行整数转换。</para>
         /// </summary>
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -918,7 +1119,11 @@ namespace FreeSql.SonnetDB
 
                 switch (exp.Method.Name)
                 {
-                    case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
+                    case "ToBoolean":
+                        var booleanSource = getExp(exp.Arguments[0]);
+                        return exp.Arguments[0].Type.NullableTypeOrThis().IsNumberType()
+                            ? $"({booleanSource} <> 0)"
+                            : $"coalesce(cast({booleanSource} as BOOL), false)";
                     case "ToDateTime":
                     {
                         var literal = TryGetDateTimeLiteral(exp.Arguments[0]);
@@ -929,21 +1134,26 @@ namespace FreeSql.SonnetDB
                             return getExp(exp.Arguments[0]);
                         throw UnsupportedConvertMethod("ToDateTime", "动态字符串参数");
                     }
-                    case "ToString": return getExp(exp.Arguments[0]);
-                    case "ToByte":
-                    case "ToChar":
-                    case "ToDecimal":
+                    case "ToString": return $"coalesce(cast({getExp(exp.Arguments[0])} as STRING), '')";
+                    case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as DECIMAL)";
                     case "ToDouble":
+                    case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as FLOAT)";
+                    case "ToByte":
                     case "ToInt16":
                     case "ToInt32":
                     case "ToInt64":
                     case "ToSByte":
-                    case "ToSingle":
                     case "ToUInt16":
                     case "ToUInt32":
                     case "ToUInt64":
-                        // SonnetDB 内部数值类型自动兼容，直接透传。
-                        return getExp(exp.Arguments[0]);
+                        var integerSource = getExp(exp.Arguments[0]);
+                        var integerSourceType = exp.Arguments[0].Type.NullableTypeOrThis();
+                        if (integerSourceType == typeof(decimal))
+                            integerSource = RoundDecimalToInteger(integerSource);
+                        else if (integerSourceType == typeof(float) || integerSourceType == typeof(double))
+                            integerSource = $"round({integerSource})";
+                        return $"cast({integerSource} as INT)";
+                    case "ToChar": throw UnsupportedConvertMethod(exp.Method.Name, "字符转换");
                 }
             }
             throw UnsupportedConvertMethod(exp.Method.Name, "当前重载");
@@ -952,7 +1162,17 @@ namespace FreeSql.SonnetDB
         static NotSupportedException UnsupportedConvertMethod(string method, string detail)
         {
             return new NotSupportedException(
-                $"SonnetDB 3.1 不支持 Convert.{method} 的{detail}，无法保持 .NET 转换语义；请在应用层处理。");
+                $"SonnetDB 不支持 Convert.{method} 的{detail}，无法保持 .NET 转换语义；请在应用层处理。");
+        }
+
+        static string RoundDecimalToInteger(string value)
+        {
+            // 余数和加减全部保留 DECIMAL；恰好半整数时按偶数方向取整。
+            var remainder = $"({value} % 1)";
+            var truncated = $"({value} - {remainder})";
+            return $"(case when {remainder} >= 0.5 and ({remainder} > 0.5 or ({truncated} % 2) <> 0) " +
+                $"then ({truncated} + 1) when {remainder} <= -0.5 and ({remainder} < -0.5 or ({truncated} % 2) <> 0) " +
+                $"then ({truncated} - 1) else {truncated} end)";
         }
     }
 }

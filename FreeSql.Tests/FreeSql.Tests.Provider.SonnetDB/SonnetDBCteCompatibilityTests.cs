@@ -1,35 +1,30 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Provider.SonnetDB.Attributes;
 
 namespace FreeSql.Tests.Provider.SonnetDB;
 
 public class SonnetDBCteCompatibilityTests
 {
     [Fact]
-    public void WithSql_CteIsRejectedBeforeDerivedTableSqlGeneration()
+    public void WithSql_CteExecutesThroughExistingQueryApi()
     {
         using var fsql = CreateFreeSql();
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CteProbeRow>()
-                .WithSql("WITH source_rows AS (SELECT 1 AS \"Id\") SELECT * FROM source_rows")
-                .ToSql());
-
-        Assert.Contains("CTE", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("WithSql", exception.Message, StringComparison.Ordinal);
+        var row = Assert.Single(fsql.Select<CteProbeRow>()
+            .WithSql("WITH source_rows AS (SELECT 1 AS \"Id\") SELECT * FROM source_rows")
+            .ToList());
+        Assert.Equal(1, row.Id);
     }
 
     [Fact]
-    public void AsTable_NestedCteIsRejectedBeforeSqlGeneration()
+    public void AsTable_NestedCteExecutesWithoutLosingProjection()
     {
         using var fsql = CreateFreeSql();
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CteProbeRow>()
-                .AsTable((_, _) => "(SELECT * FROM (WITH source_rows AS (SELECT 1 AS \"Id\") SELECT * FROM source_rows))")
-                .ToSql());
-
-        Assert.Contains("WITH", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("CTE", exception.Message, StringComparison.OrdinalIgnoreCase);
+        var row = Assert.Single(fsql.Select<CteProbeRow>()
+            .AsTable((_, _) => "(SELECT * FROM (WITH source_rows AS (SELECT 1 AS \"Id\") SELECT * FROM source_rows) nested_source)")
+            .ToList());
+        Assert.Equal(1, row.Id);
     }
 
     static IFreeSql CreateFreeSql()
@@ -41,6 +36,7 @@ public class SonnetDBCteCompatibilityTests
     }
 
     [Table(Name = "sonnet_cte_probe")]
+    [SonnetDBTable]
     sealed class CteProbeRow
     {
         [Column(IsPrimary = true)]
