@@ -58,7 +58,9 @@ namespace FreeSql.PostgreSQL.Curd
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();
                 else
                 {
-                    var ocdu = new OnConflictDoUpdate<T1>(_tempPrimarys == _table.Primarys ? insert.InsertIdentity() : insert);
+                    //冲突目标里没有自增列时不强制写入自增列，让 CanInsert=false 生效（自增值由数据库序列生成）
+                    var ocdu = new OnConflictDoUpdate<T1>(_tempPrimarys != _table.Primarys ? insert :
+                        (_tempPrimarys.Any(a => a.Attribute.IsIdentity) ? insert.InsertIdentity() : insert));
                     ocdu._tempPrimarys = _tempPrimarys;
                     var cols = _table.Columns.Values.Where(a => _updateSetDict.ContainsKey(a.Attribute.Name) ||
                         _tempPrimarys.Contains(a) == false && a.Attribute.CanUpdate == true && a.Attribute.IsIdentity == false && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
