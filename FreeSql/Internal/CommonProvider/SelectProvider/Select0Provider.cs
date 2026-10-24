@@ -1390,6 +1390,9 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.Sqlite:
                     break;
+                case DataType.SonnetDB:
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
+                    break;
                 case DataType.GBase:
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
