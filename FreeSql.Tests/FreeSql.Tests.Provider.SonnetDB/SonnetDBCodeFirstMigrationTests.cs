@@ -83,6 +83,15 @@ CREATE TABLE ""sonnet_migration_old"" (
             Assert.Contains("ALTER COLUMN \"Value\" TYPE STRING NOT NULL SET DEFAULT 'A'", ddl);
         }
 
+        [Fact]
+        public void RelationshipTable_StringLength_IsRetainedInCreateDdl()
+        {
+            using var fsql = CreateFreeSql();
+            var ddl = fsql.CodeFirst.GetComparisonDDLStatements<SonnetStringLengthModel>();
+
+            Assert.Contains("\"Label\" STRING(32)", ddl, StringComparison.OrdinalIgnoreCase);
+        }
+
         static DataRow FindRow(DataTable table, string name) => table.Rows.Cast<DataRow>()
             .Single(row => string.Equals(Convert.ToString(row["column_name"]), name, StringComparison.OrdinalIgnoreCase));
 
@@ -135,6 +144,17 @@ CREATE TABLE ""sonnet_migration_old"" (
 
             [Column(DbType = "STRING NOT NULL DEFAULT 'A'")]
             public string Value { get; set; } = "";
+        }
+
+        [SonnetDBTable]
+        [Table(Name = "sonnet_string_length")]
+        sealed class SonnetStringLengthModel
+        {
+            [Column(IsPrimary = true)]
+            public long Id { get; set; }
+
+            [Column(StringLength = 32)]
+            public string Label { get; set; } = "";
         }
     }
 }

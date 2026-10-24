@@ -7,7 +7,6 @@ using System.Data.Common;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
-using SonnetDB.Sql;
 
 namespace FreeSql.SonnetDB
 {
@@ -74,14 +73,6 @@ namespace FreeSql.SonnetDB
                     args.ModifyResult.RereadSql = "{0}";
             };
 
-            // SonnetDB 4.5 supports FOR UPDATE [NOWAIT] for a single relational
-            // base table in an explicit transaction. Keep only the syntax that
-            // the engine still rejects guarded at the provider boundary.
-            this.Aop.CurdBefore += (_, args) =>
-            {
-                if (ContainsSkipLocked(args.Sql))
-                    throw new NotSupportedException("SonnetDB 仅支持 FOR UPDATE [NOWAIT]，不支持 SKIP LOCKED。");
-            };
             // The legacy ambient transaction helper reports commit failures only
             // through TraceAfter. Preserve SonnetDB's commit failure contract
             // without changing the shared transaction implementation.
@@ -96,18 +87,6 @@ namespace FreeSql.SonnetDB
                 if (SonnetDBExpression.TryTranslateAopExpression(args.Expression, args.FreeParse, out var sql))
                     args.Result = sql;
             };
-        }
-
-        static bool ContainsSkipLocked(string sql)
-        {
-            if (string.IsNullOrEmpty(sql)) return false;
-            var tokens = SqlLexer.Tokenize(sql);
-            for (var index = 0; index < tokens.Count; index++)
-                if (tokens[index].Kind == TokenKind.IdentifierLiteral &&
-                    string.Equals(tokens[index].Text, "skip", StringComparison.OrdinalIgnoreCase) &&
-                    index + 1 < tokens.Count && tokens[index + 1].Kind == TokenKind.IdentifierLiteral &&
-                    string.Equals(tokens[index + 1].Text, "locked", StringComparison.OrdinalIgnoreCase)) return true;
-            return false;
         }
 
         void ConfigureDataReader()

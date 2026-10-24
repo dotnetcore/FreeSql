@@ -60,6 +60,12 @@ public class SonnetDBCompatibilityGapTests
             .ForUpdate()
             .ToSql();
         Assert.Contains("FOR UPDATE", forUpdateSql, StringComparison.OrdinalIgnoreCase);
+
+        var skipLockedSql = fsql.Select<CompatibilityTextRow>()
+            .WithTransaction(transaction)
+            .ForUpdate(skipLocked: true)
+            .ToSql();
+        Assert.Contains("FOR UPDATE SKIP LOCKED", skipLockedSql, StringComparison.OrdinalIgnoreCase);
         transaction.Rollback();
     }
 

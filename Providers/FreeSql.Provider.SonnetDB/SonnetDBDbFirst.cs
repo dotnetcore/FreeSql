@@ -44,6 +44,7 @@ namespace FreeSql.SonnetDB
             // 其 CLR 类型在下面的专门映射中保留为 GeoPoint。
             if (type.Contains("geopoint")) return (int)DbType.Object;
             if (type.Contains("rowversion")) return (int)DbType.Int64;
+            if (type.Contains("datetimeoffset")) return (int)DbType.DateTimeOffset;
             if (type.Contains("datetime") || type.Contains("timestamp")) return (int)DbType.DateTime;
             if (type == "date" || type.StartsWith("date ")) return (int)DbType.Date;
             if (type == "time" || type.StartsWith("time ")) return (int)DbType.Time;
@@ -67,6 +68,7 @@ namespace FreeSql.SonnetDB
             { (int)DbType.Date, new DbToCs("(DateOnly?)", "DateOnly.Parse({0})", "{0}.ToString()", "DateOnly?", typeof(DateOnly), typeof(DateOnly?), "{0}.Value", "GetValue") },
             { (int)DbType.Boolean, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
             { (int)DbType.DateTime, new DbToCs("(DateTime?)", "DateTime.Parse({0})", "{0}.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+            { (int)DbType.DateTimeOffset, new DbToCs("(DateTimeOffset?)", "DateTimeOffset.Parse({0})", "{0}.ToString()", "DateTimeOffset?", typeof(DateTimeOffset), typeof(DateTimeOffset?), "{0}.Value", "GetDateTimeOffset") },
             { (int)DbType.Binary, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
             { (int)DbType.String, new DbToCs("", "{0}", "{0}", "string", typeof(string), typeof(string), "{0}", "GetString") },
             { (int)DbType.Object, new DbToCs("", "{0}", "{0}", "object", typeof(object), typeof(object), "{0}", "GetValue") },
@@ -145,7 +147,7 @@ namespace FreeSql.SonnetDB
             catch { }
             try
             {
-                _orm.Ado.ExecuteDataTable($"SELECT * FROM {_commonUtils.QuoteSqlName(GetObjectName(name))} LIMIT 0");
+                _orm.Ado.ExecuteDataTable($"SELECT * FROM {QuoteSqlObjectName(name)} LIMIT 0");
                 return true;
             }
             catch { return false; }
@@ -164,11 +166,14 @@ namespace FreeSql.SonnetDB
             {
                 if (string.IsNullOrWhiteSpace(referencedName)) return null;
                 var objectName = GetObjectName(referencedName);
-                if (referencedTables.TryGetValue(objectName, out var cached)) return cached;
+                var cacheKey = string.Concat(GetQualifiedSchema(referencedName) ?? string.Empty, "|", objectName);
+                if (referencedTables.TryGetValue(cacheKey, out var cached)) return cached;
 
                 var referenced = LoadRelationshipTables(null, objectName, ignoreCase)
-                    .FirstOrDefault(item => NameEquals(item.Name, objectName, ignoreCase));
-                referencedTables[objectName] = referenced;
+                    .FirstOrDefault(item => NameEquals(item.Name, objectName, ignoreCase) &&
+                        (string.IsNullOrWhiteSpace(GetQualifiedSchema(referencedName)) ||
+                            NameEquals(item.Schema, GetQualifiedSchema(referencedName), ignoreCase)));
+                referencedTables[cacheKey] = referenced;
                 return referenced;
             });
             return table;
@@ -184,6 +189,15 @@ namespace FreeSql.SonnetDB
             // FreeSql 允许用“数据库.对象”传入限定名。SonnetDB 3.1 的目录
             // 接口不能跨库查询，不能只去掉前缀后继续查当前库的同名对象。
             var qualifiedDatabase = GetQualifiedDatabase(tablename);
+            var qualifiedParts = SplitQualifiedName(tablename);
+            // A quoted current database may itself contain dots. Preserve the
+            // legacy catalog.table form when the first segment is the active
+            // database; otherwise the two-part form is schema.table.
+            if (qualifiedDatabase == null && qualifiedParts.Length == 2)
+            {
+                var first = UnquoteIdentifier(qualifiedParts[0]);
+                if (IsCurrentDatabaseSelected(new[] { first }, ignoreCase)) qualifiedDatabase = first;
+            }
             if (!string.IsNullOrWhiteSpace(qualifiedDatabase))
             {
                 if (!IsCurrentDatabaseSelected(new[] { qualifiedDatabase }, ignoreCase)) return new List<DbTableInfo>();
@@ -196,12 +210,18 @@ namespace FreeSql.SonnetDB
             var result = new List<DbTableInfo>();
             var requested = string.IsNullOrEmpty(tablename) ? null : GetObjectName(tablename);
             var tables = LoadRelationshipTables(database, requested, ignoreCase);
+            var requestedSchema = qualifiedParts.Length == 2 && qualifiedDatabase != null
+                ? null
+                : GetQualifiedSchema(tablename);
+            if (!string.IsNullOrWhiteSpace(requestedSchema))
+                tables = tables.Where(a => NameEquals(a.Schema, requestedSchema, ignoreCase)).ToList();
             result.AddRange(tables);
 
             // SonnetDB 3.1 的 GetSchema("Tables") 只返回关系表，视图需要通过
             // SHOW VIEWS 单独枚举；列结构再用 LIMIT 0 查询获取。
             foreach (var view in LoadViews(database, requested, ignoreCase))
-                if (!result.Any(a => NameEquals(a.Name, view.Name, true))) result.Add(view);
+                if ((string.IsNullOrWhiteSpace(requestedSchema) || NameEquals(view.Schema, requestedSchema, ignoreCase)) &&
+                    !result.Any(a => NameEquals(a.Name, view.Name, true) && NameEquals(a.Schema, view.Schema, true))) result.Add(view);
 
             // 时序测量目录与关系表相互独立。名称冲突时优先返回关系表，
             // 因为只有关系表具备 FreeSql 的主键/索引语义。
@@ -211,7 +231,7 @@ namespace FreeSql.SonnetDB
                     if (MatchesName(name, requested, ignoreCase) && !result.Any(a => NameEquals(a.Name, name, true)))
                     {
                         var measurement = BuildMeasurement(name);
-                        if (measurement != null) result.Add(measurement);
+                        if (measurement != null && string.IsNullOrWhiteSpace(requestedSchema)) result.Add(measurement);
                     }
 
             // 旧版提供程序可能不支持目录命令；按名称直接查询时保留原有的
@@ -219,11 +239,11 @@ namespace FreeSql.SonnetDB
             if (result.Count == 0 && requested != null)
             {
                 var measurement = BuildMeasurement(requested);
-                if (measurement != null) result.Add(measurement);
+                if (measurement != null && string.IsNullOrWhiteSpace(requestedSchema)) result.Add(measurement);
                 else
                 {
                     var table = GetTableBySelectSchema(requested, false);
-                    if (table != null) result.Add(table);
+                    if (table != null && (string.IsNullOrWhiteSpace(requestedSchema) || NameEquals(table.Schema, requestedSchema, ignoreCase))) result.Add(table);
                 }
             }
 
@@ -279,6 +299,7 @@ namespace FreeSql.SonnetDB
                         Id = key,
                         Schema = schema,
                         Name = name,
+                        Comment = GetString(row, "REMARKS"),
                         Type = string.Equals(tableType, "VIEW", StringComparison.OrdinalIgnoreCase) ? DbTableType.VIEW : DbTableType.TABLE,
                         Columns = new List<DbColumnInfo>()
                     });
@@ -351,7 +372,9 @@ namespace FreeSql.SonnetDB
                 var indexName = GetString(row, "INDEX_NAME", 3);
                 var column = FindColumn(table, GetString(row, "COLUMN_NAME", 5), ignoreCase);
                 if (table == null || string.IsNullOrEmpty(indexName) || column == null) continue;
+                if (GetBool(row, "IS_INCLUDED", false)) continue;
                 AddIndex(table, indexName, GetBool(row, "IS_UNIQUE", false, 4), column,
+                    string.Equals(GetString(row, "SORT_DIRECTION"), "DESC", StringComparison.OrdinalIgnoreCase),
                     // JSON_PATH 是 3.1 的可选元数据列；旧驱动缺列时不能按位置
                     // 回退，否则会把 CREATED_UTC 误读成路径。
                     GetString(row, "JSON_PATH"));
@@ -378,7 +401,8 @@ namespace FreeSql.SonnetDB
                         columnText = columnText.Substring(0, pathSeparator).Trim();
                     }
                     var column = FindColumn(table, UnquoteIdentifier(columnText), ignoreCase);
-                    if (column != null) AddIndex(table, indexName, GetBool(row, "is_unique", false, 1), column, jsonPath);
+                    if (column != null) AddIndex(table, indexName, GetBool(row, "is_unique", false, 1), column,
+                        string.Equals(GetString(row, "sort_direction"), "DESC", StringComparison.OrdinalIgnoreCase), jsonPath);
                 }
             }
         }
@@ -406,7 +430,9 @@ namespace FreeSql.SonnetDB
 
                 var referencedName = GetString(row, "principal_table_name", 5);
                 var referencedObjectName = GetObjectName(referencedName);
-                var referencedTable = FindTable(tables, referencedObjectName, null, null, ignoreCase) ??
+                var referencedSchema = GetQualifiedSchema(referencedName);
+                var referencedCatalog = GetQualifiedDatabase(referencedName);
+                var referencedTable = FindTable(tables, referencedObjectName, referencedSchema, referencedCatalog, ignoreCase) ??
                     getReferencedTable?.Invoke(referencedName);
                 var column = FindColumn(table, GetString(row, "column_name", 3), ignoreCase);
                 var referencedColumn = FindColumn(referencedTable, GetString(row, "principal_column_name", 6), ignoreCase);
@@ -484,7 +510,15 @@ namespace FreeSql.SonnetDB
         {
             var dt = TryExecuteDataTable($"SELECT * FROM {_commonUtils.QuoteSqlName(name)} LIMIT 0");
             if (dt == null) return null;
-            var table = new DbTableInfo { Id = (measurement ? "measurement|" : "table|") + name, Name = name, Type = DbTableType.TABLE, Columns = new List<DbColumnInfo>() };
+            var tableName = GetObjectName(name);
+            var table = new DbTableInfo
+            {
+                Id = (measurement ? "measurement|" : "table|") + name,
+                Schema = GetQualifiedSchema(name) ?? string.Empty,
+                Name = tableName,
+                Type = DbTableType.TABLE,
+                Columns = new List<DbColumnInfo>()
+            };
             var position = 1;
             if (measurement && !dt.Columns.Cast<DataColumn>().Any(a => string.Equals(a.ColumnName, "time", StringComparison.OrdinalIgnoreCase)))
                 table.Columns.Add(new DbColumnInfo { Table = table, Name = "time", DbTypeText = "int64", DbTypeTextFull = "time", DbType = (int)DbType.Int64, CsType = typeof(long), IsNullable = false, Position = position++ });
@@ -576,11 +610,11 @@ namespace FreeSql.SonnetDB
             table.Columns.Add(column);
         }
 
-        void AddIndex(DbTableInfo table, string name, bool unique, DbColumnInfo column, string jsonPath = null)
+        void AddIndex(DbTableInfo table, string name, bool unique, DbColumnInfo column, bool isDesc = false, string jsonPath = null)
         {
             var target = unique ? table.UniquesDict : table.IndexesDict;
             if (!target.TryGetValue(name, out var index)) target.Add(name, index = new DbIndexInfo { Name = name, IsUnique = unique });
-            if (!index.Columns.Any(a => string.Equals(a.Column.Name, column.Name, StringComparison.OrdinalIgnoreCase))) index.Columns.Add(new DbIndexColumnInfo { Column = column, IsDesc = false });
+            if (!index.Columns.Any(a => string.Equals(a.Column.Name, column.Name, StringComparison.OrdinalIgnoreCase))) index.Columns.Add(new DbIndexColumnInfo { Column = column, IsDesc = isDesc });
             if (!string.IsNullOrWhiteSpace(jsonPath))
                 _jsonIndexPaths[GetIndexPathKey(table, name)] = jsonPath.Trim();
         }
@@ -604,8 +638,19 @@ namespace FreeSql.SonnetDB
         static DbTableInfo FindTable(IEnumerable<DbTableInfo> tables, string name, string schema, string catalog, bool ignoreCase)
         {
             if (string.IsNullOrEmpty(name)) return null;
-            return tables.FirstOrDefault(a => NameEquals(a.Name, name, ignoreCase) && (string.IsNullOrEmpty(schema) || NameEquals(a.Schema, schema, ignoreCase)) && (string.IsNullOrEmpty(catalog) || a.Id.StartsWith(catalog + "|", StringComparison.OrdinalIgnoreCase)))
-                ?? tables.FirstOrDefault(a => NameEquals(a.Name, name, ignoreCase));
+            var matched = tables.FirstOrDefault(a => NameEquals(a.Name, name, ignoreCase) && (string.IsNullOrEmpty(schema) || NameEquals(a.Schema, schema, ignoreCase)) && (string.IsNullOrEmpty(catalog) || a.Id.StartsWith(catalog + "|", StringComparison.OrdinalIgnoreCase)));
+            if (!string.IsNullOrEmpty(schema) || !string.IsNullOrEmpty(catalog))
+            {
+                if (matched != null) return matched;
+                // Older SonnetDB metadata exposed a schema name through
+                // information_schema.foreign_keys while GetSchema("Tables")
+                // returned an empty TABLE_SCHEMA. A single unqualified table
+                // remains unambiguous; once multiple schema identities are
+                // present this fallback intentionally fails closed.
+                var unknownSchema = tables.Where(a => NameEquals(a.Name, name, ignoreCase) && string.IsNullOrEmpty(a.Schema)).ToList();
+                return unknownSchema.Count == 1 ? unknownSchema[0] : null;
+            }
+            return matched ?? tables.FirstOrDefault(a => NameEquals(a.Name, name, ignoreCase));
         }
 
         static DbColumnInfo FindColumn(DbTableInfo table, string name, bool ignoreCase) => table?.Columns.FirstOrDefault(a => NameEquals(a.Name, name, ignoreCase));
@@ -620,10 +665,37 @@ namespace FreeSql.SonnetDB
             return parts.Length == 0 ? name : UnquoteIdentifier(parts[parts.Length - 1]);
         }
 
+        string QuoteSqlObjectName(string name)
+        {
+            var parts = SplitQualifiedName(name);
+            if (parts.Length == 0) return _commonUtils.QuoteSqlName(name);
+            // Preserve a quoted literal object name containing dots. For
+            // qualified names pass each segment separately so the adapter
+            // quotes schema/table identities without splitting literal dots.
+            if (parts.Length == 1 && IsQuotedIdentifier(parts[0])) return parts[0];
+            return _commonUtils.QuoteSqlName(parts.Select(UnquoteIdentifier).ToArray());
+        }
+
+        static bool IsQuotedIdentifier(string value) =>
+            value != null && value.Length >= 2 &&
+            ((value[0] == '"' && value[value.Length - 1] == '"') ||
+             (value[0] == '`' && value[value.Length - 1] == '`') ||
+             (value[0] == '[' && value[value.Length - 1] == ']'));
+
         static string GetQualifiedDatabase(string name)
         {
             var parts = SplitQualifiedName(name);
-            return parts.Length > 1 ? UnquoteIdentifier(parts[0]) : null;
+            // FreeSql's two-part form is schema.table. A catalog/database is
+            // only present in the three-part catalog.schema.table form.
+            return parts.Length > 2 ? UnquoteIdentifier(parts[0]) : null;
+        }
+
+        static string GetQualifiedSchema(string name)
+        {
+            var parts = SplitQualifiedName(name);
+            return parts.Length == 2
+                ? UnquoteIdentifier(parts[0])
+                : parts.Length > 2 ? UnquoteIdentifier(parts[parts.Length - 2]) : null;
         }
 
         /// <summary>
@@ -681,8 +753,8 @@ namespace FreeSql.SonnetDB
 
         static string GetTableKey(string catalog, string schema, string name) => (catalog ?? string.Empty) + "|" + (schema ?? string.Empty) + "|" + (name ?? string.Empty);
         static bool MatchesDatabase(string catalog, string[] databases, bool ignoreCase) =>
-            databases == null || databases.Length == 0 || string.IsNullOrEmpty(catalog) ||
-            databases.Any(a => NameEquals(UnquoteIdentifier(a?.Trim()), UnquoteIdentifier(catalog.Trim()), ignoreCase));
+            databases == null || databases.Length == 0 ||
+            (!string.IsNullOrEmpty(catalog) && databases.Any(a => NameEquals(UnquoteIdentifier(a?.Trim()), UnquoteIdentifier(catalog.Trim()), ignoreCase)));
 
         bool IsCurrentDatabaseSelected(string[] databases, bool ignoreCase)
         {
@@ -760,7 +832,8 @@ namespace FreeSql.SonnetDB
             if (type == typeof(bool)) return "boolean";
             if (type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) || type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong)) return "int64";
             if (type == typeof(float) || type == typeof(double)) return "float64";
-            if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return "datetime";
+            if (type == typeof(DateTimeOffset)) return "datetimeoffset";
+            if (type == typeof(DateTime)) return "datetime";
             if (type == typeof(decimal)) return "decimal";
             if (type == typeof(TimeOnly) || type == typeof(TimeSpan)) return "time";
             if (type == typeof(DateOnly)) return "date";

@@ -1391,9 +1391,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Sqlite:
                     break;
                 case DataType.SonnetDB:
-                    if (skipLocked)
-                        throw new NotSupportedException("SonnetDB 仅支持 FOR UPDATE [NOWAIT]，不支持 SKIP LOCKED。");
-                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}{(skipLocked ? " skip locked" : "")}";
                     break;
                 case DataType.GBase:
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait

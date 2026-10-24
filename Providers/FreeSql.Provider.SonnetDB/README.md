@@ -75,7 +75,7 @@ fsql.Insert(new CpuMetric
 | DML 结果 | 插入、更新、删除的实体返回及异步入口使用原生 `RETURNING`；`ExecuteUpdated` 额外支持既有标量/匿名投影，保留重命名列、NULL 与行版本 |
 | 关系表更新边界 | 无 WHERE 批量 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML；均需使用包含对应 SonnetDB 4.5 实现的正式包复验 |
 | 查询组合 | CTE、`AsTreeCte` 递归查询、`UnionAll`、多行 `WithMemory`、`WithSql`、派生查询和 `InsertInto` / `InsertIntoAsync` |
-| 关系表锁定读 | 显式事务中的 `ForUpdate()` / `ForUpdate(nowait: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT`；不把 `SKIP LOCKED` 静默降级 |
+| 关系表锁定读 | 显式事务中的 `ForUpdate()` / `ForUpdate(nowait: true, skipLocked: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT` / `FOR UPDATE SKIP LOCKED`；不静默降级 |
 | JOIN | 关系表 `INNER` / `LEFT` / `RIGHT JOIN`、原始 `FULL JOIN`、多源 `CROSS JOIN`，以及现有 `Update.Join` |
 | 时序测量 | 追加写入、查询、删除，以及测量作为主数据源与一个关系维表的 `INNER JOIN` |
 | VECTOR | 显式维度 `FIELD VECTOR(N)` 的 `float[]` 参数与字面量读写；现有 `Update` 接口可单次替换一个 VECTOR FIELD |
@@ -83,7 +83,7 @@ fsql.Insert(new CpuMetric
 
 字典更新和 UPSERT 按 FreeSql 约定使用 `WherePrimary("Id")` 指定冲突或匹配列。UPSERT 的唯一索引目标保留数据库自增主键的生成行为；不会以“先查询再写入”模拟原子性。
 
-measurement 的追加、删除、VECTOR 和数值 FIELD 更新属于独立时序模型；其边界不代表关系表能力。关系表的 `VECTOR/GEOPOINT` 列仍由 SonnetDB 产品边界明确拒绝，见 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349)。`SKIP LOCKED`/`FOR SHARE` 仍未实现，见 [SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347)。
+measurement 的追加、删除、VECTOR 和数值 FIELD 更新属于独立时序模型；其边界不代表关系表能力。关系表的 `VECTOR/GEOPOINT` 列仍由 SonnetDB 产品边界明确拒绝，见 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349)。`FOR SHARE` 仍未实现，见 [SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347)。
 
 ## 类型与表达式语义
 

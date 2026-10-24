@@ -237,8 +237,8 @@ namespace FreeSql.SonnetDB
             var tableExists = ExistsTable(tbname);
             if (!tableExists)
             {
-                var oldName = string.Equals(GetObjectName(tb.DbName), tbname, StringComparison.OrdinalIgnoreCase)
-                    ? GetObjectName(tb.DbOldName)
+                var oldName = string.Equals(tb.DbName, tbname, StringComparison.OrdinalIgnoreCase)
+                    ? tb.DbOldName
                     : null;
                 if (!string.IsNullOrWhiteSpace(oldName) && ExistsTable(oldName))
                 {
@@ -465,6 +465,7 @@ namespace FreeSql.SonnetDB
                 var actualName = existing.Columns[a].Column.Name;
                 if (!string.Equals(actualName, expectedColumn.Name, StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(actualName, expectedColumn.OldName, StringComparison.OrdinalIgnoreCase)) return false;
+                if (existing.Columns[a].IsDesc != expected.Columns[a].IsDesc) return false;
             }
             return true;
         }
@@ -704,6 +705,8 @@ namespace FreeSql.SonnetDB
                 if (explicitType == "VECTOR" || explicitType == "GEOPOINT")
                     throw new NotSupportedException(
                         $"SonnetDB 关系表不支持 {explicitType} 列 '{attr.Name}'。");
+                if (explicitType == "STRING" && attr.StringLength > 0)
+                    return $"STRING({attr.StringLength})";
                 if (explicitType == "DECIMAL" && attr.Precision > 0)
                     return $"DECIMAL({attr.Precision},{attr.Scale})";
                 return explicitType;

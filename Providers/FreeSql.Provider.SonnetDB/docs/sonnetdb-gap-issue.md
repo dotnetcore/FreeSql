@@ -19,7 +19,7 @@
 - `InsertOrUpdate` / 字典 UPSERT 的原子 `ON CONFLICT` 映射。
 - CTE、递归 CTE、UNION ALL、WithMemory、派生查询、InsertInto，以及关系表 JOIN 和 Update.Join。
 - 无 WHERE 关系 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML：provider 已生成对应 SQL，必须用包含实现的正式包做最终消费者回归。
-- 显式事务内 `ForUpdate()` / `ForUpdate(nowait: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT`；provider 对 `SKIP LOCKED` 保持 fail-closed。
+- 显式事务内 `ForUpdate()` / `ForUpdate(nowait: true, skipLocked: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT` / `FOR UPDATE SKIP LOCKED`；`FOR SHARE` 仍保持未支持。
 - DECIMAL 参数/精度、精确基础表达式、`Math.Round(decimal[, int])` 的十进制映射；`MidpointRounding` 重载明确拒绝。
 - CodeFirst 的 qualified table SQL、嵌入式 DDL 事务拆分、无主键建表、DESC 索引、注释和 `STRING(n)` 生成路径已接入；主键拓扑/类型迁移、远程事务和元数据仍需正式包复验。
 
@@ -44,7 +44,7 @@ measurement 是独立的时序模型。其追加写入、删除、VECTOR 和数�
 
 ## 当前明确未完成或需要数据库继续提供的关系能力
 
-- `SKIP LOCKED` 与 `FOR SHARE`：已创建 [SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347)。`ForUpdate(skipLocked: true)` 不得静默降级。
+- `FOR SHARE`：已创建 [SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347)。`ForUpdate(skipLocked: true)` 已由 provider 透传为 `FOR UPDATE SKIP LOCKED`，需以 SonnetDB main 候选 Server 做执行验收。
 - schema/table 的 Data/Server/远程 `GetSchema` 结构化身份：已创建 [SonnetDB #348](https://github.com/IoTSharp/SonnetDB/issues/348)。在 `TABLE_SCHEMA` 等元数据完整前，DbFirst 不猜测非 `main` schema。
 - 关系表 `VECTOR/GEOPOINT` 列：已创建 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349)。provider 当前按产品边界明确拒绝，不把 measurement/document 专用类型伪装成关系列。
 - measurement STRING FIELD 属于时序模型，已单独核查后关闭 [SonnetDB #346](https://github.com/IoTSharp/SonnetDB/issues/346)，不计入关系表能力缺口。
