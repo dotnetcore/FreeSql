@@ -150,15 +150,12 @@ public class SonnetDBExpressionCompatibilityTests
     }
 
     [Fact]
-    public void DecimalRound_RejectsDatabaseFloat64PrecisionLoss()
+    public void DecimalRound_UsesNativeDecimalRound()
     {
         using var fsql = CreateFreeSql();
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<DecimalProbeRow>().ToSql(a => Math.Round(a.Value, 2)));
-
-        Assert.Contains("DECIMAL", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("Float64", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("Math.Round(decimal)", exception.Message, StringComparison.Ordinal);
+        var sql = fsql.Select<DecimalProbeRow>().ToSql(a => Math.Round(a.Value, 2));
+        Assert.Contains("round(", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(", 2)", sql, StringComparison.Ordinal);
     }
 
     [Theory]

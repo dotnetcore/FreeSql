@@ -74,12 +74,13 @@ namespace FreeSql.SonnetDB
                     args.ModifyResult.RereadSql = "{0}";
             };
 
-            // FOR UPDATE remains unavailable in the published engine. Keep the
-            // guard at the provider boundary for raw SQL and shared entry points.
+            // SonnetDB 4.5 supports FOR UPDATE [NOWAIT] for a single relational
+            // base table in an explicit transaction. Keep only the syntax that
+            // the engine still rejects guarded at the provider boundary.
             this.Aop.CurdBefore += (_, args) =>
             {
-                if (ContainsForUpdate(args.Sql))
-                    throw new NotSupportedException("SonnetDB 不支持 SELECT ... FOR UPDATE；上游 #233 跟踪关系表锁定读。");
+                if (ContainsSkipLocked(args.Sql))
+                    throw new NotSupportedException("SonnetDB 仅支持 FOR UPDATE [NOWAIT]，不支持 SKIP LOCKED。");
             };
             // The legacy ambient transaction helper reports commit failures only
             // through TraceAfter. Preserve SonnetDB's commit failure contract
@@ -97,13 +98,15 @@ namespace FreeSql.SonnetDB
             };
         }
 
-        static bool ContainsForUpdate(string sql)
+        static bool ContainsSkipLocked(string sql)
         {
             if (string.IsNullOrEmpty(sql)) return false;
             var tokens = SqlLexer.Tokenize(sql);
-            for (var index = 0; index + 1 < tokens.Count; index++)
-                if (tokens[index].Kind == TokenKind.KeywordFor &&
-                    tokens[index + 1].Kind == TokenKind.KeywordUpdate) return true;
+            for (var index = 0; index < tokens.Count; index++)
+                if (tokens[index].Kind == TokenKind.IdentifierLiteral &&
+                    string.Equals(tokens[index].Text, "skip", StringComparison.OrdinalIgnoreCase) &&
+                    index + 1 < tokens.Count && tokens[index + 1].Kind == TokenKind.IdentifierLiteral &&
+                    string.Equals(tokens[index + 1].Text, "locked", StringComparison.OrdinalIgnoreCase)) return true;
             return false;
         }
 

@@ -1,6 +1,6 @@
 # FreeSql SonnetDB 提供程序
 
-当前分支面向 **.NET 10**，依赖已公开发布的 **SonnetDB 4.5.0-preview.ef266.5**。提供程序 PR 仍为 Draft；本文描述当前分支的实现，不代表这些改动已作为新的 FreeSql NuGet 包发布。
+当前分支面向 **.NET 10**，依赖公开预览 **SonnetDB 4.5.0-preview.ef266.5**。SonnetDB 稳定 4.5、对应 Server 产物和本提供程序正式包尚未发布；PR 仍为 Draft，本文描述源码接入状态，不把预览包或本地测试写成正式发行证据。
 
 适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。当前验收覆盖嵌入式连接；远程 REST 与帧协议尚未完成端到端验收，不能仅凭上游 Issue 关闭或本地测试通过将其标记为完成。剩余依赖及验收条件见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
 
@@ -40,7 +40,7 @@ loaded.Name = "pump-02";
 fsql.Update<Device>().SetSource(loaded).ExecuteAffrows();
 ```
 
-`ROWVERSION` 由 SonnetDB 生成。提供程序保留 FreeSql 的旧版本匹配与 `DbUpdateVersionException` 行为，不向版本列赋值。事务用于关系表 DML；DDL 和时序测量写入、修改、删除仍遵循 SonnetDB 的事务限制。
+`ROWVERSION` 由 SonnetDB 生成。提供程序保留 FreeSql 的旧版本匹配与 `DbUpdateVersionException` 行为，不向版本列赋值。事务用于关系表 DML；嵌入式关系 DDL 可在 SonnetDB 4.5 workspace 合同中提交或回滚，远程 DDL 事务仍需正式包组合验收。时序测量写入、修改、删除继续遵循独立的 measurement 合同。
 
 时序测量通过 TAG 描述维度，通过 FIELD 保存观测值。`time` 是数据库内置时间列，按 Unix 毫秒保存。
 
@@ -73,7 +73,9 @@ fsql.Insert(new CpuMetric
 | 关系表写入 | 参数化 CRUD、批量更新、`AsType` 动态实体，以及字典 CRUD |
 | 原子 UPSERT | `InsertOrUpdate` / `InsertOrUpdateDict` 映射到原生 `ON CONFLICT`，支持主键或唯一索引目标、选择更新列、`UpdateSet` 和 `IfExistsDoNothing` |
 | DML 结果 | 插入、更新、删除的实体返回及异步入口使用原生 `RETURNING`；`ExecuteUpdated` 额外支持既有标量/匿名投影，保留重命名列、NULL 与行版本 |
+| 关系表更新边界 | 无 WHERE 批量 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML；均需使用包含对应 SonnetDB 4.5 实现的正式包复验 |
 | 查询组合 | CTE、`AsTreeCte` 递归查询、`UnionAll`、多行 `WithMemory`、`WithSql`、派生查询和 `InsertInto` / `InsertIntoAsync` |
+| 关系表锁定读 | 显式事务中的 `ForUpdate()` / `ForUpdate(nowait: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT`；不把 `SKIP LOCKED` 静默降级 |
 | JOIN | 关系表 `INNER` / `LEFT` / `RIGHT JOIN`、原始 `FULL JOIN`、多源 `CROSS JOIN`，以及现有 `Update.Join` |
 | 时序测量 | 追加写入、查询、删除，以及测量作为主数据源与一个关系维表的 `INNER JOIN` |
 | VECTOR | 显式维度 `FIELD VECTOR(N)` 的 `float[]` 参数与字面量读写；现有 `Update` 接口可单次替换一个 VECTOR FIELD |
@@ -81,14 +83,14 @@ fsql.Insert(new CpuMetric
 
 字典更新和 UPSERT 按 FreeSql 约定使用 `WherePrimary("Id")` 指定冲突或匹配列。UPSERT 的唯一索引目标保留数据库自增主键的生成行为；不会以“先查询再写入”模拟原子性。
 
-时序测量的普通 FIELD 与 TAG 更新、关系表的 VECTOR/GEOPOINT 列，以及 `SELECT ... FOR UPDATE` 尚不具备当前映射所需的数据库能力。提供程序会明确拒绝；锁定读依赖上游 #233。
+measurement 的追加、删除、VECTOR 和数值 FIELD 更新属于独立时序模型；其边界不代表关系表能力。关系表的 `VECTOR/GEOPOINT` 列仍由 SonnetDB 产品边界明确拒绝，见 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349)。`SKIP LOCKED`/`FOR SHARE` 仍未实现，见 [SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347)。
 
 ## 类型与表达式语义
 
 | CLR 类型 | 关系表映射 |
 | --- | --- |
 | `decimal` | 原生 `DECIMAL`，支持 `Column(Precision = ..., Scale = ...)` 或显式 `DECIMAL(p,s)`，保留精度元数据和差异迁移 |
-| `DateTime` / `DateTimeOffset` | `DATETIME`；按驱动返回值转换，不将关系表时间误当作时序毫秒值 |
+| `DateTime` / `DateTimeOffset` | 默认沿用关系 `DATETIME` 毫秒合同；显式 `DbType = "DATETIME2"` / `"DATETIMEOFFSET"` 使用 4.5 原生精度合同；不将关系表时间误当作时序毫秒值 |
 | `DateOnly` | `DATETIME`，以日期值写入并读回 `DateOnly` |
 | `TimeOnly` | 原生 `TIME` |
 | `TimeSpan` | `INT` ticks，支持负值、跨日时长、完整 Int64 范围和可空值；`TIME` 列应使用 `TimeOnly` |
@@ -101,7 +103,7 @@ SonnetDB 的 `INT` 为 Int64。`ulong` 只支持不超过 `long.MaxValue` 的值
 
 数值转换区分显式整数截断与 `Convert.ToInt64` 的中点取偶；整数位运算和位移保留 CLR 位宽及移位计数规则。日期加减、日期差、`TimeSpan` 的 ticks、组件与 `Total*` 成员使用相应日期或整数函数。
 
-DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate` 与整数转换保持精确运算。`Math.Round(decimal)` 仍被拒绝，因为当前数据库 `round` 会先转为 Float64；带 `MidpointRounding` 的重载也不静默忽略舍入模式。其他没有等价数据库语义的重载同样给出明确异常。
+DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate`、`Math.Round(decimal)` 和 `Math.Round(decimal, int)` 使用 SonnetDB 的精确十进制合同；digits 常量限制在 0–28。带 `MidpointRounding` 的重载仍明确拒绝，不静默忽略舍入模式。
 
 ## JSON、函数与表值查询
 
@@ -122,4 +124,4 @@ DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate` 与整数转换保持精确
 
 ## 待验收项
 
-发布门禁、远程连接一致性、schema 限定名、注释、字符串长度约束、降序索引、关系表锁定读、结构迁移边界及其他数据库缺口，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。PR 的依赖状态以实现、可复现的执行结果和发布合同共同验收，不以 Issue 的开关状态代替验证。
+正式 4.5 包身份、远程连接一致性、远程 DDL 事务、schema/table 的 ADO 结构化元数据、注释清除、字符串长度元数据、降序索引、主键迁移和 StoredProcedure 消费者回归，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。PR 的依赖状态以实现、可复现的执行结果和发布合同共同验收，不以 Issue 的开关状态代替验证。

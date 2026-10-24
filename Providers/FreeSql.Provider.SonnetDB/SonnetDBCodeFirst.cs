@@ -139,9 +139,10 @@ namespace FreeSql.SonnetDB
 
                 var tbname = string.IsNullOrEmpty(obj.tableName) ? tb.DbName : obj.tableName;
                 var tableParts = _commonUtils.SplitTableName(tbname);
-                if (tableParts.Length > 1)
-                    throw new NotSupportedException("SonnetDB 尚不支持 schema.table 限定表名；请使用当前连接数据库中的单个对象名。");
-                tbname = tableParts.LastOrDefault() ?? tbname;
+                // SonnetDB 4.5 stores schema and table as separate identities.
+                // Keep the qualified name intact so CRUD and DDL use the same
+                // identity; DbFirst metadata support remains version-gated.
+                tbname = string.IsNullOrWhiteSpace(tbname) ? tableParts.LastOrDefault() : tbname;
 
                 // 模型标记必须显式指定。没有标记的实体（包括含字符串属性的实体）
                 // 必须继续按时序测量处理，以保持原有提供程序模型兼容性。
@@ -196,8 +197,6 @@ namespace FreeSql.SonnetDB
         public override int ExecuteDDLStatements(string ddl)
         {
             if (string.IsNullOrWhiteSpace(ddl)) return 0;
-            if (_orm.Ado.TransactionCurrentThread != null)
-                throw new InvalidOperationException("SonnetDB 3.1 不支持在事务中执行 DDL；请先提交或回滚当前事务。");
 
             var tokens = SqlLexer.Tokenize(ddl);
             var start = 0;
@@ -234,10 +233,6 @@ namespace FreeSql.SonnetDB
         /// </summary>
         void AppendTableDDL(StringBuilder sb, TableInfo tb, string tbname)
         {
-            if (tb.Primarys == null || tb.Primarys.Length == 0)
-                throw new InvalidOperationException(
-                    $"SonnetDB 关系表 '{tbname}' 必须至少声明一个主键列。");
-
             var existingName = tbname;
             var tableExists = ExistsTable(tbname);
             if (!tableExists)
@@ -266,16 +261,23 @@ namespace FreeSql.SonnetDB
                 sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname)).Append(" (");
                 for (var a = 0; a < ddlColumns.Count; a++)
                 {
-                    sb.AppendLine().Append("  ").Append(ddlColumns[a]).Append(",");
+                    var hasPrimary = tb.Primarys?.Length > 0;
+                    var hasFollowingColumn = a < ddlColumns.Count - 1;
+                    sb.AppendLine().Append("  ").Append(ddlColumns[a]);
+                    if (hasFollowingColumn || hasPrimary) sb.Append(",");
                 }
 
-                sb.AppendLine().Append("  PRIMARY KEY (");
-                for (var a = 0; a < tb.Primarys.Length; a++)
+                if (tb.Primarys?.Length > 0)
                 {
-                    if (a > 0) sb.Append(", ");
-                    sb.Append(_commonUtils.QuoteSqlName(tb.Primarys[a].Attribute.Name));
+                    sb.AppendLine().Append("  PRIMARY KEY (");
+                    for (var a = 0; a < tb.Primarys.Length; a++)
+                    {
+                        if (a > 0) sb.Append(", ");
+                        sb.Append(_commonUtils.QuoteSqlName(tb.Primarys[a].Attribute.Name));
+                    }
+                    sb.AppendLine(")");
                 }
-                sb.AppendLine(")").Append(");");
+                sb.Append(");");
             }
             else
             {
@@ -285,14 +287,13 @@ namespace FreeSql.SonnetDB
                 AppendTableAlterDDL(sb, tb, tbname, existingTable);
             }
 
-            // SonnetDB 普通索引不接受 ASC/DESC 修饰符；JSON 路径索引还需要比较路径。
-            // 新表创建失败后仍可安全重试索引创建。
+            // SonnetDB 4.5 persists ASC/DESC and INCLUDE index metadata.
+            // FreeSql exposes direction here; INCLUDE is not part of the
+            // shared IndexInfo contract and is therefore left to native SQL.
             foreach (var index in tb.Indexes ?? Array.Empty<IndexInfo>())
             {
                 if (index == null || index.Columns == null || index.Columns.Length == 0 || string.IsNullOrWhiteSpace(index.Name))
                     continue;
-                if (index.Columns.Any(column => column.IsDesc))
-                    throw new NotSupportedException($"SonnetDB 尚不支持索引 '{index.Name}' 的 DESC 排序；不能将降序索引静默改为升序。");
                 var indexName = ReplaceIndexName(index.Name, tbname);
                 var existingIndex = FindIndex(existingTable, indexName);
                 var jsonPath = GetJsonIndexPath(tb, index);
@@ -309,6 +310,39 @@ namespace FreeSql.SonnetDB
                 if (existingIndex == null)
                     AppendCreateIndexDDL(sb, tbname, indexName, index, jsonPath);
             }
+            AppendCommentDDL(sb, tb, tbname, existingTable);
+        }
+
+        void AppendCommentDDL(StringBuilder sb, TableInfo tb, string tbname, DbTableInfo existingTable)
+        {
+            var existingComment = existingTable?.Comment;
+            if (existingTable != null && !string.Equals(existingComment ?? string.Empty, tb.Comment ?? string.Empty, StringComparison.Ordinal))
+            {
+                AppendDdlSeparator(sb);
+                sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName(tbname))
+                    .Append(" IS ").Append(string.IsNullOrEmpty(tb.Comment) ? "NULL" : QuoteSqlString(tb.Comment)).Append(";");
+            }
+            else if (existingTable == null && !string.IsNullOrEmpty(tb.Comment))
+            {
+                AppendDdlSeparator(sb);
+                sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName(tbname))
+                    .Append(" IS ").Append(QuoteSqlString(tb.Comment)).Append(";");
+            }
+            foreach (var column in tb.ColumnsByPosition)
+            {
+                var existingColumn = existingTable?.Columns?.FirstOrDefault(a =>
+                    string.Equals(a.Name, column.Attribute.Name, StringComparison.OrdinalIgnoreCase));
+                var desiredComment = column.Comment ?? string.Empty;
+                if (existingTable == null)
+                {
+                    if (string.IsNullOrEmpty(desiredComment)) continue;
+                }
+                else if (string.Equals(existingColumn?.Comment ?? string.Empty, desiredComment, StringComparison.Ordinal)) continue;
+                AppendDdlSeparator(sb);
+                sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName(tbname)).Append('.')
+                    .Append(_commonUtils.QuoteSqlName(column.Attribute.Name))
+                    .Append(" IS ").Append(string.IsNullOrEmpty(desiredComment) ? "NULL" : QuoteSqlString(desiredComment)).Append(";");
+            }
         }
 
         void AppendTableAlterDDL(StringBuilder sb, TableInfo tb, string tbname, DbTableInfo existingTable)
@@ -324,8 +358,6 @@ namespace FreeSql.SonnetDB
                     var oldName = col.Attribute.OldName;
                     if (!string.IsNullOrWhiteSpace(oldName) && existingColumns.TryGetValue(oldName, out existing))
                     {
-                        if (existing.IsPrimary)
-                            throw new NotSupportedException($"SonnetDB 不支持重命名主键列 '{oldName}'；请重建关系表 '{tbname}'。");
                         AppendDdlSeparator(sb);
                         sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname))
                             .Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(oldName))
@@ -369,10 +401,10 @@ namespace FreeSql.SonnetDB
             var defaultMismatch = !IsSameDefault(existing.DefaultValue, expectedDefault);
 
             if (attr.IsPrimary != existing.IsPrimary || attr.IsIdentity != existing.IsIdentity || attr.IsVersion != actualVersion)
-                throw new NotSupportedException($"SonnetDB 不支持通过 CodeFirst 修改关系表列 '{attr.Name}' 的主键、自增或行版本属性；请重建表。");
+                throw new NotSupportedException($"SonnetDB CodeFirst 需要通过主键迁移合同修改关系表特殊列 '{attr.Name}'；当前提供程序只自动处理列定义，复杂主键拓扑请使用原生 DDL。");
             if (!structuralMismatch && !defaultMismatch) return;
             if (attr.IsPrimary || attr.IsIdentity || attr.IsVersion)
-                throw new NotSupportedException($"SonnetDB 不支持通过 CodeFirst 修改关系表特殊列 '{attr.Name}' 的类型、空值约束或默认值；请重建表。");
+                throw new NotSupportedException($"SonnetDB CodeFirst 暂不自动改写特殊列 '{attr.Name}' 的类型、空值约束或默认值；请使用主键迁移合同或原生 DDL。");
             if (!expectedNullable && string.IsNullOrWhiteSpace(expectedDefault))
                 throw new InvalidOperationException($"SonnetDB 将既有列 '{attr.Name}' 设为 NOT NULL 时必须配置 DEFAULT。");
 
@@ -414,6 +446,7 @@ namespace FreeSql.SonnetDB
             {
                 if (a > 0) sb.Append(", ");
                 sb.Append(_commonUtils.QuoteSqlName(index.Columns[a].Column.Attribute.Name));
+                if (index.Columns[a].IsDesc) sb.Append(" DESC");
             }
             sb.Append(");");
         }
@@ -648,7 +681,12 @@ namespace FreeSql.SonnetDB
 
             // 日期时间和二进制 .NET 类型在本提供程序中有不同的历史映射，
             // 因此先处理它们，再读取生成的 DbType。
-            if (mapType == typeof(DateTime) || mapType == typeof(DateTimeOffset)) return "DATETIME";
+            if (mapType == typeof(DateTime) || mapType == typeof(DateTimeOffset))
+            {
+                var temporalType = NormalizeTableTypeAlias(StripTableModifiers(attr.DbType));
+                if (temporalType == "DATETIME2" || temporalType == "DATETIMEOFFSET") return temporalType;
+                return "DATETIME";
+            }
             if (mapType == typeof(TimeOnly)) return "TIME";
             if (mapType == typeof(TimeSpan))
             {
@@ -672,7 +710,8 @@ namespace FreeSql.SonnetDB
             }
 
             if (mapType == typeof(bool)) return "BOOL";
-            if (mapType == typeof(string) || mapType == typeof(char) || mapType == typeof(Guid)) return "STRING";
+            if (mapType == typeof(string) || mapType == typeof(char) || mapType == typeof(Guid))
+                return attr.StringLength > 0 ? $"STRING({attr.StringLength})" : "STRING";
             if (mapType.IsEnum || mapType.IsNumberType()) return
                 mapType == typeof(decimal) ? "DECIMAL" :
                 mapType == typeof(float) || mapType == typeof(double) ? "FLOAT" : "INT";
@@ -706,6 +745,8 @@ namespace FreeSql.SonnetDB
             var normalized = type.Trim().ToUpperInvariant();
             if (normalized.Contains("JSON")) return "JSON";
             if (normalized.Contains("BLOB") || normalized.Contains("BYTEA") || normalized.Contains("VARBINARY")) return "BLOB";
+            if (normalized.Contains("DATETIMEOFFSET")) return "DATETIMEOFFSET";
+            if (normalized.Contains("DATETIME2")) return "DATETIME2";
             if (normalized.Contains("DATETIME") || normalized.Contains("TIMESTAMP")) return "DATETIME";
             if (normalized.Contains("DECIMAL") || normalized.Contains("NUMERIC"))
             {
@@ -717,7 +758,11 @@ namespace FreeSql.SonnetDB
             if (normalized == "DATE" || normalized.StartsWith("DATE ")) return "DATETIME";
             if (normalized.Contains("BOOL") || normalized.Contains("BOOLEAN")) return "BOOL";
             if (normalized.Contains("BIGINT") || normalized.Contains("INTEGER") || normalized.Contains("INT64") || normalized == "INT" || normalized.StartsWith("INT ")) return "INT";
-            if (normalized.Contains("STRING") || normalized.Contains("VARCHAR") || normalized.Contains("TEXT") || normalized.Contains("CHAR")) return "STRING";
+            if (normalized.Contains("STRING") || normalized.Contains("VARCHAR") || normalized.Contains("TEXT") || normalized.Contains("CHAR"))
+            {
+                var length = Regex.Match(normalized, @"(?:STRING|VARCHAR|CHAR)\s*\(\s*(\d+)\s*\)");
+                return length.Success ? $"STRING({length.Groups[1].Value})" : "STRING";
+            }
             if (normalized.Contains("VECTOR")) return "VECTOR";
             if (normalized.Contains("GEOPOINT")) return "GEOPOINT";
             return null;

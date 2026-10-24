@@ -381,12 +381,13 @@ public class SonnetDBReleasedCrudTests
     }
 
     [Fact]
-    public void UnsupportedSchemaAndDescendingIndex_AreRejectedBeforeExecutingDdl()
+    public void QualifiedSchemaAndDescendingIndex_AreGeneratedForSonnetDb45()
     {
         using var fsql = CreateFreeSql();
-        Assert.Throws<NotSupportedException>(() => fsql.CodeFirst.SyncStructure<QualifiedRow>());
-        Assert.Throws<NotSupportedException>(() => fsql.CodeFirst.SyncStructure<DescendingIndexRow>());
-        Assert.DoesNotContain("sonnet_released_descending", fsql.Ado.Query<string>("SHOW TABLES"));
+        var qualified = fsql.CodeFirst.GetComparisonDDLStatements<QualifiedRow>();
+        var descending = fsql.CodeFirst.GetComparisonDDLStatements<DescendingIndexRow>();
+        Assert.Contains("\"schema\".\"sonnet_released_qualified\"", qualified, StringComparison.Ordinal);
+        Assert.Contains("DESC", descending, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

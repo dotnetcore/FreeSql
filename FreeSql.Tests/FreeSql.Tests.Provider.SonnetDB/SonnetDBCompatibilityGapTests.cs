@@ -36,7 +36,7 @@ public class SonnetDBCompatibilityGapTests
     }
 
     [Fact]
-    public void SelectMutationEntrypoints_ProjectKeysAndRejectUnsupportedLockingReads()
+    public void SelectMutationEntrypoints_ProjectKeysAndGenerateLockingReads()
     {
         using var fsql = CreateFreeSql();
 
@@ -55,10 +55,11 @@ public class SonnetDBCompatibilityGapTests
 
         using var connection = fsql.Ado.MasterPool.Get();
         using var transaction = connection.Value.BeginTransaction();
-        var forUpdate = Assert.Throws<NotSupportedException>(() =>
-            fsql.Select<CompatibilityTextRow>().WithTransaction(transaction).ForUpdate());
-        Assert.Contains("FOR UPDATE", forUpdate.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("#233", forUpdate.Message, StringComparison.Ordinal);
+        var forUpdateSql = fsql.Select<CompatibilityTextRow>()
+            .WithTransaction(transaction)
+            .ForUpdate()
+            .ToSql();
+        Assert.Contains("FOR UPDATE", forUpdateSql, StringComparison.OrdinalIgnoreCase);
         transaction.Rollback();
     }
 

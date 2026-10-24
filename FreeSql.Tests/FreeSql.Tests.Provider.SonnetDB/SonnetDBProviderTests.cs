@@ -82,29 +82,34 @@ public class SonnetDBProviderTests
     }
 
     [Fact]
-    public void MeasurementUpdate_ThrowsClearNotSupported()
+    public void MeasurementNumericFieldUpdate_GeneratesSupportedSql()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<NotSupportedException>(() => fsql.Update<SonnetMetric>());
+        var sql = fsql.Update<SonnetMetric>()
+            .Set(a => a.Usage, 1.25)
+            .Where(a => a.Host == "server-01")
+            .ToSql();
 
-        Assert.Contains("UPDATE", ex.Message);
-        Assert.Contains("VECTOR FIELD", ex.Message);
+        Assert.Contains("UPDATE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("\"Usage\"", sql, StringComparison.Ordinal);
+        Assert.Contains("WHERE", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void Update_AsTypeMeasurement_IsRejectedUsingCurrentModel()
+    public void Update_AsTypeMeasurement_UsesCurrentNumericFieldModel()
     {
         using var fsql = CreateFreeSql();
 
         // AsType 在 UpdateProvider 构造后替换内部表映射，必须按替换后的
-        // 时序测量模型重新拒绝 UPDATE。
-        var ex = Assert.Throws<NotSupportedException>(() => fsql.Update<SonnetDevice>()
-            .Set(a => a.Name, "invalid")
+        // 时序测量模型重新允许受支持的数值 FIELD 更新。
+        var sql = fsql.Update<SonnetDevice>()
+            .AsType(typeof(SonnetMetric))
+            .SetByPropertyName("Usage", 1.25)
             .Where("1 = 1")
-            .AsType(typeof(SonnetMetric)));
-        Assert.Contains("UPDATE", ex.Message);
-        Assert.Contains("VECTOR FIELD", ex.Message);
+            .ToSql();
+        Assert.Contains("UPDATE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("\"Usage\"", sql, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -310,14 +315,13 @@ public class SonnetDBProviderTests
     }
 
     [Fact]
-    public void CodeFirst_RelationshipTable_RequiresPrimaryKey()
+    public void CodeFirst_RelationshipTable_AllowsKeylessTables()
     {
         using var fsql = CreateFreeSql();
 
-        var ex = Assert.Throws<InvalidOperationException>(
-            () => fsql.CodeFirst.GetComparisonDDLStatements<SonnetDeviceWithoutPrimaryKey>());
-
-        Assert.Contains("主键", ex.Message);
+        var ddl = fsql.CodeFirst.GetComparisonDDLStatements<SonnetDeviceWithoutPrimaryKey>();
+        Assert.Contains("CREATE TABLE", ddl, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("PRIMARY KEY", ddl, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

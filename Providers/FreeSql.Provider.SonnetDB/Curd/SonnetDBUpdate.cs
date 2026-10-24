@@ -369,21 +369,33 @@ namespace FreeSql.SonnetDB.Curd
         static void EnsureUpdateModel(TableInfo table)
         {
             if (SonnetDBModel.IsTable(table)) return;
-            if (table?.Columns.Values.Any(IsVectorColumn) == true) return;
-            throw new NotSupportedException("SonnetDB 时序测量 UPDATE 仅支持已声明的 VECTOR FIELD；普通 FIELD 和 TAG 不支持更新。");
+            if (table?.Columns.Values.Any(IsSupportedMeasurementField) == true) return;
+            throw new NotSupportedException("SonnetDB 时序测量 UPDATE 仅支持已声明的 INT/FLOAT 或 VECTOR FIELD；TAG、time、STRING FIELD 和其它类型不支持更新。");
         }
 
         static bool IsVectorColumn(ColumnInfo column) =>
             column.Attribute.MapType.NullableTypeOrThis() == typeof(float[]) ||
             (column.Attribute.DbType ?? string.Empty).IndexOf("VECTOR", StringComparison.OrdinalIgnoreCase) >= 0;
 
+        static bool IsSupportedMeasurementField(ColumnInfo column)
+        {
+            if (column == null || IsVectorColumn(column)) return IsVectorColumn(column);
+            var dbType = column.Attribute?.DbType ?? column.DbTypeText ?? string.Empty;
+            if (dbType.IndexOf("TAG", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                dbType.IndexOf("TIME", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+            var type = column.Attribute?.MapType?.NullableTypeOrThis() ?? column.CsType?.NullableTypeOrThis();
+            return type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) ||
+                type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) ||
+                type == typeof(float) || type == typeof(double);
+        }
+
         void ValidateMeasurementAssignments(string sql)
         {
             if (!SonnetDBModel.IsMeasurement(_table) || string.IsNullOrWhiteSpace(sql)) return;
             var update = global::SonnetDB.Sql.SqlParser.Parse(sql) as global::SonnetDB.Sql.Ast.UpdateStatement;
             if (update == null || update.Assignments.Count != 1 ||
-                !_table.Columns.TryGetValue(update.Assignments[0].ColumnName, out var column) || !IsVectorColumn(column))
-                throw new NotSupportedException("SonnetDB 时序测量 UPDATE 每次只能替换一个已声明的 VECTOR FIELD。");
+                !_table.Columns.TryGetValue(update.Assignments[0].ColumnName, out var column) || !IsSupportedMeasurementField(column))
+                throw new NotSupportedException("SonnetDB 时序测量 UPDATE 每次只能修改一个已声明的 INT/FLOAT 或 VECTOR FIELD；TAG、time、STRING FIELD 和其它类型不支持更新。");
         }
 
         Exception ConvertConcurrencyConflict(Exception exception)

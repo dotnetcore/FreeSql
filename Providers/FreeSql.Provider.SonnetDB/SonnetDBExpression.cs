@@ -801,9 +801,14 @@ namespace FreeSql.SonnetDB
                     case "Ceiling": return $"({truncated} + (case when {remainder} > 0 then 1 else 0 end))";
                     case "Sign": return $"(case when {value} < 0 then -1 when {value} > 0 then 1 else 0 end)";
                     case "Round":
-                        throw new NotSupportedException(
-                            "SonnetDB 的 round 函数会将 DECIMAL 转为 Float64，无法保证 Math.Round(decimal) 的精度；" +
-                            "请在应用层舍入，等待上游提供保留 DECIMAL 精度的 round 实现。");
+                        if (exp.Arguments.Count == 1)
+                            return $"round({value})";
+                        if (exp.Arguments.Count == 2 && exp.Arguments[1].Type == typeof(int))
+                        {
+                            ValidateDecimalRoundDigits(exp.Arguments[1]);
+                            return $"round({value}, {getExp(exp.Arguments[1])})";
+                        }
+                        throw UnsupportedMathMethod("Round", "MidpointRounding 或其他重载");
                 }
             }
             switch (exp.Method.Name)
@@ -838,6 +843,12 @@ namespace FreeSql.SonnetDB
                     return $"(case when {truncateValue} < 0 then ceil({truncateValue}) else floor({truncateValue}) end)";
             }
             return null;
+        }
+
+        static void ValidateDecimalRoundDigits(Expression expression)
+        {
+            if (expression is ConstantExpression constant && constant.Value is int digits && (digits < 0 || digits > 28))
+                throw new NotSupportedException("SonnetDB DECIMAL round 的 digits 必须在 0 到 28 之间。");
         }
 
         static NotSupportedException UnsupportedMathMethod(string method, string detail)

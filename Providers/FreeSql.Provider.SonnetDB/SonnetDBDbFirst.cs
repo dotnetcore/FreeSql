@@ -330,6 +330,7 @@ namespace FreeSql.SonnetDB
                     IsNullable = GetBool(row, "IS_NULLABLE", true, 6),
                     IsPrimary = GetBool(row, "IS_PRIMARY_KEY", false, 11),
                     IsIdentity = GetBool(row, "IS_AUTO_INCREMENT", false, 13),
+                    Comment = GetString(row, "REMARKS"),
                     DefaultValue = GetString(row, "COLUMN_DEFAULT", 5),
                     Position = GetInt(row, "ORDINAL_POSITION", 4)
                 };

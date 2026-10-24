@@ -90,6 +90,13 @@ namespace FreeSql.SonnetDB
         static bool IsJsonValue(object value) =>
             value is JsonDocument || value is JsonElement || value is JsonNode;
 
+        static bool IsNativePrecisionTemporalColumn(ColumnInfo col)
+        {
+            var dbType = col?.Attribute?.DbType ?? col?.DbTypeText ?? string.Empty;
+            return dbType.IndexOf("DATETIME2", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                dbType.IndexOf("DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         static bool IsJsonType(Type type)
         {
             type = type?.NullableTypeOrThis();
@@ -319,7 +326,7 @@ namespace FreeSql.SonnetDB
                 return DbType.Int64;
             if (IsRelationshipTable(col))
             {
-                if (temporalType == typeof(DateTime)) return DbType.DateTime;
+                if (temporalType == typeof(DateTime)) return IsNativePrecisionTemporalColumn(col) ? DbType.DateTime2 : DbType.DateTime;
                 if (temporalType == typeof(DateTimeOffset)) return DbType.DateTimeOffset;
             }
 
@@ -476,9 +483,17 @@ namespace FreeSql.SonnetDB
                 return FormatSql("{0}", GetJsonText(value, IsJsonColumn(col)));
 
             if (value is DateTime dateTime)
+            {
+                if (IsRelationshipTable(col) && IsNativePrecisionTemporalColumn(col))
+                    return FormatSql("{0}", dateTime.ToString("O", CultureInfo.InvariantCulture));
                 return ToUnixTimeMilliseconds(dateTime).ToString(CultureInfo.InvariantCulture);
+            }
             if (value is DateTimeOffset dateTimeOffset)
+            {
+                if (IsRelationshipTable(col) && IsNativePrecisionTemporalColumn(col))
+                    return FormatSql("{0}", dateTimeOffset.ToString("O", CultureInfo.InvariantCulture));
                 return dateTimeOffset.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+            }
             if (value is DateOnly dateOnly)
                 return FormatSql("{0}", dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             if (value is TimeOnly timeOnly)
