@@ -327,7 +327,12 @@ namespace FreeSql.SonnetDB
             if (IsRelationshipTable(col))
             {
                 if (temporalType == typeof(DateTime)) return IsNativePrecisionTemporalColumn(col) ? DbType.DateTime2 : DbType.DateTime;
-                if (temporalType == typeof(DateTimeOffset)) return DbType.DateTimeOffset;
+                if (temporalType == typeof(DateTimeOffset))
+                {
+                    var dbType = col.Attribute?.DbType ?? col.DbTypeText ?? string.Empty;
+                    if (dbType.IndexOf("DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) >= 0) return DbType.DateTimeOffset;
+                    return IsNativePrecisionTemporalColumn(col) ? DbType.DateTime2 : DbType.DateTime;
+                }
             }
 
             var valueType = GetValueType(type, value);

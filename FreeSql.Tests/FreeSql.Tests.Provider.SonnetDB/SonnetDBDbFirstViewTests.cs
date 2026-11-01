@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
 using FreeSql.Provider.SonnetDB.Attributes;
+using System.Data;
 
 namespace FreeSql.Tests.Provider.SonnetDB;
 
@@ -31,6 +32,14 @@ public sealed class SonnetDBDbFirstViewTests
         var listedView = Assert.Single(allTables.Where(table =>
             string.Equals(table.Name, "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(DbTableType.VIEW, listedView.Type);
+        using (var connection = fsql.Ado.MasterPool.Get())
+        {
+            var schemaView = Assert.Single(connection.Value.GetSchema("Views").Rows.Cast<DataRow>()
+                .Where(row => string.Equals(row["TABLE_NAME"].ToString(), "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase)));
+            Assert.Equal(schemaView["TABLE_SCHEMA"].ToString(), listedView.Schema);
+            Assert.Equal(listedView.Schema, view.Schema);
+            Assert.Equal(listedView.Id, view.Id);
+        }
 
         var currentDatabases = fsql.DbFirst.GetDatabases();
         Assert.NotEmpty(currentDatabases);

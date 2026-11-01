@@ -1,6 +1,6 @@
 # FreeSql SonnetDB 提供程序
 
-当前分支面向 **.NET 10**，依赖公开预览 **SonnetDB 4.5.0-preview.ef266.5**。SonnetDB 稳定 4.5、对应 Server 产物和本提供程序正式包尚未发布；PR 仍为 Draft，本文描述源码接入状态，不把预览包或本地测试写成正式发行证据。
+当前分支面向 **.NET 10**，依赖公开预览 **SonnetDB 4.5.0-preview.ef266.5**。接入 PR #2234 已于 **2026-11-01** 合并。2026-11-02 核验时，SonnetDB 与 SonnetDB.Core 的最新公开稳定包仍为 4.0.0；本文区分预览包、最新源码和正式发行合同。
 
 适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。当前验收覆盖嵌入式连接；远程 REST 与帧协议尚未完成端到端验收，不能仅凭上游 Issue 关闭或本地测试通过将其标记为完成。剩余依赖及验收条件见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
 
@@ -124,4 +124,6 @@ DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate`、`Math.Round(decimal)` 和
 
 ## 待验收项
 
-正式 4.5 包身份、远程连接一致性、远程 DDL 事务、schema/table 的 ADO 结构化元数据、注释清除、字符串长度元数据、降序索引、主键迁移和 StoredProcedure 消费者回归，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。PR 的依赖状态以实现、可复现的执行结果和发布合同共同验收，不以 Issue 的开关状态代替验证。
+最新 SonnetDB 源码已实现 schema/table 的 ADO 结构化元数据、字符串长度合同和 EXISTS NULL 等值访问路径修复。提供程序按实际列类型绑定 DateTimeOffset 参数；DbFirst 优先保留结构化视图身份，不支持时回退旧版补查。
+
+正式依赖交付、远程连接一致性、远程 DDL 事务，以及注释清除、降序索引、主键迁移和 StoredProcedure 的正式包消费者回归，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。合并接入代码不代表所有最新源码能力已进入公开依赖包；发行验收仍以版本身份和实际执行结果为准。
