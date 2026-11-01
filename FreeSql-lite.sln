@@ -99,6 +99,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.EFModel"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.Provider.MySqlConnector", "FreeSql.Tests\FreeSql.Tests.Provider.MySqlConnector\FreeSql.Tests.Provider.MySqlConnector.csproj", "{B20EFBC2-CB6A-CD59-32C2-9F2C865CE4A3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SonnetDB", "Providers\FreeSql.Provider.SonnetDB\FreeSql.Provider.SonnetDB.csproj", "{3AF63425-1FCA-4803-86BC-72916B53EF77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -565,6 +567,18 @@ Global
 		{B20EFBC2-CB6A-CD59-32C2-9F2C865CE4A3}.Release|x64.Build.0 = Release|Any CPU
 		{B20EFBC2-CB6A-CD59-32C2-9F2C865CE4A3}.Release|x86.ActiveCfg = Release|Any CPU
 		{B20EFBC2-CB6A-CD59-32C2-9F2C865CE4A3}.Release|x86.Build.0 = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|x64.Build.0 = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Debug|x86.Build.0 = Debug|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|x64.ActiveCfg = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|x64.Build.0 = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|x86.ActiveCfg = Release|Any CPU
+		{3AF63425-1FCA-4803-86BC-72916B53EF77}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -603,10 +617,6 @@ Global
 		{02CFB50A-D8C4-470D-AC93-5540D6029430} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{C89AFB35-AC56-4683-BCB5-13D3522DFED3} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{0BFF3BB8-02ED-460A-A5C8-D9D047791AB0} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = True
-		SolutionGuid = {089687FA-5D21-40AC-BA8A-AA0D1E1H7F98}
+		{3AF63425-1FCA-4803-86BC-72916B53EF77} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 EndGlobal
