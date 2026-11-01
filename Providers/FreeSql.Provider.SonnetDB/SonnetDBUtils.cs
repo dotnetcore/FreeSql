@@ -490,13 +490,13 @@ namespace FreeSql.SonnetDB
             if (value is DateTime dateTime)
             {
                 if (IsRelationshipTable(col) && IsNativePrecisionTemporalColumn(col))
-                    return FormatSql("{0}", dateTime.ToString("O", CultureInfo.InvariantCulture));
+                    return FormatNativeTemporalLiteral(col, dateTime.ToString("O", CultureInfo.InvariantCulture));
                 return ToUnixTimeMilliseconds(dateTime).ToString(CultureInfo.InvariantCulture);
             }
             if (value is DateTimeOffset dateTimeOffset)
             {
                 if (IsRelationshipTable(col) && IsNativePrecisionTemporalColumn(col))
-                    return FormatSql("{0}", dateTimeOffset.ToString("O", CultureInfo.InvariantCulture));
+                    return FormatNativeTemporalLiteral(col, dateTimeOffset.ToString("O", CultureInfo.InvariantCulture));
                 return dateTimeOffset.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
             }
             if (value is DateOnly dateOnly)
@@ -523,6 +523,15 @@ namespace FreeSql.SonnetDB
                 return sb.Append(")").ToString();
             }
             return FormatSql("{0}", value);
+        }
+
+        string FormatNativeTemporalLiteral(ColumnInfo col, string value)
+        {
+            var dbType = col.Attribute?.DbType ?? col.DbTypeText ?? string.Empty;
+            var target = dbType.IndexOf("DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) >= 0
+                ? "DATETIMEOFFSET" : "DATETIME2";
+            // 无参数 INSERT、UPDATE 和 UPSERT 也必须携带原生时间类型，不能依赖字符串的隐式转换。
+            return "CAST(" + FormatSql("{0}", value) + " AS " + target + ")";
         }
     }
 }

@@ -1,68 +1,76 @@
 # SonnetDB 兼容性与发布依赖
 
-核验日期：2026-11-02（北京时间）。FreeSql PR [#2234](https://github.com/dotnetcore/FreeSql/pull/2234) 已于 2026-11-01 合并，提交为 `05997ef16`。SonnetDB 最新源码的修复与正式发行验收分别记录，不再将已合并 PR 标为 Draft。
+核验日期：2026-11-02（北京时间）。FreeSql [#2234](https://github.com/dotnetcore/FreeSql/pull/2234) 已合并，提交 `05997ef16f0d6a12f051f9a50794a2c21dcd4dc5`；兼容后续 [#2291](https://github.com/dotnetcore/FreeSql/pull/2291) 尚待上游合并。发布门禁继续由 [SonnetDB #230](https://github.com/IoTSharp/SonnetDB/issues/230) 跟踪。
 
-## 版本与证据边界
+## 固定版本及公开交付
 
-| 对象 | 当前身份 | 可依赖范围 |
+| 对象 | 当前身份 | 证据边界 |
 | --- | --- | --- |
-| SonnetDB 稳定版 | `4.0.0` | 已发布包合同 |
-| SonnetDB 公开预览 | `4.5.0-preview.ef266.5`，源码 `1af23d8f` | 预览包合同；不包含后续全部 main 实现 |
-| SonnetDB 本次核验 main | `ad8f7a0181c8d2bba8a6472f339bc4bafadc8763` | 源码实现和对应仓库测试；不等同于已发布包 |
-| FreeSql provider | `05997ef16` 加提供程序内的时间参数与视图兼容修复 | 不更改 FreeSql 核心或现有公共 API；不等同于已发布 FreeSql 包 |
+| SonnetDB 本轮版本 | `5.0.0`，tag `v5.0.0`，源码 `455bf3b53b1e56df0064d8f574b0595cbb0b609e` | 两平台合同通过；正式 NuGet 推送因 API Key 过期返回 403，公开 NuGet/Server 复验尚未完成 |
+| FreeSql Provider | 本 PR 的 5.0.0 依赖、时间参数/字面量及视图修复 | 完整套件与隔离候选包通过，未宣称上游已合并/发包 |
+| 公开 FreeSql Core | `3.5.311` | 缺少 `DataType.SonnetDB`，独立消费者构建以 CS0117 失败 |
+| 公开 FreeSql.Provider.SonnetDB | NuGet flat-container 索引 404 | 不存在可供普通用户恢复的公开 Provider 包 |
 
-公开预览依赖和最新源码引用分别运行完整 provider 回归，两组均为 **233/233 通过、0 失败、0 跳过**。测试包含嵌入式执行与 SQL 生成断言；远程 REST/h2c/HTTP2、正式包及发布后消费者需要独立证据。
+SonnetDB 5.0 存在二进制 API 破坏性变化：共享类型移入 Protocol，分页 API 改为 long。应用与 Provider 必须统一升级并重新编译；需要回退数据库时恢复升级前备份，不能只替换旧 DLL。
 
-## 2026-11-02 修复核验
+仅更新 SonnetDB 依赖不能补齐公开 FreeSql Core。用本地候选 Core/Provider 打包可证明这一源码组合可用，但不能把本地 `3.5.311` 包冒充 NuGet.org 的同名版本。需由上游发布包含 #2234 与 #2291 的新 Core 和 Provider，再以全新缓存执行公开组合验收。
 
-- [#380](https://github.com/IoTSharp/SonnetDB/issues/380)：修复 `48fe989b` 已随 #381 进入本次 main。普通 NULL 等值条件不再放弃 EXISTS 索引路径，保留单独 `IS NULL` 的正确结果；关系 EXISTS 组 22/22 通过。
-- [#240](https://github.com/IoTSharp/SonnetDB/issues/240)：`STRING(n)` / `VARCHAR(n)` 的长度约束、迁移、重开及 ADO 元数据已有实现；关系列元数据组 39/39 通过。以上为本次源码定向执行，不代表旧预览包或远程协议的同项验收。
-- [#348](https://github.com/IoTSharp/SonnetDB/issues/348)：Data、Server、Remote 的 schema/table 结构化身份已有实现；提供程序优先采用结构化视图身份，并与 Tables 结果按名称和 schema 去重，不支持 Views 元数据时才回退旧版 `SHOW VIEWS` 补查。
-- DateTimeOffset 默认映射保留 `DATETIME` 毫秒合同；参数按目标列选择 `DateTime`、`DateTime2` 或 `DateTimeOffset`，不以更改默认建表类型引入迁移。
+## 本轮实际执行
 
-## 已接入的关系表能力
+| 检查 | 已取得结果 |
+| --- | --- |
+| 原有预览依赖及后续兼容修复 | 历史 233/233 PASS，不覆盖本轮新增四项原生时间回归 |
+| SonnetDB 精确 5.0.0 候选依赖，完整 Provider 套件 | **237/237 PASS，0 FAIL，0 SKIP** |
+| 候选 Core + Provider NuGet，全新缓存的独立消费者 | restore/build PASS；未引用 FreeSql 或 SonnetDB 源码项目 |
+| 业务旅程：embedded、REST、frame-http2 | 每种连接 **25 项 PASS** |
+| 独立重开：embedded、REST、frame-http2 | 每种连接 **8 项 PASS**；Server 进程实际终止并重启 |
+| 真实 Server 请求收据 | REST SQL 68、HTTP/2 Frame 32、HTTP/2 事务 21 |
+| Provider Release pack | PASS，不再有预发布依赖 NU5104 |
+| FreeSql Core pack | 原源码五个目标框架 PASS；未修改 FreeSql 核心 |
 
-- 参数化 INSERT/SELECT/UPDATE/DELETE、批量更新、ROWVERSION 乐观并发和实体/投影 `RETURNING`。
-- `InsertOrUpdate` / 字典 UPSERT 的原子 `ON CONFLICT` 映射。
-- CTE、递归 CTE、UNION ALL、WithMemory、派生查询、InsertInto，以及关系表 JOIN 和 Update.Join。
-- 无 WHERE 关系 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML：provider 已生成对应 SQL，必须用包含实现的正式包做最终消费者回归。
-- 显式事务内 `ForUpdate()` / `ForUpdate(nowait: true, skipLocked: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT` / `FOR UPDATE SKIP LOCKED`；`FOR SHARE` 仍保持未支持。
-- DECIMAL 参数/精度、精确基础表达式、`Math.Round(decimal[, int])` 的十进制映射；`MidpointRounding` 重载明确拒绝。
-- CodeFirst 的 qualified table SQL、嵌入式 DDL 事务拆分、无主键建表、DESC 索引、注释和 `STRING(n)` 生成路径已接入；主键拓扑/类型迁移、远程事务和元数据仍需正式包复验。
+原始报告记录实际程序集 informational version 与 SHA-256；Server 和消费者 SHA 也分别绑定。验收程序和运行方法见 [ReleaseAcceptance](../../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)。候选产物来自 SonnetDB Actions `41346120155`，正式发行工作流为 `41348714535`；正式公开包复验须单独记录。
 
-measurement 是独立的时序模型。其追加写入、删除、VECTOR 和数值 FIELD 更新边界不能当作关系表缺口；provider 文档和测试将两种模型分开。
+本轮修正：
 
-## SonnetDB main 已实现、待正式包与消费者验收
+- DateTimeOffset 参数按实际 `DATETIME` / `DATETIME2` / `DATETIMEOFFSET` 目标列绑定，默认毫秒列类型不变。
+- 无参数 INSERT、UPDATE 和强制无参数的 UPSERT 对精细时间生成显式 CAST；新增参数/无参数 × INSERT/UPDATE/UPSERT 四种回归。
+- DbFirst 优先使用结构化视图身份，与 Tables 结果按 schema/name 去重；不支持 Views 元数据时保留旧版回退。
+- DATETIMEOFFSET 按已有引擎合同保存 UTC ticks、返回零 offset；不是保留输入时区。初次验收的 offset 预期已校正，未改变数据库或 FreeSql 核心。
+- 主键迁移旅程使用已支持的 STRING→INT；不承诺任意 INT→STRING 转换。
 
-| 任务 | 已实现的引擎合同 | FreeSql 仍需验收 |
-| --- | --- | --- |
-| [#224](https://github.com/IoTSharp/SonnetDB/issues/224) | measurement 分组 HAVING、聚合投影、隐藏聚合排序、多键排序和分页 | 正式包下 GroupBy/Having/OrderBy/Limit/ToList 同步/异步消费者 |
-| [#229](https://github.com/IoTSharp/SonnetDB/issues/229) | 多 SELECT、NextResult/Async、空首结果元数据 | `IAdo.Query<T1,T2>`、ExecuteDataSet 同步/异步消费者 |
-| [#226](https://github.com/IoTSharp/SonnetDB/issues/226) | 存量主键列重命名、类型/定义迁移 | CodeFirst OldName、失败恢复和正式包消费者 |
-| [#227](https://github.com/IoTSharp/SonnetDB/issues/227) | 嵌入式关系 DDL workspace、提交/回滚和失败隔离 | 远程 DDL 事务仍 `NOT_RUN`；正式包组合待验 |
-| [#233](https://github.com/IoTSharp/SonnetDB/issues/233) / [#248](https://github.com/IoTSharp/SonnetDB/issues/248) | 单关系基表 FOR UPDATE/NOWAIT | provider 复杂形状/measurement 边界和正式包远程回归 |
-| [#236](https://github.com/IoTSharp/SonnetDB/issues/236) | DATETIME2/DateTimeOffset 100ns 精度和远程 typed 链路 | provider 显式 DATETIME2/DATETIMEOFFSET 参数、读回和正式包 |
-| [#237](https://github.com/IoTSharp/SonnetDB/issues/237) / [#240](https://github.com/IoTSharp/SonnetDB/issues/240) | COMMENT、STRING(n)、长度/备注元数据 | FreeSql 注释替换/清除、DbFirst MaxLength/REMARKS |
-| [#247](https://github.com/IoTSharp/SonnetDB/issues/247) | StoredProcedure、OUT/INOUT/ReturnValue、多结果 | 标准 FreeSql ADO 消费者和正式包 |
-| [#250](https://github.com/IoTSharp/SonnetDB/issues/250) | 约束目录、DESC/INCLUDE 索引、自增维护 | FreeSql DESC 回归；共享 IndexInfo 无 INCLUDE API |
-| [#255](https://github.com/IoTSharp/SonnetDB/issues/255) | 无显式主键关系表 DML | FreeSql keyless 实体 INSERT/SELECT/UPDATE/DELETE 正式包回归 |
-| [#312](https://github.com/IoTSharp/SonnetDB/issues/312) | 普通单列 INT 主键值更新 | Set 主键、冲突/事务/RETURNING 正式包回归 |
-| [#314](https://github.com/IoTSharp/SonnetDB/issues/314) | DECIMAL round ToEven、0–28 位 | 大数/负数/边界和正式包消费者 |
+## 已有接口的验收范围
 
-## 产品边界与远程验收
+| 上游任务 | 当前证据 |
+| --- | --- |
+| #224 measurement 完整分组 | 三种连接均通过同步/异步 GroupBy、Having、聚合排序与分页 |
+| #229 SELECT 多结果 | 三种连接均通过空首结果的列元数据与后续结果 |
+| #226 主键迁移 | 三种连接均通过主键列重命名、STRING→INT 迁移与重开 |
+| #227 关系 DDL 事务 | 三种连接均通过建表/写入的提交、回滚及重开 |
+| #233 / #248 锁定读 | 三种连接均通过双事务 NOWAIT、SKIP LOCKED 与回滚后释放 |
+| #236 精细时间 | 三种连接均通过 DATETIME2 100ns、DATETIMEOFFSET 完整 UTC ticks；参数/无参数路径另有完整套件回归 |
+| #237 / #240 注释与长度 | 完整套件覆盖注释及长度；三种连接旅程核验 DbFirst 字符串长度/DECIMAL 元数据 |
+| #247 存储过程 | 三种连接均通过 OUT/INOUT/ReturnValue 和两个结果集 |
+| #250 约束与索引 | 完整套件覆盖 DESC 索引等已有映射；FreeSql 共享 IndexInfo 没有 INCLUDE API |
+| #255 / #312 关系 DML | 完整套件覆盖无主键关系 DML及普通 INT 主键值更新；三种连接旅程覆盖关键 CRUD/RETURNING/UPSERT |
+| #314 DECIMAL round | 完整套件覆盖精确舍入；三种连接旅程覆盖完整精度 DECIMAL 写读 |
+| #348 schema/table 元数据 | 三种连接均核验结构化视图去重及列元数据；复杂跨 schema 组合不由此推断全部通过 |
+| #380 EXISTS/NULL | 已有引擎与公开 ADO 定向回归，修复包含在固定 5.0.0 源码中 |
 
-- `FOR SHARE` 仍明确拒绝，现有 FreeSql 没有对应公共查询入口；[SonnetDB #347](https://github.com/IoTSharp/SonnetDB/issues/347) 的 `SKIP LOCKED` 已实现。`ForUpdate(skipLocked: true)` 的正式 Client/Server 组合仍需独立执行验收。
-- schema/table 的结构化元数据不再列为“未实现”；[SonnetDB #348](https://github.com/IoTSharp/SonnetDB/issues/348) 的正式包和远程 FreeSql 消费者仍单独核验。
-- 关系表 `VECTOR/GEOPOINT` 列：已创建 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349)。provider 当前按产品边界明确拒绝，不把 measurement/document 专用类型伪装成关系列。
-- measurement STRING FIELD 属于时序模型，已单独核查后关闭 [SonnetDB #346](https://github.com/IoTSharp/SonnetDB/issues/346)，不计入关系表能力缺口。
+完整 Provider 套件包含嵌入式执行和 SQL 生成断言，不将其中全部条目冒充三协议测试；独立业务旅程只承诺其实际断言覆盖的范围。
 
-## 发布门禁
+## 产品边界
 
-- [ ] SonnetDB 交付包含所需能力的正式 NuGet、tag、Server 产物和发行说明，并绑定源码身份及兼容边界；不预设下一正式版本必须为 4.5。
-- [ ] provider 升级实际正式依赖，重跑完整回归、关系消费者、远程组合、打包和包身份检查。
-- [ ] 完成远程 DDL、schema metadata、StoredProcedure、DATETIME2、主键迁移和锁定读边界的独立证据。
-- [x] 确认接入 PR #2234 已合并；该状态不作为数据库及 provider 正式发行的放行证据。
+- measurement 是独立时序模型；STRING FIELD 等限制不列为关系表缺陷。DATETIME 默认仍为毫秒，精细时间须声明原生列类型。
+- `FOR SHARE` 仍明确拒绝，FreeSql 当前没有对应公共入口。`ForUpdate(skipLocked: true)` 已有三协议消费者证据。
+- 关系表 VECTOR/GEOPOINT 仍依 [SonnetDB #349](https://github.com/IoTSharp/SonnetDB/issues/349) 的产品边界明确拒绝；不伪装成普通关系列。
+- 本轮不增加 FreeSql 公共 API，不包括任意精度整数、公开 savepoint、原生 COPY、九模型 ORM 化、物理掉电、生产负载或 Server/MQ 全实例恢复。
 
-正式发行与消费者验收继续由 [SonnetDB #230](https://github.com/IoTSharp/SonnetDB/issues/230) 跟踪。
+## 完整关闭条件
 
-本轮不增加 FreeSql 公共 API，也不把 measurement 专用限制当作关系表缺口。公开 savepoint、原生 COPY/Frame、SonnetDB 全模型 ORM 化和 PostgreSQL 专有类型不在本 provider 交付范围。
+- [ ] SonnetDB 正式十包、tag、发行说明和匹配 Server 已公开，源码身份及公开包消费者复验通过。
+- [x] Provider 5.0.0 候选完整回归、独立三协议业务与重开、打包通过。
+- [x] 独立候选 Core/Provider 的纯 NuGet 消费者恢复、构建及三协议验收通过。
+- [ ] FreeSql 上游合入 #2291，发布包含 SonnetDB 接入的新 Core 与 Provider。
+- [ ] 使用新的缓存、公开 FreeSql/SonnetDB 包及正式 Server 完成同一消费者旅程。
+
+这些条件完成前，#230 保持开放。数据库正式发布、上游合并和上游包可安装是三个需要分别证明的状态。

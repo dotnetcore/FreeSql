@@ -1,8 +1,10 @@
 # FreeSql SonnetDB 提供程序
 
-当前分支面向 **.NET 10**，依赖公开预览 **SonnetDB 4.5.0-preview.ef266.5**。接入 PR #2234 已于 **2026-11-01** 合并。2026-11-02 核验时，SonnetDB 与 SonnetDB.Core 的最新公开稳定包仍为 4.0.0；本文区分预览包、最新源码和正式发行合同。
+当前分支面向 **.NET 10**，依赖 **SonnetDB 5.0.0**。接入 PR #2234 已于 **2026-11-01** 合并；兼容后续 PR #2291 仍待上游合并。SonnetDB 5.0.0 固定源码为 `455bf3b53b1e56df0064d8f574b0595cbb0b609e`，正式发行状态与公开包验收见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
 
-适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。当前验收覆盖嵌入式连接；远程 REST 与帧协议尚未完成端到端验收，不能仅凭上游 Issue 关闭或本地测试通过将其标记为完成。剩余依赖及验收条件见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
+适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。5.0.0 候选的完整 Provider 回归为 **237/237**，独立消费者在嵌入式、REST 和 `frame-http2` 连接分别通过 25 项业务检查及重开后的 8 项检查；[验收程序](../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)记录实际程序集身份与 Server 协议收据。候选验证和公开 FreeSql 包交付分别记录。
+
+**公开 FreeSql 包仍有发布阻塞**：本轮实查稳定 Core `3.5.311` 不含 `DataType.SonnetDB`，`FreeSql.Provider.SonnetDB` 公共索引为 404。单独编译 Provider、或把候选 Provider 配上这个公开 Core，不能作为用户可安装的发布组合；需要 FreeSql 发布包含 #2234 与 #2291 的 Core 和 Provider。
 
 ## 连接与实体模型
 
@@ -40,7 +42,7 @@ loaded.Name = "pump-02";
 fsql.Update<Device>().SetSource(loaded).ExecuteAffrows();
 ```
 
-`ROWVERSION` 由 SonnetDB 生成。提供程序保留 FreeSql 的旧版本匹配与 `DbUpdateVersionException` 行为，不向版本列赋值。事务用于关系表 DML；嵌入式关系 DDL 可在 SonnetDB 4.5 workspace 合同中提交或回滚，远程 DDL 事务仍需正式包组合验收。时序测量写入、修改、删除继续遵循独立的 measurement 合同。
+`ROWVERSION` 由 SonnetDB 生成。提供程序保留 FreeSql 的旧版本匹配与 `DbUpdateVersionException` 行为，不向版本列赋值。事务用于关系表 DML；受支持的关系 DDL 可在 workspace 中提交或回滚，三种连接均已有独立消费者证据。时序测量写入、修改、删除继续遵循独立的 measurement 合同。
 
 时序测量通过 TAG 描述维度，通过 FIELD 保存观测值。`time` 是数据库内置时间列，按 Unix 毫秒保存。
 
@@ -73,7 +75,7 @@ fsql.Insert(new CpuMetric
 | 关系表写入 | 参数化 CRUD、批量更新、`AsType` 动态实体，以及字典 CRUD |
 | 原子 UPSERT | `InsertOrUpdate` / `InsertOrUpdateDict` 映射到原生 `ON CONFLICT`，支持主键或唯一索引目标、选择更新列、`UpdateSet` 和 `IfExistsDoNothing` |
 | DML 结果 | 插入、更新、删除的实体返回及异步入口使用原生 `RETURNING`；`ExecuteUpdated` 额外支持既有标量/匿名投影，保留重命名列、NULL 与行版本 |
-| 关系表更新边界 | 无 WHERE 批量 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML；均需使用包含对应 SonnetDB 4.5 实现的正式包复验 |
+| 关系表更新边界 | 无 WHERE 批量 UPDATE、普通单列 INT 主键值更新、无显式主键关系表 DML；包含在完整嵌入式 Provider 套件中 |
 | 查询组合 | CTE、`AsTreeCte` 递归查询、`UnionAll`、多行 `WithMemory`、`WithSql`、派生查询和 `InsertInto` / `InsertIntoAsync` |
 | 关系表锁定读 | 显式事务中的 `ForUpdate()` / `ForUpdate(nowait: true, skipLocked: true)` 映射为 `FOR UPDATE` / `FOR UPDATE NOWAIT` / `FOR UPDATE SKIP LOCKED`；不静默降级 |
 | JOIN | 关系表 `INNER` / `LEFT` / `RIGHT JOIN`、原始 `FULL JOIN`、多源 `CROSS JOIN`，以及现有 `Update.Join` |
@@ -90,7 +92,7 @@ measurement 的追加、删除、VECTOR 和数值 FIELD 更新属于独立时序
 | CLR 类型 | 关系表映射 |
 | --- | --- |
 | `decimal` | 原生 `DECIMAL`，支持 `Column(Precision = ..., Scale = ...)` 或显式 `DECIMAL(p,s)`，保留精度元数据和差异迁移 |
-| `DateTime` / `DateTimeOffset` | 默认沿用关系 `DATETIME` 毫秒合同；显式 `DbType = "DATETIME2"` / `"DATETIMEOFFSET"` 使用 4.5 原生精度合同；不将关系表时间误当作时序毫秒值 |
+| `DateTime` / `DateTimeOffset` | 默认沿用关系 `DATETIME` 毫秒合同；显式 `DbType = "DATETIME2"` / `"DATETIMEOFFSET"` 使用原生 100ns 合同；`DATETIMEOFFSET` 返回 UTC 时刻、零 offset |
 | `DateOnly` | `DATETIME`，以日期值写入并读回 `DateOnly` |
 | `TimeOnly` | 原生 `TIME` |
 | `TimeSpan` | `INT` ticks，支持负值、跨日时长、完整 Int64 范围和可空值；`TIME` 列应使用 `TimeOnly` |
@@ -98,6 +100,8 @@ measurement 的追加、删除、VECTOR 和数值 FIELD 更新属于独立时序
 | `System.Text.Json` DOM | `JSON`；时序测量中沿用 `FIELD STRING` |
 
 SonnetDB 的 `INT` 为 Int64。`ulong` 只支持不超过 `long.MaxValue` 的值；`BigInteger` 尚不支持。关系表的精确 DECIMAL 映射不改变时序 FLOAT FIELD 的数值语义。
+
+精细时间的参数按实际列类型绑定，无参数 INSERT/UPDATE 与 UPSERT 使用显式 `CAST(... AS DATETIME2/DATETIMEOFFSET)` 字面量，保留完整 ticks。默认 `DATETIME` 类型不变；不能以隐式字符串转换或截断亚毫秒值绕过类型合同。
 
 已有字符串表达式已映射到数据库函数，包括 UTF-16 长度和索引、`Trim` 系列、`Substring`、`IndexOf`、`Replace`、填充，以及静态或动态的 `Contains` / `StartsWith` / `EndsWith`。模式值按普通文本处理，保留百分号、下划线和引号的含义；带 `StringComparison` 的重载仅翻译能够保持语义的形式。
 
@@ -122,8 +126,8 @@ DECIMAL 的 `Abs`、`Floor`、`Ceiling`、`Truncate`、`Math.Round(decimal)` 和
 
 文档集合、全文索引和向量索引的完整 ORM 结构迁移不属于当前关系表/测量映射。物理外键也不会由 `Navigate` 自动创建；DbFirst 读取数据库中已有的外键信息。视图定义等无法由 FreeSql 共享模型承载的信息，不会放入其他字段冒充完整元数据。
 
-## 待验收项
+## 交付状态与边界
 
 最新 SonnetDB 源码已实现 schema/table 的 ADO 结构化元数据、字符串长度合同和 EXISTS NULL 等值访问路径修复。提供程序按实际列类型绑定 DateTimeOffset 参数；DbFirst 优先保留结构化视图身份，不支持时回退旧版补查。
 
-正式依赖交付、远程连接一致性、远程 DDL 事务，以及注释清除、降序索引、主键迁移和 StoredProcedure 的正式包消费者回归，统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。合并接入代码不代表所有最新源码能力已进入公开依赖包；发行验收仍以版本身份和实际执行结果为准。
+完整套件覆盖已有映射；三种连接的独立旅程额外核验关键 CRUD、RETURNING、UPSERT、DECIMAL、精细时间、竞争锁、DDL 提交/回滚、STRING→INT 主键迁移、视图去重、元数据、存储过程与 measurement 分组。它们不代表任意主键类型转换、全部模型恢复或生产负载验收。正式 SonnetDB 交付与公开 FreeSql Core/Provider 的剩余条件统一维护在 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。

@@ -217,6 +217,49 @@ public sealed class SonnetDBParameterTypeTests
         Assert.Contains("long.MaxValue", insertException.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task NativeTemporal_InsertUpdateAndUpsert_PreserveTicksAndUtcInstant(bool noneParameter, bool upsert)
+    {
+        using var fsql = new FreeSqlBuilder()
+            .UseConnectionString(DataType.SonnetDB,
+                $"Data Source={Path.Combine(Path.GetTempPath(), "FreeSql-SonnetDB-NativeTemporal", Guid.NewGuid().ToString("N"))}")
+            .UseAutoSyncStructure(true)
+            .UseNoneCommandParameter(noneParameter)
+            .Build();
+        var row = new NativeTemporalRow
+        {
+            Id = 1,
+            At = new DateTime(2026, 11, 2, 0, 0, 0, DateTimeKind.Utc).AddTicks(1234567),
+            Offset = new DateTimeOffset(2026, 11, 2, 3, 0, 0, TimeSpan.FromHours(5.5)).AddTicks(7654321)
+        };
+        Assert.Equal(1, upsert ? await fsql.InsertOrUpdate<NativeTemporalRow>().SetSource(row).ExecuteAffrowsAsync()
+            : await fsql.Insert(row).ExecuteAffrowsAsync());
+        var inserted = fsql.Select<NativeTemporalRow>().ToOne();
+        Assert.Equal(row.At.Ticks, inserted.At.Ticks);
+        Assert.Equal(row.Offset.UtcTicks, inserted.Offset.UtcTicks);
+        Assert.Equal(TimeSpan.Zero, inserted.Offset.Offset);
+        row.At = row.At.AddTicks(1);
+        row.Offset = row.Offset.AddTicks(2);
+        Assert.Equal(1, upsert ? fsql.InsertOrUpdate<NativeTemporalRow>().SetSource(row).ExecuteAffrows()
+            : fsql.Update<NativeTemporalRow>().SetSource(row).ExecuteAffrows());
+        var updated = await fsql.Select<NativeTemporalRow>().ToOneAsync();
+        Assert.Equal(row.At.Ticks, updated.At.Ticks);
+        Assert.Equal(row.Offset.UtcTicks, updated.Offset.UtcTicks);
+        Assert.Equal(TimeSpan.Zero, updated.Offset.Offset);
+    }
+
+    [SonnetDBTable, Table(Name = "sonnet_native_temporal_literals")]
+    private sealed class NativeTemporalRow
+    {
+        [Column(IsPrimary = true)] public long Id { get; set; }
+        [Column(DbType = "DATETIME2")] public DateTime At { get; set; }
+        [Column(DbType = "DATETIMEOFFSET")] public DateTimeOffset Offset { get; set; }
+    }
+
     [SonnetDBTable, Table(Name = "sonnet_offset_parameter_types")]
     private sealed class OffsetParameterRow
     {
