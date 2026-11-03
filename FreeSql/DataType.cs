@@ -69,6 +69,8 @@ namespace FreeSql
 
         TDengine,
 
-        SonnetDB
+        SonnetDB,
+
+        GaussDB
     }
 }

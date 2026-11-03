@@ -395,6 +395,12 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.SonnetDB.dll", "FreeSql.SonnetDB.SonnetDBProvider<>");
                         break;
 
+                    case DataType.GaussDB:
+                        if (_isAdoConnectionPool == null) _isAdoConnectionPool = true;
+                        type = Type.GetType("FreeSql.GaussDB.GaussDBProvider`1,FreeSql.Provider.GaussDB")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.GaussDB.dll", "FreeSql.GaussDB.GaussDBProvider<>");
+                        break;
+
                     default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
