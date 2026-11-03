@@ -1,0 +1,148 @@
+﻿using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.GaussDB.Curd;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using HuaweiCloud.GaussDBTypes;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq.Expressions;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Numerics;
+using System.Reflection;
+using System.Threading;
+
+namespace FreeSql.GaussDB
+{
+    public interface IGaussDBProviderOptions
+    {
+        bool UseMergeInto{ get; set; }
+    }
+
+    public class GaussDBProvider<TMark> : BaseDbProvider, IFreeSql<TMark>, IGaussDBProviderOptions
+    {
+        public bool UseMergeInto { get; set; }
+
+        static int _firstInit = 1;
+        static void InitInternal()
+        {
+            if (Interlocked.Exchange(ref _firstInit, 0) == 1) //不能放在 static ctor .NetFramework 可能报初始化类型错误
+            {
+#if net60
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(DateOnly)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(TimeOnly)] = true;
+#endif
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BigInteger)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBPoint)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBLine)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBLSeg)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBBox)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBPath)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBPolygon)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBCircle)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof((IPAddress Address, int Subnet))] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(IPAddress)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PhysicalAddress)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBRange<int>)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBRange<long>)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBRange<decimal>)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(GaussDBRange<DateTime>)] = true;
+
+
+#if nts
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Point)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.LineString)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Polygon)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPoint)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiLineString)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPolygon)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Geometry)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.GeometryCollection)] = true;
+#endif
+
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Dictionary<string, string>)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JToken)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JObject)] = true;
+                Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JArray)] = true;
+
+                var MethodJTokenFromObject = typeof(JToken).GetMethod("FromObject", new[] { typeof(object) });
+                var MethodJObjectFromObject = typeof(JObject).GetMethod("FromObject", new[] { typeof(object) });
+                var MethodJArrayFromObject = typeof(JArray).GetMethod("FromObject", new[] { typeof(object) });
+                var MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
+                var MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
+                var MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
+                var MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
+                var MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
+                Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
+                {
+                    switch (type.FullName)
+                    {
+                        case "Newtonsoft.Json.Linq.JToken":
+                            return Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenParse, Expression.Convert(valueExp, typeof(string))), typeof(JToken))),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenFromObject, valueExp), typeof(JToken))));
+                        case "Newtonsoft.Json.Linq.JObject":
+                            return Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject))),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectFromObject, valueExp), typeof(JObject))));
+                        case "Newtonsoft.Json.Linq.JArray":
+                            return Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, typeof(string)),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray))),
+                                Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayFromObject, valueExp), typeof(JArray))));
+                    }
+                    if (typeof(IList).IsAssignableFrom(type))
+                        return Expression.IfThenElse(
+                            Expression.TypeIs(valueExp, typeof(string)),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type, typeof(Type))), type)),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(string)), Expression.Constant(type, typeof(Type))), type)));
+                    return null;
+                });
+
+                Select0Provider._dicMethodDataReaderGetValue[typeof(Guid)] = typeof(DbDataReader).GetMethod("GetGuid", new Type[] { typeof(int) });
+            }
+        }
+
+        public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new GaussDBSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IInsert<T1> CreateInsertProvider<T1>() => new GaussDBInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
+        public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new GaussDBUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new GaussDBDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => new GaussDBInsertOrUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+        public GaussDBProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
+        {
+            InitInternal();
+            this.InternalCommonUtils = new GaussDBUtils(this);
+            this.InternalCommonExpression = new GaussDBExpression(this.InternalCommonUtils);
+
+            this.Ado = new GaussDBAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
+            this.Aop = new AopProvider();
+
+            this.DbFirst = new GaussDBDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            this.CodeFirst = new GaussDBCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+            //this.Aop.AuditDataReader += (_, e) =>
+            //{
+            //    var dbtype = e.DataReader.GetDataTypeName(e.Index);
+            //    var m = Regex.Match(dbtype, @"numeric\((\d+)\)", RegexOptions.IgnoreCase);
+            //    if (m.Success && int.Parse(m.Groups[1].Value) > 19)
+            //        e.Value = e.DataReader.GetFieldValue<BigInteger>(e.Index);
+            //};
+        }
+
+        ~GaussDBProvider() => this.Dispose();
+        int _disposeCounter;
+
+        public override void Dispose()
+        {
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
+            (this.Ado as AdoProvider)?.Dispose();
+        }
+    }
+}
