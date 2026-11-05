@@ -23,31 +23,44 @@ namespace FreeSql.MySql.Curd
         {
             var ret = new List<T1>();
             DbParameter[] dbParms = null;
-            StringBuilder sbret = null;
+            StringBuilder sbSelectCols = null;
             ToSqlFetch(sb =>
             {
                 if (dbParms == null)
                 {
                     dbParms = _params.ToArray();
-                    sbret = new StringBuilder();
-                    sbret.Append(" RETURNING ");
-
+                    sbSelectCols = new StringBuilder();
                     var colidx = 0;
                     foreach (var col in _table.Columns.Values)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sbSelectCols.Append(", ");
+                        sbSelectCols.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
-                var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
+                var deleteSql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, deleteSql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    ret.AddRange(_orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms));
+                    // 必须在 DELETE 之前 SELECT，否则数据已被删除无法查询
+                    var whereIdx = deleteSql.LastIndexOf(" WHERE ");
+                    if (whereIdx >= 0)
+                    {
+                        var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+                        var selectSql = new StringBuilder()
+                            .Append("SELECT ").Append(sbSelectCols)
+                            .Append(" FROM ").Append(tableName).Append(deleteSql.Substring(whereIdx))
+                            .ToString();
+
+                        var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, selectSql, dbParms);
+                        _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                        ret.AddRange(_orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, selectSql, _commandTimeout, dbParms));
+                    }
+                    _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, deleteSql, _commandTimeout, dbParms);
                 }
                 catch (Exception ex)
                 {
@@ -63,7 +76,7 @@ namespace FreeSql.MySql.Curd
             if (dbParms != null)
             {
                 this.ClearData();
-                sbret.Clear();
+                sbSelectCols?.Clear();
             }
             return ret;
         }
@@ -74,31 +87,44 @@ namespace FreeSql.MySql.Curd
         {
             var ret = new List<T1>();
             DbParameter[] dbParms = null;
-            StringBuilder sbret = null;
+            StringBuilder sbSelectCols = null;
             await ToSqlFetchAsync(async sb =>
             {
                 if (dbParms == null)
                 {
                     dbParms = _params.ToArray();
-                    sbret = new StringBuilder();
-                    sbret.Append(" RETURNING ");
-
+                    sbSelectCols = new StringBuilder();
                     var colidx = 0;
                     foreach (var col in _table.Columns.Values)
                     {
-                        if (colidx > 0) sbret.Append(", ");
-                        sbret.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        if (colidx > 0) sbSelectCols.Append(", ");
+                        sbSelectCols.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                         ++colidx;
                     }
                 }
-                var sql = sb.Append(sbret).ToString();
-                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
+                var deleteSql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, deleteSql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
 
                 Exception exception = null;
                 try
                 {
-                    ret.AddRange(await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken));
+                    // 必须在 DELETE 之前 SELECT，否则数据已被删除无法查询
+                    var whereIdx = deleteSql.LastIndexOf(" WHERE ");
+                    if (whereIdx >= 0)
+                    {
+                        var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+                        var selectSql = new StringBuilder()
+                            .Append("SELECT ").Append(sbSelectCols)
+                            .Append(" FROM ").Append(tableName).Append(deleteSql.Substring(whereIdx))
+                            .ToString();
+
+                        var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, selectSql, dbParms);
+                        _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                        ret.AddRange(await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, selectSql, _commandTimeout, dbParms, cancellationToken));
+                    }
+                    await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, deleteSql, _commandTimeout, dbParms, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -114,7 +140,7 @@ namespace FreeSql.MySql.Curd
             if (dbParms != null)
             {
                 this.ClearData();
-                sbret.Clear();
+                sbSelectCols?.Clear();
             }
             return ret;
         }

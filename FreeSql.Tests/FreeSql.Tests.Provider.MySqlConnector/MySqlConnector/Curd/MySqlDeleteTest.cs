@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,8 +80,9 @@ namespace FreeSql.Tests.MySqlConnector
         [Fact]
         public void ExecuteDeleted()
         {
-
-            //delete.Where(a => a.Id > 0).ExecuteDeleted();
+            g.mysql.Insert<Topic>(new Topic { Clicks = 1, Title = "ExecuteDeleted", CreateTime = DateTime.Now }).ExecuteAffrows();
+            var deleted = g.mysql.Delete<Topic>().Where(m => m.Title == "ExecuteDeleted").ExecuteDeleted();
+            Assert.True(deleted.Count > 0);
         }
 
         [Fact]

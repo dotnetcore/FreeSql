@@ -87,24 +87,74 @@ namespace FreeSql.Odbc.MySql
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-            var sb = new StringBuilder();
-            sb.Append(sql).Append(" RETURNING ");
-
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-            sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+
+                if (affrows > 0)
+                {
+                    var pk = _table.Primarys.FirstOrDefault();
+                    var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+
+                    var sbSelect = new StringBuilder();
+                    sbSelect.Append("SELECT ");
+                    var colidx = 0;
+                    foreach (var col in _table.Columns.Values)
+                    {
+                        if (colidx > 0) sbSelect.Append(", ");
+                        sbSelect.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)))
+                                .Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        ++colidx;
+                    }
+                    sbSelect.Append(" FROM ").Append(tableName);
+
+                    if (pk != null && pk.Attribute.IsIdentity && _insertIdentity == false)
+                    {
+                        var lastIdObj = _orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text,
+                            "SELECT LAST_INSERT_ID();", _commandTimeout, null);
+                        if (lastIdObj != null && lastIdObj != DBNull.Value)
+                        {
+                            var lastId = Convert.ToInt64(lastIdObj);
+                            sbSelect.Append(" WHERE ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                    .Append(" >= ").Append(lastId)
+                                    .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                    .Append(" LIMIT ").Append(affrows);
+                        }
+                        else
+                        {
+                            return ret;
+                        }
+                    }
+                    else if (pk != null && _source.Any())
+                    {
+                        var pkValues = _source.Select(a => pk.GetDbValue(a)).Distinct().ToArray();
+                        if (pkValues.Length == 0) return ret;
+
+                        sbSelect.Append(" WHERE ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                .Append(" IN (");
+                        for (var i = 0; i < pkValues.Length; i++)
+                        {
+                            if (i > 0) sbSelect.Append(", ");
+                            sbSelect.Append(_commonUtils.FormatSql("{0}", pkValues[i]));
+                        }
+                        sbSelect.Append(")");
+                    }
+                    else
+                    {
+                        return ret;
+                    }
+
+                    var selectSql = sbSelect.ToString();
+                    var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, selectSql, null);
+                    _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                    ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction,
+                        CommandType.Text, selectSql, _commandTimeout, null);
+                }
             }
             catch (Exception ex)
             {
@@ -167,24 +217,74 @@ namespace FreeSql.Odbc.MySql
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-            var sb = new StringBuilder();
-            sb.Append(sql).Append(" RETURNING ");
-
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-            sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+                var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
+
+                if (affrows > 0)
+                {
+                    var pk = _table.Primarys.FirstOrDefault();
+                    var tableName = _commonUtils.QuoteSqlName(TableRuleInvoke());
+
+                    var sbSelect = new StringBuilder();
+                    sbSelect.Append("SELECT ");
+                    var colidx = 0;
+                    foreach (var col in _table.Columns.Values)
+                    {
+                        if (colidx > 0) sbSelect.Append(", ");
+                        sbSelect.Append(_commonUtils.RereadColumn(col, _commonUtils.QuoteSqlName(col.Attribute.Name)))
+                                .Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        ++colidx;
+                    }
+                    sbSelect.Append(" FROM ").Append(tableName);
+
+                    if (pk != null && pk.Attribute.IsIdentity && _insertIdentity == false)
+                    {
+                        var lastIdObj = await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text,
+                            "SELECT LAST_INSERT_ID();", _commandTimeout, null, cancellationToken);
+                        if (lastIdObj != null && lastIdObj != DBNull.Value)
+                        {
+                            var lastId = Convert.ToInt64(lastIdObj);
+                            sbSelect.Append(" WHERE ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                    .Append(" >= ").Append(lastId)
+                                    .Append(" ORDER BY ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                    .Append(" LIMIT ").Append(affrows);
+                        }
+                        else
+                        {
+                            return ret;
+                        }
+                    }
+                    else if (pk != null && _source.Any())
+                    {
+                        var pkValues = _source.Select(a => pk.GetDbValue(a)).Distinct().ToArray();
+                        if (pkValues.Length == 0) return ret;
+
+                        sbSelect.Append(" WHERE ").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name))
+                                .Append(" IN (");
+                        for (var i = 0; i < pkValues.Length; i++)
+                        {
+                            if (i > 0) sbSelect.Append(", ");
+                            sbSelect.Append(_commonUtils.FormatSql("{0}", pkValues[i]));
+                        }
+                        sbSelect.Append(")");
+                    }
+                    else
+                    {
+                        return ret;
+                    }
+
+                    var selectSql = sbSelect.ToString();
+                    var before2 = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, selectSql, null);
+                    _orm.Aop.CurdBeforeHandler?.Invoke(this, before2);
+
+                    ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction,
+                        CommandType.Text, selectSql, _commandTimeout, null, cancellationToken);
+                }
             }
             catch (Exception ex)
             {

@@ -154,7 +154,7 @@ namespace FreeSql.Tests.MySqlConnector
 
             sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE `tb_topic` SET `Clicks` = `Clicks` * 10 div 1 WHERE (`Id` = 1)", sql);
-            
+
             var dt2000 = DateTime.Parse("2000-01-01");
             sql = update.Set(a => a.Clicks == (a.CreateTime > dt2000 ? 1 : 2)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE `tb_topic` SET `Clicks` = case when `CreateTime` > '2000-01-01 00:00:00.000' then 1 else 2 end WHERE (`Id` = 1)", sql);
@@ -363,7 +363,8 @@ limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a
         [Fact]
         public void ExecuteUpdated()
         {
-
+            var list = g.mysql.Update<Topic>().Set(m => m.Clicks + 1)
+                 .Where(m => m.Id == 1).ExecuteUpdated();
         }
 
         [Fact]
