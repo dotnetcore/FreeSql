@@ -371,16 +371,16 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
-                    else if (isAllDtoMap && _tables != null && _tables.Any() && 
+                    else if (isAllDtoMap && _tables != null && _tables.Any() &&
                         (
                             initExp.NewExpression.Type != _tables[0].Table.Type ||
-                            !initExp.Bindings.Any(a => 
+                            !initExp.Bindings.Any(a =>
                             // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
                             {
                                 var aExp = a as MemberAssignment;
                                 if (aExp == null) return false;
                                 if (aExp.Expression is MemberExpression aExpRight == false) return false;
-                                if (aExpRight.Expression == _tables[0].Parameter && 
+                                if (aExpRight.Expression == _tables[0].Parameter &&
                                     aExpRight.Member.Name == a.Member.Name) return true;
                                 return false;
                             })
@@ -498,7 +498,7 @@ namespace FreeSql.Internal
                                         break;
                                 }
                             var mapType = initExpArg.Type;
-                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) == true && 
+                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) == true &&
                                 dtoCol.Attribute.IsIgnore != true)
                                 mapType = dtoCol.Attribute.MapType;
                             var child = new ReadAnonymousTypeInfo
@@ -818,6 +818,12 @@ namespace FreeSql.Internal
             { ExpressionType.SubtractChecked, "-" },
             { ExpressionType.MultiplyChecked, "*" },
         };
+
+        public string ExpressionSetLambda(TableInfo table, Expression exp)
+        {
+            var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = null, _tableRule = null, _selectColumnMap = null, diymemexp = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Set, currentTable = table, dbParams = null });
+            return GetBoolString(exp, SearchColumnByField(null, null, sql), sql);
+        }
 
         public string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, Func<Type, string, string> _tableRule, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, BaseDiyMemberExpression diymemexp, List<DbParameter> dbParams)
         {
@@ -1537,7 +1543,7 @@ namespace FreeSql.Internal
                                             typeof(ISelect0).IsAssignableFrom(arg3ExpNewArray.Expressions[0].Type))
                                         {
                                             Array arg3Values = Array.CreateInstance(arg3ExpNewArray.Expressions[0].Type, arg3ExpNewArray.Expressions.Count);
-                                            for (var arg3Idx = 0;arg3Idx < arg3ExpNewArray.Expressions.Count; arg3Idx++)
+                                            for (var arg3Idx = 0; arg3Idx < arg3ExpNewArray.Expressions.Count; arg3Idx++)
                                             {
                                                 var arg3ExpNewArrayTables = fsqltables.Select(tbcopy => new SelectTableInfo
                                                 {
@@ -2116,7 +2122,7 @@ namespace FreeSql.Internal
                                 else if (expStackItem.Member.MemberType == MemberTypes.Field)
                                     firstValue = ((FieldInfo)expStackItem.Member).GetValue(firstValue);
                             }
-                            return formatSql(firstValue, tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                            return formatSql(firstValue, tsc.mapType, tsc.mapColumnTmp, tsc.dbParams, tsc.style);
                         }
                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
                     }
@@ -2599,7 +2605,7 @@ namespace FreeSql.Internal
 
         public enum ExpressionStyle
         {
-            Where, AsSelect, SelectColumns, ReturnISelect
+            Where, AsSelect, SelectColumns, ReturnISelect, Set
         }
         public class ExpTSC
         {
@@ -2843,7 +2849,7 @@ namespace FreeSql.Internal
             }
         }
 
-        public string formatSql(object obj, Type mapType, ColumnInfo mapColumn, List<DbParameter> dbParams)
+        public string formatSql(object obj, Type mapType, ColumnInfo mapColumn, List<DbParameter> dbParams, ExpressionStyle? style = null)
         {
             //参数化设置，日后优化
             if (_common.CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null)
@@ -2866,7 +2872,7 @@ namespace FreeSql.Internal
                     return _common.QuoteParamterName(paramName);
                 }
             }
-            return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+            return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn, style));
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
 
