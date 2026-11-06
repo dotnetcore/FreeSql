@@ -217,8 +217,7 @@ namespace FreeSql.SonnetDB
                 tables = tables.Where(a => NameEquals(a.Schema, requestedSchema, ignoreCase)).ToList();
             result.AddRange(tables);
 
-            // SonnetDB 3.1 的 GetSchema("Tables") 只返回关系表，视图需要通过
-            // SHOW VIEWS 单独枚举；列结构再用 LIMIT 0 查询获取。
+            // 优先保留 GetSchema 的结构化视图身份；旧驱动再通过 SHOW VIEWS 补查。
             foreach (var view in LoadViews(database, requested, ignoreCase))
                 if ((string.IsNullOrWhiteSpace(requestedSchema) || NameEquals(view.Schema, requestedSchema, ignoreCase)) &&
                     !result.Any(a => NameEquals(a.Name, view.Name, true) && NameEquals(a.Schema, view.Schema, true))) result.Add(view);
@@ -258,6 +257,29 @@ namespace FreeSql.SonnetDB
         List<DbTableInfo> LoadViews(string[] database, string requested, bool ignoreCase)
         {
             if (!IsCurrentDatabaseSelected(database, ignoreCase)) return new List<DbTableInfo>();
+            var schemaViews = TryGetSchema("Views");
+            if (schemaViews != null)
+            {
+                var views = new List<DbTableInfo>();
+                foreach (DataRow row in schemaViews.Rows)
+                {
+                    var name = GetString(row, "TABLE_NAME", 2);
+                    var catalog = GetString(row, "TABLE_CATALOG", 0);
+                    if (string.IsNullOrEmpty(name) || !MatchesName(name, requested, ignoreCase) || !MatchesDatabase(catalog, database, ignoreCase)) continue;
+                    var schema = GetString(row, "TABLE_SCHEMA", 1) ?? string.Empty;
+                    var quotedName = string.IsNullOrEmpty(schema)
+                        ? "\"" + name.Replace("\"", "\"\"") + "\""
+                        : _commonUtils.QuoteSqlName(schema, name);
+                    var view = GetTableBySelectSchema(quotedName, false);
+                    if (view == null) continue;
+                    view.Id = GetTableKey(catalog, schema, name);
+                    view.Schema = schema;
+                    view.Name = name;
+                    view.Type = DbTableType.VIEW;
+                    views.Add(view);
+                }
+                return views;
+            }
             var names = TryQueryNames("SHOW VIEWS");
             if (names == null)
                 names = TryQueryNames("SELECT table_name FROM information_schema.views");
@@ -754,6 +776,8 @@ namespace FreeSql.SonnetDB
         static string GetTableKey(string catalog, string schema, string name) => (catalog ?? string.Empty) + "|" + (schema ?? string.Empty) + "|" + (name ?? string.Empty);
         static bool MatchesDatabase(string catalog, string[] databases, bool ignoreCase) =>
             databases == null || databases.Length == 0 ||
+            // FreeSql uses an empty selector to mean the current connection database.
+            databases.Any(string.IsNullOrWhiteSpace) ||
             (!string.IsNullOrEmpty(catalog) && databases.Any(a => NameEquals(UnquoteIdentifier(a?.Trim()), UnquoteIdentifier(catalog.Trim()), ignoreCase)));
 
         bool IsCurrentDatabaseSelected(string[] databases, bool ignoreCase)

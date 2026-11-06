@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "checkedAtUtc": "2026-11-06T10:17:14.1857265+00:00",
+  "providerSource": "85388bae4b9a21a603588c7e5faa4435e1f1c790",
+  "sonnetDbVersion": "5.0.0",
+  "sonnetDbSource": "84433f9edcceb84605520ebecc4b2879e3c4aa79",
+  "providerSuite": {
+    "skipped": 0,
+    "failed": 0,
+    "passed": 237
+  },
+  "candidatePackageVersion": "3.5.311-sonnetdb230.20261106.1",
+  "consumerUsesOnlyPackageReferences": true,
+  "sonnetDbSourceIsPublicNugetOnly": true,
+  "packages": [
+    {
+      "id": "SonnetDB",
+      "version": "5.0.0",
+      "source": "https://api.nuget.org/v3/index.json",
+      "repositoryCommit": "84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dll": "SonnetDB.Data.dll",
+      "productVersion": "5.0.0+84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dllSha256": "67036787d6679930f3267e527866473bc8fe6343848afb31b5c6add4b524feb2",
+      "packageSha256": "a7405be43c11f689ee9bff944babc459a6bd398796adebf9edd9b194a293cf03"
+    },
+    {
+      "id": "SonnetDB.Core",
+      "version": "5.0.0",
+      "source": "https://api.nuget.org/v3/index.json",
+      "repositoryCommit": "84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dll": "SonnetDB.Core.dll",
+      "productVersion": "5.0.0+84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dllSha256": "7abb14db0816150ab16ff12466029e07aff216b2b462cab85e5932b85f170dce",
+      "packageSha256": "7447b709413d3b4c46db1c0e82a64ab830fb5c81774b296b2ac1b9e3468dbc04"
+    },
+    {
+      "id": "SonnetDB.Protocol",
+      "version": "5.0.0",
+      "source": "https://api.nuget.org/v3/index.json",
+      "repositoryCommit": "84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dll": "SonnetDB.Protocol.dll",
+      "productVersion": "5.0.0+84433f9edcceb84605520ebecc4b2879e3c4aa79",
+      "dllSha256": "06201433ebc562736148f8dff703dc663082c8342a0e175b2b3591d6f2354309",
+      "packageSha256": "f89e333a4ee80087f07574c92e85a863dfe04f13850ca6e039f693f769f800d2"
+    },
+    {
+      "id": "FreeSql",
+      "version": "3.5.311-sonnetdb230.20261106.1",
+      "source": "D:\\source\\SonnetDB\\artifacts\\issue230-freesql-final-20261106\\feed",
+      "repositoryCommit": "85388bae4b9a21a603588c7e5faa4435e1f1c790",
+      "dll": "FreeSql.dll",
+      "productVersion": "3.5.311-sonnetdb230.20261106.1+85388bae4b9a21a603588c7e5faa4435e1f1c790",
+      "dllSha256": "00684da53def5b52817909a06a8cb11208e04b8a7a9a0423714670daad69bd38",
+      "packageSha256": "946381276947328073d70981bbf593c3f978ecf9b9b628841372d018996fceeb"
+    },
+    {
+      "id": "FreeSql.Provider.SonnetDB",
+      "version": "3.5.311-sonnetdb230.20261106.1",
+      "source": "D:\\source\\SonnetDB\\artifacts\\issue230-freesql-final-20261106\\feed",
+      "repositoryCommit": "85388bae4b9a21a603588c7e5faa4435e1f1c790",
+      "dll": "FreeSql.Provider.SonnetDB.dll",
+      "productVersion": "3.5.311-sonnetdb230.20261106.1+85388bae4b9a21a603588c7e5faa4435e1f1c790",
+      "dllSha256": "38107933410a6e4964e23ee73be0253bbbfde3de3f24bde796c8dafbd1a35b97",
+      "packageSha256": "dd93b8d16994502e3f3442ea139ef94d3eef65d59fc6f8fcba938052d1d74d66"
+    }
+  ],
+  "server": {
+    "url": "https://github.com/IoTSharp/SonnetDB/releases/download/v5.0.0/sonnetdb-full-5.0.0-win-x64.zip",
+    "archive_sha256": "03a1da759abf0e9dad8758661668ed62f0a9c07e9868b254f7ae415c3eb462ff",
+    "server": "D:\\source\\SonnetDB\\artifacts\\issue230-freesql-final-20261106\\server\\SonnetDB.exe",
+    "server_sha256": "4c6cdee527f3f82c25945bbe5683cc92790e8daaf2b3b227c1b8adf2911f882e",
+    "product_version": "5.0.0+84433f9edcceb84605520ebecc4b2879e3c4aa79"
+  },
+  "journey": {
+    "status": "PASS",
+    "serverSha256": "4c6cdee527f3f82c25945bbe5683cc92790e8daaf2b3b227c1b8adf2911f882e",
+    "consumerSha256": "0967e0ded24d4bb3ead3fc9ab2ca8d69770c472da7ca13e882b79f53fae06c55",
+    "checks": [
+      {
+        "name": "embedded-exercise",
+        "count": 30,
+        "status": "PASS"
+      },
+      {
+        "name": "embedded-reopen",
+        "count": 9,
+        "status": "PASS"
+      },
+      {
+        "name": "rest-exercise",
+        "count": 30,
+        "status": "PASS"
+      },
+      {
+        "name": "frame-http2-exercise",
+        "count": 30,
+        "status": "PASS"
+      },
+      {
+        "name": "rest-reopen",
+        "count": 9,
+        "status": "PASS"
+      },
+      {
+        "name": "frame-http2-reopen",
+        "count": 9,
+        "status": "PASS"
+      }
+    ],
+    "protocolReceipts": {
+      "restSql": 81,
+      "http2Frames": 45,
+      "http2Transactions": 21
+    },
+    "restartBoundary": "Server process terminated after acknowledged commits, then restarted on the same directory; no power-loss claim.",
+    "finishedUtc": "2026-11-06T10:12:21.135Z"
+  },
+  "publicFreeSql": {
+    "negativeControl": "CS0117",
+    "providerIndexStatus": 404,
+    "core": "3.5.311",
+    "fullyPublicConsumers": "NOT_RUN"
+  },
+  "evidenceRoot": "D:\\source\\SonnetDB\\artifacts\\issue230-freesql-final-20261106"
+}
