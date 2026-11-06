@@ -9,6 +9,7 @@ if (!serverArgument || !outputArgument) throw new Error('Usage: node run.mjs <Se
 const serverPath = fs.realpathSync(serverArgument);
 const outputRoot = path.resolve(outputArgument);
 const consumerPath = path.resolve(consumerArgument ?? path.join(path.dirname(fileURLToPath(import.meta.url)), 'bin/Release/net10.0/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance.dll'));
+const dotnet = process.env.SONNETDB_ACCEPTANCE_DOTNET ?? 'dotnet';
 fs.mkdirSync(outputRoot);
 const token = crypto.randomUUID();
 const report = { status: 'RUNNING', serverSha256: hash(serverPath), consumerSha256: hash(consumerPath), checks: [], protocolReceipts: {} };
@@ -29,7 +30,7 @@ function child(program, args, options = {}) {
 }
 async function runConsumer(scenario, connection, name) {
   const resultFile = path.join(outputRoot, `${name}.json`);
-  const process = child('dotnet', [consumerPath, scenario, resultFile], {
+  const process = child(dotnet, [consumerPath, scenario, resultFile], {
     env: { ...globalThis.process.env, SONNETDB_ACCEPTANCE_CONNECTION: connection, NO_PROXY: 'localhost,127.0.0.1,::1' }
   });
   const timer = setTimeout(() => process.kill(), 90000);
@@ -58,7 +59,7 @@ async function startServer(name) {
   server = current;
   const deadline = Date.now() + 60000;
   let addresses;
-  while (Date.now() < deadline) {
+  for (let attempt = 0; attempt < 600 && Date.now() < deadline; attempt++) {
     if (current.exitCode !== null) throw new Error(`${name} exited during startup`);
     addresses = [...current.stdoutText.matchAll(/Now listening on: (http:\/\/127\.0\.0\.1:\d+)/g)].map(x => x[1]);
     if (addresses.length === 2) break;

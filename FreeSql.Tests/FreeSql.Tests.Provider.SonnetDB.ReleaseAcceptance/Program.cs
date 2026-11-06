@@ -86,6 +86,22 @@ try
         Check(fsql.Ado.Query<long>("SELECT KeyId FROM release_keys").Single() == 7, "primary-key-rename-and-type-migration");
         fsql.Ado.ExecuteNonQuery("CREATE VIEW release_order_view AS SELECT \"Id\",\"Name\" FROM release_acceptance_order");
         Check(fsql.DbFirst.GetTablesByDatabase().Count(x => x.Name == "release_order_view") == 1, "dbfirst-view-identity-unique");
+        Check(fsql.DbFirst.GetTablesByDatabase(string.Empty).Count(x => x.Name == "release_order_view") == 1,
+            "dbfirst-view-empty-database-selector");
+        Check(fsql.DbFirst.GetTablesByDatabase("   ").Count(x => x.Name == "release_order_view") == 1,
+            "dbfirst-view-whitespace-database-selector");
+        using (var lease = fsql.Ado.MasterPool.Get())
+        using (var command = lease.Value.CreateCommand())
+        using (var canceled = new CancellationTokenSource())
+        {
+            command.CommandText = "SELECT 1";
+            canceled.Cancel();
+            bool observedCancellation = false;
+            try { using var reader = await command.ExecuteReaderAsync(canceled.Token); }
+            catch (OperationCanceledException) { observedCancellation = true; }
+            Check(observedCancellation, "pre-canceled-command");
+            Check(Convert.ToInt64(await command.ExecuteScalarAsync()) == 1, "connection-usable-after-cancellation");
+        }
         fsql.Ado.ExecuteNonQuery("CREATE PROCEDURE release_exchange(IN input INT,INOUT state INT,OUT output STRING) LANGUAGE SQL AS BEGIN SET @state=@state+@input; SELECT @state AS first; SELECT 'second' AS second; SET @output='done'; RETURN 7; END");
         var state = new SndbParameter("state", 10L) { Direction = ParameterDirection.InputOutput, DbType = DbType.Int64 };
         var output = new SndbParameter("output", "old") { Direction = ParameterDirection.Output, DbType = DbType.String };
@@ -118,6 +134,7 @@ try
     var loaded = (await fsql.Select<AcceptanceOrder>().ToListAsync()).Single();
     Check(loaded.Name == "upserted" && loaded.Version == 3, "committed-crud-state");
     Check(loaded.Amount == exact, "decimal-full-precision");
+    Check(loaded.Note is null, "nullable-string-roundtrip");
     Check(loaded.At.Ticks == expectedTime.Ticks, "datetime2-100ns");
     Check(loaded.Offset.UtcTicks == expectedOffset.UtcTicks && loaded.Offset.Offset == TimeSpan.Zero, "datetimeoffset-utc-ticks");
     Check(fsql.Ado.Query<long>("SELECT Id FROM release_ddl_commit").Single() == 9, "committed-ddl-reopen");
@@ -161,6 +178,7 @@ public sealed class AcceptanceOrder
     public long Id { get; set; }
     [Column(StringLength = 32)]
     public string Name { get; set; } = "";
+    public string? Note { get; set; }
     [Column(DbType = "DECIMAL(28,19)")]
     public decimal Amount { get; set; }
     [Column(DbType = "DATETIME2")]

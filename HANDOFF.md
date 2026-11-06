@@ -1,5 +1,11 @@
 # 会话交接
 
+## 2026-11-06 最终消费者补验源码
+
+- 续接已推送 c3dc7c437，不修改 SonnetDB 引擎或发行物。独立三协议消费者增加空/空白数据库 selector、NULL 往返、预取消和取消后连接可用断言；保持原 CRUD/RETURNING/UPSERT、100ns、事务、锁、DDL/主键迁移、元数据与重开断言。Server 启动轮询同时受 600 次及 60 秒限制，可显式传入 dotnet 路径。
+- 使用共享 sonnetdb-heavy-20261106.lock、DOTNET_PROCESSOR_COUNT=2、单 MSBuild 节点及禁用持久构建服务；NuGet.org 唯一源/独占空缓存 restore、完整 Provider 237/237、消费者构建及两项 scoped Format 全部 PASS，原始 TRX/native 执行收据位于 SonnetDB/artifacts/issue230-freesql-final-20261106。没有用历史 head 的通过替代本轮。
+- 公开完整 Server bundle 重新下载，archive SHA256=03a1da759abf0e9dad8758661668ed62f0a9c07e9868b254f7ae415c3eb462ff，Server SHA256=4c6cdee527f3f82c25945bbe5683cc92790e8daaf2b3b227c1b8adf2911f882e，版本5.0.0+84433f9e完整源。下一步基于本源码提交打带独立预发布版本的本地 FreeSql Core/Provider，纯包消费者再跑 embedded/REST/frame-http2，不能冒充上游正式发行。
+
 ## 2026-11-06 #2291 follow-up
 
 - 本次从 PR head `a2268c1ff580b77d9ee202b3d34f230be59eab8b` 创建隔离 worktree，原 `D:\source\FreeSql` 保持干净；FreeSql 仓库没有额外 `AGENTS.md`，本 worktree 的既有 HANDOFF 历史保留。
