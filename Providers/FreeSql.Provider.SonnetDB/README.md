@@ -1,17 +1,10 @@
 # FreeSql SonnetDB 提供程序
 
-## 2026-11-06 #2291 follow-up
+当前分支面向 **.NET 10**，依赖 NuGet.org 正式 **SonnetDB 5.0.0**。SonnetDB/Core/Protocol 及匹配正式 Server 均绑定源码 `84433f9edcceb84605520ebecc4b2879e3c4aa79`；FreeSql 自身版本遵循上游规则。接入 PR #2234 已合并，后续 [#2291](https://github.com/dotnetcore/FreeSql/pull/2291) 等待上游审阅。
 
-- SonnetDB 依赖继续固定为 NuGet.org 正式 `SonnetDB` `5.0.0`；其 `SonnetDB.Core` / `SonnetDB.Protocol` 传递依赖也均为 `5.0.0`，三个包的 nuspec repository commit 和实际 net10.0 DLL ProductVersion 均绑定 `84433f9edcceb84605520ebecc4b2879e3c4aa79`。
-- Provider 自身保持 FreeSql 上游版本 `3.5.311`，本地打包 nuspec 明确依赖 `SonnetDB` `5.0.0`；不把 SonnetDB 版本号用于 FreeSql 包。
-- 修复 `GetTablesByDatabase("")` 和空白 selector 在结构化 Views 元数据路径中丢视图的问题，并加入两项 DbFirst 回归。完整 Provider 套件为 **237/237 PASS，0 FAIL，0 SKIP**。
-- NuGet.org 公开 FreeSql Core 仍为 `3.5.311` 且没有 `DataType.SonnetDB`；`FreeSql.Provider.SonnetDB` flat-container 仍返回 404。因此公开 FreeSql/SonnetDB 组合仍待上游合入 #2291、发布 Core/Provider 后再验收。
+2026-11-06 本轮完整 Provider **237/237 PASS，0 失败/跳过**；独立候选 FreeSql Core/Provider 包配公开 SonnetDB 5.0.0，在 embedded、REST、原生 HTTP/2 Frame 各完成 **30 项业务 + 9 项独立重开**。实际正式 Server 收据为 REST SQL81、HTTP/2 Frame45、HTTP/2事务21。空/空白数据库 selector 的视图发现、NULL 往返及预取消/连接继续可用也已覆盖。[验收程序](../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)记录程序集身份与实际请求；[支持矩阵及剩余条件](docs/sonnetdb-gap-issue.md)区分关系合同和 measurement 限制。
 
-当前分支面向 **.NET 10**，依赖 **SonnetDB 5.0.0**。接入 PR #2234 已于 **2026-11-01** 合并；兼容后续 PR #2291 仍待上游合并。SonnetDB 5.0.0 固定源码为 `455bf3b53b1e56df0064d8f574b0595cbb0b609e`，正式发行状态与公开包验收见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
-
-适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。5.0.0 候选的完整 Provider 回归为 **237/237**，独立消费者在嵌入式、REST 和 `frame-http2` 连接分别通过 25 项业务检查及重开后的 8 项检查；[验收程序](../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)记录实际程序集身份与 Server 协议收据。候选验证和公开 FreeSql 包交付分别记录。
-
-**公开 FreeSql 包仍有发布阻塞**：本轮实查稳定 Core `3.5.311` 不含 `DataType.SonnetDB`，`FreeSql.Provider.SonnetDB` 公共索引为 404。单独编译 Provider、或把候选 Provider 配上这个公开 Core，不能作为用户可安装的发布组合；需要 FreeSql 发布包含 #2234 与 #2291 的 Core 和 Provider。
+**完全公开的 FreeSql 组合仍待发布**：NuGet.org Core `3.5.311` 缺 `DataType.SonnetDB`，Provider 公共索引仍 404。本轮 `3.5.311-sonnetdb230.20261106.1` 两包只在本地验收，未上传、未冒充正式包；需上游合入并正式发布 Core/Provider，再做全公开组合验收。
 
 ## 连接与实体模型
 

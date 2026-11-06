@@ -1,5 +1,12 @@
 # 会话交接
 
+## 2026-11-06 交付收尾：候选验证完成，等待上游合入与公开包
+
+- 新源码85388bae4的纯包消费者已完成：embedded/REST/frame-http2各30业务+9重开PASS，正式NativeAOT Server日志实际REST SQL81/HTTP2 Frame45/事务21；全部SonnetDB包来自NuGet.org正式5.0.0/source844，FreeSql本地候选3.5.311-sonnetdb230.20261106.1/source85388bae4。五包nuspec、缓存来源、安装/运行DLL hash逐项一致；三个公开SonnetDB包签名PASS。完整Provider237/237、Core五目标构建/两包pack、scoped Format/Node检查通过。
+- 支持矩阵/Provider README已整体更新，去掉将旧455候选和过期Key当成当前状态的文案；机器清单记录最终来源和结果。公共Core3.5.311新缓存负控CS0117/公共Provider404真实保留；完全公开组合NOT_RUN，#230不关闭。等待#2291维护者合入并发布新Core/Provider，随后再按同一旅程做公开组合。
+- 所有新重负载使用同一FileShare.None锁、CPU2、单MSBuild节点、禁持久构建服务和Cordonix原生任务Job回收，native receipts均cleanup_complete=true/after0；Server两次生命周期结束。初次pack缺net40 DLL和独立消费者继承父仓CPM的NU1008均保留原失败，完整构建与隔离配置后通过，未删业务断言。
+- 先前意外扩跑canonical旧2a2f77c7的完整SonnetDB Core出现WAL权限失败并超时，保留原FAIL_TIMEOUT；本次单例1/1 PASS未能复现，不将该次完整测试改为PASS。该源树不是固定公开5.0.0，没有SonnetDB产品修复或新发包；#392/#395的EF5.1后续发行继续由#395唯一协调。本任务提交仅属FreeSql代码/报告；canonical SonnetDB其它dirty及历史Handoff字节不混入。
+
 ## 2026-11-06 最终消费者补验源码
 
 - 续接已推送 c3dc7c437，不修改 SonnetDB 引擎或发行物。独立三协议消费者增加空/空白数据库 selector、NULL 往返、预取消和取消后连接可用断言；保持原 CRUD/RETURNING/UPSERT、100ns、事务、锁、DDL/主键迁移、元数据与重开断言。Server 启动轮询同时受 600 次及 60 秒限制，可显式传入 dotnet 路径。
