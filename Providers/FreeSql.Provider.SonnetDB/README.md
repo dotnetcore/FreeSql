@@ -1,5 +1,12 @@
 # FreeSql SonnetDB 提供程序
 
+## 2026-11-06 #2291 follow-up
+
+- SonnetDB 依赖继续固定为 NuGet.org 正式 `SonnetDB` `5.0.0`；其 `SonnetDB.Core` / `SonnetDB.Protocol` 传递依赖也均为 `5.0.0`，三个包的 nuspec repository commit 和实际 net10.0 DLL ProductVersion 均绑定 `84433f9edcceb84605520ebecc4b2879e3c4aa79`。
+- Provider 自身保持 FreeSql 上游版本 `3.5.311`，本地打包 nuspec 明确依赖 `SonnetDB` `5.0.0`；不把 SonnetDB 版本号用于 FreeSql 包。
+- 修复 `GetTablesByDatabase("")` 和空白 selector 在结构化 Views 元数据路径中丢视图的问题，并加入两项 DbFirst 回归。完整 Provider 套件为 **237/237 PASS，0 FAIL，0 SKIP**。
+- NuGet.org 公开 FreeSql Core 仍为 `3.5.311` 且没有 `DataType.SonnetDB`；`FreeSql.Provider.SonnetDB` flat-container 仍返回 404。因此公开 FreeSql/SonnetDB 组合仍待上游合入 #2291、发布 Core/Provider 后再验收。
+
 当前分支面向 **.NET 10**，依赖 **SonnetDB 5.0.0**。接入 PR #2234 已于 **2026-11-01** 合并；兼容后续 PR #2291 仍待上游合并。SonnetDB 5.0.0 固定源码为 `455bf3b53b1e56df0064d8f574b0595cbb0b609e`，正式发行状态与公开包验收见 [兼容性缺口清单](docs/sonnetdb-gap-issue.md)。
 
 适配范围是将 FreeSql 已有接口映射到 SonnetDB 的 SQL、类型和 ADO.NET 行为。5.0.0 候选的完整 Provider 回归为 **237/237**，独立消费者在嵌入式、REST 和 `frame-http2` 连接分别通过 25 项业务检查及重开后的 8 项检查；[验收程序](../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)记录实际程序集身份与 Server 协议收据。候选验证和公开 FreeSql 包交付分别记录。

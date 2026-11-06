@@ -1,5 +1,12 @@
 # SonnetDB 兼容性与发布依赖
 
+## 2026-11-06 当前状态
+
+- SonnetDB `5.0.0` 已在 NuGet.org 正式公开；本次独占空缓存恢复使用 `SonnetDB` `5.0.0`，并核对其 `SonnetDB.Core` / `SonnetDB.Protocol` 传递依赖均为 `5.0.0`。三个包的 nuspec repository commit 和实际 net10.0 DLL ProductVersion 均绑定 `84433f9edcceb84605520ebecc4b2879e3c4aa79`。
+- FreeSql #2291 仍 OPEN，head 仍为 `a2268c1ff580b77d9ee202b3d34f230be59eab8b`；本次已修复其 Copilot 行级评论指出的空/空白数据库 selector 视图丢失问题，并在完整 Provider 套件中取得 **237/237 PASS，0 FAIL，0 SKIP**。
+- NuGet.org 公开 FreeSql Core 仍为 `3.5.311`，不含 `DataType.SonnetDB`；`FreeSql.Provider.SonnetDB` flat-container 实时仍为 404。公开组合仍是 **NOT_RUN**，须待上游合入并发布新 Core/Provider 后，用 NuGet.org 唯一源、独占空缓存和匹配正式 Server 重跑消费者。
+- measurement 的时序限制、已完成的原生时间/视图/关系能力与关系 Provider 合同继续分开记录；本修复没有改 SonnetDB 引擎或已发布 `5.0.0`。
+
 核验日期：2026-11-02（北京时间）。FreeSql [#2234](https://github.com/dotnetcore/FreeSql/pull/2234) 已合并，提交 `05997ef16f0d6a12f051f9a50794a2c21dcd4dc5`；兼容后续 [#2291](https://github.com/dotnetcore/FreeSql/pull/2291) 尚待上游合并。发布门禁继续由 [SonnetDB #230](https://github.com/IoTSharp/SonnetDB/issues/230) 跟踪。
 
 ## 固定版本及公开交付

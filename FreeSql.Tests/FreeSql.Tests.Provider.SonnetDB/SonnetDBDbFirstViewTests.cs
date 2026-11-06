@@ -47,6 +47,16 @@ public sealed class SonnetDBDbFirstViewTests
             fsql.DbFirst.GetTablesByDatabase(currentDatabases[0]),
             table => string.Equals(table.Name, "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase));
 
+        var blankDatabaseTables = fsql.DbFirst.GetTablesByDatabase(string.Empty);
+        Assert.Contains(
+            blankDatabaseTables,
+            table => string.Equals(table.Name, "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase));
+
+        var whitespaceDatabaseTables = fsql.DbFirst.GetTablesByDatabase("   ");
+        Assert.Contains(
+            whitespaceDatabaseTables,
+            table => string.Equals(table.Name, "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase));
+
         var otherDatabaseTables = fsql.DbFirst.GetTablesByDatabase("sonnetdb_database_that_is_not_current");
         Assert.DoesNotContain(otherDatabaseTables, table =>
             string.Equals(table.Name, "sonnet_dbfirst_view", StringComparison.OrdinalIgnoreCase));

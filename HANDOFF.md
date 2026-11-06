@@ -1,5 +1,14 @@
 # 会话交接
 
+## 2026-11-06 #2291 follow-up
+
+- 本次从 PR head `a2268c1ff580b77d9ee202b3d34f230be59eab8b` 创建隔离 worktree，原 `D:\source\FreeSql` 保持干净；FreeSql 仓库没有额外 `AGENTS.md`，本 worktree 的既有 HANDOFF 历史保留。
+- 实时 GitHub 回读：`dotnetcore/FreeSql#2291` 仍 OPEN、未合入；上游没有 issue 评论，Copilot 有一条行级评论指出 `GetTablesByDatabase("")` / 空白 selector 在结构化 Views 元数据路径中丢视图。
+- Provider 最小修复已完成：空/空白数据库 selector 通过 `MatchesDatabase` 时按当前连接库处理；新增空字符串与空白字符串 DbFirst 视图回归。完整 Provider 套件 **237/237 PASS，0 FAIL，0 SKIP**，`git diff --check` PASS。
+- 依赖边界已实测：独占空 NuGet 缓存、仅 NuGet.org 源恢复 PASS；`SonnetDB`、`SonnetDB.Core`、`SonnetDB.Protocol` 均是正式 `5.0.0`，nuspec repository commit 与实际 net10.0 DLL ProductVersion 绑定 `84433f9edcceb84605520ebecc4b2879e3c4aa79`。Provider 自身仍是 FreeSql `3.5.311`，打包 nuspec 明确依赖 SonnetDB `5.0.0`。
+- NuGet.org 公开 FreeSql Core 仍为 `3.5.311` 且缺 `DataType.SonnetDB`；`FreeSql.Provider.SonnetDB` flat-container 仍 404。公开组合尚未运行，不能把本地 Provider 包或固定候选 Core 当成上游交付。
+- 下一步：在本 worktree 完成最终格式/状态核对后提交并推送 PR head；通过 GitHub 评论向维护者报告修复、237/237、正式5.0.0来源和公开组合边界，邀请审阅合并；同步 SonnetDB #230 实际结果并保持 OPEN，直到上游新 Core/Provider 发布后完成公开组合重跑。
+
 ## 2026-11-02 SonnetDB #230 正式交付验收
 
 - 本 worktree 原来没有 HANDOFF.md；本次开始修改前创建，记录此缺口。

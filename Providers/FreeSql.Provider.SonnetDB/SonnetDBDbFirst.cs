@@ -776,6 +776,8 @@ namespace FreeSql.SonnetDB
         static string GetTableKey(string catalog, string schema, string name) => (catalog ?? string.Empty) + "|" + (schema ?? string.Empty) + "|" + (name ?? string.Empty);
         static bool MatchesDatabase(string catalog, string[] databases, bool ignoreCase) =>
             databases == null || databases.Length == 0 ||
+            // FreeSql uses an empty selector to mean the current connection database.
+            databases.Any(string.IsNullOrWhiteSpace) ||
             (!string.IsNullOrEmpty(catalog) && databases.Any(a => NameEquals(UnquoteIdentifier(a?.Trim()), UnquoteIdentifier(catalog.Trim()), ignoreCase)));
 
         bool IsCurrentDatabaseSelected(string[] databases, bool ignoreCase)
