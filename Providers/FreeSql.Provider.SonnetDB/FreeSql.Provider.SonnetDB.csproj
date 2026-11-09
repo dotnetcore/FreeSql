@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SonnetDB" Version="4.5.0-preview.ef266.5" />
+		<PackageReference Include="SonnetDB" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
