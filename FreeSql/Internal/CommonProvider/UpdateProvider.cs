@@ -181,11 +181,14 @@ namespace FreeSql.Internal.CommonProvider
             _versionColumn = _table?.VersionColumn;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             _isAutoSyncStructure = _orm.CodeFirst.IsAutoSyncStructure;
-            this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
+            var source = dywhere as IEnumerable<T1>;
+            if (dywhere is T1 single) source = new[] { single };
+            if (source == null) this.Where(_commonUtils.WhereObject(_table, "", dywhere, _params));
             if (_isAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters().Where(l => (l.FilterType & GlobalFilter.FilterType.Update) == GlobalFilter.FilterType.Update).ToList();
             _sourceOld = _source;
+            if (source != null) SetSource(source);
         }
 
         /// <summary>
