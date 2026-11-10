@@ -98,7 +98,14 @@ namespace FreeSql
             if (db?.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
             return update;
         }
-        public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => Update<T1>().WhereDynamic(dywhere);
+        public IUpdate<T1> Update<T1>(object dywhere) where T1 : class
+        {
+            var update = Update<T1>();
+            var source = dywhere as IEnumerable<T1>;
+            if (dywhere is T1 single) 
+                source = new[] { single };
+            return source == null ? update.WhereDynamic(dywhere) : update.SetSource(source);
+        }
 
         public IInsert<T1> Insert<T1>() where T1 : class
         {
