@@ -2866,7 +2866,10 @@ namespace FreeSql.Internal
                     return _common.QuoteParamterName(paramName);
                 }
             }
-            return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+            var ret = _ado.AddslashesProcessParam(obj, mapType, mapColumn);
+            var retSql = string.Format(CultureInfo.InvariantCulture, "{0}", ret);
+            if ((ret is float || ret is double || ret is decimal) && retSql.TrimStart('-').All(char.IsDigit)) retSql += ".0";
+            return retSql;
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
 
