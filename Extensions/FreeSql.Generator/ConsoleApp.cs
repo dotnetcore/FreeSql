@@ -202,7 +202,7 @@ new Colorful.Formatter(ConsoleAppStrings.RecommendGenBat, Color.ForestGreen)
                         a++;
                         break;
                     case "-json":
-                        switch(args[a + 1].Trim().ToLower())
+                        switch (args[a + 1].Trim().ToLower())
                         {
                             case "none":
                                 ArgsJson = "";
@@ -279,9 +279,18 @@ new Colorful.Formatter(ConsoleAppStrings.RecommendGenBat, Color.ForestGreen)
                         case DatabaseModel.DbTableType.VIEW:
                             if (ArgsFilter.Contains("View", StringComparison.OrdinalIgnoreCase))
                             {
+
                                 Console.WriteFormatted(ConsoleAppStrings.IgnoreTable("View", table.Name) + "\r\n", Color.DarkSlateGray);
                                 continue;
                             }
+                            if (ArgsDbType is DataType.SqlServer or DataType.CustomSqlServer or DataType.OdbcSqlServer)//SQLSERVER 在视图创建后，再更新源表的字段时不会更新视图的字段信息，所以这里需要重新 sp_refreshview 来刷新视图的字段信息
+                            {
+
+                                fsql.Ado.ExecuteNonQuery($"exec sp_refreshview '{table.Schema}.{table.Name}'");
+
+                            }
+
+
                             break;
                         case DatabaseModel.DbTableType.StoreProcedure:
                             if (ArgsFilter.Contains("StoreProcedure", StringComparison.OrdinalIgnoreCase))
