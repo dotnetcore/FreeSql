@@ -45,8 +45,8 @@ namespace FreeSql.Internal.CommonProvider
         protected string GetTableNameLowerOrUpper(string tableName)
         {
             if (string.IsNullOrEmpty(tableName)) return "";
-            if (IsSyncStructureToLower) tableName = tableName.ToLower();
-            if (IsSyncStructureToUpper) tableName = tableName.ToUpper();
+            if (IsSyncStructureToLower) tableName = tableName.ToLowerInvariant();
+            if (IsSyncStructureToUpper) tableName = tableName.ToUpperInvariant();
             return tableName;
         }
         public string GetComparisonDDLStatements<TEntity>() =>

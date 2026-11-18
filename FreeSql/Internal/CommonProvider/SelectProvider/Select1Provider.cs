@@ -610,8 +610,8 @@ namespace FreeSql.Internal.CommonProvider
                         var colName = kv.Key;
                         if (string.IsNullOrWhiteSpace(colName)) continue;
                         var colType = kv.Value.PropertyType;
-                        if (_orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
-                        if (_orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                        if (_orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLowerInvariant();
+                        if (_orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpperInvariant();
                         var col = new ColumnInfo
                         {
                             CsName = kv.Key,

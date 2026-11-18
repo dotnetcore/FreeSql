@@ -981,13 +981,13 @@ public static partial class FreeSqlGlobalExtensions
         var tbref = navs[0];
 
         var cteName = "as_tree_cte";
-        if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
-        if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
+        if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLowerInvariant();
+        if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpperInvariant();
 
         var tableRule = select._tableRule;
         var tbDbName = (tableRule?.Invoke(tb.Type, tb.DbName) ?? tb.DbName);
-        if (select._orm.CodeFirst.IsSyncStructureToLower) tbDbName = tbDbName.ToLower();
-        if (select._orm.CodeFirst.IsSyncStructureToUpper) tbDbName = tbDbName.ToUpper();
+        if (select._orm.CodeFirst.IsSyncStructureToLower) tbDbName = tbDbName.ToLowerInvariant();
+        if (select._orm.CodeFirst.IsSyncStructureToUpper) tbDbName = tbDbName.ToUpperInvariant();
         if (select._orm.CodeFirst.IsAutoSyncStructure)
             select._orm.CodeFirst.SyncStructure(tb.Type, tbDbName);
 
