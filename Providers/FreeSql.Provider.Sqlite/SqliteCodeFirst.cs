@@ -148,7 +148,7 @@ namespace FreeSql.Sqlite
                         continue;
                     }
                     //如果新表，旧表在一个模式下，直接修改表名
-                    if (string.Compare(tbname[0], tboldname[0], true) == 0)
+                    if (string.Compare(tbname[0], tboldname[0], StringComparison.OrdinalIgnoreCase) == 0)
                         sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tboldname[0], tboldname[1])).Append(" RENAME TO \"").Append(tbname[1]).Append("\";\r\n");
                     else
                     {
@@ -179,7 +179,7 @@ namespace FreeSql.Sqlite
                         is_nullable = string.Concat(a[5]) == "0" && string.Concat(a[3]) == "0",
                         is_identity
                     };
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 if (istmpatler == false)
                 {
@@ -196,7 +196,7 @@ namespace FreeSql.Sqlite
                                 istmpatler = true;
                             if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
                                 istmpatler = true;
-                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
+                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, StringComparison.OrdinalIgnoreCase) == 0)
                                 //修改列名
                                 istmpatler = true;
                             continue;
@@ -225,8 +225,8 @@ namespace FreeSql.Sqlite
                     {
                         if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                         var ukname = ReplaceIndexName(uk.Name, tbname[1]);
-                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, StringComparison.OrdinalIgnoreCase) == 0).ToArray();
+                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], StringComparison.OrdinalIgnoreCase) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                             istmpatler = true;
                     }
                 }

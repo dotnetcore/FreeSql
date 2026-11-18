@@ -127,7 +127,7 @@ namespace FreeSql.Odbc.MySql
                 }
                 tbname = new[] { database, tbname[0] };
             }
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $" SELECT 1 FROM information_schema.TABLES WHERE {(ignoreCase ? "lower(table_schema)" : "table_schema")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -138,8 +138,8 @@ namespace FreeSql.Odbc.MySql
         public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
             var loc1 = new List<DbTableInfo>();
-            var loc2 = new Dictionary<string, DbTableInfo>(StringComparer.CurrentCultureIgnoreCase);
-            var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>(StringComparer.CurrentCultureIgnoreCase);
+            var loc2 = new Dictionary<string, DbTableInfo>(StringComparer.OrdinalIgnoreCase);
+            var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>(StringComparer.OrdinalIgnoreCase);
             string[] tbname = null;
             if (string.IsNullOrEmpty(tablename) == false)
             {
@@ -152,7 +152,7 @@ namespace FreeSql.Odbc.MySql
                         tbname = new[] { conn.Value.Database, tbname[0] };
                     }
                 }
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 database = new[] { tbname[0] };
             }
             else if (database == null || database.Any() == false)
@@ -194,7 +194,7 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     schema = "";
                 }
                 loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
-                loc3.Add(table_id, new Dictionary<string, DbColumnInfo>(StringComparer.CurrentCultureIgnoreCase));
+                loc3.Add(table_id, new Dictionary<string, DbColumnInfo>(StringComparer.OrdinalIgnoreCase));
                 switch (type)
                 {
                     case DbTableType.TABLE:
@@ -311,8 +311,8 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.CurrentCultureIgnoreCase);
-            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.CurrentCultureIgnoreCase);
+            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.OrdinalIgnoreCase);
+            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.OrdinalIgnoreCase);
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
@@ -331,14 +331,14 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                 Dictionary<string, DbIndexInfo> loc10 = null;
                 DbIndexInfo loc11 = null;
                 if (!indexColumns.TryGetValue(table_id, out loc10))
-                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.CurrentCultureIgnoreCase));
+                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.OrdinalIgnoreCase));
                 if (!loc10.TryGetValue(index_id, out loc11))
                     loc10.Add(index_id, loc11 = new DbIndexInfo { Name = index_id });
                 loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 if (is_unique && !is_primary_key)
                 {
                     if (!uniqueColumns.TryGetValue(table_id, out loc10))
-                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.CurrentCultureIgnoreCase));
+                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.OrdinalIgnoreCase));
                     if (!loc10.TryGetValue(index_id, out loc11))
                         loc10.Add(index_id, loc11 = new DbIndexInfo { Name = index_id });
                     loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
@@ -374,7 +374,7 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>(StringComparer.CurrentCultureIgnoreCase);
+                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>(StringComparer.OrdinalIgnoreCase);
                 foreach (var row in ds)
                 {
                     string table_id = string.Concat(row[0]);
@@ -397,7 +397,7 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
                     Dictionary<string, DbForeignInfo> loc12 = null;
                     DbForeignInfo loc13 = null;
                     if (!fkColumns.TryGetValue(table_id, out loc12))
-                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>(StringComparer.CurrentCultureIgnoreCase));
+                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>(StringComparer.OrdinalIgnoreCase));
                     if (!loc12.TryGetValue(fk_id, out loc13))
                         loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc10 });
                     loc13.Columns.Add(loc9);

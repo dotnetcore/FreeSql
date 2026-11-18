@@ -170,7 +170,7 @@ namespace FreeSql.Dameng
                         continue;
                     }
                     //如果新表，旧表在一个模式下，直接修改表名
-                    if (string.Compare(tbname[0], tboldname[0], true) == 0)
+                    if (string.Compare(tbname[0], tboldname[0], StringComparison.OrdinalIgnoreCase) == 0)
                         sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}")).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append("';\r\n");
                     else
                     {
@@ -209,7 +209,7 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                         is_identity = string.Concat(a[7]) == "1" && string.Concat(a[8]) == "1",
                         comment = string.Concat(a[9])
                     };
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 if (istmpatler == false)
                 {
@@ -238,7 +238,7 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                                     sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" = ").Append(tbcol.DbDefaultValue.Replace("'", "''")).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL';\r\n");
                                 sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "" : "NOT").Append(" NULL';\r\n");
                             }
-                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
+                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 if (tbstructcol.is_identity)
                                     seqnameDel.Add(Utils.GetCsName($"{tbname[1]}_seq_{tbstructcol.column}"));
@@ -284,8 +284,8 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                     {
                         if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                         var ukname = ReplaceIndexName(uk.Name, tbname[1]);
-                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, StringComparison.OrdinalIgnoreCase) == 0).ToArray();
+                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], StringComparison.OrdinalIgnoreCase) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                         {
                             if (dsukfind1.Any()) sbalter.Append("execute immediate 'DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append("';\r\n");
                             sbalter.Append("execute immediate 'CREATE ");
@@ -425,7 +425,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}").ToUpper();
+                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}").ToUpperInvariant();
                 var tiggerName = seqname + "TI";
                 var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
                 var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);

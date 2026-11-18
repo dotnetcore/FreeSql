@@ -138,7 +138,7 @@ namespace FreeSql.Odbc.PostgreSQL
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $" select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -161,14 +161,14 @@ namespace FreeSql.Odbc.PostgreSQL
             {
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 dbs = new[] { olddatabase };
             }
             var tables = new List<DbTableInfo>();
 
             foreach (var db in dbs)
             {
-                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, true) != 0) continue;
+                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, StringComparison.OrdinalIgnoreCase) != 0) continue;
 
                 var loc1 = new List<DbTableInfo>();
                 var loc2 = new Dictionary<string, DbTableInfo>();

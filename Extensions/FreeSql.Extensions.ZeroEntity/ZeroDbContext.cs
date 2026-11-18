@@ -116,7 +116,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
             return SchemaValidationResult.SuccessedResult;
         }
 
-        public TableInfo GetTableInfo(string name) => _tables.Where(a => string.Compare(a.CsName, name, true) == 0).FirstOrDefault();
+        public TableInfo GetTableInfo(string name) => _tables.Where(a => string.Compare(a.CsName, name, StringComparison.OrdinalIgnoreCase) == 0).FirstOrDefault();
 
         public void SyncStructure()
         {
@@ -167,8 +167,8 @@ ManyToMany 级联删除中间表（注意不删除外部根）
 
                 if (isQuery == false)
                 {
-                    if (orm.CodeFirst.IsSyncStructureToLower) tab.DbName = tab.DbName.ToLower();
-                    if (orm.CodeFirst.IsSyncStructureToUpper) tab.DbName = tab.DbName.ToUpper();
+                    if (orm.CodeFirst.IsSyncStructureToLower) tab.DbName = tab.DbName.ToLowerInvariant();
+                    if (orm.CodeFirst.IsSyncStructureToUpper) tab.DbName = tab.DbName.ToUpperInvariant();
                 }
                 tab.DisableSyncStructure = isQuery || dtd.DisableSyncStructure;
                 tab.IsDictionaryType = true;
@@ -347,7 +347,7 @@ ManyToMany 级联删除中间表（注意不删除外部根）
                 IsUnique = a.IsUnique,
                 Fields = string.Join(",", a.Columns.Select(b => b.Column.Name)),
             }));
-            if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, true) == 0))
+            if (_tables.Any(a => string.Compare(a.CsName, dbinfo.Name, StringComparison.OrdinalIgnoreCase) == 0))
                 _tables.AddRange(ValidateSchemaToInfoInternal(_orm, new[] { schema }));
             return schema;
         }

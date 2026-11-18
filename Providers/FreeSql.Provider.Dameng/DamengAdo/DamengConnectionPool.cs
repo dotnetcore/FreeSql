@@ -37,7 +37,7 @@ namespace FreeSql.Dameng
         {
             var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid|User)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
             if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid|User)\s*=\s*([^;]+)");
-            return userIdMatch.Groups[2].Value.Trim().ToUpper();
+            return userIdMatch.Groups[2].Value.Trim().ToUpperInvariant();
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)

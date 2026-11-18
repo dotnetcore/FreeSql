@@ -159,7 +159,7 @@ namespace FreeSql.KingbaseES
                 searchPath = searchPath.Split(',')[0];
             }
             var pg_ = _isSysV8R3 == true ? "sys_" : "pg_";
-            var public_ = _isSysV8R3 == true ? searchPath.ToUpper() : searchPath;
+            var public_ = _isSysV8R3 == true ? searchPath.ToUpperInvariant() : searchPath;
             var sb = new StringBuilder();
             var seqcols = new List<NativeTuple<ColumnInfo, string[], bool>>(); //序列
 
@@ -186,7 +186,7 @@ namespace FreeSql.KingbaseES
                 }
                 //codefirst 不支持表名、模式名、数据库名中带 .
 
-                if (string.Compare(tbname[0], public_, true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql($" select 1 from {pg_}namespace where nspname={{0}}", tbname[0])) == null) //创建模式
+                if (string.Compare(tbname[0], public_, StringComparison.OrdinalIgnoreCase) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql($" select 1 from {pg_}namespace where nspname={{0}}", tbname[0])) == null) //创建模式
                     sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
 
                 var sbalter = new StringBuilder();
@@ -243,7 +243,7 @@ namespace FreeSql.KingbaseES
                         continue;
                     }
                     //如果新表，旧表在一个数据库和模式下，直接修改表名
-                    if (string.Compare(tbname[0], tboldname[0], true) == 0)
+                    if (string.Compare(tbname[0], tboldname[0], StringComparison.OrdinalIgnoreCase) == 0)
                         sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}")).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append(";\r\n");
                     else
                     {
@@ -305,7 +305,7 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                         attndims,
                         comment = string.Concat(a[7])
                     };
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 if (istmpatler == false)
                 {
@@ -341,7 +341,7 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                             }
                             if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
                                 seqcols.Add(NativeTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
-                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
+                            if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, StringComparison.OrdinalIgnoreCase) == 0)
                                 //修改列名
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
                             if (isCommentChanged)
@@ -372,8 +372,8 @@ where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", 
                     {
                         if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                         var ukname = ReplaceIndexName(uk.Name, tbname[1]);
-                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, StringComparison.OrdinalIgnoreCase) == 0).ToArray();
+                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], StringComparison.OrdinalIgnoreCase) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                         {
                             if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(";\r\n");
                             sbalter.Append("CREATE ");
@@ -482,7 +482,7 @@ where {pg_}namespace.nspname={{0}} and {pg_}class.relname={{1}} and {pg_}constra
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_seq").ToUpper(); ;
+                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_seq").ToUpperInvariant(); ;
                 var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
                 var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
                 sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;\r\n");
