@@ -216,10 +216,10 @@ namespace FreeSql.Internal
             if (isMySqlEnum)
 			{
 				var leftBt = colattr.DbType.IndexOf('(');
-				colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
+				colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpperInvariant() + colattr.DbType.Substring(leftBt);
 			}
 			else if (common._orm.Ado.DataType != DataType.ClickHouse)
-				colattr.DbType = colattr.DbType.ToUpper();
+				colattr.DbType = colattr.DbType.ToUpperInvariant();
 
 			if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
 			if (colattrIsNull == false && colattrIsNullable == false && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
