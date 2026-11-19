@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Data.Common;
@@ -393,6 +393,11 @@ namespace FreeSql
                     case DataType.SonnetDB:
                         type = Type.GetType("FreeSql.SonnetDB.SonnetDBProvider`1,FreeSql.Provider.SonnetDB")?.MakeGenericType(typeof(TMark));
                         if (type == null) throwNotFind("FreeSql.Provider.SonnetDB.dll", "FreeSql.SonnetDB.SonnetDBProvider<>");
+                        break;
+
+                    case DataType.IoTDB:
+                        type = Type.GetType("FreeSql.IoTDB.IoTDBProvider`1,FreeSql.Provider.IoTDB")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.IoTDB.dll", "FreeSql.IoTDB.IoTDBProvider<>");
                         break;
 
                     default: throw new Exception(CoreErrorStrings.NotSpecified_UseConnectionString_UseConnectionFactory);

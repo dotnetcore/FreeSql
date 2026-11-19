@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -144,6 +144,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FreeSql.Tests", "FreeSql.Tests", "{85316D21-BD27-2442-9B3A-B39BAEC81625}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.Provider.SonnetDB", "FreeSql.Tests\FreeSql.Tests.Provider.SonnetDB\FreeSql.Tests.Provider.SonnetDB.csproj", "{D0970FCF-ED4D-473D-BC9B-15B0CD3B7282}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.IoTDB", "Providers\FreeSql.Provider.IoTDB\FreeSql.Provider.IoTDB.csproj", "{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.Provider.IoTDB", "FreeSql.Tests\FreeSql.Tests.Provider.IoTDB\FreeSql.Tests.Provider.IoTDB.csproj", "{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -875,6 +879,30 @@ Global
 		{D0970FCF-ED4D-473D-BC9B-15B0CD3B7282}.Release|x64.Build.0 = Release|Any CPU
 		{D0970FCF-ED4D-473D-BC9B-15B0CD3B7282}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0970FCF-ED4D-473D-BC9B-15B0CD3B7282}.Release|x86.Build.0 = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|x64.Build.0 = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Debug|x86.Build.0 = Debug|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|x64.ActiveCfg = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|x64.Build.0 = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|x86.ActiveCfg = Release|Any CPU
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA}.Release|x86.Build.0 = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|x64.Build.0 = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Debug|x86.Build.0 = Debug|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|x64.ActiveCfg = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|x64.Build.0 = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|x86.ActiveCfg = Release|Any CPU
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -921,6 +949,8 @@ Global
 		{4281AC48-6FE7-49C3-BE7B-D029058646BC} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{8F8AA048-B69B-4C7F-A2E8-A2F012567A1E} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{D0970FCF-ED4D-473D-BC9B-15B0CD3B7282} = {85316D21-BD27-2442-9B3A-B39BAEC81625}
+		{B1E38D45-791E-45BD-BBAC-3AB91D657CDA} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{6DDD2EC6-BB89-45A7-963E-ECD8BD3F4DF0} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

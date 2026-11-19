@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -69,6 +69,11 @@ namespace FreeSql
 
         TDengine,
 
-        SonnetDB
+        SonnetDB,
+
+        /// <summary>
+        /// Apache IoTDB time-series database (Tree model).
+        /// </summary>
+        IoTDB
     }
 }
