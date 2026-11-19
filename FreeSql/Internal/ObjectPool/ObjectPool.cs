@@ -234,7 +234,7 @@ namespace FreeSql.Internal.ObjectPool
 
             AppDomain.CurrentDomain.ProcessExit += (s1, e1) =>
             {
-                if (Policy.IsAutoDisposeWithSystem)
+                if (Policy?.IsAutoDisposeWithSystem == true)
                     running = false;
             };
             try
@@ -242,7 +242,7 @@ namespace FreeSql.Internal.ObjectPool
                 Console.CancelKeyPress += (s1, e1) =>
                 {
                     if (e1.Cancel) return;
-                    if (Policy.IsAutoDisposeWithSystem)
+                    if (Policy?.IsAutoDisposeWithSystem == true)
                         running = false;
                 };
             }
