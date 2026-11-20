@@ -61,7 +61,7 @@ namespace FreeSql.QuestDb
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
-            switch (dbtype?.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLowerInvariant().TrimStart('_'))
             {
                 case "short":
                     ret = NpgsqlDbType.Smallint;

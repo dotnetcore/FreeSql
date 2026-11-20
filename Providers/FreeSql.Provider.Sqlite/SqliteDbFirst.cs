@@ -26,7 +26,7 @@ namespace FreeSql.Sqlite
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "boolean": return DbType.Boolean;
@@ -50,7 +50,7 @@ namespace FreeSql.Sqlite
 
                 case "character(36)": return DbType.AnsiString;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "int":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["integer"]);

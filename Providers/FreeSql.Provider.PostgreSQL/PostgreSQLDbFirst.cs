@@ -61,7 +61,7 @@ namespace FreeSql.PostgreSQL
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
-            switch (dbtype?.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLowerInvariant().TrimStart('_'))
             {
                 case "smallint":
                 case "int2": ret = NpgsqlDbType.Smallint; break;
@@ -408,7 +408,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     string typtype = string.Concat(row[9]);
                     string owner = string.Concat(row[10]);
                     int attnum = int.Parse(string.Concat(row[11]));
-                    switch (sqlType.ToLower())
+                    switch (sqlType.ToLowerInvariant())
                     {
                         case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
                         default: max_length *= 8; break;
@@ -422,7 +422,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     if (sqlType.StartsWith("_")) sqlType = sqlType.Substring(1);
                     if (max_length > 0)
                     {
-                        switch (sqlType.ToLower())
+                        switch (sqlType.ToLowerInvariant())
                         {
                             //case "numeric": sqlType += $"({max_length})"; break;
                             case "bpchar": case "varchar": case "bytea": case "bit": case "varbit": sqlType += $"({max_length})"; break;

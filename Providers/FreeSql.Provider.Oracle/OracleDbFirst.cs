@@ -32,7 +32,7 @@ namespace FreeSql.Oracle
 #if oledb
         OleDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return OleDbType.Boolean;
@@ -60,7 +60,7 @@ namespace FreeSql.Oracle
 
                 case "char(36 char)": return OleDbType.Char;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
@@ -123,7 +123,7 @@ namespace FreeSql.Oracle
 #else
         OracleDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return OracleDbType.Boolean;
@@ -151,7 +151,7 @@ namespace FreeSql.Oracle
 
                 case "char(36 char)": return OracleDbType.Char;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);

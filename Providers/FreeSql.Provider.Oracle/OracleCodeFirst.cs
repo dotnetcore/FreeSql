@@ -512,7 +512,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
             else if (char_used.ToLower() == "b")
                 sqlType += $"({data_length} BYTE)";
-            else if (sqlType.ToLower() == "float")
+            else if (sqlType.ToLowerInvariant() == "float")
                 sqlType += $"({data_precision})";
             else if (data_precision > 0 && data_scale > 0)
                 sqlType += $"({data_precision},{data_scale})";

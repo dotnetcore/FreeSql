@@ -210,7 +210,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                     var type = string.Concat(a[1]);
                     var sqlType = string.Concat(a[3]);
                     var max_length = long.Parse(string.Concat(a[2]));
-                    switch (sqlType.ToLower())
+                    switch (sqlType.ToLowerInvariant())
                     {
                         case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
                         default: max_length *= 8; break;

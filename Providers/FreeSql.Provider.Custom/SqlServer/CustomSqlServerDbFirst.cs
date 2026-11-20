@@ -24,7 +24,7 @@ namespace FreeSql.Custom.SqlServer
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit": return DbType.Boolean;
                 case "tinyint": return DbType.Byte;
