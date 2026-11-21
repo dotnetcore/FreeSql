@@ -4,8 +4,6 @@
 
 2026-11-06 本轮完整 Provider **237/237 PASS，0 失败/跳过**；独立候选 FreeSql Core/Provider 包配公开 SonnetDB 5.0.0，在 embedded、REST、原生 HTTP/2 Frame 各完成 **30 项业务 + 9 项独立重开**。实际正式 Server 收据为 REST SQL81、HTTP/2 Frame45、HTTP/2事务21。空/空白数据库 selector 的视图发现、NULL 往返及预取消/连接继续可用也已覆盖。[验收程序](../../FreeSql.Tests/FreeSql.Tests.Provider.SonnetDB.ReleaseAcceptance/README.md)记录程序集身份与实际请求；[支持矩阵及剩余条件](docs/sonnetdb-gap-issue.md)区分关系合同和 measurement 限制。
 
-**完全公开的 FreeSql 组合仍待发布**：NuGet.org Core `3.5.311` 缺 `DataType.SonnetDB`，Provider 公共索引仍 404。本轮 `3.5.311-sonnetdb230.20261106.1` 两包只在本地验收，未上传、未冒充正式包；需上游合入并正式发布 Core/Provider，再做全公开组合验收。
-
 ## 连接与实体模型
 
 ```csharp

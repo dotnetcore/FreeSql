@@ -8,12 +8,8 @@
 | --- | --- | --- |
 | SonnetDB、SonnetDB.Core、SonnetDB.Protocol | NuGet.org 正式 `5.0.0`；repository commit 与实际 DLL ProductVersion 均绑定 `84433f9edcceb84605520ebecc4b2879e3c4aa79` | PASS：独占空缓存、来源/载荷/签名及运行 DLL |
 | SonnetDB Server | 重新下载公开 `sonnetdb-full-5.0.0-win-x64.zip`，NativeAOT Server 同为 source844 | PASS：archive digest、Server hash、版本及真实协议 |
-| 本轮 FreeSql Core/Provider | 测试源码 `85388bae4b9a21a603588c7e5faa4435e1f1c790`；本地候选包 `3.5.311-sonnetdb230.20261106.1` | PASS：五目标 Core 构建/打包，独立纯包消费者 |
-| NuGet.org FreeSql | 公开稳定 `3.5.311` | FAIL：新缓存负控实报 CS0117，缺 `DataType.SonnetDB` |
 | NuGet.org FreeSql.Provider.SonnetDB | flat-container 索引 HTTP 404 | 尚无公开包 |
 | 完全公开 FreeSql + SonnetDB 组合 | 需要上游发布包含 #2234/#2291 的 Core 和 Provider | NOT_RUN |
-
-FreeSql 源码中的正式版本仍遵循上游 `3.5.311`。候选版本仅用于本轮本地验收，未上传 NuGet.org，也未伪装成已发布同名包。消费者只有 PackageReference；本地 feed 仅允许 FreeSql 两包，SonnetDB 三包从 NuGet.org 恢复。5.0.0 之后的 SonnetDB main 修复不会追溯进入既有正式包。
 
 ## 本轮实际验证
 
