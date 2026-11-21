@@ -621,7 +621,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                 if (dbType.Contains("Array"))
                     return dbType;
 
-                if (dbType.ToLower().Contains("int64"))
+                if (dbType.ToLowerInvariant().Contains("int64"))
                 {
                     if (dbType.Contains("Nullable"))
                     {
@@ -632,7 +632,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         result = "Int64";
                     }
                 }
-                else if (dbType.ToLower().Contains("int"))
+                else if (dbType.ToLowerInvariant().Contains("int"))
                 {
                     if (dbType.Contains("Nullable"))
                     {

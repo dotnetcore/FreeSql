@@ -398,7 +398,7 @@ namespace FreeSql
                 case DataType.OdbcMySql:
                 case DataType.CustomMySql:
                 case DataType.GBase:
-                    up.Result = $"TIMESTAMPDIFF({part.ToUpper()}, {dt1}, {dt2})";
+                    up.Result = $"TIMESTAMPDIFF({part.ToUpperInvariant()}, {dt1}, {dt2})";
                     break;
 
                 case DataType.PostgreSQL:
@@ -406,17 +406,17 @@ namespace FreeSql
                 case DataType.CustomPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.ShenTong:
-                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                    if (part.ToLowerInvariant() == "day" || part.ToLowerInvariant() == "d")
                         up.Result = $"(DATE_PART('day', {dt2} - {dt1}))";
-                    else if (part.ToLower() == "second" || part.ToLower() == "s")
+                    else if (part.ToLowerInvariant() == "second" || part.ToLowerInvariant() == "s")
                         up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})))";
-                    else if (part.ToLower() == "minute")
+                    else if (part.ToLowerInvariant() == "minute")
                         up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})) / 60)";
-                    else if (part.ToLower() == "hour")
+                    else if (part.ToLowerInvariant() == "hour")
                         up.Result = $"(EXTRACT(EPOCH FROM ({dt2} - {dt1})) / 3600)";
-                    else if (part.ToLower() == "month")
+                    else if (part.ToLowerInvariant() == "month")
                         up.Result = $"(EXTRACT(YEAR FROM AGE({dt2}, {dt1})) * 12 + EXTRACT(MONTH FROM AGE({dt2}, {dt1})))";
-                    else if (part.ToLower() == "year")
+                    else if (part.ToLowerInvariant() == "year")
                         up.Result = $"(EXTRACT(YEAR FROM AGE({dt2}, {dt1})))";
                     else
                         throw new NotImplementedException($"PostgreSQL 不支持 datePart: {part}");
@@ -425,30 +425,30 @@ namespace FreeSql
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.CustomOracle:
-                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                    if (part.ToLowerInvariant() == "day" || part.ToLowerInvariant() == "d")
                         up.Result = $"TRUNC(CAST({dt2} AS DATE) - CAST({dt1} AS DATE))";
-                    else if (part.ToLower() == "month")
+                    else if (part.ToLowerInvariant() == "month")
                         up.Result = $"MONTHS_BETWEEN({dt2}, {dt1})";
-                    else if (part.ToLower() == "year")
+                    else if (part.ToLowerInvariant() == "year")
                         up.Result = $"MONTHS_BETWEEN({dt2}, {dt1}) / 12";
                     else
-                        up.Result = $"(CAST({dt2} AS DATE) - CAST({dt1} AS DATE)) * {(part.ToLower() == "hour" ? 24 : part.ToLower() == "minute" ? 1440 : 86400)}";
+                        up.Result = $"(CAST({dt2} AS DATE) - CAST({dt1} AS DATE)) * {(part.ToLowerInvariant() == "hour" ? 24 : part.ToLowerInvariant() == "minute" ? 1440 : 86400)}";
                     break;
 
                 case DataType.Sqlite:
-                    if (part.ToLower() == "day" || part.ToLower() == "d")
+                    if (part.ToLowerInvariant() == "day" || part.ToLowerInvariant() == "d")
                         up.Result = $"(julianday({dt2}) - julianday({dt1}))";
-                    else if (part.ToLower() == "second")
+                    else if (part.ToLowerInvariant() == "second")
                         up.Result = $"(julianday({dt2}) - julianday({dt1})) * 86400.0";
                     else
                         up.Result = $"CAST((strftime('%s', {dt2}) - strftime('%s', {dt1})) AS INTEGER)";
                     break;
 
                 case DataType.ClickHouse:
-                    up.Result = $"dateDiff('{part.ToLower()}', {dt1}, {dt2})";
+                    up.Result = $"dateDiff('{part.ToLowerInvariant()}', {dt1}, {dt2})";
                     break;
                 case DataType.DuckDB:
-                    up.Result = $"date_diff('{part.ToLower()}', {dt1}, {dt2})";
+                    up.Result = $"date_diff('{part.ToLowerInvariant()}', {dt1}, {dt2})";
                     break;
                 case DataType.Firebird:
                     up.Result = $"datediff({part} from {dt1} to {dt2})";

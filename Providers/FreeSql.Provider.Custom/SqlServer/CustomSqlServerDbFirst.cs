@@ -24,7 +24,7 @@ namespace FreeSql.Custom.SqlServer
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit": return DbType.Boolean;
                 case "tinyint": return DbType.Byte;
@@ -144,7 +144,7 @@ use [{olddatabase}];
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { olddatabase, "dbo", tbname[0] };
                 if (tbname?.Length == 2) tbname = new[] { olddatabase, tbname[0], tbname[1] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 dbs = new[] { tbname[0] };
             }
             var tables = new List<DbTableInfo>();

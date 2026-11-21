@@ -27,7 +27,7 @@ namespace FreeSql.Dameng
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DmDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return DmDbType.Bit;
@@ -60,7 +60,7 @@ namespace FreeSql.Dameng
 				_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
 				return DmDbType.DateTime;
             }
-			switch (column.DbTypeText?.ToLower())
+			switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
@@ -232,7 +232,7 @@ namespace FreeSql.Dameng
                     }
                 tbname = new[] { userId, tbname[0] };
             }
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $" select 1 from all_tab_comments where {(ignoreCase ? "lower(owner)" : "owner")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -255,7 +255,7 @@ namespace FreeSql.Dameng
                     if (string.IsNullOrEmpty(userUsers)) return loc1;
                     tbname = new[] { userUsers, tbname[0] };
                 }
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 database = new[] { tbname[0] };
             }
             else if (database == null || database.Any() == false)

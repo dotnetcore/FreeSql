@@ -36,7 +36,7 @@ namespace FreeSql.KingbaseES
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             KdbndpDbType ret = KdbndpDbType.Unknown;
-            switch (dbtype?.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLowerInvariant().TrimStart('_'))
             {
                 case "smallint":
                 case "int2": ret = KdbndpDbType.Smallint; break;
@@ -228,7 +228,7 @@ namespace FreeSql.KingbaseES
             var pg_ = getpg_();
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $" select 1 from {pg_}tables a inner join {pg_}namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -250,14 +250,14 @@ namespace FreeSql.KingbaseES
             {
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 dbs = new[] { olddatabase };
             }
 
             var tables = new List<DbTableInfo>();
             foreach (var db in dbs)
             {
-                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, true) != 0) continue;
+                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, StringComparison.OrdinalIgnoreCase) != 0) continue;
 
                 var loc1 = new List<DbTableInfo>();
                 var loc2 = new Dictionary<string, DbTableInfo>();
@@ -390,7 +390,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     string typtype = string.Concat(row[9]);
                     string owner = string.Concat(row[10]);
                     int attnum = int.Parse(string.Concat(row[11]));
-                    switch (sqlType.ToLower())
+                    switch (sqlType.ToLowerInvariant())
                     {
                         case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
                         default: max_length *= 8; break;
@@ -404,7 +404,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     if (sqlType.StartsWith("_")) sqlType = sqlType.Substring(1);
                     if (max_length > 0)
                     {
-                        switch (sqlType.ToLower())
+                        switch (sqlType.ToLowerInvariant())
                         {
                             //case "numeric": sqlType += $"({max_length})"; break;
                             case "bpchar": case "varchar": case "bytea": case "bit": case "varbit": sqlType += $"({max_length})"; break;

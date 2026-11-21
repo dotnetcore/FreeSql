@@ -113,7 +113,7 @@ namespace FreeSql.Xugu
             else if (sqlType.StartsWith("CLOB"))
             {
             } 
-            else if (sqlType.ToUpper()== "NUMERIC")
+            else if (sqlType.ToUpperInvariant()== "NUMERIC")
             {
                 //data_length=655362
                 //实际类型是 NUMRIC(10,2) 计算得到的是 NUMRIC(10,12)
@@ -123,7 +123,7 @@ namespace FreeSql.Xugu
                 var data_scale = data_length / 65536;
                 sqlType += $"({data_scale},{data_precision})";
             }
-            else if (sqlType.ToLower() == "float")
+            else if (sqlType.ToLowerInvariant() == "float")
             { }
             else
                 sqlType += $"({data_length})";

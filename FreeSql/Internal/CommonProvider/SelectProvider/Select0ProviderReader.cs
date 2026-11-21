@@ -313,6 +313,15 @@ namespace FreeSql.Internal.CommonProvider
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
 
+            if (_diymemexpWithTempQuery is WithTempQueryParser)
+            {
+                // The temporary query maps its rows like ToList does, it has no entity reader
+                var tempList = this.ToList();
+                var tempRet = new Dictionary<TKey, TElement>(tempList.Count);
+                foreach (var item in tempList) tempRet.Add(keySelector(item), elementSelector(item));
+                return tempRet;
+            }
+
             var ret = new Dictionary<TKey, TElement>();
             if (_cancel?.Invoke() == true) return ret;
             var af = !_isIncluded ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll();
@@ -986,8 +995,8 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
             if (tb == null) throw new ArgumentException(CoreErrorStrings.InsertInto_TypeError(typeof(TTargetEntity).DisplayCsharp()));
             if (string.IsNullOrEmpty(tableName)) tableName = tb.DbName;
-            if (_orm.CodeFirst.IsSyncStructureToLower) tableName = tableName.ToLower();
-            if (_orm.CodeFirst.IsSyncStructureToUpper) tableName = tableName.ToUpper();
+            if (_orm.CodeFirst.IsSyncStructureToLower) tableName = tableName.ToLowerInvariant();
+            if (_orm.CodeFirst.IsSyncStructureToUpper) tableName = tableName.ToUpperInvariant();
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(typeof(TTargetEntity), tableName);
 
             var map = new ReadAnonymousTypeInfo();
@@ -1314,6 +1323,15 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+
+            if (_diymemexpWithTempQuery is WithTempQueryParser)
+            {
+                // The temporary query maps its rows like ToListAsync does, it has no entity reader
+                var tempList = await this.ToListAsync(false, cancellationToken);
+                var tempRet = new Dictionary<TKey, TElement>(tempList.Count);
+                foreach (var item in tempList) tempRet.Add(keySelector(item), elementSelector(item));
+                return tempRet;
+            }
 
             var ret = new Dictionary<TKey, TElement>();
             if (_cancel?.Invoke() == true) return ret;

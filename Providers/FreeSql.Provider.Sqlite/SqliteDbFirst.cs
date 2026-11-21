@@ -26,7 +26,7 @@ namespace FreeSql.Sqlite
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "boolean": return DbType.Boolean;
@@ -50,7 +50,7 @@ namespace FreeSql.Sqlite
 
                 case "character(36)": return DbType.AnsiString;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "int":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["integer"]);
@@ -154,7 +154,7 @@ namespace FreeSql.Sqlite
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $@" select 1 from {_commonUtils.QuoteSqlName(tbname[0])}.sqlite_master where type='table' and {(ignoreCase ? "lower(tbl_name)" : "tbl_name")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -172,7 +172,7 @@ namespace FreeSql.Sqlite
             {
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 database = new[] { tbname[0] };
             }
             else if (database == null || database.Any() == false || string.IsNullOrEmpty(database.FirstOrDefault()))

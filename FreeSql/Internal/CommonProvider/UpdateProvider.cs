@@ -601,8 +601,8 @@ namespace FreeSql.Internal.CommonProvider
                 table.Type = typeof(Dictionary<string, object>);
                 table.CsName = dic.TryGetValue("", out var tryval) ? string.Concat(tryval) : "";
                 table.DbName = table.CsName;
-                if (orm.CodeFirst.IsSyncStructureToLower) table.DbName = table.DbName.ToLower();
-                if (orm.CodeFirst.IsSyncStructureToUpper) table.DbName = table.DbName.ToUpper();
+                if (orm.CodeFirst.IsSyncStructureToLower) table.DbName = table.DbName.ToLowerInvariant();
+                if (orm.CodeFirst.IsSyncStructureToUpper) table.DbName = table.DbName.ToUpperInvariant();
 
                 table.DisableSyncStructure = true;
                 table.IsDictionaryType = true;
@@ -612,8 +612,8 @@ namespace FreeSql.Internal.CommonProvider
                     var colName = kv.Key;
                     if (string.IsNullOrWhiteSpace(colName)) continue;
                     var colType = kv.Value == null ? typeof(object) : kv.Value.GetType();
-                    if (orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
-                    if (orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                    if (orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLowerInvariant();
+                    if (orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpperInvariant();
                     var col = new ColumnInfo
                     {
                         CsName = kv.Key,
@@ -970,8 +970,8 @@ namespace FreeSql.Internal.CommonProvider
                 newname = _tableRule(tbname);
             if (newname == tbname) return tbname;
             if (string.IsNullOrEmpty(newname)) return tbname;
-            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
-            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLowerInvariant();
+            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpperInvariant();
             if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }

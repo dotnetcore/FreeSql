@@ -26,7 +26,7 @@ namespace FreeSql.Custom.Oracle
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return DbType.Boolean;
@@ -54,7 +54,7 @@ namespace FreeSql.Custom.Oracle
 
                 case "char(36 char)": return DbType.Guid;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
@@ -179,7 +179,7 @@ namespace FreeSql.Custom.Oracle
                     }
                 tbname = new[] { userId, tbname[0] };
             }
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $" select 1 from all_tab_comments where {(ignoreCase ? "lower(owner)" : "owner")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -202,7 +202,7 @@ namespace FreeSql.Custom.Oracle
                     if (string.IsNullOrEmpty(userUsers)) return loc1;
                     tbname = new[] { userUsers, tbname[0] };
                 }
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 database = new[] { tbname[0] };
             }
             else if (database == null || database.Any() == false)

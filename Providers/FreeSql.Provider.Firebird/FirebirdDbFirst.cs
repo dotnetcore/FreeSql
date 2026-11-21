@@ -30,7 +30,7 @@ namespace FreeSql.Firebird
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             FbDbType ret = FbDbType.VarChar;
-            switch (dbtype?.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLowerInvariant().TrimStart('_'))
             {
                 case "bigint": ret = FbDbType.BigInt; break;
                 case "blob": ret = FbDbType.Binary; break;

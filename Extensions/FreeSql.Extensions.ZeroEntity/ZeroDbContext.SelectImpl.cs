@@ -37,7 +37,7 @@ namespace FreeSql.Extensions.ZeroEntity
 			internal SelectImpl(ZeroDbContext dbcontext, string tableName)
 			{
 				_dbcontext = dbcontext;
-				var tableIndex = _tables.FindIndex(a => a.CsName.ToLower() == tableName?.ToLower());
+				var tableIndex = _tables.FindIndex(a => a.CsName.ToLowerInvariant() == tableName?.ToLowerInvariant());
 				if (tableIndex == -1) throw new Exception($"未定义表名 {tableName}");
 
 				_mainTableIndex = tableIndex;
@@ -145,7 +145,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (onFields == null || onFields.Length == 0) throw new Exception($"{joinType} 参数 {nameof(onFields)} 不能为空");
 				if (onFields.Length % 2 != 0) throw new Exception($"{joinType} 参数 {nameof(onFields)} 数组长度必须为偶数，正确：.LeftJoin(\"table1\", \"id\", \"user.id\")");
 
-				var table = _tables.Where(a => a.CsName.ToLower() == tableName?.ToLower()).FirstOrDefault();
+				var table = _tables.Where(a => a.CsName.ToLowerInvariant() == tableName?.ToLowerInvariant()).FirstOrDefault();
 				if (table == null) throw new Exception($"未定义表名 {tableName}");
 				var alias = GetMaxAlias();
 				var navKey = tableName;
@@ -553,10 +553,10 @@ namespace FreeSql.Extensions.ZeroEntity
 				}
 				else if (field.Length == 2)
 				{
-					if (firstTable != null && firstTable.CsName.ToLower() == field[0].ToLower() && firstTable.ColumnsByCs.TryGetValue(field[1], out var col2) == true)
+					if (firstTable != null && firstTable.CsName.ToLowerInvariant() == field[0].ToLowerInvariant() && firstTable.ColumnsByCs.TryGetValue(field[1], out var col2) == true)
 						return NativeTuple.Create($"{firstTableAlias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, firstTableAlias);
 
-					var ta2s = _tableAlias.Where(a => a.Table.CsName.ToLower() == field[0].ToLower()).ToArray();
+					var ta2s = _tableAlias.Where(a => a.Table.CsName.ToLowerInvariant() == field[0].ToLowerInvariant()).ToArray();
 					if (ta2s.Length == 1 && ta2s[0].Table.ColumnsByCs.TryGetValue(field[1], out col2) == true)
 						return NativeTuple.Create($"{ta2s[0].Alias}.{_common.QuoteSqlName(col2.Attribute.Name)}", col2, ta2s[0].Alias);
 					if (ta2s.Length > 1)
