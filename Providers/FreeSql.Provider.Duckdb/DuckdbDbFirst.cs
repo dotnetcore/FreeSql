@@ -33,7 +33,7 @@ namespace FreeSql.Duckdb
             var isarray = Regex.IsMatch(dbtype, @"\[\d*\]$") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             DuckDBType ret = DuckDBType.Invalid;
-            switch (dbtype.ToLower())
+            switch (dbtype.ToLowerInvariant())
             {
                 case "bigint":
                 case "int8":

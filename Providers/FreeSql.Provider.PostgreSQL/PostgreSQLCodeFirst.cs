@@ -284,7 +284,7 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                         .Replace("real", "float4")
                         .Replace("double precision", "float8")
                         .Replace("character varying", "varchar"); //pg15+
-                    switch (sqlType.ToLower())
+                    switch (sqlType.ToLowerInvariant())
                     {
                         case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid":
                         default: max_length *= 8; break;

@@ -26,8 +26,8 @@ namespace FreeSql.Odbc.MySql
         public int GetDbType(DbColumnInfo column) => (int)GetOdbcType(column);
         OdbcType GetOdbcType(DbColumnInfo column)
         {
-            var is_unsigned = column.DbTypeTextFull?.ToLower().EndsWith(" unsigned") == true;
-            switch (column.DbTypeText?.ToLower())
+            var is_unsigned = column.DbTypeTextFull?.ToLowerInvariant().EndsWith(" unsigned") == true;
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit": return OdbcType.Bit;
 

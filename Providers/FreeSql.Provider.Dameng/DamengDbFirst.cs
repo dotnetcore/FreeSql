@@ -27,7 +27,7 @@ namespace FreeSql.Dameng
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DmDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return DmDbType.Bit;
@@ -60,7 +60,7 @@ namespace FreeSql.Dameng
 				_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
 				return DmDbType.DateTime;
             }
-			switch (column.DbTypeText?.ToLower())
+			switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);

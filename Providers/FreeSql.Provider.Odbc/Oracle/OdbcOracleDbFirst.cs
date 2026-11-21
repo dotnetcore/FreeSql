@@ -27,7 +27,7 @@ namespace FreeSql.Odbc.Oracle
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         OdbcType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull?.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLowerInvariant();
             switch (dbfull)
             {
                 case "number(1)": return OdbcType.Bit;
@@ -55,7 +55,7 @@ namespace FreeSql.Odbc.Oracle
 
                 case "char(36 char)": return OdbcType.Char;
             }
-            switch (column.DbTypeText?.ToLower())
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);

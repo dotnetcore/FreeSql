@@ -25,8 +25,8 @@ namespace FreeSql.Custom.MySql
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var is_unsigned = column.DbTypeTextFull?.ToLower().EndsWith(" unsigned") == true;
-            switch (column.DbTypeText?.ToLower())
+            var is_unsigned = column.DbTypeTextFull?.ToLowerInvariant().EndsWith(" unsigned") == true;
+            switch (column.DbTypeText?.ToLowerInvariant())
             {
                 case "bit": return DbType.Boolean;
 

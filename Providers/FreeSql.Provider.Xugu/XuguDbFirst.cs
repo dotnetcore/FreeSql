@@ -56,7 +56,7 @@ namespace FreeSql.Xugu
             var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             XGDbType ret = XGDbType.LongVarChar;
-            switch (dbtype?.ToUpper().TrimStart('_'))
+            switch (dbtype?.ToUpperInvariant().TrimStart('_'))
             {
                 case "SMALLINT": ret = XGDbType.SmallInt; break;
                 case "INTEGER": ret = XGDbType.Int; break;
