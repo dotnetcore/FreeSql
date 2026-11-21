@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net461</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>FreeSql</Authors>
+    <Description>FreeSql provider for Apache IoTDB Tree model</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM;IoTDB;TimeSeries;TreeModel</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <Version>3.5.311</Version>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+    <PackageReference Include="Apache.IoTDB.Data" Version="2.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../FreeSql/FreeSql.csproj" />
+  </ItemGroup>
+</Project>
