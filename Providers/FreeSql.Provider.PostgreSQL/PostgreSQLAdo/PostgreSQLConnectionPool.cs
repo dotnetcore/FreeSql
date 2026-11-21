@@ -66,28 +66,28 @@ namespace FreeSql.PostgreSQL
 
                 var minPoolSize = 0;
                 var pattern = @"Min(imum)?\s*pool\s*size\s*=\s*(\d+)";
-                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     minPoolSize = int.Parse(m.Groups[2].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 pattern = @"Max(imum)?\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = Math.Max(50, minPoolSize);
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
-                    Regex.Replace(_connectionString, pattern, $"Maximum pool size={PoolSize}", RegexOptions.IgnoreCase) :
+                    Regex.Replace(_connectionString, pattern, $"Maximum pool size={PoolSize}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) :
                     $"{_connectionString};Maximum pool size={PoolSize}";
 
                 pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     IdleTimeout = TimeSpan.FromSeconds(int.Parse(m.Groups[1].Value));
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
