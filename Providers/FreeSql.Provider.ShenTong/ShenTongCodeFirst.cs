@@ -231,7 +231,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         attndims,
                         comment = string.Concat(a[7])
                     };
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 if (istmpatler == false)
                 {
@@ -244,7 +244,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                             var sqlTypeSize = tbstructcol.sqlType;
                             if (sqlTypeSize.Contains("(") == false)
                             {
-                                switch (sqlTypeSize.ToLower())
+                                switch (sqlTypeSize.ToLowerInvariant())
                                 {
                                     case "bit":
                                     case "varbit":
@@ -253,7 +253,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                                         sqlTypeSize = $"{sqlTypeSize}({tbstructcol.max_length})"; break;
                                 }
                             }
-                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.CurrentCultureIgnoreCase) == false ||
+                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.OrdinalIgnoreCase) == false ||
                                 tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER TYPE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
@@ -379,7 +379,7 @@ where sys_namespace.nspname={0} and sys_class.relname={1} and sys_constraint.con
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"coalesce({insertvalue},{tbcol.DbDefaultValue})";
@@ -409,7 +409,7 @@ where sys_namespace.nspname={0} and sys_class.relname={1} and sys_constraint.con
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_seq").ToUpper(); ;
+                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_seq").ToUpperInvariant(); ;
                 var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
                 var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
                 sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;\r\n");

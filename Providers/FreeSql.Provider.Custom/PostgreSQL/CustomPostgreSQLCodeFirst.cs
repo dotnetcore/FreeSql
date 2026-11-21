@@ -263,7 +263,7 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                             var sqlTypeSize = tbstructcol.sqlType;
                             if (sqlTypeSize.Contains("(") == false)
                             {
-                                switch (sqlTypeSize.ToLower())
+                                switch (sqlTypeSize.ToLowerInvariant())
                                 {
                                     case "bit":
                                     case "varbit":
@@ -272,7 +272,7 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                                         sqlTypeSize = $"{sqlTypeSize}({tbstructcol.max_length})"; break;
                                 }
                             }
-                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.CurrentCultureIgnoreCase) == false ||
+                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.OrdinalIgnoreCase) == false ||
                                 tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
@@ -430,7 +430,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"coalesce({insertvalue},{tbcol.DbDefaultValue})";

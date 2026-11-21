@@ -66,12 +66,12 @@ public abstract class MygisGeometry
     {
         if (string.IsNullOrEmpty(wkt)) return null;
         wkt = wkt.Trim();
-        if (wkt.StartsWith("point", StringComparison.CurrentCultureIgnoreCase)) return ParsePoint(wkt.Substring(5).Trim('(', ')'));
-        else if (wkt.StartsWith("linestring", StringComparison.CurrentCultureIgnoreCase)) return new MygisLineString(ParseLineString(wkt.Substring(10).Trim('(', ')')));
-        else if (wkt.StartsWith("polygon", StringComparison.CurrentCultureIgnoreCase)) return new MygisPolygon(ParsePolygon(wkt.Substring(7).Trim('(', ')')));
-        else if (wkt.StartsWith("multipoint", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiPoint(ParseLineString(wkt.Substring(10).Trim('(', ')')));
-        else if (wkt.StartsWith("multilinestring", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiLineString(ParseMultiLineString(wkt.Substring(15).Trim('(', ')')));
-        else if (wkt.StartsWith("multipolygon", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiPolygon(ParseMultiPolygon(wkt.Substring(12).Trim('(', ')')));
+        if (wkt.StartsWith("point", StringComparison.OrdinalIgnoreCase)) return ParsePoint(wkt.Substring(5).Trim('(', ')'));
+        else if (wkt.StartsWith("linestring", StringComparison.OrdinalIgnoreCase)) return new MygisLineString(ParseLineString(wkt.Substring(10).Trim('(', ')')));
+        else if (wkt.StartsWith("polygon", StringComparison.OrdinalIgnoreCase)) return new MygisPolygon(ParsePolygon(wkt.Substring(7).Trim('(', ')')));
+        else if (wkt.StartsWith("multipoint", StringComparison.OrdinalIgnoreCase)) return new MygisMultiPoint(ParseLineString(wkt.Substring(10).Trim('(', ')')));
+        else if (wkt.StartsWith("multilinestring", StringComparison.OrdinalIgnoreCase)) return new MygisMultiLineString(ParseMultiLineString(wkt.Substring(15).Trim('(', ')')));
+        else if (wkt.StartsWith("multipolygon", StringComparison.OrdinalIgnoreCase)) return new MygisMultiPolygon(ParseMultiPolygon(wkt.Substring(12).Trim('(', ')')));
         throw new NotImplementedException(CoreErrorStrings.S_MygisGeometry_NotImplement(wkt));
     }
     static MygisPoint ParsePoint(string str)

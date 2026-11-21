@@ -212,7 +212,7 @@ namespace FreeSql.PostgreSQL
                             sb.Append("INDEX ");
                             if (isPg95) sb.Append("IF NOT EXISTS ");
                             sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName);
-                            if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                            if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpperInvariant().Replace("_", ""));
                             sb.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
@@ -321,13 +321,13 @@ where ns.nspname = {{0}} and c.relname = {{1}}", tboldname ?? tbname);
                             var sqlTypeSize = tbstructcol.sqlType;
                             if (sqlTypeSize.Contains("(") == false)
                             {
-                                switch (sqlTypeSize.ToLower())
+                                switch (sqlTypeSize.ToLowerInvariant())
                                 {
                                     case "bit": case "varbit": case "bpchar": case "varchar":
                                         sqlTypeSize = $"{sqlTypeSize}({tbstructcol.max_length})"; break;
                                 }
                             }
-                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.CurrentCultureIgnoreCase) == false ||
+                            if (tbcol.Attribute.DbType.StartsWith(sqlTypeSize, StringComparison.OrdinalIgnoreCase) == false ||
                                 tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
@@ -407,7 +407,7 @@ where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", 
                             sbalter.Append("INDEX ");
                             if (isPg95) sbalter.Append("IF NOT EXISTS ");
                             sbalter.Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}"));
-                            if (uk.IndexMethod != IndexMethod.B_Tree) sbalter.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                            if (uk.IndexMethod != IndexMethod.B_Tree) sbalter.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpperInvariant().Replace("_", ""));
                             sbalter.Append("(");
                             foreach (var tbcol in uk.Columns)
                             {
@@ -487,7 +487,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"coalesce({insertvalue},{tbcol.DbDefaultValue})";
@@ -507,7 +507,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                     sb.Append("INDEX ");
                     if (isPg95) sb.Append("IF NOT EXISTS ");
                     sb.Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(newtablename);
-                    if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpper().Replace("_", ""));
+                    if (uk.IndexMethod != IndexMethod.B_Tree) sb.Append(" USING ").Append(uk.IndexMethod.ToString().ToUpperInvariant().Replace("_", ""));
                     sb.Append("(");
                     foreach (var tbcol in uk.Columns)
                     {

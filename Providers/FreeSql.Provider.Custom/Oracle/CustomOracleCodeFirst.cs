@@ -219,10 +219,10 @@ where a.owner={{0}} and a.table_name={{1}} and a.column_id is not null", tboldna
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             {
                                 istmpatler = true;
-                                if (tbcol.Attribute.DbType.StartsWith("varchar", StringComparison.CurrentCultureIgnoreCase) && tbstructcol.sqlType.StartsWith("varchar2", StringComparison.CurrentCultureIgnoreCase)
+                                if (tbcol.Attribute.DbType.StartsWith("varchar", StringComparison.OrdinalIgnoreCase) && tbstructcol.sqlType.StartsWith("varchar2", StringComparison.OrdinalIgnoreCase)
                                     && Regex.Match(tbcol.Attribute.DbType, @"\(\d+").Groups[0].Value == Regex.Match(tbstructcol.sqlType, @"\(\d+").Groups[0].Value)
                                     istmpatler = false;
                                 if (istmpatler) break;
@@ -351,7 +351,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                         {
                             var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "").Trim();
                             if (dbtypeNoneNotNull != "CLOB" && dbtypeNoneNotNull != "NCLOB" && dbtypeNoneNotNull != "BLOB")
@@ -442,7 +442,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
         internal static string GetOracleSqlTypeFullName(object[] row)
         {
             var a = row;
-            var sqlType = string.Concat(a[1]).ToUpper();
+            var sqlType = string.Concat(a[1]).ToUpperInvariant();
             var data_length = long.Parse(string.Concat(a[2]));
             long.TryParse(string.Concat(a[3]), out var data_precision);
             long.TryParse(string.Concat(a[4]), out var data_scale);
@@ -453,7 +453,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase))
             {
             }
-            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase))
+            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.OrdinalIgnoreCase))
             {
             }
             else if (sqlType.StartsWith("BLOB"))
@@ -471,9 +471,9 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             else if (sqlType.StartsWith("LONG RAW"))
             {
             }
-            else if (char_used.ToLower() == "c")
+            else if (char_used.ToLowerInvariant() == "c")
                 sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
-            else if (char_used.ToLower() == "b")
+            else if (char_used.ToLowerInvariant() == "b")
                 sqlType += $"({data_length} BYTE)";
             else if (sqlType.ToLowerInvariant() == "float")
                 sqlType += $"({data_precision})";

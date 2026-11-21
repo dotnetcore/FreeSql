@@ -107,7 +107,7 @@ namespace FreeSql.GBase
         {
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
-            if (ignoreCase) tbname = tbname.Select(a => a.ToUpper()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToUpperInvariant()).ToArray();
             var sql = $" select 1 from systables where tabtype='T' and {(ignoreCase ? "upper(trim(tabname))" : "trim(tabname)")} = {_commonUtils.FormatSql("{0}", tbname.Last())}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -121,7 +121,7 @@ namespace FreeSql.GBase
             if (string.IsNullOrEmpty(tablename) == false)
             {
                 tbname = _commonUtils.SplitTableName(tablename);
-                if (ignoreCase) tbname = tbname.Select(a => a.ToUpper()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToUpperInvariant()).ToArray();
             }
 
             var loc1 = new List<DbTableInfo>();

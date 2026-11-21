@@ -123,7 +123,7 @@ namespace FreeSql.MsAccess
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name));
-                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1)
+                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.OrdinalIgnoreCase) == -1)
                             sb.Append(" AUTOINCREMENT");
                         else
                             sb.Append(" ").Append(tbcol.Attribute.DbType);
@@ -193,7 +193,7 @@ namespace FreeSql.MsAccess
                     int table_name_index = 0, primary_key_index = 0, column_name_index = 0;
                     for (var a = 0; a < schemaIndexes.Columns.Count; a++)
                     {
-                        switch (schemaIndexes.Columns[a].ColumnName.ToLower())
+                        switch (schemaIndexes.Columns[a].ColumnName.ToLowerInvariant())
                         {
                             case "table_name":
                                 table_name_index = a;
@@ -219,7 +219,7 @@ namespace FreeSql.MsAccess
                     int table_name_index = 0, index_name_index = 0, primary_key_index = 0, unique_index = 0, column_name_index = 0, collation_index = 0;
                     for (var a = 0; a < schemaIndexes.Columns.Count; a++)
                     {
-                        switch (schemaIndexes.Columns[a].ColumnName.ToLower())
+                        switch (schemaIndexes.Columns[a].ColumnName.ToLowerInvariant())
                         {
                             case "table_name":
                                 table_name_index = a;
@@ -261,7 +261,7 @@ namespace FreeSql.MsAccess
                         datetime_precision_index = 0, description_index = 0;
                     for (var a = 0; a < schemaColumns.Columns.Count; a++)
                     {
-                        switch (schemaColumns.Columns[a].ColumnName.ToLower())
+                        switch (schemaColumns.Columns[a].ColumnName.ToLowerInvariant())
                         {
                             case "table_name":
                                 table_name_index = a;
@@ -298,7 +298,7 @@ namespace FreeSql.MsAccess
                     int datatype_ProviderDbType_index = 0, datatype_NativeDataType_index = 0, datatype_TypeName_index = 0, datatype_IsAutoIncrementable_index = 0;
                     for (var a = 0; a < schemaDataTypes.Columns.Count; a++)
                     {
-                        switch (schemaDataTypes.Columns[a].ColumnName.ToLower())
+                        switch (schemaDataTypes.Columns[a].ColumnName.ToLowerInvariant())
                         {
                             case "providerdbtype":
                                 datatype_ProviderDbType_index = a;
@@ -340,7 +340,7 @@ namespace FreeSql.MsAccess
                         int.TryParse(row[numeric_precision_index]?.ToString(), out var numeric_precision);
                         int.TryParse(row[numeric_scale_index]?.ToString(), out var numeric_scale);
                         int.TryParse(row[datetime_precision_index]?.ToString(), out var datetime_precision);
-                        var datatype = dataTypeRow[datatype_TypeName_index]?.ToString().ToUpper();
+                        var datatype = dataTypeRow[datatype_TypeName_index]?.ToString().ToUpperInvariant();
                         if (numeric_precision > 0 && numeric_scale > 0) datatype = $"{datatype}({numeric_precision},{numeric_scale})";
                         else if (character_maximum_length > 0 && character_octet_length > 0) datatype = $"{datatype}({character_maximum_length})";
                         ret.Add(column_name, new getColumnsByTableNameResult(column_name, datatype, is_nullable, is_identity, comment));
@@ -360,7 +360,7 @@ namespace FreeSql.MsAccess
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
-                            if (tbstructcol.sqlType != "LONG" && tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbstructcol.sqlType != "LONG" && tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                                 istmpatler = true;
                             if (tbstructcol.sqlType != "BIT" && tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                                 istmpatler = true;
@@ -415,7 +415,7 @@ namespace FreeSql.MsAccess
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             {
                                 var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
                                 insertvalue = MsAccessUtils.GetCastSql(insertvalue, tbcol.Attribute.MapType);

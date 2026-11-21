@@ -77,7 +77,7 @@ namespace FreeSql.GBase
             return nametrim;
         }
         public override string[] SplitTableName(string name) => name?.Split(new char[] { ':' }, 1);
-        public override string QuoteParamterName(string name) => $"?{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
+        public override string QuoteParamterName(string name) => $"?{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLowerInvariant() : name)}";
 
         readonly static Regex _regDateTime = new Regex(@"^'(\d{4,4}\-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})(\.\d+)?'$", RegexOptions.Compiled);
         public override string IsNull(string sql, object value)
@@ -130,7 +130,7 @@ namespace FreeSql.GBase
                 var str = (string)value;
                 // TEXT和byte字段类型无法用insert直接写入,CLOB需启用Oracle后可直接insert; 参考https://www.gbase.cn/community/post/4863
                 var isText = (col?.Attribute?.DbType?.IndexOf("TEXT", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0
-                             || string.Equals(col?.DbTypeText, "text", StringComparison.CurrentCultureIgnoreCase);
+                             || string.Equals(col?.DbTypeText, "text", StringComparison.OrdinalIgnoreCase);
                 if (isText)
                 {
                     var pam = AppendParamter(specialParams, "", col, typeof(byte[]), value);

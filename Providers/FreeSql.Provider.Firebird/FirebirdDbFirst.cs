@@ -102,7 +102,7 @@ namespace FreeSql.Firebird
         {
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
-            if (ignoreCase) tbname = tbname.Select(a => a.ToUpper()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToUpperInvariant()).ToArray();
             var sql = $" select 1 from rdb$relations where rdb$system_flag=0 and {(ignoreCase ? "upper(trim(rdb$relation_name))" : "trim(rdb$relation_name)")} = {_commonUtils.FormatSql("{0}", tbname.Last())}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -116,7 +116,7 @@ namespace FreeSql.Firebird
             if (string.IsNullOrEmpty(tablename) == false)
             {
                 tbname = _commonUtils.SplitTableName(tablename);
-                if (ignoreCase) tbname = tbname.Select(a => a.ToUpper()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToUpperInvariant()).ToArray();
             }
 
             var loc1 = new List<DbTableInfo>();

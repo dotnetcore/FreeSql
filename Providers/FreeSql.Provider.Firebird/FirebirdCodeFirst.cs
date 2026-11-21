@@ -197,7 +197,7 @@ order by a.rdb$relation_name, a.rdb$field_position", tboldname ?? tbname);
                         is_identity = string.Concat(a[3]) == "1",
                         comment = string.Concat(a[4])
                     };
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 var existsPrimary = _orm.Ado.ExecuteScalar(_commonUtils.FormatSql(@" select 1 from rdb$relation_constraints d where d.rdb$constraint_type = 'PRIMARY KEY' and trim(d.rdb$relation_name) = {0}", tbname));
                 foreach (var tbcol in tb.ColumnsByPosition)
@@ -206,7 +206,7 @@ order by a.rdb$relation_name, a.rdb$field_position", tboldname ?? tbname);
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                        var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false;
+                        var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false;
 
                         if (isDbTypeChanged ||
                             tbcol.Attribute.IsIdentity != tbstructcol.is_identity)

@@ -40,8 +40,8 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var _commonUtils = upsert._commonUtils;
         var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"temp_{Guid.NewGuid().ToString("N")}";
-        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
             upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
         var sb = new StringBuilder().Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
@@ -91,8 +91,8 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var _commonUtils = update._commonUtils;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"temp_{Guid.NewGuid().ToString("N")}";
-        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
             update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
         var sb = new StringBuilder().Append("CREATE TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");

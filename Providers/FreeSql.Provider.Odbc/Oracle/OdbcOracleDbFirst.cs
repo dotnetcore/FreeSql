@@ -116,7 +116,7 @@ namespace FreeSql.Odbc.Oracle
             throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.OrdinalIgnoreCase);
         static OdbcOracleDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {

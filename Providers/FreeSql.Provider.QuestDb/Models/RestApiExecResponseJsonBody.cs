@@ -15,7 +15,7 @@ namespace FreeSql.Provider.QuestDb.Models
         public int Updated { get; set; }
 
         [JsonIgnore]
-        public bool IsSuccessful => string.Equals(Ddl, "ok", StringComparison.CurrentCultureIgnoreCase) ||
-                                    string.Equals(Dml, "ok", StringComparison.CurrentCultureIgnoreCase);
+        public bool IsSuccessful => string.Equals(Ddl, "ok", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(Dml, "ok", StringComparison.OrdinalIgnoreCase);
     }
 }

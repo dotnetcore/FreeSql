@@ -220,14 +220,14 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             {
                                 istmpatler = true;
-                                if (istmpatler && tbcol.Attribute.DbType.StartsWith("varchar", StringComparison.CurrentCultureIgnoreCase) && tbstructcol.sqlType.StartsWith("varchar2", StringComparison.CurrentCultureIgnoreCase)
+                                if (istmpatler && tbcol.Attribute.DbType.StartsWith("varchar", StringComparison.OrdinalIgnoreCase) && tbstructcol.sqlType.StartsWith("varchar2", StringComparison.OrdinalIgnoreCase)
                                     && Regex.Match(tbcol.Attribute.DbType, @"\(\d+").Groups[0].Value == Regex.Match(tbstructcol.sqlType, @"\(\d+").Groups[0].Value)
                                     istmpatler = false;
                                 if (istmpatler && Regex.IsMatch(tbcol.Attribute.DbType, @"\(\d+") == false && Regex.IsMatch(tbstructcol.sqlType, @"\(\d+")
-                                    && string.Compare(tbcol.Attribute.DbType, Regex.Replace(tbstructcol.sqlType, @"\([^\)]+\)", ""), StringComparison.CurrentCultureIgnoreCase) == 0)
+                                    && string.Compare(tbcol.Attribute.DbType, Regex.Replace(tbstructcol.sqlType, @"\([^\)]+\)", ""), StringComparison.OrdinalIgnoreCase) == 0)
                                     istmpatler = false;
                                 if (istmpatler) break;
                             }
@@ -356,7 +356,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                         {
                             var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
                             var charMatch = Regex.Match(dbtypeNoneNotNull, "(N?)VARCHAR(2?)\\((?<precision>[0-9]+)\\)");
@@ -450,7 +450,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
         internal static string GetDamengSqlTypeFullName(object[] row)
         {
             var a = row;
-            var sqlType = string.Concat(a[1]).ToUpper();
+            var sqlType = string.Concat(a[1]).ToUpperInvariant();
             var data_length = long.Parse(string.Concat(a[2]));
             long.TryParse(string.Concat(a[3]), out var data_precision);
             long.TryParse(string.Concat(a[4]), out var data_scale);
@@ -460,7 +460,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase))
             {
             }
-            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase))
+            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.OrdinalIgnoreCase))
                 sqlType += data_scale <= 0 ? "" : $"({data_scale})";
             else if (sqlType.StartsWith("BLOB"))
             {

@@ -120,7 +120,7 @@ namespace FreeSql.SqlServer
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { olddatabase, "dbo", tbname[0] };
             if (tbname?.Length == 2) tbname = new[] { olddatabase, tbname[0], tbname[1] };
-            tbname = tbname.Select(a => a.ToLower()).ToArray();
+            tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $@"
 use [{tbname[0]}];
 select 
@@ -150,7 +150,7 @@ use [{olddatabase}];
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { olddatabase, "dbo", tbname[0] };
                 if (tbname?.Length == 2) tbname = new[] { olddatabase, tbname[0], tbname[1] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 dbs = new[] { tbname[0] };
             }
             var tables = new List<DbTableInfo>();
