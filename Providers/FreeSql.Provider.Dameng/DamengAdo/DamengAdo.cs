@@ -40,7 +40,7 @@ namespace FreeSql.Dameng
                 SlavePools.Add(slavePool);
             });
         }
-        public override object AddslashesProcessParam(object param, Type mapType, Internal.Model.ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, Internal.Model.ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))

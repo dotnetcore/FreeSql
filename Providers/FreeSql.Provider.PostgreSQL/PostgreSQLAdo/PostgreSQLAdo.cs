@@ -8,10 +8,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
-
+using static FreeSql.Internal.CommonExpression;
 namespace FreeSql.PostgreSQL
 {
     class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
@@ -19,7 +21,7 @@ namespace FreeSql.PostgreSQL
         public PostgreSQLAdo() : base(DataType.PostgreSQL, null, null) { }
         public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL, masterConnectionString, slaveConnectionStrings)
         {
-            base._util = util; 
+            base._util = util;
             if (connectionFactory != null)
             {
                 var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
@@ -44,7 +46,7 @@ namespace FreeSql.PostgreSQL
             });
         }
 
-        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn, CommonExpression.ExpressionStyle? style)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || param is JToken || param is JObject || param is JArray))
@@ -110,9 +112,36 @@ namespace FreeSql.PostgreSQL
                 return pghstore.Append("'::hstore");
             }
             else if (param is IEnumerable)
-                return AddslashesIEnumerable(param, mapType, mapColumn);
+                return AddslashesIEnumerable(param, mapType, mapColumn, style);
 
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+        }
+
+        protected override string AddslashesIEnumerable(object param, Type mapType, ColumnInfo mapColumn, ExpressionStyle? style = null)
+        {
+            var sb = new StringBuilder();
+            var ie = param as IEnumerable;
+            var idx = 0;
+            foreach (var z in ie)
+            {
+                sb.Append(",");
+                if (++idx > 500)
+                {
+                    sb.Append("   \r\n    \r\n"); //500元素分割, 3空格\r\n4空格
+                    idx = 1;
+                }
+                var obj = AddslashesProcessParam(z, mapType, mapColumn, style);
+                if (style == ExpressionStyle.Set && obj is string)
+                {
+                    obj = $"{obj}".Trim('\'');
+                }
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", obj));
+            }
+
+            if (style == ExpressionStyle.Set)
+                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "'{").Append("}'").ToString();
+            else
+                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
         }
 
         public override DbCommand CreateCommand()
