@@ -155,8 +155,8 @@ namespace FreeSql.Internal
                 if (string.IsNullOrEmpty(newname)) return table.DbName;
                 if (flag1)
                 {
-                    if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
-                    if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+                    if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLowerInvariant();
+                    if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpperInvariant();
                     if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(table.Type, newname);
                 }
                 return newname;

@@ -971,8 +971,8 @@ namespace FreeSql.Internal.CommonProvider
 
                         for (var a = 0; a < aret.Names.Length; a++)
                         {
-                            if (_orm.CodeFirst.IsSyncStructureToLower) aret.Names[a] = aret.Names[a].ToLower();
-                            if (_orm.CodeFirst.IsSyncStructureToUpper) aret.Names[a] = aret.Names[a].ToUpper();
+                            if (_orm.CodeFirst.IsSyncStructureToLower) aret.Names[a] = aret.Names[a].ToLowerInvariant();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) aret.Names[a] = aret.Names[a].ToUpperInvariant();
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, aret.Names[a]);
                         }
                         if (tb.Table.AsTableImpl is DateTimeAsTableImpl)
@@ -988,8 +988,8 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         if (trname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
                         {
-                            if (_orm.CodeFirst.IsSyncStructureToLower) trname = trname.ToLower();
-                            if (_orm.CodeFirst.IsSyncStructureToUpper) trname = trname.ToUpper();
+                            if (_orm.CodeFirst.IsSyncStructureToLower) trname = trname.ToLowerInvariant();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) trname = trname.ToUpperInvariant();
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, trname);
                         }
                         else
@@ -1067,8 +1067,8 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         if (newname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
                         {
-                            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
-                            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+                            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLowerInvariant();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpperInvariant();
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, newname);
                         }
                         else

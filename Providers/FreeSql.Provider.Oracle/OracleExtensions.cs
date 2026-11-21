@@ -47,8 +47,8 @@ public static partial class FreeSqlOracleGlobalExtensions
         var _commonUtils = upsert._commonUtils;
         var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpper().Substring(0, 24)}";
-        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
             upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
         var sb = new StringBuilder().Append("CREATE GLOBAL TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");
@@ -95,8 +95,8 @@ public static partial class FreeSqlOracleGlobalExtensions
         var _commonUtils = update._commonUtils;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpper().Substring(0, 24)}";
-        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
             update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
         var sb = new StringBuilder().Append("CREATE GLOBAL TEMPORARY TABLE ").Append(_commonUtils.QuoteSqlName(tempTableName)).Append(" ( ");

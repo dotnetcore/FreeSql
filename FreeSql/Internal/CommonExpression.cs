@@ -45,8 +45,8 @@ namespace FreeSql.Internal
         internal string GetFieldAsCsName(string csname)
         {
             csname = _common.QuoteSqlName(csname);
-            if (_common.CodeFirst.IsSyncStructureToLower) csname = csname.ToLower();
-            if (_common.CodeFirst.IsSyncStructureToUpper) csname = csname.ToUpper();
+            if (_common.CodeFirst.IsSyncStructureToLower) csname = csname.ToLowerInvariant();
+            if (_common.CodeFirst.IsSyncStructureToUpper) csname = csname.ToUpperInvariant();
             return csname;
         }
         internal bool EndsWithDbNestedField(string dbField, string dbNestedField)

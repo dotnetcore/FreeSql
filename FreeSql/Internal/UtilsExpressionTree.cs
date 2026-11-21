@@ -86,13 +86,13 @@ namespace FreeSql.Internal
             trytb.DbOldName = tbattr?.OldName;
             if (common.CodeFirst.IsSyncStructureToLower)
             {
-                trytb.DbName = trytb.DbName.ToLower();
-                trytb.DbOldName = trytb.DbOldName?.ToLower();
+                trytb.DbName = trytb.DbName.ToLowerInvariant();
+                trytb.DbOldName = trytb.DbOldName?.ToLowerInvariant();
             }
             if (common.CodeFirst.IsSyncStructureToUpper)
             {
-                trytb.DbName = trytb.DbName.ToUpper();
-                trytb.DbOldName = trytb.DbOldName?.ToUpper();
+                trytb.DbName = trytb.DbName.ToUpperInvariant();
+                trytb.DbOldName = trytb.DbOldName?.ToUpperInvariant();
             }
             if (tbattr != null) trytb.DisableSyncStructure = tbattr.DisableSyncStructure;
             var propsLazy = new List<NativeTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo>>();
@@ -226,8 +226,8 @@ namespace FreeSql.Internal
 			if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
 			if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
 			if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = csName;
-			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
+			if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLowerInvariant();
+			if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpperInvariant();
 
 			if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && 
                 common._orm.Ado.DataType != DataType.ClickHouse && 
@@ -605,7 +605,7 @@ namespace FreeSql.Internal
 					}
 				}
 				if (indexColumns.Any() == false) continue;
-				var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
+				var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLowerInvariant() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpperInvariant() : index.Name);
 				if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
 				indexesDict.Add(indexName, new IndexInfo
 				{

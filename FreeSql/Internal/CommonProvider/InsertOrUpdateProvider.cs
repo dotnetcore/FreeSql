@@ -239,8 +239,8 @@ namespace FreeSql.Internal.CommonProvider
                 newname = _tableRule(tbname);
             if (newname == tbname) return tbname;
             if (string.IsNullOrEmpty(newname)) return tbname;
-            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
-            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLowerInvariant();
+            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpperInvariant();
             if (_isAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
             return newname;
         }

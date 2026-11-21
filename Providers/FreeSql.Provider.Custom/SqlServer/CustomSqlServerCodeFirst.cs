@@ -171,7 +171,7 @@ ELSE
                     }
                     //codefirst 不支持表名、模式名、数据库名中带 .
 
-                    if (string.Compare(tbname[0], database, true) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
+                    if (string.Compare(tbname[0], database, StringComparison.OrdinalIgnoreCase) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
                         LocalExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
                     if (string.Compare(tbname[1], "dbo", true) != 0 && LocalExecuteScalar(tbname[0], $" select 1 from sys.schemas where name='{tbname[1]}'") == null) //创建模式
                         LocalExecuteScalar(tbname[0], $"create schema [{tbname[1]}] authorization [dbo]");
@@ -182,8 +182,8 @@ ELSE
                     { //表不存在
                         if (tboldname != null)
                         {
-                            if (string.Compare(tboldname[0], tbname[0], true) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tboldname[0]}'") == null ||
-                                string.Compare(tboldname[1], tbname[1], true) != 0 && LocalExecuteScalar(tboldname[0], $" select 1 from sys.schemas where name='{tboldname[1]}'") == null ||
+                            if (string.Compare(tboldname[0], tbname[0], StringComparison.OrdinalIgnoreCase) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tboldname[0]}'") == null ||
+                                string.Compare(tboldname[1], tbname[1], StringComparison.OrdinalIgnoreCase) != 0 && LocalExecuteScalar(tboldname[0], $" select 1 from sys.schemas where name='{tboldname[1]}'") == null ||
                                 LocalExecuteScalar(tboldname[0], $" select 1 from dbo.sysobjects where id = object_id(N'[{tboldname[1]}].[{tboldname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
                                 //数据库或模式或表不存在
                                 tboldname = null;
@@ -237,8 +237,8 @@ ELSE
                             continue;
                         }
                         //如果新表，旧表在一个数据库和模式下，直接修改表名
-                        if (string.Compare(tbname[0], tboldname[0], true) == 0 &&
-                            string.Compare(tbname[1], tboldname[1], true) == 0)
+                        if (string.Compare(tbname[0], tboldname[0], StringComparison.OrdinalIgnoreCase) == 0 &&
+                            string.Compare(tbname[1], tboldname[1], StringComparison.OrdinalIgnoreCase) == 0)
                             sbalter.Append("use [").Append(tbname[0]).Append(_commonUtils.FormatSql("];\r\nEXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]), tbname[2]));
                         else
                         {
@@ -278,7 +278,7 @@ use [" + database + "];", tboldname ?? tbname);
                         is_nullable = string.Concat(a[2]) == "1",
                         is_identity = string.Concat(a[3]) == "1",
                         comment = string.Concat(a[4])
-                    }, StringComparer.CurrentCultureIgnoreCase);
+                    }, StringComparer.OrdinalIgnoreCase);
 
                     if (istmpatler == false)
                     {
@@ -295,7 +295,7 @@ use [" + database + "];", tboldname ?? tbname);
                                     istmpatler = true;
                                     break;
                                 }
-                                if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
+                                if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, StringComparison.OrdinalIgnoreCase) == 0)
                                     //修改列名
                                     sbalter.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{tbname[2]}.{tbstructcol.column}", tbcol.Attribute.Name));
                                 if (isCommentChanged)
@@ -330,8 +330,8 @@ use [" + database + "];", tboldname ?? tbname);
                         {
                             if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                             var ukname = ReplaceIndexName(uk.Name, tbname[1]);
-                            var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, true) == 0).ToArray();
-                            if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                            var dsukfind1 = dsuk.Where(a => string.Compare(a[1], ukname, StringComparison.OrdinalIgnoreCase) == 0).ToArray();
+                            if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], StringComparison.OrdinalIgnoreCase) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                             {
                                 if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(ukname)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname[1], tbname[2])).Append(";\r\n");
                                 sbalter.Append("CREATE ");
@@ -350,7 +350,7 @@ use [" + database + "];", tboldname ?? tbname);
                     if (istmpatler == false)
                     {
                         var dbcommentsql = $" SELECT value from fn_listextendedproperty('MS_Description', 'schema', N'{tbname[1].Replace("'", "''")}', 'table', N'{tbname[2].Replace("'", "''")}', NULL, NULL)";
-                        if (string.Compare(tbname[0], database, true) != 0) dbcommentsql = $"use [{tbname[0]}];{dbcommentsql};use [{database}];";
+                        if (string.Compare(tbname[0], database, StringComparison.OrdinalIgnoreCase) != 0) dbcommentsql = $"use [{tbname[0]}];{dbcommentsql};use [{database}];";
                         var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, dbcommentsql));
                         if (dbcomment != (tb.Comment ?? ""))
                             AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tb.Comment);
