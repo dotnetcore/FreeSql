@@ -12,10 +12,10 @@ namespace FreeSql.Internal.Model
         public Type Type { get; set; }
         public Type TypeLazy { get; set; }
         public MethodInfo TypeLazySetOrm { get; set; }
-        public Dictionary<string, PropertyInfo> Properties { get; set; } = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, ColumnInfo> Columns { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, ColumnInfo> ColumnsByCs { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, PropertyInfo> Properties { get; set; } = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ColumnInfo> Columns { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ColumnInfo> ColumnsByCs { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.OrdinalIgnoreCase);
         public ColumnInfo[] ColumnsByPosition { get; set; }
         public ColumnInfo[] ColumnsByCanUpdateDbUpdateValue { get; set; }
         public ColumnInfo[] Primarys { get; set; }
@@ -38,7 +38,7 @@ namespace FreeSql.Internal.Model
             AsTableColumn = column;
         }
 
-        ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);
+        ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.OrdinalIgnoreCase);
 
         internal void AddOrUpdateTableRef(string propertyName, TableRef tbref)
         {

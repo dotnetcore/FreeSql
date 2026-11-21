@@ -57,7 +57,7 @@ namespace FreeSql.Internal
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.CustomSqlServer:
-                    return dbField.EndsWith(dbNestedField, StringComparison.CurrentCultureIgnoreCase);
+                    return dbField.EndsWith(dbNestedField, StringComparison.OrdinalIgnoreCase);
             }
             return dbField.EndsWith(dbNestedField);
         }

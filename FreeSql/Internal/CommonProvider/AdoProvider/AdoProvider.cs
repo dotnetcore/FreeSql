@@ -149,7 +149,7 @@ namespace FreeSql.Internal.CommonProvider
                 if (indexes == null)
                 {
                     var sbflag = new StringBuilder().Append("adoQuery");
-                    var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                    var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                     for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
                         var name = fetch.Object.GetName(a);
@@ -193,7 +193,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes1 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -211,7 +211,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -263,7 +263,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes1 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -281,7 +281,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -299,7 +299,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -357,7 +357,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes1 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -375,7 +375,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -393,7 +393,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -411,7 +411,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes4 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -475,7 +475,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes1 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -493,7 +493,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -511,7 +511,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -529,7 +529,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes4 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);
@@ -547,7 +547,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (indexes5 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
-                            var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+                            var dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
                                 var name = fetch.Object.GetName(a);

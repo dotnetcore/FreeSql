@@ -21,8 +21,8 @@ namespace FreeSql.Internal.CommonProvider
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
         public bool _doNothing = false;
-        public Dictionary<string, bool> _updateIgnore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _updateIgnore = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, string> _updateSetDict = new Dictionary<string, string>();
         public TableInfo _table;
         public ColumnInfo[] _tempPrimarys;

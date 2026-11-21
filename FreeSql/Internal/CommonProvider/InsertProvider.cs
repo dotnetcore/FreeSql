@@ -19,9 +19,9 @@ namespace FreeSql.Internal.CommonProvider
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
-        public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, bool> _ignoreInsertValueSql = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, bool> _ignoreInsertValueSql = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         public TableInfo _table;
         public Func<string, string> _tableRule;
         public string _noneParameterFlag = "c";
