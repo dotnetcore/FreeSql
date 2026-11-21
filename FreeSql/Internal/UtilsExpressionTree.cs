@@ -529,7 +529,7 @@ namespace FreeSql.Internal
 			}
 			tbattr?.ParseAsTable(trytb);
 
-			var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
+			var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.OrdinalIgnoreCase);
 			//从数据库查找主键、自增、索引
 			if (common.CodeFirst.IsConfigEntityFromDbFirst)
 			{
@@ -596,7 +596,7 @@ namespace FreeSql.Internal
 				foreach (var field in arr)
 				{
 					var idxcol = new IndexColumnInfo();
-					if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
+					if (field.EndsWith(" DESC", StringComparison.OrdinalIgnoreCase)) idxcol.IsDesc = true;
 					var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
 					if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
 					{
@@ -941,9 +941,9 @@ namespace FreeSql.Internal
                 else
                 {
                     isManyToMany = propElementType != trytb.Type &&
-                        pnv.Name.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
+                        pnv.Name.EndsWith($"{tbref.CsName}s", StringComparison.OrdinalIgnoreCase) &&
                         tbref.Properties.Where(z => (z.Value.PropertyType.GetGenericArguments().FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
-                            z.Key.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
+                            z.Key.EndsWith($"{trytb.CsName}s", StringComparison.OrdinalIgnoreCase) &&
                             typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
                 }
                 if (isManyToMany)
@@ -1110,7 +1110,7 @@ namespace FreeSql.Internal
                         for (var a = 0; a < trytb.Primarys.Length; a++)
                         {
                             var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.OrdinalIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                             if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}{findtrytbPkCsName}", out var trycol) == false && //骆峰命名
                                 tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}_{findtrytbPkCsName}", out trycol) == false //下划线命名
                                 )
@@ -1152,7 +1152,7 @@ namespace FreeSql.Internal
                             for (var a = 0; a < tbref.Primarys.Length; a++)
                             {
                                 var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
-                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.OrdinalIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
                                 if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
                                     tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
                                     )
@@ -1284,9 +1284,9 @@ namespace FreeSql.Internal
                             if (pnvBind == null && trycol == null)
                             {
                                 var findtbrefPkCsName = tbref.Primarys[0].CsName.TrimStart('_');
-                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.OrdinalIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                                 var findtrytb = pnv.Name;
-                                if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                                if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.OrdinalIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
                                 findtrytb += tbref.CsName;
                                 if (
                                     trytb.ColumnsByCs.TryGetValue($"{findtrytb}{findtbrefPkCsName}s", out trycol) == false && //骆峰命名
@@ -1334,9 +1334,9 @@ namespace FreeSql.Internal
                             if (pnvBind != null && trycol == null)
                             {
                                 var findtrytbPkCsName = trytb.Primarys[0].CsName.TrimStart('_');
-                                if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                                if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.OrdinalIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                                 var findtrytb = pnv.Name;
-                                if (findtrytb.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - trytb.CsName.Length - 1);
+                                if (findtrytb.EndsWith($"{trytb.CsName}s", StringComparison.OrdinalIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - trytb.CsName.Length - 1);
                                 findtrytb += trytb.CsName;
                                 if (
                                     tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}s", out trycol) == false && //骆峰命名
@@ -1415,9 +1415,9 @@ namespace FreeSql.Internal
                         for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
                         {
                             var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.OrdinalIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
                             var findtrytb = pnv.Name;
-                            if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                            if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.OrdinalIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
                             findtrytb += trytb.CsName;
 
                             var trycol = bindColumns.Any() ? bindColumns[a] : null;
@@ -1536,7 +1536,7 @@ namespace FreeSql.Internal
                 for (var a = 0; nvref.Exception == null && a < tbref.Primarys.Length; a++)
                 {
                     var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
-                    if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+                    if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.OrdinalIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
 
                     var trycol = bindColumns.Any() ? bindColumns[a] : null;
                     if (trycol == null &&
@@ -1622,7 +1622,7 @@ namespace FreeSql.Internal
                 foreach (var key in dic1.Keys)
                 {
                     var dbkey = key.TrimStart('@', '?', ':');
-                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.OrdinalIgnoreCase) == -1) continue;
                     var val = dic1[key];
                     var valType = val == null ? typeof(string) : val.GetType();
                     if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
@@ -1634,7 +1634,7 @@ namespace FreeSql.Internal
                 foreach (var key in dic2.Keys)
                 {
                     var dbkey = key.ToString().TrimStart('@', '?', ':');
-                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.OrdinalIgnoreCase) == -1) continue;
                     var val = dic2[key];
                     var valType = val == null ? typeof(string) : val.GetType();
                     if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
@@ -1646,7 +1646,7 @@ namespace FreeSql.Internal
                 var ps = type.GetPropertiesDictIgnoreCase().Values;
                 foreach (var p in ps)
                 {
-                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.OrdinalIgnoreCase) == -1) continue;
                     var pvalue = p.GetValue(obj, null);
                     if (ttype.IsAssignableFrom(p.PropertyType)) ret.Add((T)pvalue);
                     else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));

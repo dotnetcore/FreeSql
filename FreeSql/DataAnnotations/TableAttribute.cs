@@ -28,9 +28,9 @@ namespace FreeSql.DataAnnotations
         /// </summary>
         public bool DisableSyncStructure { get => _DisableSyncStructure ?? false; set => _DisableSyncStructure = value; }
 
-        internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
-        internal ConcurrentDictionary<string, NavigateAttribute> _navigates { get; } = new ConcurrentDictionary<string, NavigateAttribute>(StringComparer.CurrentCultureIgnoreCase);
-        internal ConcurrentDictionary<string, IndexAttribute> _indexs { get; } = new ConcurrentDictionary<string, IndexAttribute>(StringComparer.CurrentCultureIgnoreCase);
+        internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.OrdinalIgnoreCase);
+        internal ConcurrentDictionary<string, NavigateAttribute> _navigates { get; } = new ConcurrentDictionary<string, NavigateAttribute>(StringComparer.OrdinalIgnoreCase);
+        internal ConcurrentDictionary<string, IndexAttribute> _indexs { get; } = new ConcurrentDictionary<string, IndexAttribute>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// 格式：属性名=开始时间(递增)<para></para>

@@ -60,8 +60,8 @@ namespace FreeSql.Internal.CommonProvider
         public static bool IsFromSlave(string cmdText, CommandType cmdType)
         {
             return cmdType == CommandType.StoredProcedure ||
-                cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase) ||
-                cmdText.StartsWith("WITH ", StringComparison.CurrentCultureIgnoreCase);
+                cmdText.StartsWith("SELECT ", StringComparison.OrdinalIgnoreCase) ||
+                cmdText.StartsWith("WITH ", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

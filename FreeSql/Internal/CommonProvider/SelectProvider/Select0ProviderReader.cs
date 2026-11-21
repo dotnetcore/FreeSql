@@ -412,7 +412,7 @@ namespace FreeSql.Internal.CommonProvider
                 //typeof(Topic).GetMethod("get_Type").IsVirtual
 
                 var field = new StringBuilder();
-                var dicfield = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+                var dicfield = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 var tb = _tables.First();
                 var index = 0;
 
@@ -613,7 +613,7 @@ namespace FreeSql.Internal.CommonProvider
                 //typeof(Topic).GetMethod("get_Type").IsVirtual
 
                 var field = new StringBuilder();
-                var dicfield = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+                var dicfield = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 var tb = _tables.First();
                 var index = 0;
                 var otherindex = 0;

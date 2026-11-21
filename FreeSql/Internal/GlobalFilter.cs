@@ -9,7 +9,7 @@ namespace FreeSql.Internal
 {
     public class GlobalFilter
     {
-        ConcurrentDictionary<string, Item> _filters = new ConcurrentDictionary<string, Item>(StringComparer.CurrentCultureIgnoreCase);
+        ConcurrentDictionary<string, Item> _filters = new ConcurrentDictionary<string, Item>(StringComparer.OrdinalIgnoreCase);
         int _id = 0;
 
         [Flags]

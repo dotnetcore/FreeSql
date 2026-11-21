@@ -198,7 +198,7 @@ public static partial class FreeSqlGlobalExtensions
     public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>
     {
         var props = that.GetProperties(BindingFlags.Instance | BindingFlags.Public).GroupBy(p => p.DeclaringType).Reverse().SelectMany(p => p); //将基类的属性位置放在前面 #164
-        var dict = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
+        var dict = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
         foreach (var prop in props)
         {
             if (dict.TryGetValue(prop.Name, out var existsProp))
