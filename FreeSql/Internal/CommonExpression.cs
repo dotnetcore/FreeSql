@@ -371,16 +371,16 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, _tableRule, field, child, ref index, initExpArg, select, diymemexp, whereGlobalFilter, findIncludeMany, findSubSelectMany, false);
                         }
                     }
-                    else if (isAllDtoMap && _tables != null && _tables.Any() && 
+                    else if (isAllDtoMap && _tables != null && _tables.Any() &&
                         (
                             initExp.NewExpression.Type != _tables[0].Table.Type ||
-                            !initExp.Bindings.Any(a => 
+                            !initExp.Bindings.Any(a =>
                             // #2241 如果 new Dto 和 T 相同，并且未使用过例如：Name = t.Name，则也认为是 Dto 自动赋加所有属性来查询
                             {
                                 var aExp = a as MemberAssignment;
                                 if (aExp == null) return false;
                                 if (aExp.Expression is MemberExpression aExpRight == false) return false;
-                                if (aExpRight.Expression == _tables[0].Parameter && 
+                                if (aExpRight.Expression == _tables[0].Parameter &&
                                     aExpRight.Member.Name == a.Member.Name) return true;
                                 return false;
                             })
@@ -498,7 +498,7 @@ namespace FreeSql.Internal
                                         break;
                                 }
                             var mapType = initExpArg.Type;
-                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) == true && 
+                            if (dtoTable?.ColumnsByCs.TryGetValue(initExp.Bindings[a].Member.Name, out var dtoCol) == true &&
                                 dtoCol.Attribute.IsIgnore != true)
                                 mapType = dtoCol.Attribute.MapType;
                             var child = new ReadAnonymousTypeInfo
@@ -1131,6 +1131,10 @@ namespace FreeSql.Internal
                     var expOperand = (exp as UnaryExpression)?.Operand;
                     if (expOperand.Type.NullableTypeOrThis().IsEnum && exp.CanDynamicInvoke())
                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)enum)
+                    var expOperandType = expOperand.Type.NullableTypeOrThis();
+                    if ((expOperandType == typeof(float) || expOperandType == typeof(double) || expOperandType == typeof(decimal)) &&
+                        exp.Type.NullableTypeOrThis().IsIntegerType() && exp.CanDynamicInvoke())
+                        return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)2.0)
                     return ExpressionLambdaToSql(expOperand, tsc);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return $"-({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc)})";
@@ -1537,7 +1541,7 @@ namespace FreeSql.Internal
                                             typeof(ISelect0).IsAssignableFrom(arg3ExpNewArray.Expressions[0].Type))
                                         {
                                             Array arg3Values = Array.CreateInstance(arg3ExpNewArray.Expressions[0].Type, arg3ExpNewArray.Expressions.Count);
-                                            for (var arg3Idx = 0;arg3Idx < arg3ExpNewArray.Expressions.Count; arg3Idx++)
+                                            for (var arg3Idx = 0; arg3Idx < arg3ExpNewArray.Expressions.Count; arg3Idx++)
                                             {
                                                 var arg3ExpNewArrayTables = fsqltables.Select(tbcopy => new SelectTableInfo
                                                 {
@@ -2866,7 +2870,10 @@ namespace FreeSql.Internal
                     return _common.QuoteParamterName(paramName);
                 }
             }
-            return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+            var ret = _ado.AddslashesProcessParam(obj, mapType, mapColumn);
+            var retSql = string.Format(CultureInfo.InvariantCulture, "{0}", ret);
+            if ((ret is float || ret is double || ret is decimal) && retSql.TrimStart('-').All(char.IsDigit)) retSql += ".0";
+            return retSql;
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
 
