@@ -23,6 +23,25 @@ namespace FreeSql.Internal
     {
 
         public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value);
+        /// <summary>
+        /// 得到不带参数化的 SQL 语句
+        /// </summary>
+        /// <param name="sql">带参数化的 SQL 语句</param>
+        /// <param name="dbParms">参数</param>
+        /// <param name="isCompress">是否压缩sql</param>
+        /// <returns></returns>
+        public string GetNoneParamaterSql(string sql, DbParameter[] dbParms, bool isCompress)
+        {
+            if (string.IsNullOrEmpty(sql) || dbParms == null) return sql;
+
+            var sql2 = sql;
+            foreach (var p in dbParms.OrderByDescending(a => a.ParameterName.Length))
+            {
+                var val = p.Value == DBNull.Value ? null : p.Value;
+                sql2 = sql2.Replace(p.ParameterName, GetNoneParamaterSqlValue(null, null, null, val?.GetType(), val));
+            }
+            return sql2;
+        }
         public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
