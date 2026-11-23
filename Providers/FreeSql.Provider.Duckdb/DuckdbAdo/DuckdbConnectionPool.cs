@@ -71,25 +71,25 @@ namespace FreeSql.Duckdb
                 PoolSize = 1;
                 var minPoolSize = 1;
 
-                if (Regex.IsMatch(_connectionString, @"ACCESS_MODE\s*=\s*READ_ONLY", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(_connectionString, @"ACCESS_MODE\s*=\s*READ_ONLY", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
                     //One process can both read and write to the database.
                     //Multiple processes can read from the database, but no processes can write (access_mode = 'READ_ONLY').
 
                     var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                    var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                    var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                     if (m.Success)
                     {
                         minPoolSize = int.Parse(m.Groups[1].Value);
-                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                     }
 
                     pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                    m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                    m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                     if (m.Success)
                     {
                         PoolSize = int.Parse(m.Groups[1].Value);
-                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                        _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                     }
                 }
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);

@@ -33,7 +33,7 @@ namespace FreeSql.Custom.Oracle
         internal string UserId { get; set; }
         public static string GetUserId(string connectionString)
         {
-            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
             if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
             return userIdMatch.Groups[2].Value.Trim().ToUpperInvariant();
         }

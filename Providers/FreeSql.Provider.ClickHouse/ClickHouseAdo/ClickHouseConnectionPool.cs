@@ -78,27 +78,27 @@ namespace FreeSql.ClickHouse
 
                 var minPoolSize = 0;
                 var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     PoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     IdleTimeout = TimeSpan.FromSeconds(int.Parse(m.Groups[1].Value));
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);

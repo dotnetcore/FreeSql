@@ -35,7 +35,7 @@ namespace FreeSql.Dameng
 
         public static string GetUserId(string connectionString)
         {
-            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid|User)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid|User)\s*=\s*([^;]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
             if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid|User)\s*=\s*([^;]+)");
             return userIdMatch.Groups[2].Value.Trim().ToUpperInvariant();
         }
@@ -76,29 +76,29 @@ namespace FreeSql.Dameng
 
                 var minPoolSize = 0;
                 var pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
-                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                var m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     minPoolSize = int.Parse(m.Groups[1].Value);
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 pattern = @"(Max\s*)?pool\s*size\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = Math.Max(100, minPoolSize);
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
-                    Regex.Replace(_connectionString, pattern, $"poolsize={PoolSize}", RegexOptions.IgnoreCase) :
+                    Regex.Replace(_connectionString, pattern, $"poolsize={PoolSize}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) :
                     $"{_connectionString};poolsize={PoolSize}"; //NotSupportedException
                 //if (m.Success) _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
 
                 pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
-                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+                m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 if (m.Success)
                 {
                     IdleTimeout = TimeSpan.FromSeconds(int.Parse(m.Groups[1].Value));
-                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                 }
 
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
