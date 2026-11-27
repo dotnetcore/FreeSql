@@ -53,8 +53,8 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var _commonUtils = upsert._commonUtils;
         var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"#Temp_{Guid.NewGuid().ToString("N")}";
-        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
             upsert.WithTransaction(upsert._orm.Ado.TransactionCurrentThread);
         var sql1 = $"SELECT {string.Join(", ", _table.Columns.Values.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))} INTO {tempTableName} FROM {_commonUtils.QuoteSqlName(updateTableName)} WHERE 1=2";
@@ -94,8 +94,8 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var _commonUtils = update._commonUtils;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
         var tempTableName = $"#Temp_{Guid.NewGuid().ToString("N")}";
-        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLower();
-        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpper();
+        if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
+        if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)
             update.WithTransaction(update._orm.Ado.TransactionCurrentThread);
         var setColumns = new List<string>();

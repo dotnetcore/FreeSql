@@ -146,7 +146,7 @@ namespace FreeSql.GBase
                     else
                     {
                         var ds = _orm.Ado.ExecuteArray(CommandType.Text, _commonUtils.FormatSql(" select b.colname from syscolumns b where b.tabid=(select a.tabid from systables a where a.tabname={0})", new[] { tbname[1] }));
-                        var dbcols = new HashSet<string>(ds.Select(a => string.Concat(a[0])), StringComparer.CurrentCultureIgnoreCase);
+                        var dbcols = new HashSet<string>(ds.Select(a => string.Concat(a[0])), StringComparer.OrdinalIgnoreCase);
                         // 新增列
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {

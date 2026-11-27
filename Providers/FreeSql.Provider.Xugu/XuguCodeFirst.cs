@@ -89,7 +89,7 @@ namespace FreeSql.Xugu
         internal static string GetXuguSqlTypeFullName(object[] row)
         {
             var a = row;
-            var sqlType = string.Concat(a[1]).ToUpper();
+            var sqlType = string.Concat(a[1]).ToUpperInvariant();
             var data_length = long.Parse(string.Concat(a[2])); 
             var char_used = string.Concat(a[5]);
             bool.TryParse(a[9]?.ToString(), out var isVar);
@@ -101,10 +101,10 @@ namespace FreeSql.Xugu
             if (data_length <= 0)
             {
             }
-            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase))
+            else if (sqlType.StartsWith("TIMESTAMP", StringComparison.OrdinalIgnoreCase))
             {
             }
-            else if (sqlType.StartsWith("DATETIME", StringComparison.CurrentCultureIgnoreCase))
+            else if (sqlType.StartsWith("DATETIME", StringComparison.OrdinalIgnoreCase))
             {
             }
             else if (sqlType.StartsWith("BLOB"))
@@ -274,7 +274,7 @@ WHERE ns.SCHEMA_NAME={{0}} and tb.TABLE_NAME={{1}}
                     var max_length = long.Parse(string.Concat(a[2]));
                     //long SEQ_ID =  0;
                     long.TryParse(a[4]?.ToString() ?? "0", out long SEQ_ID);
-                    var SEQ_IS_SYS = (a[5]?.ToString() ?? "false")?.ToLower();
+                    var SEQ_IS_SYS = (a[5]?.ToString() ?? "false")?.ToLowerInvariant();
                     try
                     {
                         return new
@@ -293,7 +293,7 @@ WHERE ns.SCHEMA_NAME={{0}} and tb.TABLE_NAME={{1}}
                         throw ex;
                     }
                    
-                }, StringComparer.CurrentCultureIgnoreCase);
+                }, StringComparer.OrdinalIgnoreCase);
 
                 if (istmpatler == false)
                 {
@@ -318,7 +318,7 @@ WHERE ns.SCHEMA_NAME={{0}} and tb.TABLE_NAME={{1}}
                             }
 
                             var dbType = tbcol.Attribute.DbType.Replace("NTEXT", "CLOB").Replace("TEXT", "CLOB");
-                            if (dbType.StartsWith(sqlTypeSize, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (dbType.StartsWith(sqlTypeSize, StringComparison.OrdinalIgnoreCase) == false)
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First().Replace("NTEXT", "CLOB").Replace("TEXT", "CLOB")).Append(";\r\n");//为了适应FreeSQL的长文本规则采用Replace
 
 
@@ -382,7 +382,7 @@ WHERE a.IS_Primary = false and t.table_name={{1}} and schema_name={{0}}",
                         
                         if (dsukfind1==null || //没有找到一致的索引，表示新定义的
                             dsukfind1[0].Split(',').Length!=uk.Columns.Length ||
-                            uk.Columns.Any(x=>dsukfind1[0].ToLower().IndexOf( x.Column.Attribute.Name.ToLower())==-1) ||
+                            uk.Columns.Any(x=>dsukfind1[0].ToLowerInvariant().IndexOf( x.Column.Attribute.Name.ToLowerInvariant())==-1) ||
                             uk.IsUnique != (dsukfind1[2]== "1")
                             )
                         {
@@ -475,7 +475,7 @@ where b.TABLE_NAME={0} and c.SCHEMA_NAME={1} and a.cons_TYPE='P'
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             insertvalue = $"coalesce({insertvalue},{tbcol.DbDefaultValue})";

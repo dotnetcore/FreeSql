@@ -129,7 +129,7 @@ namespace FreeSql.Custom.MySql
                             foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                                if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+                                if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
                                 if (string.IsNullOrEmpty(tbcol.Comment) == false) sb.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment));
                                 sb.Append(",");
                             }
@@ -214,18 +214,18 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                 string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                             {
                                 var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                                var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false;
+                                var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false;
                                 if (tbstructcol.sqlType == "datetime(0)" && Regex.IsMatch(tbcol.Attribute.DbType, @"datetime\s*\(", RegexOptions.IgnoreCase) == false)
-                                    isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.CurrentCultureIgnoreCase) == false;
-                                else if (tbstructcol.sqlType.StartsWith("datetime", StringComparison.CurrentCultureIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.CurrentCultureIgnoreCase) == false ||
+                                    isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.OrdinalIgnoreCase) == false;
+                                else if (tbstructcol.sqlType.StartsWith("datetime", StringComparison.OrdinalIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.OrdinalIgnoreCase) == false ||
                                         (int.TryParse(Regex.Match(tbcol.Attribute.DbType, @"datetime\s*\((\d*)", RegexOptions.IgnoreCase).Groups[1].Value, out var trydtrd) ? trydtrd : 3) !=
                                         (int.TryParse(Regex.Match(tbstructcol.sqlType, @"datetime\s*\((\d*)", RegexOptions.IgnoreCase).Groups[1].Value, out var trydtrd2) ? trydtrd2 : 3);
-                                else if (tbstructcol.sqlType.StartsWith("int", StringComparison.CurrentCultureIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("int", StringComparison.CurrentCultureIgnoreCase) == false;
-                                else if (tbstructcol.sqlType.StartsWith("tinyint", StringComparison.CurrentCultureIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("tinyint", StringComparison.CurrentCultureIgnoreCase) == false;
-                                else if (tbstructcol.sqlType.StartsWith("smallint", StringComparison.CurrentCultureIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("smallint", StringComparison.CurrentCultureIgnoreCase) == false;
-                                else if (tbstructcol.sqlType.StartsWith("bigint", StringComparison.CurrentCultureIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("bigint", StringComparison.CurrentCultureIgnoreCase) == false;
+                                else if (tbstructcol.sqlType.StartsWith("int", StringComparison.OrdinalIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("int", StringComparison.OrdinalIgnoreCase) == false;
+                                else if (tbstructcol.sqlType.StartsWith("tinyint", StringComparison.OrdinalIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("tinyint", StringComparison.OrdinalIgnoreCase) == false;
+                                else if (tbstructcol.sqlType.StartsWith("smallint", StringComparison.OrdinalIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("smallint", StringComparison.OrdinalIgnoreCase) == false;
+                                else if (tbstructcol.sqlType.StartsWith("bigint", StringComparison.OrdinalIgnoreCase)) isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("bigint", StringComparison.OrdinalIgnoreCase) == false;
 
-                                if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
+                                if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.OrdinalIgnoreCase) != -1) != tbstructcol.is_unsigned ||
                                 isDbTypeChanged ||
                                 tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
                                 tbcol.Attribute.IsIdentity != tbstructcol.is_identity ||
@@ -235,7 +235,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                         sbalter.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" = ").Append(tbcol.DbDefaultValue).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL;\r\n");
                                     sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType);
                                     if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
-                                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
+                                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
                                     sbalter.Append(";\r\n");
                                 }
                                 if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, StringComparison.OrdinalIgnoreCase) == 0)
@@ -243,7 +243,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                     //修改列名
                                     sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                                     if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
-                                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
+                                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
                                     sbalter.Append(";\r\n");
                                 }
                                 continue;
@@ -252,7 +252,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                             sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" && tbcol.Attribute.IsIdentity == false) sbalter.Append(" DEFAULT ").Append(tbcol.DbDefaultValue);
                             if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
-                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
+                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
                             sbalter.Append(";\r\n");
                         }
                         var dsuksql = _commonUtils.FormatSql(@"
@@ -304,7 +304,7 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sb.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment));
                         sb.Append(",");
                     }
@@ -331,7 +331,7 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                             {
                                 //insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                             }

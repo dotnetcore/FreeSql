@@ -129,7 +129,7 @@ namespace FreeSql.KingbaseES
             Utils.GetDbParamtersByObject<KdbndpParameter>(sql, obj, null, (name, type, value) =>
             {
                 if (value != null) value = getParamterValue(type, value);
-                var ret = new KdbndpParameter { ParameterName = $"@{name.ToUpper()}", Value = value };
+                var ret = new KdbndpParameter { ParameterName = $"@{name.ToUpperInvariant()}", Value = value };
                 //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
                 //	ret.DataTypeName = "";
                 //} else {
@@ -161,7 +161,7 @@ namespace FreeSql.KingbaseES
             return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
         }
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
-        public override string QuoteParamterName(string name) => $"@{name.ToUpper()}";
+        public override string QuoteParamterName(string name) => $"@{name.ToUpperInvariant()}";
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs.Select((a, b) => b == 0 ? $"{a}::text" : a))}"; //First ::text
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";

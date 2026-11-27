@@ -698,7 +698,7 @@ namespace FreeSql.QuestDb
             var resList = _orm.Ado.Query<string>(CommandType.Text, @"SHOW TABLES");
             var res = false;
             if (ignoreCase)
-                res = resList.Any(s => s.ToLower().Equals(tbname.ToLower()));
+                res = resList.Any(s => s.ToLowerInvariant().Equals(tbname.ToLowerInvariant()));
             else
                 res = resList.Any(s => s.Equals(tbname));
             return res;

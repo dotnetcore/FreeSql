@@ -50,7 +50,7 @@ namespace FreeSql.TDengine
         public int Weight { get; set; } = 1;
 
         static readonly ConcurrentDictionary<string, int> DicConnStrIncr =
-            new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+            new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         private string _connectionString;
 

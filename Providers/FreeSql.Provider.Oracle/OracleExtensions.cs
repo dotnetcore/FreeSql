@@ -46,7 +46,7 @@ public static partial class FreeSqlOracleGlobalExtensions
         var _table = upsert._table;
         var _commonUtils = upsert._commonUtils;
         var updateTableName = upsert._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
-        var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpper().Substring(0, 24)}";
+        var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpperInvariant().Substring(0, 24)}";
         if (upsert._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
         if (upsert._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (upsert._connection == null && upsert._orm.Ado.TransactionCurrentThread != null)
@@ -94,7 +94,7 @@ public static partial class FreeSqlOracleGlobalExtensions
         var _table = update._table;
         var _commonUtils = update._commonUtils;
         var updateTableName = update._tableRule?.Invoke(_table.DbName) ?? _table.DbName;
-        var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpper().Substring(0, 24)}";
+        var tempTableName = $"TEMP_{Guid.NewGuid().ToString("N").ToUpperInvariant().Substring(0, 24)}";
         if (update._orm.CodeFirst.IsSyncStructureToLower) tempTableName = tempTableName.ToLowerInvariant();
         if (update._orm.CodeFirst.IsSyncStructureToUpper) tempTableName = tempTableName.ToUpperInvariant();
         if (update._connection == null && update._orm.Ado.TransactionCurrentThread != null)

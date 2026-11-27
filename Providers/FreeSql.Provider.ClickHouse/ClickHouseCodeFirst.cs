@@ -340,7 +340,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                             comment = string.Concat(a[3]),
                             is_primary = string.Concat(a[6]) == "1",
                         };
-                    }, StringComparer.CurrentCultureIgnoreCase);
+                    }, StringComparer.OrdinalIgnoreCase);
 
 
                     if (istmpatler == false)
@@ -523,7 +523,7 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
                         {
                             insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
                             if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType,
-                                    StringComparison.CurrentCultureIgnoreCase) == false)
+                                    StringComparison.OrdinalIgnoreCase) == false)
                             {
                                 //insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                             }
@@ -650,8 +650,8 @@ where a.database in ({0}) and a.table in ({1})", tboldname ?? tbname);
             //去除空格后比较
             bool RemoveSpaceComparison(string a, string b)
             {
-                a = Regex.Replace(a, @"\s", "").ToLower();
-                b = Regex.Replace(b, @"\s", "").ToLower();
+                a = Regex.Replace(a, @"\s", "").ToLowerInvariant();
+                b = Regex.Replace(b, @"\s", "").ToLowerInvariant();
                 return a == b;
             }
         }

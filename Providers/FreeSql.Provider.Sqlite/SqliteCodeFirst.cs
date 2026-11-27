@@ -116,7 +116,7 @@ namespace FreeSql.Sqlite
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1)
+                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.OrdinalIgnoreCase) == -1)
                             {
                                 isIndent = true;
                                 sb.Append(" PRIMARY KEY AUTOINCREMENT");
@@ -175,7 +175,7 @@ namespace FreeSql.Sqlite
                     return new
                     {
                         column = string.Concat(a[1]),
-                        sqlType = string.Concat(a[2]).ToUpper(),
+                        sqlType = string.Concat(a[2]).ToUpperInvariant(),
                         is_nullable = string.Concat(a[5]) == "0" && string.Concat(a[3]) == "0",
                         is_identity
                     };
@@ -190,7 +190,7 @@ namespace FreeSql.Sqlite
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                                 istmpatler = true;
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                                 istmpatler = true;
@@ -217,7 +217,7 @@ namespace FreeSql.Sqlite
                         foreach (var dbcolumn in dbIndexesColumns)
                         {
                             var dbcolumnName = string.Concat(dbcolumn[2]);
-                            var isDesc = dbIndexesSql.IndexOf($@"{dbcolumnName}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
+                            var isDesc = dbIndexesSql.IndexOf($@"{dbcolumnName}"" DESC", StringComparison.OrdinalIgnoreCase) == -1 ? "0" : "1";
                             dsuk.Add(new[] { dbcolumnName, string.Concat(dbIndex[1]), isDesc, string.Concat(dbIndex[2]) });
                         }
                     }
@@ -245,7 +245,7 @@ namespace FreeSql.Sqlite
                 foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1)
+                    if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.OrdinalIgnoreCase) == -1)
                     {
                         isIndent = true;
                         sb.Append(" PRIMARY KEY AUTOINCREMENT");
@@ -271,7 +271,7 @@ namespace FreeSql.Sqlite
                         string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                     {
                         insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                        if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                         {
                             var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"(NOT\s+)?NULL", "");
                             insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";

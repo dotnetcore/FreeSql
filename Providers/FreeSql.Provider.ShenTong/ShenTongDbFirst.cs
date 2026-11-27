@@ -128,7 +128,7 @@ namespace FreeSql.ShenTong
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "PUBLIC", tbname[0] };
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $@"
 select
 1
@@ -155,7 +155,7 @@ where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql(
             {
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { "PUBLIC", tbname[0] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 dbs = new[] { olddatabase };
             }
             var tables = new List<DbTableInfo>();

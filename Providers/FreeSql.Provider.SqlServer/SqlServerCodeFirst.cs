@@ -201,7 +201,7 @@ ELSE
                             foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                                if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+                                if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.OrdinalIgnoreCase) == -1) sb.Append(" identity(1,1)");
                                 if (tbcol.Attribute.IsPrimary == true)
                                 {
                                     if (tb.Primarys.Length > 1)
@@ -282,7 +282,7 @@ use [" + database + "];", tboldname ?? tbname);
                         is_nullable = string.Concat(a[2]) == "1",
                         is_identity = string.Concat(a[3]) == "1",
                         comment = string.Concat(a[4])
-                    }, StringComparer.CurrentCultureIgnoreCase);
+                    }, StringComparer.OrdinalIgnoreCase);
 
                     if (istmpatler == false)
                     {
@@ -292,7 +292,7 @@ use [" + database + "];", tboldname ?? tbname);
                                 string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                             {
                                 var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
-                                if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+                                if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false ||
                                     tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
                                     tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
                                 {
@@ -309,7 +309,7 @@ use [" + database + "];", tboldname ?? tbname);
                             }
                             //添加列
                             sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2])).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
+                            if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.OrdinalIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" && tbcol.Attribute.IsIdentity == false) sbalter.Append(" default(").Append(GetTransferDbDefaultValue(tbcol)).Append(")");
                             sbalter.Append(";\r\n");
                             if (string.IsNullOrEmpty(tbcol.Comment) == false) AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
@@ -384,7 +384,7 @@ use [" + database + "];", tboldname ?? tbname);
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+                        if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.OrdinalIgnoreCase) == -1) sb.Append(" identity(1,1)");
                         if (tbcol.Attribute.IsPrimary == true)
                         {
                             if (tb.Primarys.Length > 1)
@@ -424,7 +424,7 @@ use [" + database + "];", tboldname ?? tbname);
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.OrdinalIgnoreCase) == false)
                                 insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                                 insertvalue = $"isnull({insertvalue},{GetTransferDbDefaultValue(tbcol)})";

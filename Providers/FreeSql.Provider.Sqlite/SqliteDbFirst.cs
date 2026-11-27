@@ -105,7 +105,7 @@ namespace FreeSql.Sqlite
             throw new NotImplementedException(CoreErrorStrings.S_TypeMappingNotImplemented(column.DbTypeTextFull));
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.OrdinalIgnoreCase);
         static SqliteDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {
@@ -302,8 +302,8 @@ from {db}.sqlite_master where (type='table' or type='view') {(tbname == null ? "
                             var ds2item = new object[10];
                             ds2item[0] = table_id;
                             ds2item[1] = col_name;
-                            ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpper();
-                            ds2item[4] = string.Concat(col[2]).ToUpper();
+                            ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpperInvariant();
+                            ds2item[4] = string.Concat(col[2]).ToUpperInvariant();
                             ds2item[5] = string.Concat(col[5]) == "0" && string.Concat(col[3]) == "0" ? 1 : 0;
                             ds2item[6] = is_identity ? 1 : 0;
                             ds2item[7] = string.Concat(col[5]) == "1" ? 1 : 0;
@@ -326,7 +326,7 @@ from {db}.sqlite_master where (type='table' or type='view') {(tbname == null ? "
                                 {
                                     var column = string.Concat(dbcolumn[2]);
                                     var indexName = string.Concat(dbIndex[1]);
-                                    var isDesc = dbIndexesSql.IndexOf($@"{column}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
+                                    var isDesc = dbIndexesSql.IndexOf($@"{column}"" DESC", StringComparison.OrdinalIgnoreCase) == -1 ? "0" : "1";
                                     var isUnique = string.Concat(dbIndex[2]);
 
                                     if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;

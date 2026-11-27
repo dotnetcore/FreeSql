@@ -124,7 +124,7 @@ namespace FreeSql.Duckdb
             return isarray ? (ret | DuckDBType.Array) : ret;
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.OrdinalIgnoreCase);
         static DuckdbDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {
@@ -176,7 +176,7 @@ namespace FreeSql.Duckdb
             if (string.IsNullOrEmpty(name)) return false;
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
-            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
             var sql = $@" select 1 from {_commonUtils.QuoteSqlName(tbname[0])}.sqlite_master where type='table' and {(ignoreCase ? "lower(tbl_name)" : "tbl_name")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
@@ -194,7 +194,7 @@ namespace FreeSql.Duckdb
             {
                 tbname = _commonUtils.SplitTableName(tablename);
                 if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
-                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLowerInvariant()).ToArray();
                 database = new[] { tbname[0] };
             }
             else if (database == null || database.Any() == false)
@@ -299,8 +299,8 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                             var ds2item = new object[10];
                             ds2item[0] = table_id;
                             ds2item[1] = col_name;
-                            ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpper();
-                            ds2item[4] = string.Concat(col[2]).ToUpper();
+                            ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpperInvariant();
+                            ds2item[4] = string.Concat(col[2]).ToUpperInvariant();
                             ds2item[5] = string.Concat(col[5]) == "False" && string.Concat(col[3]) == "False" ? 1 : 0;
                             ds2item[6] = is_identity ? 1 : 0;
                             ds2item[7] = string.Concat(col[5]) == "True" ? 1 : 0;

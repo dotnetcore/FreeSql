@@ -291,7 +291,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.schema_name || '.' || tb.tabl
                     var is_nullable = string.Concat(row[5]) == "1";
 
                     long.TryParse(row[5]?.ToString() ?? "0", out long SEQ_ID);
-                    var SEQ_IS_SYS = (row[6]?.ToString() ?? "false")?.ToLower();
+                    var SEQ_IS_SYS = (row[6]?.ToString() ?? "false")?.ToLowerInvariant();
 
                     var is_identity = (SEQ_ID > 0 && SEQ_IS_SYS == "true");
                     var comment = string.Concat(row[9]);
@@ -303,7 +303,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.schema_name || '.' || tb.tabl
                     //string owner = string.Concat(row[10]);
                     //int attnum = int.Parse(string.Concat(row[11]));
 
-                    //switch (sqlType.ToLower())
+                    //switch (sqlType.ToLowerInvariant())
                     //{
                     //    case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
                     //    default: max_length *= 8; break;
@@ -317,7 +317,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.schema_name || '.' || tb.tabl
                     var sqlType = type;
                     if (max_length > 0)
                     {
-                        switch (type.ToUpper())
+                        switch (type.ToUpperInvariant())
                         {
                             //case "numeric": sqlType += $"({max_length})"; break;
 
