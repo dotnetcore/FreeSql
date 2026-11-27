@@ -634,7 +634,7 @@ namespace FreeSql.Extensions.ZeroEntity
             /// <exception cref="Exception"></exception>
             public SelectImpl Where(string field, string @operator, object value)
 			{
-				switch (@operator?.ToLower().Trim())
+				switch (@operator?.ToLowerInvariant().Trim())
 				{
 					case "=":
 					case "==":
@@ -683,7 +683,7 @@ namespace FreeSql.Extensions.ZeroEntity
 				if (field1Result == null) throw new Exception($"未匹配字段名 {field1}");
 				var field2Result = ParseField(null, null, field2);
 				if (field2Result == null) throw new Exception($"未匹配字段名 {field2}");
-				switch (@operator?.ToLower().Trim())
+				switch (@operator?.ToLowerInvariant().Trim())
 				{
 					case "=":
 					case "==":
