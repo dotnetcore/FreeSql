@@ -101,18 +101,18 @@ Func<DbForeignInfo, string> GetFkObjectName = fkx => {
 	var eqfks = fks.Where(fk22a => fk22a.ReferencedTable.Name == fkx.ReferencedTable.Name);
 	if (eqfks.Count() == 1) return fkx.ReferencedTable.Name;
 	var fkretname = fkx.Columns[0].Name;
-	if (fkretname.EndsWith(fkx.ReferencedColumns[0].Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedColumns[0].Name.Length).TrimEnd('_');
-	if (fkretname.EndsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedTable.Name.Length).TrimEnd('_');
-	if (fkretname.StartsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(fkx.ReferencedTable.Name.Length).TrimStart('_');
+	if (fkretname.EndsWith(fkx.ReferencedColumns[0].Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedColumns[0].Name.Length).TrimEnd('_');
+	if (fkretname.EndsWith(fkx.ReferencedTable.Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedTable.Name.Length).TrimEnd('_');
+	if (fkretname.StartsWith(fkx.ReferencedTable.Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(fkx.ReferencedTable.Name.Length).TrimStart('_');
 	return fkx.ReferencedTable.Name + (string.IsNullOrEmpty(fkretname) ? """" : (""_"" + fkretname));
 };
 Func<DbForeignInfo, string> GetFkObjectNameOutside = fkx => {
 	var eqfks = fkx.Table.Foreigns.Where(fk22a => fk22a.ReferencedTable.Name == fkx.ReferencedTable.Name);
 	if (eqfks.Count() == 1) return fkx.Table.Name;
 	var fkretname = fkx.Columns[0].Name;
-	if (fkretname.EndsWith(fkx.ReferencedColumns[0].Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedColumns[0].Name.Length).TrimEnd('_');
-	if (fkretname.EndsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedTable.Name.Length).TrimEnd('_');
-	if (fkretname.StartsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(fkx.ReferencedTable.Name.Length).TrimStart('_');
+	if (fkretname.EndsWith(fkx.ReferencedColumns[0].Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedColumns[0].Name.Length).TrimEnd('_');
+	if (fkretname.EndsWith(fkx.ReferencedTable.Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedTable.Name.Length).TrimEnd('_');
+	if (fkretname.StartsWith(fkx.ReferencedTable.Name, StringComparison.OrdinalIgnoreCase)) fkretname = fkretname.Substring(fkx.ReferencedTable.Name.Length).TrimStart('_');
 	return fkx.Table.Name + (string.IsNullOrEmpty(fkretname) ? """" : (""_"" + fkretname));
 };
 }@{

@@ -36,22 +36,22 @@ public class RazorModel
 		name = Regex.Replace(name.TrimStart('@', '.'), @"[^\w]", "_");
 		name = char.IsLetter(name, 0) ? name : string.Concat("_", name);
 		if (NameOptions[0]) name = UFString(name);
-		if (NameOptions[1]) name = UFString(name.ToLower());
-		if (NameOptions[2]) name = name.ToLower();
+		if (NameOptions[1]) name = UFString(name.ToLowerInvariant());
+		if (NameOptions[2]) name = name.ToLowerInvariant();
 		if (NameOptions[3]) name = string.Join("", name.Split('_').Select(a => UFString(a)));
 		return name;
 	}
 	public string UFString(string text)
 	{
 		text = Regex.Replace(text, @"[^\w]", "_");
-		if (text.Length <= 1) return text.ToUpper();
-		else return text.Substring(0, 1).ToUpper() + text.Substring(1, text.Length - 1);
+		if (text.Length <= 1) return text.ToUpperInvariant();
+		else return text.Substring(0, 1).ToUpperInvariant() + text.Substring(1, text.Length - 1);
 	}
 	public string LFString(string text)
 	{
 		text = Regex.Replace(text, @"[^\w]", "_");
-		if (text.Length <= 1) return text.ToLower();
-		else return text.Substring(0, 1).ToLower() + text.Substring(1, text.Length - 1);
+		if (text.Length <= 1) return text.ToLowerInvariant();
+		else return text.Substring(0, 1).ToLowerInvariant() + text.Substring(1, text.Length - 1);
 	}
 	private string LiteralString(string text)
 	{
@@ -68,7 +68,7 @@ public class RazorModel
 	{
 		if (fsql.Ado.DataType == FreeSql.DataType.MySql)
 			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
-				return $"{this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}{(col.IsNullable ? "?" : "")}";
+				return $"{this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpperInvariant()}{(col.IsNullable ? "?" : "")}";
 		return fsql.DbFirst.GetCsType(col);
 	}
 
@@ -99,14 +99,14 @@ public class RazorModel
 		if (col.CsType != null)
 		{
 			var dbinfo = fsql.CodeFirst.GetDbInfo(col.CsType);
-			if (dbinfo != null && string.Compare(dbinfo.dbtypeFull.Replace("NOT NULL", "").Trim(), col.DbTypeTextFull, true) != 0)
+			if (dbinfo != null && string.Compare(dbinfo.dbtypeFull.Replace("NOT NULL", "").Trim(), col.DbTypeTextFull, StringComparison.OrdinalIgnoreCase) != 0)
 			{
 				#region StringLength 反向
 				switch (fsql.Ado.DataType)
 				{
 					case DataType.MySql:
 					case DataType.OdbcMySql:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "longtext": sb.Add("StringLength = -2"); break;
 							case "text": sb.Add("StringLength = -1"); break;
@@ -119,7 +119,7 @@ public class RazorModel
 						break;
 					case DataType.SqlServer:
 					case DataType.OdbcSqlServer:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "nvarchar(max)": sb.Add("StringLength = -2"); break;
 							default:
@@ -133,7 +133,7 @@ public class RazorModel
 					case DataType.OdbcPostgreSQL:
 					case DataType.KingbaseES:
 					case DataType.ShenTong:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "text": sb.Add("StringLength = -2"); break;
 							default:
@@ -145,7 +145,7 @@ public class RazorModel
 						break;
 					case DataType.Oracle:
 					case DataType.OdbcOracle:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "nclob": sb.Add("StringLength = -2"); break;
 							default:
@@ -156,7 +156,7 @@ public class RazorModel
 						}
 						break;
 					case DataType.Dameng:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "text": sb.Add("StringLength = -2"); break;
 							default:
@@ -167,7 +167,7 @@ public class RazorModel
 						}
 						break;
 					case DataType.Sqlite:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "text": sb.Add("StringLength = -2"); break;
 							default:
@@ -178,7 +178,7 @@ public class RazorModel
 						}
 						break;
 					case DataType.MsAccess:
-						switch (col.DbTypeTextFull.ToLower())
+						switch (col.DbTypeTextFull.ToLowerInvariant())
 						{
 							case "longtext": sb.Add("StringLength = -2"); break;
 							default:
@@ -236,8 +236,8 @@ public class RazorModel
 			else if (defval.StartsWith("(") && defval.EndsWith(")")) defval = defval.Substring(1, defval.Length - 2);
 			else return null;
 			if (defval.StartsWith("N'") && defval.EndsWith("'")) defval = defval.Substring(1);
-			if (cstype == typeof(Guid) && string.Compare(defval, "newid()", true) == 0) return $"Guid.NewGuid()";
-			if (cstype == typeof(string) && string.Compare(defval, "newid()", true) == 0) return $"Guid.NewGuid().ToString().ToUpper()";
+			if (cstype == typeof(Guid) && string.Compare(defval, "newid()", StringComparison.OrdinalIgnoreCase) == 0) return $"Guid.NewGuid()";
+			if (cstype == typeof(string) && string.Compare(defval, "newid()", StringComparison.OrdinalIgnoreCase) == 0) return $"Guid.NewGuid().ToString().ToUpper()";
 			if (defval == "NULL") return null;
 		}
 		if ((fsql.Ado.DataType == DataType.PostgreSQL || fsql.Ado.DataType == DataType.OdbcPostgreSQL || fsql.Ado.DataType == DataType.CustomPostgreSQL ||
@@ -292,7 +292,7 @@ public class RazorModel
 			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
 			{
 				if (col.DbType == (int)MySqlDbType.Set) sb.Append("\r\n\t[Flags]");
-				sb.Append($"\r\n\tpublic enum {this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}");
+				sb.Append($"\r\n\tpublic enum {this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpperInvariant()}");
 				if (col.DbType == (int)MySqlDbType.Set) sb.Append(" : long");
 				sb.Append(" {\r\n\t\t");
 
